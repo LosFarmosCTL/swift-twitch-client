@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  build:
+    name: Build + Test
+    
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: swift build -v
+      - name: Test
+        run: swift test
+
+  lint:
+    name: Lint
+    
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
+
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: cache-swift-format
+        with:
+          path: ~/.build
+          key: ${{ runner.os }}-swift-format
+          restore-keys: |
+            ${{ runner.os }}-swift-format
+      - name: Build swift-format
+        if: steps.cache-swift-format.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          git clone -b release/5.7 https://github.com/apple/swift-format.git
+          cd swift-format
+          swift build --disable-sandbox -c release
+          mv .build .. && cd ..
+
+      - name: Check formatting
+        run: ~/.build/release/swift-format lint -rs --color-diagnostics $GITHUB_WORKSPACE
