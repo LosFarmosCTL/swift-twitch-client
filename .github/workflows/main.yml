@@ -29,6 +29,8 @@ jobs:
         uses: norio-nomura/action-swiftlint@3.2.1
 
   format:
+    name: Check formatting
+  
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +42,7 @@ jobs:
           key: ${{ runner.os }}-swift-format
           restore-keys: |
             ${{ runner.os }}-swift-format
-      - name: Build swift-format
+      - name: Build apple/swift-format from source
         if: steps.cache-swift-format.outputs.cache-hit != 'true'
         run: |
           cd ~
@@ -49,5 +51,5 @@ jobs:
           swift build --disable-sandbox -c release
           mv .build .. && cd ..
 
-      - name: Check formatting
+      - name: Check formatting using apple/swift-format
         run: ~/.build/release/swift-format lint -rs --color-diagnostics $GITHUB_WORKSPACE
