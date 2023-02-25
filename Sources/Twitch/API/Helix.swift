@@ -19,7 +19,11 @@ open class Helix {
     self.session = URLSession(configuration: configuration)
   }
 
-  private func request(at endpoint: String, with queryItems: [URLQueryItem]) async throws -> Data {
+  internal func request(_ request: HelixRequest, with queryItems: [URLQueryItem]) async throws
+    -> Data
+  {
+    let (method, endpoint) = request.unwrap()
+
     guard var urlComponents = URLComponents(string: endpoint) else {
       fatalError("Invalid URL")
     }
@@ -29,7 +33,15 @@ open class Helix {
       fatalError("Invalid URL")
     }
 
-    let (data, response) = try await self.session.data(from: url)
+    var urlRequest = URLRequest(url: url)
+    urlRequest.httpMethod = method
+
+    return try await self.send(urlRequest)
+  }
+
+  private func send(_ request: URLRequest) async throws -> Data {
+    let (data, response) = try await self.session.data(for: request)
+
     guard let httpResponse = response as? HTTPURLResponse else {
       throw URLError(.badServerResponse)
     }
@@ -44,9 +56,9 @@ open class Helix {
 
 #if canImport(FoundationNetworking)
   extension URLSession {
-    func data(from url: URL) async throws -> (Data, URLResponse) {
+    fileprivate func data(for request: URLRequest) async throws -> (Data, URLResponse) {
       return try await withCheckedThrowingContinuation { continuation in
-        let task = self.dataTask(with: url) { data, response, error in
+        let task = self.dataTask(with: request) { data, response, error in
           if let data, let response {
             continuation.resume(returning: (data, response))
           } else if let error {
