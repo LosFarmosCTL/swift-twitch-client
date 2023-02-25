@@ -31,7 +31,7 @@ class AuthenticationTests: XCTestCase {
     let clientID = "1234567890"
     let auth = TwitchAuthentication(oAuth: oAuth, clientID: clientID)
 
-    let headers = auth.HTTPHeaders()
+    let headers = auth.httpHeaders()
 
     XCTAssert(
       headers.contains(where: { $0.key == "Authorization" && $0.value == "Bearer " + oAuth }))

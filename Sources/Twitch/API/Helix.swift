@@ -15,7 +15,7 @@ open class Helix {
     }
 
     let configuration = URLSessionConfiguration.default
-    configuration.httpAdditionalHeaders = authentication.HTTPHeaders()
+    configuration.httpAdditionalHeaders = authentication.httpHeaders()
     self.session = URLSession(configuration: configuration)
   }
 

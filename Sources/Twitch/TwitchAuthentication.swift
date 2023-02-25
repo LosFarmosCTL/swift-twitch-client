@@ -18,7 +18,7 @@ public struct TwitchAuthentication {
     return String(oAuth.dropFirst(oAuthPrefix.count))
   }
 
-  internal func HTTPHeaders() -> [String: String] {
+  internal func httpHeaders() -> [String: String] {
     var headers: [String: String] = [:]
     headers.updateValue("Bearer " + self.cleanOAuth, forKey: "Authorization")
 
