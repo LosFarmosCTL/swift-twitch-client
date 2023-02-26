@@ -47,7 +47,15 @@ open class Helix {
     }
 
     guard httpResponse.statusCode == 200 else {
-      throw HelixError.non2XXStatusCode(httpResponse.statusCode)
+      let error = try? JSONDecoder().decode(TwitchError.self, from: data)
+
+      guard let error = error else {
+        let rawResponse = String(decoding: data, as: UTF8.self)
+        throw HelixError.invalidErrorResponse(
+          status: httpResponse.statusCode, rawResponse: rawResponse)
+      }
+
+      throw error
     }
 
     return data
