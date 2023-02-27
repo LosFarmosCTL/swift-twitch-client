@@ -9,14 +9,23 @@ open class Helix {
 
   private let session: URLSession
 
-  public init(authentication: TwitchAuthentication) throws {
+  public init(authentication: TwitchAuthentication, urlSession: URLSession? = nil) throws {
     if authentication.clientID == nil {
       throw HelixError.missingClientID
     }
 
-    let configuration = URLSessionConfiguration.default
-    configuration.httpAdditionalHeaders = authentication.httpHeaders()
-    self.session = URLSession(configuration: configuration)
+    var httpHeaders: [AnyHashable: Any] = authentication.httpHeaders()
+    if let customSession = urlSession {
+      httpHeaders.merge(
+        customSession.configuration.httpAdditionalHeaders ?? [AnyHashable: Any]()
+      ) { current, _ in current }
+
+      self.session = customSession
+    } else {
+      self.session = URLSession(configuration: .default)
+    }
+
+    self.session.configuration.httpAdditionalHeaders = httpHeaders
   }
 
   internal func request(_ request: HelixRequest, with queryItems: [URLQueryItem]) async throws
