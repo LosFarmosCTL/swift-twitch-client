@@ -55,7 +55,8 @@ open class Helix {
           status: httpResponse.statusCode, rawResponse: rawResponse)
       }
 
-      throw error
+      throw HelixError.requestFailed(
+        error: error.error, status: error.status, message: error.message)
     }
 
     return data
