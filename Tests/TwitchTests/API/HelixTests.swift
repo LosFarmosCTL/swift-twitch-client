@@ -9,8 +9,9 @@ class HelixTests: XCTestCase {
   }
 
   func testHelixInitializationWithoutClientId() {
-    XCTAssertThrowsError(try Helix(authentication: .init(oAuth: "abcdefg"))) {
-      error in
+    XCTAssertThrowsError(
+      try Helix(authentication: .init(oAuth: "abcdefghijkl123456789"))
+    ) { error in
       guard case HelixError.missingClientID = error else {
         return XCTFail(
           "Initializing Helix without a ClientID should throw a missingClientID error."
