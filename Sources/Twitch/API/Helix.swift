@@ -28,7 +28,8 @@ open class Helix {
     self.session.configuration.httpAdditionalHeaders = httpHeaders
   }
 
-  internal func request(_ request: HelixRequest, with queryItems: [URLQueryItem]) async throws
+  internal func request(_ request: HelixRequest, with queryItems: [URLQueryItem]? = nil)
+    async throws
     -> Data
   {
     let (method, endpoint) = request.unwrap()
@@ -37,7 +38,10 @@ open class Helix {
       fatalError("Invalid URL")
     }
 
-    urlComponents.queryItems = queryItems
+    if let queryItems = queryItems, !queryItems.isEmpty {
+      urlComponents.queryItems = queryItems
+    }
+
     guard let url = urlComponents.url(relativeTo: self.baseURL) else {
       fatalError("Invalid URL")
     }
