@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "broadcaster_id": "141981764",
+      "broadcaster_login": "twitchdev",
+      "broadcaster_name": "TwitchDev",
+      "broadcaster_language": "en",
+      "game_id": "509670",
+      "game_name": "Science & Technology",
+      "title": "TwitchDev Monthly Update // May 6, 2021",
+      "delay": 0,
+      "tags": ["DevsInTheKnow"]
+    },
+    {
+      "broadcaster_id": "22484632",
+      "broadcaster_login": "forsen",
+      "broadcaster_name": "forsen",
+      "broadcaster_language": "en",
+      "game_id": "27471",
+      "game_name": "Minecraft",
+      "title": "Lets do it!",
+      "delay": 0,
+      "tags": ["English"]
+    }
+  ]
+}

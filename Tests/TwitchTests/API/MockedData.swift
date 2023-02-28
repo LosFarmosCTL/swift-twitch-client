@@ -1,6 +1,13 @@
 import Foundation
 
-public final class MockedData {}
+public final class MockedData {
+  public static let getChannelsJSON: Data = Bundle.module.url(
+    forResource: "getChannels", withExtension: "json")!.data
+  public static let getMultipleChannelsJSON: Data = Bundle.module.url(
+    forResource: "getMultipleChannels", withExtension: "json")!.data
+  public static let getChannelsNoBroadcasterIDJSON: Data = Bundle.module.url(
+    forResource: "getChannelsNoBroadcasterID", withExtension: "json")!.data
+}
 
 extension URL {
   // swiftlint:disable force_try
