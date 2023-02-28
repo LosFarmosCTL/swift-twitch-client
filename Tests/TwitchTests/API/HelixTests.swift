@@ -4,14 +4,17 @@ import XCTest
 
 class HelixTests: XCTestCase {
   func testHelixInitialization() {
-    XCTAssertNoThrow(try Helix(authentication: .init(oAuth: "abcdefg", clientID: "123456789")))
+    XCTAssertNoThrow(
+      try Helix(authentication: .init(oAuth: "abcdefg", clientID: "123456789")))
   }
 
   func testHelixInitializationWithoutClientId() {
-    XCTAssertThrowsError(try Helix(authentication: .init(oAuth: "abcdefg"))) { error in
+    XCTAssertThrowsError(try Helix(authentication: .init(oAuth: "abcdefg"))) {
+      error in
       guard case HelixError.missingClientID = error else {
         return XCTFail(
-          "Initializing Helix without a ClientID should throw a missingClientID error.")
+          "Initializing Helix without a ClientID should throw a missingClientID error."
+        )
       }
     }
   }

@@ -17,14 +17,18 @@ final class GetChannelsTests: XCTestCase {
     let urlSession = URLSession(configuration: configuration)
 
     helix = try Helix(
-      authentication: .init(oAuth: "1234567989", clientID: "abcdefghijkl"), urlSession: urlSession)
+      authentication: .init(oAuth: "1234567989", clientID: "abcdefghijkl"),
+      urlSession: urlSession)
   }
 
   func testGetChannels() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/channels?broadcaster_id=141981764")!
+    let url = URL(
+      string: "https://api.twitch.tv/helix/channels?broadcaster_id=141981764")!
 
-    Mock(url: url, dataType: .json, statusCode: 200, data: [.get: MockedData.getChannelsJSON])
-      .register()
+    Mock(
+      url: url, dataType: .json, statusCode: 200,
+      data: [.get: MockedData.getChannelsJSON]
+    ).register()
 
     let channels = try await helix.getChannels(userIDs: ["141981764"])
 
@@ -35,14 +39,17 @@ final class GetChannelsTests: XCTestCase {
   func testGetChannelsWithMultipleIDs() async throws {
     let url = URL(
       string:
-        "https://api.twitch.tv/helix/channels?broadcaster_id=141981764&broadcaster_id=22484632")!
+        "https://api.twitch.tv/helix/channels?broadcaster_id=141981764&broadcaster_id=22484632"
+    )!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200, data: [.get: MockedData.getMultipleChannelsJSON]
-    )
-    .register()
+      url: url, dataType: .json, statusCode: 200,
+      data: [.get: MockedData.getMultipleChannelsJSON]
+    ).register()
 
-    let channels = try await helix.getChannels(userIDs: ["141981764", "22484632"])
+    let channels = try await helix.getChannels(userIDs: [
+      "141981764", "22484632",
+    ])
 
     XCTAssertEqual(channels.count, 2)
   }
@@ -53,15 +60,17 @@ final class GetChannelsTests: XCTestCase {
     Mock(
       url: url, dataType: .json, statusCode: 400,
       data: [.get: MockedData.getChannelsNoBroadcasterIDJSON]
-    )
-    .register()
+    ).register()
 
     await XCTAssertThrowsErrorAsync(
       try await helix.getChannels(userIDs: []),
       "An invalid request should throw an error."
     ) { err in
-      guard case HelixError.requestFailed(let error, let status, let message) = err else {
-        return XCTFail("An invalid request should throw a requestFailed error, not \(err).")
+      guard
+        case HelixError.requestFailed(let error, let status, let message) = err
+      else {
+        return XCTFail(
+          "An invalid request should throw a requestFailed error, not \(err).")
       }
 
       XCTAssertEqual(error, "Bad Request")

@@ -6,14 +6,20 @@ import Foundation
 
 extension Helix {
   public func getChannels(userIDs: [String]) async throws -> [Broadcaster] {
-    let queryItems = userIDs.map { URLQueryItem(name: "broadcaster_id", value: $0) }
+    let queryItems = userIDs.map {
+      URLQueryItem(name: "broadcaster_id", value: $0)
+    }
 
     var data: Data
     data = try await self.request(.get("channels"), with: queryItems)
 
-    guard let channels = try? JSONDecoder().decode(HelixData<Broadcaster>.self, from: data).data
-    else {
-      throw HelixError.invalidResponse(rawResponse: String(decoding: data, as: UTF8.self))
+    let channels = try? JSONDecoder().decode(
+      HelixData<Broadcaster>.self, from: data
+    ).data
+
+    guard let channels else {
+      throw HelixError.invalidResponse(
+        rawResponse: String(decoding: data, as: UTF8.self))
     }
 
     return channels

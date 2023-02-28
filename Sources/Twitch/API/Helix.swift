@@ -9,15 +9,16 @@ open class Helix {
 
   private let session: URLSession
 
-  public init(authentication: TwitchAuthentication, urlSession: URLSession? = nil) throws {
-    if authentication.clientID == nil {
-      throw HelixError.missingClientID
-    }
+  public init(
+    authentication: TwitchAuthentication, urlSession: URLSession? = nil
+  ) throws {
+    if authentication.clientID == nil { throw HelixError.missingClientID }
 
     var httpHeaders: [AnyHashable: Any] = authentication.httpHeaders()
     if let customSession = urlSession {
       httpHeaders.merge(
-        customSession.configuration.httpAdditionalHeaders ?? [AnyHashable: Any]()
+        customSession.configuration.httpAdditionalHeaders
+          ?? [AnyHashable: Any]()
       ) { current, _ in current }
 
       self.session = customSession
@@ -28,10 +29,9 @@ open class Helix {
     self.session.configuration.httpAdditionalHeaders = httpHeaders
   }
 
-  internal func request(_ request: HelixRequest, with queryItems: [URLQueryItem]? = nil)
-    async throws
-    -> Data
-  {
+  internal func request(
+    _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil
+  ) async throws -> Data {
     let (method, endpoint) = request.unwrap()
 
     guard var urlComponents = URLComponents(string: endpoint) else {
@@ -78,7 +78,9 @@ open class Helix {
 
 #if canImport(FoundationNetworking)
   extension URLSession {
-    fileprivate func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+    fileprivate func data(for request: URLRequest) async throws -> (
+      Data, URLResponse
+    ) {
       return try await withCheckedThrowingContinuation { continuation in
         let task = self.dataTask(with: request) { data, response, error in
           if let data, let response {
