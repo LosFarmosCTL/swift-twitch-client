@@ -7,26 +7,18 @@ import Foundation
 open class Helix {
   private let baseURL = URL(string: "https://api.twitch.tv/helix/")!
 
+  private let authentication: TwitchAuthentication
   private let session: URLSession
 
   public init(
     authentication: TwitchAuthentication, urlSession: URLSession? = nil
   ) throws {
-    if authentication.clientID == nil { throw HelixError.missingClientID }
-
-    var httpHeaders: [AnyHashable: Any] = authentication.httpHeaders()
-    if let customSession = urlSession {
-      httpHeaders.merge(
-        customSession.configuration.httpAdditionalHeaders
-          ?? [AnyHashable: Any]()
-      ) { current, _ in current }
-
-      self.session = customSession
-    } else {
-      self.session = URLSession(configuration: .default)
+    guard authentication.clientID != nil else {
+      throw HelixError.missingClientID
     }
 
-    self.session.configuration.httpAdditionalHeaders = httpHeaders
+    self.authentication = authentication
+    self.session = urlSession ?? URLSession(configuration: .default)
   }
 
   internal func request(
@@ -46,6 +38,7 @@ open class Helix {
 
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
+    urlRequest.allHTTPHeaderFields = authentication.httpHeaders()
 
     return try await self.send(urlRequest)
   }
