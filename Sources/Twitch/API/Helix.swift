@@ -34,17 +34,15 @@ open class Helix {
   ) async throws -> Data {
     let (method, endpoint) = request.unwrap()
 
-    guard var urlComponents = URLComponents(string: endpoint) else {
-      fatalError("Invalid URL")
-    }
+    var urlComponents = URLComponents(string: endpoint)
 
     if let queryItems = queryItems, !queryItems.isEmpty {
-      urlComponents.queryItems = queryItems
+      urlComponents?.queryItems = queryItems
     }
 
-    guard let url = urlComponents.url(relativeTo: self.baseURL) else {
-      fatalError("Invalid URL")
-    }
+    let url = urlComponents?.url(relativeTo: self.baseURL)
+
+    guard let url else { fatalError("Invalid URL") }
 
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
@@ -62,7 +60,7 @@ open class Helix {
     guard httpResponse.statusCode == 200 else {
       let error = try? JSONDecoder().decode(TwitchError.self, from: data)
 
-      guard let error = error else {
+      guard let error else {
         let rawResponse = String(decoding: data, as: UTF8.self)
         throw HelixError.invalidErrorResponse(
           status: httpResponse.statusCode, rawResponse: rawResponse)
