@@ -54,7 +54,7 @@ final class GetChannelsTests: XCTestCase {
     XCTAssertEqual(channels.count, 2)
   }
 
-  func testGetChannelsWithInvalidRequest() async throws {
+  func testGetChannelsWithInvalidRequest() async {
     let url = URL(string: "https://api.twitch.tv/helix/channels")!
 
     Mock(
@@ -76,6 +76,23 @@ final class GetChannelsTests: XCTestCase {
       XCTAssertEqual(error, "Bad Request")
       XCTAssertEqual(status, 400)
       XCTAssertEqual(message, "Missing required parameter \"broadcaster_id\"")
+    }
+  }
+
+  func testGetChannelsInvalidResponse() async {
+    let url = URL(string: "https://api.twitch.tv/helix/channels")!
+
+    Mock(url: url, dataType: .json, statusCode: 200, data: [.get: Data()])
+      .register()
+
+    await XCTAssertThrowsErrorAsync(
+      try await helix.getChannels(userIDs: []),
+      "An invalid reponse should throw an error."
+    ) { error in
+      guard case HelixError.invalidResponse = error else {
+        return XCTFail(
+          "An invalid response should throw an invalidResponse HelixError")
+      }
     }
   }
 }
