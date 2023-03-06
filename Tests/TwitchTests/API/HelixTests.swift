@@ -69,4 +69,27 @@ class HelixTests: XCTestCase {
 
     _ = try await helix.request(.get("test"))
   }
+
+  func testInvalidErrorResponse() async throws {
+    let oAuth = "abcdefg"
+    let clientID = "123456"
+
+    let helix = try Helix(
+      authentication: .init(oAuth: oAuth, clientID: clientID),
+      urlSession: mockingURLSession)
+
+    let url = URL(string: "https://api.twitch.tv/helix/invalid")!
+    Mock(url: url, dataType: .json, statusCode: 500, data: [.get: Data()])
+      .register()
+
+    await XCTAssertThrowsErrorAsync(try await helix.request(.get("invalid"))) {
+      error in
+
+      guard case HelixError.invalidErrorResponse = error else {
+        return XCTFail(
+          "An invalid error response should throw an invalidErrorResponse HelixError"
+        )
+      }
+    }
+  }
 }
