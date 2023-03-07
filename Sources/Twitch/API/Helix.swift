@@ -4,7 +4,7 @@ import Foundation
   import FoundationNetworking
 #endif
 
-open class Helix {
+public final class Helix {
   private let baseURL = URL(string: "https://api.twitch.tv/helix/")!
 
   private let authentication: TwitchAuthentication
