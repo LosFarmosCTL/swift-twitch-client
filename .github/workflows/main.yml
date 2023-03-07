@@ -58,7 +58,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ~/.build
-          key: ${{ runner.os }}-swift-format-${{ jobs.commit-sha.outputs.sha }}
+          key: ${{ runner.os }}-swift-format-${{ steps.commit-sha.outputs.sha }}
       - name: Build apple/swift-format from source
         if: steps.cache-swift-format.outputs.cache-hit != 'true'
         run: |
