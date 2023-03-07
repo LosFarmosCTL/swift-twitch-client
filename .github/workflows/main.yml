@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Swift 5.8 Snapshot
-        uses: slashmo/install-swift@v0.1.0
+        uses: slashmo/install-swift@v0.4.0
         with:
           version: swift-5.8-DEVELOPMENT-SNAPSHOT-2023-02-23-a
       - name: Build
