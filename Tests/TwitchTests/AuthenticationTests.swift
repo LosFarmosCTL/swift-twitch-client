@@ -6,7 +6,7 @@ class AuthenticationTests: XCTestCase {
   func testOAuthWithClientID() {
     let oAuth = "oauth:abcdefghijklmnop"
     let clientID = "1234567890"
-    let auth = TwitchAuthentication(oAuth: oAuth, clientID: clientID)
+    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID)
 
     XCTAssertEqual(auth.oAuth, oAuth)
     XCTAssertEqual(auth.clientID, clientID)
@@ -14,14 +14,14 @@ class AuthenticationTests: XCTestCase {
 
   func testOAuthNoClientID() {
     let oAuth = "oauth:abcdefghijklmnop"
-    let auth = TwitchAuthentication(oAuth: oAuth)
+    let auth = TwitchCredentials(oAuth: oAuth)
 
     XCTAssertNil(auth.clientID)
   }
 
   func testOAuthWithoutPrefix() {
     let oAuth = "abcdefghijklmnop"
-    let auth = TwitchAuthentication(oAuth: oAuth)
+    let auth = TwitchCredentials(oAuth: oAuth)
 
     XCTAssertEqual(auth.oAuth, "oauth:" + oAuth)
   }
@@ -29,7 +29,7 @@ class AuthenticationTests: XCTestCase {
   func testHTTPHeaders() {
     let oAuth = "abcdefghijklmnop"
     let clientID = "1234567890"
-    let auth = TwitchAuthentication(oAuth: oAuth, clientID: clientID)
+    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID)
 
     let headers = auth.httpHeaders()
 

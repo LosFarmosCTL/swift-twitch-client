@@ -1,6 +1,6 @@
 private let oAuthPrefix = "oauth:"
 
-public struct TwitchAuthentication {
+public struct TwitchCredentials {
   internal let oAuth: String
   internal let clientID: String?
 

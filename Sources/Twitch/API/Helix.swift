@@ -7,12 +7,12 @@ import Foundation
 public final class Helix {
   private let baseURL = URL(string: "https://api.twitch.tv/helix/")!
 
-  private let authentication: TwitchAuthentication
+  private let authentication: TwitchCredentials
   private let session: URLSession
 
-  public init(
-    authentication: TwitchAuthentication, urlSession: URLSession? = nil
-  ) throws {
+  public init(authentication: TwitchCredentials, urlSession: URLSession? = nil)
+    throws
+  {
     guard authentication.clientID != nil else {
       throw HelixError.missingClientID
     }
