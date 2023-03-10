@@ -1,6 +1,8 @@
-public class ChatClient: IRCClientDelegate {
+public class ChatClient {
   private let authentication: TwitchCredentials?
   private let client: IRCClient
+
+  internal var listener: [ChatEvent] = []
 
   public init(_ authentication: IRCAuthentication) {
     switch authentication {
@@ -12,5 +14,5 @@ public class ChatClient: IRCClientDelegate {
     self.client.delegate = self
   }
 
-  func didReceiveMessage(_ message: IRCMessage) { print(message) }
+  public func listen(on event: ChatEvent) { self.listener.append(event) }
 }
