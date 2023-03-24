@@ -8,6 +8,15 @@
         "revision" : "4384e015cae4916a6828252467a4437173c7ae17",
         "version" : "3.0.1"
       }
+    },
+    {
+      "identity" : "twitchirc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MahdiBM/TwitchIRC",
+      "state" : {
+        "revision" : "c41b28d8bcb6df138363cb287ba53c4538b2dc0c",
+        "version" : "1.1.1"
+      }
     }
   ],
   "version" : 2

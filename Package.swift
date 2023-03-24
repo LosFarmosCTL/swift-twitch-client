@@ -9,10 +9,11 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/WeTransfer/Mocker.git",
-      .upToNextMajor(from: "3.0.1"))
+      .upToNextMajor(from: "3.0.1")),
+    .package(url: "https://github.com/MahdiBM/TwitchIRC", from: "1.0.0"),
   ],
   targets: [
-    .target(name: "Twitch"),
+    .target(name: "Twitch", dependencies: ["TwitchIRC"]),
     .testTarget(
       name: "TwitchTests", dependencies: ["Twitch", "Mocker"],
       resources: [.process("API/MockResources")]),
