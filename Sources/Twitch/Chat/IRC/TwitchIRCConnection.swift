@@ -199,7 +199,7 @@ internal class TwitchIRCConnection {
   }
 
   // TODO: check all other NOTICE cases that indicate failure
-  // swiftlint:disable cyclomatic_complexity
+  // swiftlint:disable:next cyclomatic_complexity
   private func checkContinuations(message: IncomingMessage) {
     switch message {
     case .join(let joinMessage):
