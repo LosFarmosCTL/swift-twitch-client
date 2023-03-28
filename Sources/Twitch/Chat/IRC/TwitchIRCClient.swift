@@ -92,7 +92,6 @@ internal class TwitchIRCClient {
   {
     let messages = try await connection.connect()
 
-    // TODO: verify exactly what messages and especially what NOTICE ids to receive on which connection
     Task {
       for try await message in messages {
         switch message {
