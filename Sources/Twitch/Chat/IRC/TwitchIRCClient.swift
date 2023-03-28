@@ -97,7 +97,7 @@ internal class TwitchIRCClient {
       for try await message in messages {
         switch message {
         case .clearChat, .userNotice, .clearMessage, .roomState, .userState,
-          .globalUserState, .privateMessage, .notice:
+          .globalUserState, .privateMessage:
           messageSink?.yield(message)
         default: break
         }

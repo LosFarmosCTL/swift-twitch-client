@@ -222,7 +222,11 @@ internal class TwitchIRCConnection {
         switch noticeId {
         case .msgChannelSuspended:
           if let continuation = joinContinuations[channel] {
-            continuation.resume(throwing: IRCError.channelSuspended)
+            continuation.resume(throwing: IRCError.channelSuspended(channel))
+          }
+        case .msgBanned:
+          if let continuation = joinContinuations[channel] {
+            continuation.resume(throwing: IRCError.bannedFromChannel(channel))
           }
         default: break
         }

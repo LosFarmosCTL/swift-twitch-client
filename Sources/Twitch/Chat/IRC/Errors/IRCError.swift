@@ -1,4 +1,5 @@
 public enum IRCError: Error {
   case loginFailed
-  case channelSuspended
+  case channelSuspended(_ channel: String)
+  case bannedFromChannel(_ channel: String)
 }
