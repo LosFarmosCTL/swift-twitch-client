@@ -92,7 +92,17 @@ internal class TwitchIRCClient {
   {
     let messages = try await connection.connect()
 
-    Task { for try await message in messages { messageSink?.yield(message) } }
+    // TODO: verify exactly what messages and especially what NOTICE ids to receive on which connection
+    Task {
+      for try await message in messages {
+        switch message {
+        case .clearChat, .userNotice, .clearMessage, .roomState, .userState,
+          .globalUserState, .privateMessage, .notice:
+          messageSink?.yield(message)
+        default: break
+        }
+      }
+    }
   }
 
   private func connectWriteConnection(_ connection: TwitchIRCConnection)
@@ -100,6 +110,13 @@ internal class TwitchIRCClient {
   {
     let messages = try await connection.connect()
 
-    Task { for try await message in messages { messageSink?.yield(message) } }
+    Task {
+      for try await message in messages {
+        switch message {
+        case .userState, .notice: messageSink?.yield(message)
+        default: break
+        }
+      }
+    }
   }
 }
