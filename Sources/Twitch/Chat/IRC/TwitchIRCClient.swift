@@ -39,6 +39,8 @@ internal class TwitchIRCClient {
     for connection in self.readConnections {
       connection.disconnect(with: .normalClosure)
     }
+
+    self.messageSink?.finish()
   }
 
   internal func join(to channel: String) async throws {
