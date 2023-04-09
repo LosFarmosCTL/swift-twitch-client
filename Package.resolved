@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/MahdiBM/TwitchIRC",
       "state" : {
-        "revision" : "c41b28d8bcb6df138363cb287ba53c4538b2dc0c",
-        "version" : "1.1.1"
+        "revision" : "cecc760535f86de70d7b28c649b91c16430b7e32",
+        "version" : "1.2.0"
       }
     }
   ],
