@@ -66,16 +66,11 @@ internal class TwitchIRCConnection {
     to channel: String, message: String,
     replyingTo replyMessageId: String? = nil, nonce: String? = nil
   ) async throws {
-    // manually add client-nonce tag, see MahdiBM/TwitchIRC#3
-    let prefix =
-      nonce.map { "@client-nonce=\($0)" + (replyMessageId != nil ? " " : "") }
-      ?? ""
-
     try await websocket.send(
-      prefix
-        + OutgoingMessage.privateMessage(
-          to: channel, message: message, messageIdToReply: replyMessageId
-        ).serialize())
+      OutgoingMessage.privateMessage(
+        to: channel, message: message, messageIdToReply: replyMessageId,
+        clientNonce: nonce
+      ).serialize())
   }
 
   private var joinContinuations: [String: CheckedContinuation<Void, Error>]
