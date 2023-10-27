@@ -194,6 +194,7 @@ internal class TwitchIRCConnection {
   }
 
   // TODO: check all other NOTICE cases that indicate failure
+  // TODO: verify that we are not resuming multiple times (i.e. connection notice)
   // swiftlint:disable:next cyclomatic_complexity
   private func checkContinuations(message: IncomingMessage) {
     switch message {
