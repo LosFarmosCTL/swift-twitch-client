@@ -37,37 +37,11 @@ jobs:
   format:
     name: Check formatting
   
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: swift-twitch-client
-      - name: git checkout swift-format
-        uses: actions/checkout@v3
-        with:
-          repository: apple/swift-format
-          path: swift-format
-      - name: Get swift-format commit SHA
-        id: commit-sha
-        run: |
-          cd swift-format
-          sha="$(git rev-parse HEAD)"
-          echo "sha=$sha" >> $GITHUB_OUTPUT && cd ..
-
-      - uses: actions/cache@v3
-        id: cache-swift-format
-        with:
-          path: ~/.build
-          key: ${{ runner.os }}-swift-format-${{ steps.commit-sha.outputs.sha }}
-      - name: Build apple/swift-format from source
-        if: steps.cache-swift-format.outputs.cache-hit != 'true'
-        run: |
-          cd swift-format
-          swift build --disable-sandbox -c release
-          mv .build ~/.build && cd ..
-
-      - name: Check formatting using apple/swift-format
-        run: |
-          cd swift-twitch-client
-          ~/.build/release/swift-format lint -rs --color-diagnostics .
+      - name: Install apple/swift-format
+        run: brew install swift-format
+      - name: Check formatting
+        run: swift-format lint -rs --color-diagnostics .
