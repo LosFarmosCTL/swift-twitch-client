@@ -7,16 +7,23 @@ on:
 
 jobs:
   build:
-    name: Build + Test
-    
-    runs-on: ubuntu-latest
+    name: Build + Test (${{ matrix.os }}, Swift ${{ matrix.swift-version }})
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            swift-version: 5.9
+          - os: macos-latest
+            swift-version: 5.9
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install Swift 5.8 Snapshot
+      - name: Install Swift ${{ matrix.swift-version }}
         uses: slashmo/install-swift@v0.4.0
         with:
-          version: swift-5.8-DEVELOPMENT-SNAPSHOT-2023-02-23-a
+          version: ${{ matrix.swift-version }}
       - name: Build
         run: swift build -v
       - name: Test
@@ -37,37 +44,11 @@ jobs:
   format:
     name: Check formatting
   
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: swift-twitch-client
-      - name: git checkout swift-format
-        uses: actions/checkout@v3
-        with:
-          repository: apple/swift-format
-          path: swift-format
-      - name: Get swift-format commit SHA
-        id: commit-sha
-        run: |
-          cd swift-format
-          sha="$(git rev-parse HEAD)"
-          echo "sha=$sha" >> $GITHUB_OUTPUT && cd ..
-
-      - uses: actions/cache@v3
-        id: cache-swift-format
-        with:
-          path: ~/.build
-          key: ${{ runner.os }}-swift-format-${{ steps.commit-sha.outputs.sha }}
-      - name: Build apple/swift-format from source
-        if: steps.cache-swift-format.outputs.cache-hit != 'true'
-        run: |
-          cd swift-format
-          swift build --disable-sandbox -c release
-          mv .build ~/.build && cd ..
-
-      - name: Check formatting using apple/swift-format
-        run: |
-          cd swift-twitch-client
-          ~/.build/release/swift-format lint -rs --color-diagnostics .
+      - name: Install apple/swift-format
+        run: brew install swift-format
+      - name: Check formatting
+        run: swift-format lint -rs --color-diagnostics .
