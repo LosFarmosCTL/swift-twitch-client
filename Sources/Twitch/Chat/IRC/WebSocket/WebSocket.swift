@@ -29,6 +29,9 @@ internal class WebSocket {
       case .data(let data):
         self.disconnect(with: .unsupportedData)
         throw WebSocketError.invalidMessageReceived(data: data)
+      @unknown default:
+        self.disconnect(with: .unsupportedData)
+        throw WebSocketError.invalidMessageReceived(data: nil)
       }
     })
   }
