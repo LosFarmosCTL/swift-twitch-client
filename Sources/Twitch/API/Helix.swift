@@ -38,7 +38,7 @@ public final class Helix {
 
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
-    urlRequest.allHTTPHeaderFields = authentication.httpHeaders()
+    urlRequest.allHTTPHeaderFields = try? authentication.httpHeaders()
 
     return try await self.send(urlRequest)
   }
