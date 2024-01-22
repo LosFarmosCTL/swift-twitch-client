@@ -3,18 +3,28 @@ import TwitchIRC
 internal actor AuthenticationContinuation: TwitchContinuation {
   private var continuation: CheckedContinuation<Void, Error>?
 
-  internal func check(message: IncomingMessage) async {
-    if case .connectionNotice = message {
-      continuation?.resume()
-      continuation = nil
-    } else if case .notice(let notice) = message {
-      if case .global(let message) = notice.kind {
-        if message.contains("Login authentication failed") {
-          continuation?.resume(throwing: IRCError.loginFailed)
-          continuation = nil
-        }
-      }
-    }
+  internal func check(message: IncomingMessage) async -> Bool {
+    return checkConnectionNotice(message: message)
+      || checkNotice(message: message)
+  }
+
+  private func checkConnectionNotice(message: IncomingMessage) -> Bool {
+    guard case .connectionNotice = message else { return false }
+
+    continuation?.resume()
+    continuation = nil
+    return true
+  }
+
+  private func checkNotice(message: IncomingMessage) -> Bool {
+    guard case .notice(let notice) = message else { return false }
+    guard case .global(let message) = notice.kind else { return false }
+
+    guard message.contains("Login authentication failed") else { return false }
+
+    continuation?.resume(throwing: IRCError.loginFailed)
+    continuation = nil
+    return true
   }
 
   internal init(_ continuation: CheckedContinuation<Void, Error>) {

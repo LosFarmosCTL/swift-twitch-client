@@ -125,8 +125,13 @@ internal class TwitchIRCConnection {
 
   // TODO: check all other NOTICE cases that indicate failure
   private func checkContinuations(with message: IncomingMessage) async {
-    for continuation in continuations {
-      await continuation.check(message: message)
+    var incompleteContinuations: [TwitchContinuation] = []
+
+    for continuation in continuations
+    where await !continuation.check(message: message) {
+      incompleteContinuations.append(continuation)
     }
+
+    continuations = incompleteContinuations
   }
 }
