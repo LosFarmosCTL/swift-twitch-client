@@ -5,6 +5,7 @@ public struct TwitchCredentials {
   internal let clientID: String?
 
   public init(oAuth: String, clientID: String? = nil) {
+    // assure that the stored token always starts with "oauth:"
     if !oAuth.starts(with: oAuthPrefix) {
       self.oAuth = oAuthPrefix + oAuth
     } else {
@@ -18,14 +19,18 @@ public struct TwitchCredentials {
     return String(oAuth.dropFirst(oAuthPrefix.count))
   }
 
-  internal func httpHeaders() -> [String: String] {
-    var headers: [String: String] = [:]
-    headers.updateValue("Bearer " + self.cleanOAuth, forKey: "Authorization")
-
-    if let clientID = self.clientID {
-      headers.updateValue(clientID, forKey: "Client-Id")
+  internal func httpHeaders() throws -> [String: String] {
+    guard let clientID = self.clientID else {
+      throw CredentialError.missingClientID
     }
+
+    var headers: [String: String] = [:]
+
+    headers.updateValue(clientID, forKey: "Client-Id")
+    headers.updateValue("Bearer \(self.cleanOAuth)", forKey: "Authorization")
 
     return headers
   }
 }
+
+public enum CredentialError: Error { case missingClientID }
