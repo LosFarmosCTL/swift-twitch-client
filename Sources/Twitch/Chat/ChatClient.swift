@@ -23,18 +23,23 @@ public class ChatClient {
     nonce: String? = nil
   ) async throws {
     try await client.send(
-      message, in: channel, replyingTo: messageId, nonce: nonce)
+      message, in: cleanChannelName(channel), replyingTo: messageId,
+      nonce: nonce)
   }
 
   public func join(to channel: String) async throws {
-    try await client.join(to: channel)
+    try await client.join(to: cleanChannelName(channel))
   }
 
   public func joinAll(channels: String...) async throws {
-    for channel in channels { try await join(to: channel) }
+    for channel in channels { try await join(to: cleanChannelName(channel)) }
   }
 
   public func part(from channel: String) async throws {
-    try await client.part(from: channel)
+    try await client.part(from: cleanChannelName(channel))
+  }
+
+  private func cleanChannelName(_ channel: String) -> String {
+    return channel.lowercased().trimmingCharacters(in: ["#", " "])
   }
 }
