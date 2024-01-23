@@ -15,7 +15,7 @@ jobs:
         include:
           - os: ubuntu-latest
             swift-version: 5.9
-          - os: macos-latest
+          - os: macos-13
             swift-version: 5.9
 
     steps:
