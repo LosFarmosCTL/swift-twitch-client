@@ -12,7 +12,12 @@ internal actor CapabilitiesContinuation: TwitchContinuation {
     return true
   }
 
-  internal init(_ continuation: CheckedContinuation<Void, Error>) {
-    self.continuation = continuation
+  internal func cancel(error: IRCError) {
+    continuation?.resume(throwing: error)
+    continuation = nil
   }
+
+  internal func setContinuation(
+    _ continuation: CheckedContinuation<Void, Error>
+  ) { self.continuation = continuation }
 }

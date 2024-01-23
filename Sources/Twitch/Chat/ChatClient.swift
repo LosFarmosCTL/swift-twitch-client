@@ -4,9 +4,14 @@ public class ChatClient {
   private let authentication: IRCAuthentication
 
   private let client: TwitchIRCClient
+  private let options: ChatClientOptions
 
-  public init(_ authentication: IRCAuthentication) {
+  public init(
+    _ authentication: IRCAuthentication,
+    with options: ChatClientOptions = ChatClientOptions()
+  ) {
     self.authentication = authentication
+    self.options = options
 
     self.client = TwitchIRCClient(with: self.authentication)
   }
@@ -31,6 +36,7 @@ public class ChatClient {
     try await client.join(to: cleanChannelName(channel))
   }
 
+  // TODO: check for proper parallelization of JOINs
   public func joinAll(channels: String...) async throws {
     for channel in channels { try await join(to: cleanChannelName(channel)) }
   }

@@ -11,7 +11,7 @@ internal class TwitchIRCConnection {
   private let authentication: IRCAuthentication
   private let websocket: WebSocket
 
-  private var continuations: [TwitchContinuation] = []
+  private var continuations: ContinuationQueue = ContinuationQueue()
 
   private(set) var joinedChannels: Set<String> = []
 
@@ -21,13 +21,10 @@ internal class TwitchIRCConnection {
     self.authentication = authentication
   }
 
-  internal func connect() async throws -> AsyncThrowingStream<
-    IncomingMessage, Error
-  > {
+  func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
     let incomingMessages = try websocket.connect()
 
-    let messageStream = AsyncThrowingStream<IncomingMessage, Error> {
-      continuation in
+    let messageStream = AsyncThrowingStream<IncomingMessage, Error> { sink in
       Task {
         for try await messageString in incomingMessages {
           for receivedMessage in IncomingMessage.parse(ircOutput: messageString)
@@ -39,8 +36,8 @@ internal class TwitchIRCConnection {
               continue
             }
 
-            await self.checkContinuations(with: message)
-            continuation.yield(message)
+            await self.continuations.completeAny(matching: message)
+            sink.yield(message)
           }
         }
       }
@@ -52,11 +49,11 @@ internal class TwitchIRCConnection {
     return messageStream
   }
 
-  internal func disconnect(with statusCode: URLSessionWebSocketTask.CloseCode) {
+  func disconnect(with statusCode: URLSessionWebSocketTask.CloseCode) {
     websocket.disconnect(with: statusCode)
   }
 
-  internal func privmsg(
+  func privmsg(
     to channel: String, message: String,
     replyingTo replyMessageId: String? = nil, nonce: String? = nil
   ) async throws {
@@ -67,71 +64,46 @@ internal class TwitchIRCConnection {
     try await websocket.send(privmsg.serialize())
   }
 
-  internal func join(to channel: String) async throws {
-    try await withCheckedThrowingContinuation { continuation in
-      continuations.append(JoinContinuation(continuation, channel: channel))
-
-      Task {
-        try await websocket.send(OutgoingMessage.join(to: channel).serialize())
-      }
+  func join(to channel: String) async throws {
+    try await continuations.register(JoinContinuation(channel: channel)) {
+      try await self.websocket.send(
+        OutgoingMessage.join(to: channel).serialize())
     }
 
     joinedChannels.insert(channel)
   }
 
-  internal func part(from channel: String) async throws {
-    try await withCheckedThrowingContinuation { continuation in
-      continuations.append(PartContinuation(continuation, channel: channel))
-
-      Task {
-        try await websocket.send(
-          OutgoingMessage.part(from: channel).serialize())
-      }
+  func part(from channel: String) async throws {
+    try await continuations.register(PartContinuation(channel: channel)) {
+      try await self.websocket.send(
+        OutgoingMessage.part(from: channel).serialize())
     }
 
     joinedChannels.remove(channel)
   }
 
   private func requestCapabilities() async throws {
-    try await withCheckedThrowingContinuation { continuation in
-      continuations.append(CapabilitiesContinuation(continuation))
-
-      Task {
-        let message = OutgoingMessage.capabilities([.commands, .tags])
-        try await websocket.send(message.serialize())
-      }
+    try await continuations.register(CapabilitiesContinuation()) {
+      let message = OutgoingMessage.capabilities([.commands, .tags])
+      try await self.websocket.send(message.serialize())
     }
   }
 
   private func authenticate() async throws {
-    try await withCheckedThrowingContinuation { continuation in
-      continuations.append(AuthenticationContinuation(continuation))
+    try await continuations.register(AuthenticationContinuation()) {
+      var login: String?
 
-      Task {
-        var login: String?
-
-        // when connecting anonymously, the PASS message can be omitted
-        if case .authenticated(let username, let credentials) = authentication {
-          login = username
-          let pass = OutgoingMessage.pass(pass: credentials.oAuth)
-          try await websocket.send(pass.serialize())
-        }
-
-        let nick = OutgoingMessage.nick(name: login ?? "justinfan12345")
-        try await websocket.send(nick.serialize())
+      // when connecting anonymously, the PASS message can be omitted
+      if case .authenticated(let username, let credentials) = self
+        .authentication
+      {
+        login = username
+        let pass = OutgoingMessage.pass(pass: credentials.oAuth)
+        try await self.websocket.send(pass.serialize())
       }
+
+      let nick = OutgoingMessage.nick(name: login ?? "justinfan12345")
+      try await self.websocket.send(nick.serialize())
     }
-  }
-
-  // TODO: check all other NOTICE cases that indicate failure
-  private func checkContinuations(with message: IncomingMessage) async {
-    var incompleteContinuations: [TwitchContinuation] = []
-
-    for continuation in continuations
-    where await !continuation.check(message: message) {
-      incompleteContinuations.append(continuation)
-    }
-
-    continuations = incompleteContinuations
   }
 }

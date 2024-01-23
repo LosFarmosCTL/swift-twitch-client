@@ -14,10 +14,14 @@ internal actor PartContinuation: TwitchContinuation {
     return true
   }
 
-  internal init(
-    _ continuation: CheckedContinuation<Void, Error>, channel: String
-  ) {
-    self.continuation = continuation
-    self.channel = channel
+  internal func cancel(error: IRCError) {
+    continuation?.resume(throwing: error)
+    continuation = nil
   }
+
+  internal func setContinuation(
+    _ continuation: CheckedContinuation<Void, Error>
+  ) { self.continuation = continuation }
+
+  internal init(channel: String) { self.channel = channel }
 }
