@@ -21,9 +21,9 @@ public final class Helix {
     self.session = urlSession ?? URLSession(configuration: .default)
   }
 
-  internal func request(
+  internal func request<T: Codable>(
     _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil
-  ) async throws -> Data {
+  ) async throws -> [T] {
     let (method, endpoint) = request.unwrap()
 
     var urlComponents = URLComponents(string: endpoint)
@@ -40,7 +40,16 @@ public final class Helix {
     urlRequest.httpMethod = method
     urlRequest.allHTTPHeaderFields = try? authentication.httpHeaders()
 
-    return try await self.send(urlRequest)
+    let data = try await self.send(urlRequest)
+
+    let result = try? JSONDecoder().decode(HelixData<T>.self, from: data).data
+
+    guard let result else {
+      throw HelixError.invalidResponse(
+        rawResponse: String(decoding: data, as: UTF8.self))
+    }
+
+    return result
   }
 
   private func send(_ request: URLRequest) async throws -> Data {

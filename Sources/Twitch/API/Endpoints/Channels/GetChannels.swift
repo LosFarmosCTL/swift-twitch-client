@@ -10,19 +10,7 @@ extension Helix {
       URLQueryItem(name: "broadcaster_id", value: $0)
     }
 
-    var data: Data
-    data = try await self.request(.get("channels"), with: queryItems)
-
-    let channels = try? JSONDecoder().decode(
-      HelixData<Broadcaster>.self, from: data
-    ).data
-
-    guard let channels else {
-      throw HelixError.invalidResponse(
-        rawResponse: String(decoding: data, as: UTF8.self))
-    }
-
-    return channels
+    return try await self.request(.get("channels"), with: queryItems)
   }
 }
 
