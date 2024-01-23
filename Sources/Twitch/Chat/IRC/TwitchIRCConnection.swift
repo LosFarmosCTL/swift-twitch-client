@@ -21,7 +21,9 @@ internal class TwitchIRCConnection {
     self.authentication = authentication
   }
 
-  func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
+  func connect(timeout: Duration?) async throws -> AsyncThrowingStream<
+    IncomingMessage, Error
+  > {
     let incomingMessages = try websocket.connect()
 
     let messageStream = AsyncThrowingStream<IncomingMessage, Error> { sink in
@@ -43,8 +45,8 @@ internal class TwitchIRCConnection {
       }
     }
 
-    try await requestCapabilities()
-    try await authenticate()
+    try await requestCapabilities(timeout: timeout)
+    try await authenticate(timeout: timeout)
 
     return messageStream
   }
@@ -64,8 +66,10 @@ internal class TwitchIRCConnection {
     try await websocket.send(privmsg.serialize())
   }
 
-  func join(to channel: String) async throws {
-    try await continuations.register(JoinContinuation(channel: channel)) {
+  func join(to channel: String, timeout: Duration?) async throws {
+    try await continuations.register(
+      JoinContinuation(channel: channel), timeout: timeout
+    ) {
       try await self.websocket.send(
         OutgoingMessage.join(to: channel).serialize())
     }
@@ -73,8 +77,10 @@ internal class TwitchIRCConnection {
     joinedChannels.insert(channel)
   }
 
-  func part(from channel: String) async throws {
-    try await continuations.register(PartContinuation(channel: channel)) {
+  func part(from channel: String, timeout: Duration?) async throws {
+    try await continuations.register(
+      PartContinuation(channel: channel), timeout: timeout
+    ) {
       try await self.websocket.send(
         OutgoingMessage.part(from: channel).serialize())
     }
@@ -82,15 +88,19 @@ internal class TwitchIRCConnection {
     joinedChannels.remove(channel)
   }
 
-  private func requestCapabilities() async throws {
-    try await continuations.register(CapabilitiesContinuation()) {
+  private func requestCapabilities(timeout: Duration?) async throws {
+    try await continuations.register(
+      CapabilitiesContinuation(), timeout: timeout
+    ) {
       let message = OutgoingMessage.capabilities([.commands, .tags])
       try await self.websocket.send(message.serialize())
     }
   }
 
-  private func authenticate() async throws {
-    try await continuations.register(AuthenticationContinuation()) {
+  private func authenticate(timeout: Duration?) async throws {
+    try await continuations.register(
+      AuthenticationContinuation(), timeout: timeout
+    ) {
       var login: String?
 
       // when connecting anonymously, the PASS message can be omitted

@@ -2,6 +2,8 @@ import Foundation
 import TwitchIRC
 
 internal class TwitchIRCClient {
+  private let options: ChatClientOptions
+
   private var writeConnection: TwitchIRCConnection
   private var readConnections: [TwitchIRCConnection]
 
@@ -10,7 +12,9 @@ internal class TwitchIRCClient {
   private var messageSink:
     AsyncThrowingStream<IncomingMessage, Error>.Continuation?
 
-  init(with authentication: IRCAuthentication) {
+  init(with authentication: IRCAuthentication, options: ChatClientOptions) {
+    self.options = options
+
     self.authentication = authentication
 
     self.writeConnection = TwitchIRCConnection(with: authentication)
@@ -50,12 +54,12 @@ internal class TwitchIRCClient {
     } else if let freeConnection = self.readConnections.first(where: {
       $0.joinedChannels.count < 90
     }) {
-      try await freeConnection.join(to: channel)
+      try await freeConnection.join(to: channel, timeout: options.joinTimeout)
     } else {
       let newConnection = self.addConnection()
       try await connectReadConnection(newConnection)
 
-      try await newConnection.join(to: channel)
+      try await newConnection.join(to: channel, timeout: options.joinTimeout)
     }
   }
 
@@ -63,7 +67,7 @@ internal class TwitchIRCClient {
     if let connection = self.readConnections.first(where: {
       $0.joinedChannels.contains(channel)
     }) {
-      try await connection.part(from: channel)
+      try await connection.part(from: channel, timeout: options.partTimeout)
 
       if connection.joinedChannels.count == 0 {
         connection.disconnect(with: .goingAway)
@@ -90,7 +94,7 @@ internal class TwitchIRCClient {
   private func connectReadConnection(_ connection: TwitchIRCConnection)
     async throws
   {
-    let messages = try await connection.connect()
+    let messages = try await connection.connect(timeout: options.connectTimeout)
 
     Task {
       for try await message in messages {
@@ -107,7 +111,7 @@ internal class TwitchIRCClient {
   private func connectWriteConnection(_ connection: TwitchIRCConnection)
     async throws
   {
-    let messages = try await connection.connect()
+    let messages = try await connection.connect(timeout: options.connectTimeout)
 
     Task {
       for try await message in messages {

@@ -5,5 +5,5 @@ internal protocol TwitchContinuation: Actor, Identifiable {
   func check(message: IncomingMessage) async -> Bool
   func setContinuation(_ continuation: CheckedContinuation<Void, any Error>)
 
-  func cancel(error: IRCError)
+  func cancel(throwing error: IRCError)
 }

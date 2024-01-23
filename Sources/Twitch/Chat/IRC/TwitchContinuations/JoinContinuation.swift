@@ -38,7 +38,7 @@ internal actor JoinContinuation: TwitchContinuation {
     return true
   }
 
-  internal func cancel(error: IRCError) {
+  internal func cancel(throwing error: IRCError) {
     continuation?.resume(throwing: error)
     continuation = nil
   }

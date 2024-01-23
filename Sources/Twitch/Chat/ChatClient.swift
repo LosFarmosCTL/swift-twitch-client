@@ -13,7 +13,7 @@ public class ChatClient {
     self.authentication = authentication
     self.options = options
 
-    self.client = TwitchIRCClient(with: self.authentication)
+    self.client = TwitchIRCClient(with: self.authentication, options: options)
   }
 
   // TODO: specify error type
