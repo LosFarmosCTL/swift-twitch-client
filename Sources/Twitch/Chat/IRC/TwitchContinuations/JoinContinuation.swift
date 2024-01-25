@@ -10,17 +10,14 @@ internal actor JoinContinuation: TwitchContinuation {
 
   private func checkNotice(message: IncomingMessage) -> Bool {
     guard case .notice(let notice) = message else { return false }
-    guard case .local(let channel, _, let noticeId) = notice.kind else {
-      return false
-    }
+    guard case .local(let channel, _, let noticeId) = notice.kind else { return false }
 
     guard channel == self.channel else { return false }
 
     switch noticeId {
     case .msgChannelSuspended:
       continuation?.resume(throwing: IRCError.channelSuspended(channel))
-    case .msgBanned:
-      continuation?.resume(throwing: IRCError.bannedFromChannel(channel))
+    case .msgBanned: continuation?.resume(throwing: IRCError.bannedFromChannel(channel))
     default: return false
     }
 
@@ -43,9 +40,9 @@ internal actor JoinContinuation: TwitchContinuation {
     continuation = nil
   }
 
-  internal func setContinuation(
-    _ continuation: CheckedContinuation<Void, Error>
-  ) { self.continuation = continuation }
+  internal func setContinuation(_ continuation: CheckedContinuation<Void, Error>) {
+    self.continuation = continuation
+  }
 
   internal init(channel: String) { self.channel = channel }
 }

@@ -9,8 +9,7 @@ internal class TwitchIRCClient {
 
   private let authentication: IRCAuthentication
 
-  private var messageSink:
-    AsyncThrowingStream<IncomingMessage, Error>.Continuation?
+  private var messageSink: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
 
   init(with authentication: IRCAuthentication, options: ChatClientOptions) {
     self.options = options
@@ -40,16 +39,13 @@ internal class TwitchIRCClient {
   internal func disconnect() {
     self.writeConnection.disconnect(with: .normalClosure)
 
-    for connection in self.readConnections {
-      connection.disconnect(with: .normalClosure)
-    }
+    for connection in self.readConnections { connection.disconnect(with: .normalClosure) }
 
     self.messageSink?.finish()
   }
 
   internal func join(to channel: String) async throws {
-    if self.readConnections.first(where: { $0.joinedChannels.contains(channel) }
-    ) != nil {
+    if self.readConnections.first(where: { $0.joinedChannels.contains(channel) }) != nil {
       return
     } else if let freeConnection = self.readConnections.first(where: {
       $0.joinedChannels.count < 90
@@ -77,8 +73,7 @@ internal class TwitchIRCClient {
   }
 
   internal func send(
-    _ message: String, in channel: String, replyingTo replyMsgId: String?,
-    nonce: String?
+    _ message: String, in channel: String, replyingTo replyMsgId: String?, nonce: String?
   ) async throws {
     try await self.writeConnection.privmsg(
       to: channel, message: message, replyingTo: replyMsgId, nonce: nonce)
@@ -91,9 +86,7 @@ internal class TwitchIRCClient {
     return newConnection
   }
 
-  private func connectReadConnection(_ connection: TwitchIRCConnection)
-    async throws
-  {
+  private func connectReadConnection(_ connection: TwitchIRCConnection) async throws {
     let messages = try await connection.connect(timeout: options.connectTimeout)
 
     Task {
@@ -108,9 +101,7 @@ internal class TwitchIRCClient {
     }
   }
 
-  private func connectWriteConnection(_ connection: TwitchIRCConnection)
-    async throws
-  {
+  private func connectWriteConnection(_ connection: TwitchIRCConnection) async throws {
     let messages = try await connection.connect(timeout: options.connectTimeout)
 
     Task {

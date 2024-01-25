@@ -29,8 +29,7 @@ internal class TwitchIRCConnection {
     let messageStream = AsyncThrowingStream<IncomingMessage, Error> { sink in
       Task {
         for try await messageString in incomingMessages {
-          for receivedMessage in IncomingMessage.parse(ircOutput: messageString)
-          {
+          for receivedMessage in IncomingMessage.parse(ircOutput: messageString) {
             guard let message = receivedMessage.message else { continue }
 
             if case .ping = message {
@@ -56,12 +55,11 @@ internal class TwitchIRCConnection {
   }
 
   func privmsg(
-    to channel: String, message: String,
-    replyingTo replyMessageId: String? = nil, nonce: String? = nil
+    to channel: String, message: String, replyingTo replyMessageId: String? = nil,
+    nonce: String? = nil
   ) async throws {
     let privmsg = OutgoingMessage.privateMessage(
-      to: channel, message: message, messageIdToReply: replyMessageId,
-      clientNonce: nonce)
+      to: channel, message: message, messageIdToReply: replyMessageId, clientNonce: nonce)
 
     try await websocket.send(privmsg.serialize())
   }
@@ -104,9 +102,7 @@ internal class TwitchIRCConnection {
       var login: String?
 
       // when connecting anonymously, the PASS message can be omitted
-      if case .authenticated(let username, let credentials) = self
-        .authentication
-      {
+      if case .authenticated(let username, let credentials) = self.authentication {
         login = username
         let pass = OutgoingMessage.pass(pass: credentials.oAuth)
         try await self.websocket.send(pass.serialize())

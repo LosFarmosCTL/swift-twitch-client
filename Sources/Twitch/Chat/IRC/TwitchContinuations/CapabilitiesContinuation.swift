@@ -17,7 +17,7 @@ internal actor CapabilitiesContinuation: TwitchContinuation {
     continuation = nil
   }
 
-  internal func setContinuation(
-    _ continuation: CheckedContinuation<Void, Error>
-  ) { self.continuation = continuation }
+  internal func setContinuation(_ continuation: CheckedContinuation<Void, Error>) {
+    self.continuation = continuation
+  }
 }

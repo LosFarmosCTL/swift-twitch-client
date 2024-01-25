@@ -17,9 +17,9 @@ public class ChatClient {
   }
 
   // TODO: specify error type
-  public func connect() async throws -> AsyncThrowingStream<
-    IncomingMessage, Error
-  > { return try await client.connect() }
+  public func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
+    return try await client.connect()
+  }
 
   public func disconnect() { client.disconnect() }
 
@@ -28,8 +28,7 @@ public class ChatClient {
     nonce: String? = nil
   ) async throws {
     try await client.send(
-      message, in: cleanChannelName(channel), replyingTo: messageId,
-      nonce: nonce)
+      message, in: cleanChannelName(channel), replyingTo: messageId, nonce: nonce)
   }
 
   public func join(to channel: String) async throws {

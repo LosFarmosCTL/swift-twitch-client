@@ -14,9 +14,7 @@ internal class WebSocket {
   }
 
   internal func connect() throws -> AsyncThrowingStream<String, Error> {
-    if self.websocket.state == .running {
-      throw WebSocketError.alreadyConnected
-    }
+    if self.websocket.state == .running { throw WebSocketError.alreadyConnected }
 
     self.websocket.resume()
 

@@ -10,12 +10,8 @@ public final class Helix {
   private let authentication: TwitchCredentials
   private let session: URLSession
 
-  public init(authentication: TwitchCredentials, urlSession: URLSession? = nil)
-    throws
-  {
-    guard authentication.clientID != nil else {
-      throw HelixError.missingClientID
-    }
+  public init(authentication: TwitchCredentials, urlSession: URLSession? = nil) throws {
+    guard authentication.clientID != nil else { throw HelixError.missingClientID }
 
     self.authentication = authentication
     self.session = urlSession ?? URLSession(configuration: .default)
@@ -45,8 +41,7 @@ public final class Helix {
     let result = try? JSONDecoder().decode(HelixData<T>.self, from: data).data
 
     guard let result else {
-      throw HelixError.invalidResponse(
-        rawResponse: String(decoding: data, as: UTF8.self))
+      throw HelixError.invalidResponse(rawResponse: String(decoding: data, as: UTF8.self))
     }
 
     return result
@@ -78,9 +73,7 @@ public final class Helix {
 
 #if canImport(FoundationNetworking)
   extension URLSession {
-    fileprivate func data(for request: URLRequest) async throws -> (
-      Data, URLResponse
-    ) {
+    fileprivate func data(for request: URLRequest) async throws -> (Data, URLResponse) {
       return try await withCheckedThrowingContinuation { continuation in
         let task = self.dataTask(with: request) { data, response, error in
           if let data, let response {

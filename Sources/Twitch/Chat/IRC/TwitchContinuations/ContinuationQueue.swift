@@ -34,8 +34,6 @@ internal struct ContinuationQueue {
   }
 
   mutating func completeAny(matching message: IncomingMessage) async {
-    for continuation in continuations {
-      _ = await continuation.check(message: message)
-    }
+    for continuation in continuations { _ = await continuation.check(message: message) }
   }
 }

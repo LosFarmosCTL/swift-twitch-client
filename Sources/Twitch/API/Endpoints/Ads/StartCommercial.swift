@@ -9,8 +9,7 @@ extension Helix {
     -> Commercial?
   {
     var queryItems = [URLQueryItem]()
-    queryItems.append(
-      URLQueryItem(name: "broadcaster_id", value: broadcasterId))
+    queryItems.append(URLQueryItem(name: "broadcaster_id", value: broadcasterId))
     queryItems.append(URLQueryItem(name: "length", value: String(length)))
 
     return try await self.request(.get("channels"), with: queryItems).first

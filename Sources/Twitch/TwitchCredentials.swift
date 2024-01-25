@@ -15,14 +15,10 @@ public struct TwitchCredentials {
     self.clientID = clientID
   }
 
-  private var cleanOAuth: String {
-    return String(oAuth.dropFirst(oAuthPrefix.count))
-  }
+  private var cleanOAuth: String { return String(oAuth.dropFirst(oAuthPrefix.count)) }
 
   internal func httpHeaders() throws -> [String: String] {
-    guard let clientID = self.clientID else {
-      throw CredentialError.missingClientID
-    }
+    guard let clientID = self.clientID else { throw CredentialError.missingClientID }
 
     var headers: [String: String] = [:]
 

@@ -4,8 +4,7 @@ internal actor AuthenticationContinuation: TwitchContinuation {
   private var continuation: CheckedContinuation<Void, Error>?
 
   internal func check(message: IncomingMessage) async -> Bool {
-    return checkConnectionNotice(message: message)
-      || checkNotice(message: message)
+    return checkConnectionNotice(message: message) || checkNotice(message: message)
   }
 
   private func checkConnectionNotice(message: IncomingMessage) -> Bool {
@@ -32,7 +31,7 @@ internal actor AuthenticationContinuation: TwitchContinuation {
     continuation = nil
   }
 
-  internal func setContinuation(
-    _ continuation: CheckedContinuation<Void, Error>
-  ) { self.continuation = continuation }
+  internal func setContinuation(_ continuation: CheckedContinuation<Void, Error>) {
+    self.continuation = continuation
+  }
 }
