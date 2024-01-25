@@ -22,13 +22,16 @@ internal class TwitchIRCClient {
     self.readConnections = [initialReadConnection]
   }
 
-  internal func connect() async throws -> AsyncThrowingStream<
-    IncomingMessage, Error
-  > {
-    try await connectWriteConnection(self.writeConnection)
+  internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
+    // initialize all connections concurrently
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      group.addTask { try await self.connectWriteConnection(self.writeConnection) }
 
-    for connection in self.readConnections {
-      try await connectReadConnection(connection)
+      for connection in self.readConnections {
+        group.addTask { try await self.connectReadConnection(connection) }
+      }
+
+      try await group.waitForAll()
     }
 
     return AsyncThrowingStream<IncomingMessage, Error> { continuation in

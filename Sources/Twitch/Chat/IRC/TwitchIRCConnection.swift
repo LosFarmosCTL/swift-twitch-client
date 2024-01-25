@@ -44,8 +44,7 @@ internal class TwitchIRCConnection {
       }
     }
 
-    try await requestCapabilities(timeout: timeout)
-    try await authenticate(timeout: timeout)
+    try await initialize(timeout: timeout)
 
     return messageStream
   }
@@ -65,40 +64,34 @@ internal class TwitchIRCConnection {
   }
 
   func join(to channel: String, timeout: Duration?) async throws {
-    try await continuations.register(
-      JoinContinuation(channel: channel), timeout: timeout
-    ) {
-      try await self.websocket.send(
-        OutgoingMessage.join(to: channel).serialize())
-    }
+    // send a JOIN command and wait for the confirmation from twitch
+    try await continuations.register(JoinContinuation(channel: channel), timeout: timeout)
+    { try await self.websocket.send(OutgoingMessage.join(to: channel).serialize()) }
 
     joinedChannels.insert(channel)
   }
 
   func part(from channel: String, timeout: Duration?) async throws {
-    try await continuations.register(
-      PartContinuation(channel: channel), timeout: timeout
-    ) {
-      try await self.websocket.send(
-        OutgoingMessage.part(from: channel).serialize())
-    }
+    // send a PART command and wait for the confirmation from twitch
+    try await continuations.register(PartContinuation(channel: channel), timeout: timeout)
+    { try await self.websocket.send(OutgoingMessage.part(from: channel).serialize()) }
 
     joinedChannels.remove(channel)
   }
 
-  private func requestCapabilities(timeout: Duration?) async throws {
-    try await continuations.register(
-      CapabilitiesContinuation(), timeout: timeout
-    ) {
+  private func initialize(timeout: Duration?) async throws {
+    // send a CAP REQ command and wait for the confirmation from twitch
+    try await continuations.register(CapabilitiesContinuation(), timeout: timeout) {
       let message = OutgoingMessage.capabilities([.commands, .tags])
       try await self.websocket.send(message.serialize())
+
+      try await self.authenticate(timeout: timeout)
     }
   }
 
   private func authenticate(timeout: Duration?) async throws {
-    try await continuations.register(
-      AuthenticationContinuation(), timeout: timeout
-    ) {
+    // send PASS + NICK commands and wait for the confirmation from twitch
+    try await continuations.register(AuthenticationContinuation(), timeout: timeout) {
       var login: String?
 
       // when connecting anonymously, the PASS message can be omitted
@@ -108,6 +101,7 @@ internal class TwitchIRCConnection {
         try await self.websocket.send(pass.serialize())
       }
 
+      // twitch allows anonymous connections using justinfanXXXXX
       let nick = OutgoingMessage.nick(name: login ?? "justinfan12345")
       try await self.websocket.send(nick.serialize())
     }
