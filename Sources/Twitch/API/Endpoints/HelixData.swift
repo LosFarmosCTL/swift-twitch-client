@@ -1,1 +1,1 @@
-internal struct HelixData<T>: Codable where T: Codable { let data: [T] }
+internal struct HelixData<T>: Decodable where T: Decodable { let data: [T] }

@@ -17,8 +17,9 @@ public final class Helix {
     self.session = urlSession ?? URLSession(configuration: .default)
   }
 
-  internal func request<T: Codable>(
-    _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil
+  internal func request<T: Decodable>(
+    _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil,
+    jsonBody: Encodable? = nil
   ) async throws -> [T] {
     let (method, endpoint) = request.unwrap()
 
@@ -35,6 +36,11 @@ public final class Helix {
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
     urlRequest.allHTTPHeaderFields = try? authentication.httpHeaders()
+
+    if let jsonBody {
+      urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+      urlRequest.httpBody = try JSONEncoder().encode(jsonBody)
+    }
 
     let data = try await self.send(urlRequest)
 
