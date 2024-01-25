@@ -37,9 +37,7 @@ class AuthenticationTests: XCTestCase {
       headers.contains(where: {
         $0.key == "Authorization" && $0.value == "Bearer \(oAuth)"
       }))
-    XCTAssert(
-      headers.contains(where: { $0.key == "Client-Id" && $0.value == clientID })
-    )
+    XCTAssert(headers.contains(where: { $0.key == "Client-Id" && $0.value == clientID }))
   }
 
   func testHTTPHeadersWithoutClientId() {

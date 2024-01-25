@@ -26,8 +26,7 @@ final class GetChannelsTests: XCTestCase {
       string: "https://api.twitch.tv/helix/channels?broadcaster_id=141981764")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
-      data: [.get: MockedData.getChannelsJSON]
+      url: url, dataType: .json, statusCode: 200, data: [.get: MockedData.getChannelsJSON]
     ).register()
 
     let channels = try await helix.getChannels(userIDs: ["141981764"])
@@ -47,9 +46,7 @@ final class GetChannelsTests: XCTestCase {
       data: [.get: MockedData.getMultipleChannelsJSON]
     ).register()
 
-    let channels = try await helix.getChannels(userIDs: [
-      "141981764", "22484632",
-    ])
+    let channels = try await helix.getChannels(userIDs: ["141981764", "22484632"])
 
     XCTAssertEqual(channels.count, 2)
   }
@@ -66,9 +63,7 @@ final class GetChannelsTests: XCTestCase {
       try await helix.getChannels(userIDs: []),
       "An invalid request should throw an error."
     ) { err in
-      guard
-        case HelixError.requestFailed(let error, let status, let message) = err
-      else {
+      guard case HelixError.requestFailed(let error, let status, let message) = err else {
         return XCTFail(
           "An invalid request should throw a requestFailed error, not \(err).")
       }
@@ -82,16 +77,14 @@ final class GetChannelsTests: XCTestCase {
   func testGetChannelsInvalidResponse() async {
     let url = URL(string: "https://api.twitch.tv/helix/channels")!
 
-    Mock(url: url, dataType: .json, statusCode: 200, data: [.get: Data()])
-      .register()
+    Mock(url: url, dataType: .json, statusCode: 200, data: [.get: Data()]).register()
 
     await XCTAssertThrowsErrorAsync(
       try await helix.getChannels(userIDs: []),
       "An invalid reponse should throw an error."
     ) { error in
       guard case HelixError.invalidResponse = error else {
-        return XCTFail(
-          "An invalid response should throw an invalidResponse HelixError")
+        return XCTFail("An invalid response should throw an invalidResponse HelixError")
       }
     }
   }
