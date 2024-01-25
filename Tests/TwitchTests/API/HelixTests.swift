@@ -17,13 +17,11 @@ class HelixTests: XCTestCase {
   }
 
   func testHelixInitializationWithoutClientId() {
-    XCTAssertThrowsError(
-      try Helix(authentication: .init(oAuth: "abcdefghijkl123456789"))
-    ) { error in
+    XCTAssertThrowsError(try Helix(authentication: .init(oAuth: "abcdefghijkl123456789")))
+    { error in
       guard case HelixError.missingClientID = error else {
         return XCTFail(
-          "Initializing Helix without a ClientID should throw a missingClientID error."
-        )
+          "Initializing Helix without a ClientID should throw a missingClientID error.")
       }
     }
   }
@@ -44,18 +42,16 @@ class HelixTests: XCTestCase {
 
     let url = URL(string: "https://api.twitch.tv/helix/test")!
     var mock = Mock(
-      url: url, dataType: .json, statusCode: 200, data: [.get: Data()])
+      url: url, dataType: .json, statusCode: 200,
+      data: [.get: "{\"data\":[]}".data(using: .utf8)!])
 
     mock.onRequestHandler = OnRequestHandler(requestCallback: { request in
-      guard let clientIDHeader = request.value(forHTTPHeaderField: "Client-Id")
-      else { return XCTFail("Helix request must contain a Client-Id header.") }
-
-      guard
-        let authenticationHeader = request.value(
-          forHTTPHeaderField: "Authorization")
-      else {
-        return XCTFail("Helix request must contain an Authorization header.")
+      guard let clientIDHeader = request.value(forHTTPHeaderField: "Client-Id") else {
+        return XCTFail("Helix request must contain a Client-Id header.")
       }
+
+      guard let authenticationHeader = request.value(forHTTPHeaderField: "Authorization")
+      else { return XCTFail("Helix request must contain an Authorization header.") }
 
       XCTAssertEqual(
         clientIDHeader, clientID,
@@ -67,7 +63,7 @@ class HelixTests: XCTestCase {
 
     mock.register()
 
-    _ = try await helix.request(.get("test"))
+    let _: [String] = try await helix.request(.get("test"))
   }
 
   func testInvalidErrorResponse() async throws {
@@ -79,17 +75,17 @@ class HelixTests: XCTestCase {
       urlSession: mockingURLSession)
 
     let url = URL(string: "https://api.twitch.tv/helix/invalid")!
-    Mock(url: url, dataType: .json, statusCode: 500, data: [.get: Data()])
+    Mock(url: url, dataType: .json, statusCode: 500, data: [.get: "".data(using: .utf8)!])
       .register()
 
-    await XCTAssertThrowsErrorAsync(try await helix.request(.get("invalid"))) {
-      error in
-
-      guard case HelixError.invalidErrorResponse = error else {
-        return XCTFail(
-          "An invalid error response should throw an invalidErrorResponse HelixError"
-        )
-      }
-    }
+    await XCTAssertThrowsErrorAsync(
+      { let _: [String] = try await helix.request(.get("invalid")) },
+      "An invalid response should throw a HelixError",
+      { (error) in
+        guard case HelixError.invalidErrorResponse = error else {
+          return XCTFail(
+            "An invalid error response should throw an invalidErrorResponse HelixError")
+        }
+      })
   }
 }
