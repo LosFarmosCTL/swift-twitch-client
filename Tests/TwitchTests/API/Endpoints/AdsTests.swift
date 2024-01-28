@@ -34,7 +34,7 @@ final class AdsTests: XCTestCase {
     XCTAssertEqual(ads.count, 1)
 
     XCTAssertEqual(ads.first?.duration, 60)
-    XCTAssertEqual(ads.first?.nextAdAt.ISO8601Format(), "2023-08-01T23:08:18Z")
+    XCTAssertEqual(ads.first?.nextAdAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
   }
 
   func testStartCommercial() async throws {
@@ -67,6 +67,6 @@ final class AdsTests: XCTestCase {
     XCTAssertEqual(snoozeResult.count, 1)
     XCTAssertEqual(snoozeResult.first?.snoozeCount, 1)
     XCTAssertEqual(
-      snoozeResult.first?.snoozeRefreshAt.ISO8601Format(), "2023-08-01T23:08:18Z")
+      snoozeResult.first?.snoozeRefreshAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
   }
 }

@@ -34,8 +34,9 @@ final class AnalyticsTests: XCTestCase {
     XCTAssertEqual(analytics.count, 1)
     XCTAssert(analytics.contains(where: { $0.extensionId == "efgh" }))
 
-    XCTAssertEqual(analytics.first?.range.start.ISO8601Format(), "2018-03-01T00:00:00Z")
-    XCTAssertEqual(analytics.first?.range.end.ISO8601Format(), "2018-06-01T00:00:00Z")
+    XCTAssertEqual(
+      analytics.first?.range.start.formatted(.iso8601), "2018-03-01T00:00:00Z")
+    XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-01T00:00:00Z")
   }
 
   func testGameAnalytics() async throws {
@@ -52,7 +53,8 @@ final class AnalyticsTests: XCTestCase {
 
     XCTAssert(analytics.contains(where: { $0.gameId == "9821" }))
 
-    XCTAssertEqual(analytics.first?.range.start.ISO8601Format(), "2018-03-13T00:00:00Z")
-    XCTAssertEqual(analytics.first?.range.end.ISO8601Format(), "2018-06-13T00:00:00Z")
+    XCTAssertEqual(
+      analytics.first?.range.start.formatted(.iso8601), "2018-03-13T00:00:00Z")
+    XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-13T00:00:00Z")
   }
 }
