@@ -25,7 +25,7 @@ final class AnalyticsTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/analytics/extensions")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.get: MockedData.getExtensionAnalyticsJSON]
     ).register()
 
@@ -43,7 +43,7 @@ final class AnalyticsTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/analytics/games")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.get: MockedData.getGameAnalyticsJSON]
     ).register()
 

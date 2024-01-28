@@ -25,7 +25,7 @@ final class AdsTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/channels/ads?broadcaster_id=1234")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.get: MockedData.getAdScheduleJSON]
     ).register()
 
@@ -41,7 +41,7 @@ final class AdsTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/channels/commercial")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.post: MockedData.startCommercialJSON]
     ).register()
 
@@ -58,7 +58,7 @@ final class AdsTests: XCTestCase {
         "https://api.twitch.tv/helix/channels/ads/schedule/snooze?broadcaster_id=1234")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.post: MockedData.snoozeNextAdJSON]
     ).register()
 

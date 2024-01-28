@@ -40,7 +40,7 @@ class HelixTests: XCTestCase {
   func testHelixAuthentication() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/test")!
     var mock = Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.get: "{\"data\":[]}".data(using: .utf8)!])
 
     mock.onRequestHandler = OnRequestHandler(requestCallback: { request in
@@ -61,27 +61,28 @@ class HelixTests: XCTestCase {
 
     mock.register()
 
-    let _: ([String], String?) = try await self.helix.request(.get("test"))
+    let (_, _) =
+      try await self.helix.request(.get("test")) as (String, HelixData<String>?)
   }
 
   func testPagination() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/paginated")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.get: MockedData.paginatedResponseJSON]
     ).register()
 
-    let (result, cursor): ([String], String?) = try await helix.request(.get("paginated"))
+    let (_, result): (_, HelixData<String>?) = try await helix.request(.get("paginated"))
 
-    XCTAssertEqual(result, [])
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLJxhIjoiIn0gf5")
+    XCTAssertEqual(result?.data, [])
+    XCTAssertEqual(result?.pagination?.cursor, "eyJiIjpudWxsLJxhIjoiIn0gf5")
   }
 
   func testWithJsonBody() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/test")!
     var mock = Mock(
-      url: url, dataType: .json, statusCode: 200,
+      url: url, contentType: .json, statusCode: 200,
       data: [.post: "{\"data\":[]}".data(using: .utf8)!])
 
     mock.onRequestHandler = OnRequestHandler(
@@ -99,7 +100,7 @@ class HelixTests: XCTestCase {
 
     mock.register()
 
-    let _: ([String], String?) = try await self.helix.request(
+    let _: (_, HelixData<String>?) = try await self.helix.request(
       .post("test"), jsonBody: ["test": "test"])
   }
 
@@ -107,12 +108,12 @@ class HelixTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/invalid")!
 
     Mock(
-      url: url, dataType: .json, statusCode: 400,
+      url: url, contentType: .json, statusCode: 400,
       data: [.get: MockedData.errorResponseJSON]
     ).register()
 
     await XCTAssertThrowsErrorAsync(
-      try await helix.request(.get("invalid")) as ([String], String?),
+      try await helix.request(.get("invalid")) as (String, HelixData<String>?),
       "An invalid request should throw an error."
     ) { err in
       guard case HelixError.requestFailed(let error, let status, let message) = err else {
@@ -129,10 +130,10 @@ class HelixTests: XCTestCase {
   func testInvalidResponse() async {
     let url = URL(string: "https://api.twitch.tv/helix/invalid")!
 
-    Mock(url: url, dataType: .json, statusCode: 200, data: [.get: Data()]).register()
+    Mock(url: url, contentType: .json, statusCode: 200, data: [.get: Data()]).register()
 
     await XCTAssertThrowsErrorAsync(
-      try await self.helix.request(.get("invalid")) as ([String], String?),
+      try await self.helix.request(.get("invalid")) as (String, HelixData<String>?),
       "An invalid response should throw a HelixError",
       { (error) in
         guard case HelixError.invalidResponse = error else {
@@ -143,12 +144,15 @@ class HelixTests: XCTestCase {
 
   func testInvalidErrorResponse() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/invalid")!
-    Mock(url: url, dataType: .json, statusCode: 500, data: [.get: "".data(using: .utf8)!])
-      .register()
+    Mock(
+      url: url, contentType: .json, statusCode: 500, data: [.get: "".data(using: .utf8)!]
+    ).register()
 
     await XCTAssertThrowsErrorAsync(
-      { let _: ([String], String?) = try await self.helix.request(.get("invalid")) },
-      "An invalid response should throw a HelixError",
+      {
+        let _: (String, HelixData<String>?) = try await self.helix.request(
+          .get("invalid"))
+      }, "An invalid response should throw a HelixError",
       { (error) in
         guard case HelixError.invalidErrorResponse = error else {
           return XCTFail(

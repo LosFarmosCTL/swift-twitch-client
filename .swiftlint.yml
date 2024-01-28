@@ -3,6 +3,7 @@ disabled_rules:
   - opening_brace
   - closure_parameter_position
   - todo
+  - large_tuple
 
 excluded:
   - .build

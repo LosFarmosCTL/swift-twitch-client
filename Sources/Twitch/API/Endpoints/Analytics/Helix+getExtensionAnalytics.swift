@@ -12,7 +12,7 @@ extension Helix {
     let items = [
       ("extension_id", extensionId), ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
-      ("ended_at", range?.end.formatted(.iso8601)), ("first", first?.formatted()),
+      ("ended_at", range?.end.formatted(.iso8601)), ("first", first.map(String.init)),
       ("after", cursor),
     ]
 
@@ -20,10 +20,12 @@ extension Helix {
       URLQueryItem(name: name, value: value)
     })
 
-    let (analytics, cursor): ([ExtensionReport], String?) = try await self.request(
+    let (rawResponse, result): (_, HelixData<ExtensionReport>?) = try await self.request(
       .get("analytics/extensions"), with: queryItems)
 
-    return (analytics, cursor)
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return (result.data, result.pagination?.cursor)
   }
 }
 

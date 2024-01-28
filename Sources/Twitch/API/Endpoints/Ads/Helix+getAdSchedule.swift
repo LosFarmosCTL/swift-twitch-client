@@ -8,7 +8,12 @@ extension Helix {
   public func getAdSchedule(broadcasterId: String) async throws -> [AdSchedule] {
     let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
 
-    return try await self.request(.get("channels/ads"), with: queryItems).result
+    let (rawResponse, result): (_, HelixData<AdSchedule>?) = try await self.request(
+      .get("channels/ads"), with: queryItems)
+
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return result.data
   }
 }
 

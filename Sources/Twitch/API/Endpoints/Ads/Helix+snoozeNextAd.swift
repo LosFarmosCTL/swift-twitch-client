@@ -7,8 +7,13 @@ import Foundation
 extension Helix {
   public func snoozeNextAd(broadcasterId: String) async throws -> [SnoozeResult] {
     let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
-    return try await self.request(.post("channels/ads/schedule/snooze"), with: queryItems)
-      .result
+
+    let (rawResponse, result): (_, HelixData<SnoozeResult>?) = try await self.request(
+      .post("channels/ads/schedule/snooze"), with: queryItems)
+
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return result.data
   }
 }
 

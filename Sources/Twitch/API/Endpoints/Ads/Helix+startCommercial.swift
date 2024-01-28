@@ -8,10 +8,13 @@ extension Helix {
   public func startCommercial(broadcasterId: String, length: Int) async throws
     -> Commercial
   {
-    return try await self.request(
+    let (rawResponse, result): (_, HelixData<Commercial>?) = try await self.request(
       .post("channels/commercial"),
-      jsonBody: StartCommercialRequestBody(broadcasterId: broadcasterId, length: length)
-    ).result.first!
+      jsonBody: StartCommercialRequestBody(broadcasterId: broadcasterId, length: length))
+
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return result.data.first!
   }
 }
 

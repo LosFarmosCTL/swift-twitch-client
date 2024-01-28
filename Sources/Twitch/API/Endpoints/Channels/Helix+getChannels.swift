@@ -8,7 +8,12 @@ extension Helix {
   public func getChannels(userIDs: [String]) async throws -> [Broadcaster] {
     let queryItems = userIDs.map { URLQueryItem(name: "broadcaster_id", value: $0) }
 
-    return try await self.request(.get("channels"), with: queryItems).result
+    let (rawResponse, result): (_, HelixData<Broadcaster>?) = try await self.request(
+      .get("channels"), with: queryItems)
+
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return result.data
   }
 }
 

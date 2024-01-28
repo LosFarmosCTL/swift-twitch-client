@@ -20,10 +20,12 @@ extension Helix {
       URLQueryItem(name: name, value: value)
     })
 
-    let (analytics, cursor): ([GameReport], String?) = try await self.request(
+    let (rawResponse, result): (_, HelixData<GameReport>?) = try await self.request(
       .get("analytics/games"), with: queryItems)
 
-    return (analytics, cursor)
+    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
+
+    return (result.data, result.pagination?.cursor)
   }
 }
 

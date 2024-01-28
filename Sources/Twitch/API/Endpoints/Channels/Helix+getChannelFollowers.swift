@@ -5,19 +5,20 @@ import Foundation
 #endif
 
 extension Helix {
-  public func getFollowedChannels(
-    userId: String, limit: Int? = nil, after cursor: String? = nil
-  ) async throws -> (total: Int, follows: [Follow], cursor: String?) {
+  public func getChannelFollowers(
+    broadcasterId: String, limit: Int? = nil, after cursor: String? = nil
+  ) async throws -> (total: Int, follows: [Follower], cursor: String?) {
     let items = [
-      ("user_id", userId), ("first", limit.map(String.init)), ("after", cursor),
+      ("broadcaster_id", broadcasterId), ("first", limit.map(String.init)),
+      ("after", cursor),
     ]
 
     let queryItems = items.filter({ _, value in value != nil }).map({ name, value in
       URLQueryItem(name: name, value: value)
     })
 
-    let (rawResponse, result): (_, HelixData<Follow>?) = try await self.request(
-      .get("channels/followed"), with: queryItems)
+    let (rawResponse, result): (_, HelixData<Follower>?) = try await self.request(
+      .get("channels/followers"), with: queryItems)
 
     guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
     guard let total = result.total else {
@@ -27,16 +28,16 @@ extension Helix {
     return (total, result.data, result.pagination?.cursor)
   }
 
-  public func checkFollow(from userId: String, to channelId: String) async throws
-    -> Follow?
+  public func checkChannelFollower(userId: String, follows channelId: String) async throws
+    -> Follower?
   {
     let queryItems = [
       URLQueryItem(name: "user_id", value: userId),
       URLQueryItem(name: "broadcaster_id", value: channelId),
     ]
 
-    let (rawResponse, result): (_, HelixData<Follow>?) = try await self.request(
-      .get("channels/followed"), with: queryItems)
+    let (rawResponse, result): (_, HelixData<Follower>?) = try await self.request(
+      .get("channels/followers"), with: queryItems)
 
     guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
 
@@ -44,16 +45,16 @@ extension Helix {
   }
 }
 
-public struct Follow: Decodable {
-  let broadcasterId: String
-  let broadcasterLogin: String
-  let broadcasterName: String
+public struct Follower: Decodable {
+  let userId: String
+  let userLogin: String
+  let userName: String
   let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterId = "broadcaster_id"
-    case broadcasterLogin = "broadcaster_login"
-    case broadcasterName = "broadcaster_name"
+    case userId = "user_id"
+    case userLogin = "user_login"
+    case userName = "user_name"
     case followedAt = "followed_at"
   }
 }

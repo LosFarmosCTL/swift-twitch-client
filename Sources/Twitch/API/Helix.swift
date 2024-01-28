@@ -19,14 +19,14 @@ public final class Helix {
     self.authentication = authentication
     self.session = urlSession ?? URLSession(configuration: .default)
 
-    self.encoder.dateEncodingStrategy = .iso8601
-    self.decoder.dateDecodingStrategy = .iso8601
+    self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
+    self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
   }
 
   internal func request<T: Decodable>(
     _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil,
     jsonBody: Encodable? = nil
-  ) async throws -> (result: [T], cursor: String?) {
+  ) async throws -> (rawResponse: String, result: HelixData<T>?) {
     var urlRequest = self.buildURLRequest(request, queryItems: queryItems)
 
     urlRequest.allHTTPHeaderFields = try? authentication.httpHeaders()
@@ -36,19 +36,24 @@ public final class Helix {
       urlRequest.httpBody = try encoder.encode(jsonBody)
     }
 
-    let data = try await self.send(urlRequest)
+    let (statusCode, data) = try await self.send(urlRequest)
+
+    guard statusCode == 200 else {
+      let rawResponse: String = String(decoding: data, as: UTF8.self)
+      return (rawResponse, nil)
+    }
 
     return try self.decode(data)
   }
 
-  private func send(_ request: URLRequest) async throws -> Data {
+  private func send(_ request: URLRequest) async throws -> (statusCode: Int, data: Data) {
     let (data, response) = try await self.session.data(for: request)
 
     guard let httpResponse = response as? HTTPURLResponse else {
       throw URLError(.badServerResponse)
     }
 
-    guard httpResponse.statusCode == 200 else {
+    guard (200...299).contains(httpResponse.statusCode) else {
       let error = try? decoder.decode(TwitchError.self, from: data)
 
       guard let error else {
@@ -61,19 +66,18 @@ public final class Helix {
         error: error.error, status: error.status, message: error.message)
     }
 
-    return data
+    return (httpResponse.statusCode, data)
   }
 
-  private func decode<T: Decodable>(_ data: Data) throws -> ([T], String?) {
+  private func decode<T: Decodable>(_ data: Data) throws -> ((String, HelixData<T>)) {
     let helixData = try? decoder.decode(HelixData<T>.self, from: data)
-    let result = helixData?.data
-    let cursor = helixData?.pagination?.cursor
+    let rawResponse = String(decoding: data, as: UTF8.self)
 
-    guard let result else {
-      throw HelixError.invalidResponse(rawResponse: String(decoding: data, as: UTF8.self))
+    guard let helixData else {
+      throw HelixError.invalidResponse(rawResponse: rawResponse)
     }
 
-    return (result, cursor)
+    return (rawResponse, helixData)
   }
 
   private func buildURLRequest(_ request: HelixRequest, queryItems: [URLQueryItem]? = nil)
