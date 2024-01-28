@@ -8,13 +8,8 @@ extension Helix {
   public func getFollowedChannels(
     userId: String, limit: Int? = nil, after cursor: String? = nil
   ) async throws -> (total: Int, follows: [Follow], cursor: String?) {
-    let items = [
-      ("user_id", userId), ("first", limit.map(String.init)), ("after", cursor),
-    ]
-
-    let queryItems = items.filter({ _, value in value != nil }).map({ name, value in
-      URLQueryItem(name: name, value: value)
-    })
+    let queryItems = self.makeQueryItems(
+      ("user_id", userId), ("first", limit.map(String.init)), ("after", cursor))
 
     let (rawResponse, result): (_, HelixData<Follow>?) = try await self.request(
       .get("channels/followed"), with: queryItems)

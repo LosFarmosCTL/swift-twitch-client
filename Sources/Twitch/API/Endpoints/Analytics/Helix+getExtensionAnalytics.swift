@@ -9,16 +9,11 @@ extension Helix {
     extensionId: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil
   ) async throws -> (analytics: [ExtensionReport], cursor: String?) {
-    let items = [
+    let queryItems = self.makeQueryItems(
       ("extension_id", extensionId), ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
       ("ended_at", range?.end.formatted(.iso8601)), ("first", limit.map(String.init)),
-      ("after", cursor),
-    ]
-
-    let queryItems = items.filter({ _, value in value != nil }).map({ name, value in
-      URLQueryItem(name: name, value: value)
-    })
+      ("after", cursor))
 
     let (rawResponse, result): (_, HelixData<ExtensionReport>?) = try await self.request(
       .get("analytics/extensions"), with: queryItems)

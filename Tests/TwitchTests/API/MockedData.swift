@@ -30,6 +30,9 @@ public final class MockedData {
     forResource: "getChannelFollowers", withExtension: "json")!.data
   public static let checkChannelFollowerJSON: Data = Bundle.module.url(
     forResource: "checkChannelFollower", withExtension: "json")!.data
+
+  public static let getChattersJSON: Data = Bundle.module.url(
+    forResource: "getChatters", withExtension: "json")!.data
 }
 
 extension URL {

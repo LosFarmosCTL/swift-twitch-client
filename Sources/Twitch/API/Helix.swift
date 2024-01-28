@@ -99,6 +99,13 @@ public final class Helix {
 
     return urlRequest
   }
+
+  internal func makeQueryItems(_ items: (String, String?)...) -> [URLQueryItem] {
+    return items.compactMap({ (name, value) in
+      guard let value else { return nil }
+      return URLQueryItem(name: name, value: value)
+    })
+  }
 }
 
 // the FoundationNetworking implementation for Linux doesn't have
