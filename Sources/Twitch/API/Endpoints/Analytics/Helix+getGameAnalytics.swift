@@ -12,7 +12,7 @@ extension Helix {
     let items = [
       ("game_id", gameId), ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
-      ("ended_at", range?.end.formatted(.iso8601)), ("first", first?.formatted()),
+      ("ended_at", range?.end.formatted(.iso8601)), ("first", limit.map(String.init)),
       ("after", cursor),
     ]
 
