@@ -1,5 +1,0 @@
-{
-  "error": "Bad Request",
-  "status": 400,
-  "message": "Missing required parameter \"broadcaster_id\""
-}

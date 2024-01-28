@@ -8,17 +8,18 @@ extension Helix {
   public func snoozeNextAd(broadcasterId: String) async throws -> [SnoozeResult] {
     let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
     return try await self.request(.post("channels/ads/schedule/snooze"), with: queryItems)
+      .result
   }
 }
 
 public struct SnoozeResult: Decodable {
-  let length: Int
-  let message: String
-  let retryAfter: Int
+  let snoozeCount: Int
+  let snoozeRefreshAt: Date
+  let nextAdAt: Date
 
   enum CodingKeys: String, CodingKey {
-    case length
-    case message
-    case retryAfter = "retry_after"
+    case snoozeCount = "snooze_count"
+    case snoozeRefreshAt = "snooze_refresh_at"
+    case nextAdAt = "next_ad_at"
   }
 }

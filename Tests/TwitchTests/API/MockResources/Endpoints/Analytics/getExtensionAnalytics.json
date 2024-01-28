@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "extension_id": "efgh",
+      "URL": "https://twitch-piper-reports.s3-us-west-2.amazonaws.com/dynamic/",
+      "type": "overview_v2",
+      "date_range": {
+        "started_at": "2018-03-01T00:00:00Z",
+        "ended_at": "2018-06-01T00:00:00Z"
+      }
+    }
+  ]
+}

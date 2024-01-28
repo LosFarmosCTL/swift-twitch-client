@@ -8,11 +8,11 @@ extension Helix {
   public func getAdSchedule(broadcasterId: String) async throws -> [AdSchedule] {
     let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
 
-    return try await self.request(.get("channels/ads"), with: queryItems)
+    return try await self.request(.get("channels/ads"), with: queryItems).result
   }
 }
 
-public struct AdSchedule: Codable {
+public struct AdSchedule: Decodable {
   let nextAdAt: Date
   let lastAdAt: Date
   let duration: Int

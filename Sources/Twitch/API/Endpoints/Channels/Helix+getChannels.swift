@@ -8,11 +8,11 @@ extension Helix {
   public func getChannels(userIDs: [String]) async throws -> [Broadcaster] {
     let queryItems = userIDs.map { URLQueryItem(name: "broadcaster_id", value: $0) }
 
-    return try await self.request(.get("channels"), with: queryItems)
+    return try await self.request(.get("channels"), with: queryItems).result
   }
 }
 
-public struct Broadcaster: Codable {
+public struct Broadcaster: Decodable {
   let id: String
   let login: String
   let name: String

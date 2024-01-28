@@ -11,7 +11,7 @@ extension Helix {
     return try await self.request(
       .post("channels/commercial"),
       jsonBody: StartCommercialRequestBody(broadcasterId: broadcasterId, length: length)
-    ).first!
+    ).result.first!
   }
 }
 
