@@ -7,12 +7,12 @@ import Foundation
 extension Helix {
   public func getExtensionAnalytics(
     extensionId: String? = nil, type: String? = nil, range: DateInterval? = nil,
-    first: Int? = nil, after cursor: String? = nil
+    limit: Int? = nil, after cursor: String? = nil
   ) async throws -> (analytics: [ExtensionReport], cursor: String?) {
     let items = [
       ("extension_id", extensionId), ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
-      ("ended_at", range?.end.formatted(.iso8601)), ("first", first.map(String.init)),
+      ("ended_at", range?.end.formatted(.iso8601)), ("first", limit.map(String.init)),
       ("after", cursor),
     ]
 

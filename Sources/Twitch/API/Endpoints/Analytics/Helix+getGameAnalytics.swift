@@ -7,7 +7,7 @@ import Foundation
 extension Helix {
   public func getGameAnalytics(
     gameId: String? = nil, type: String? = nil, range: DateInterval? = nil,
-    first: Int? = nil, after cursor: String? = nil
+    limit: Int? = nil, after cursor: String? = nil
   ) async throws -> (analytics: [GameReport], cursor: String?) {
     let items = [
       ("game_id", gameId), ("type", type),
