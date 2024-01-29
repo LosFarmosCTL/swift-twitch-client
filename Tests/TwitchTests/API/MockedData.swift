@@ -47,6 +47,8 @@ public final class MockedData {
     forResource: "getChatSettings", withExtension: "json")!.data
   public static let getUserColorJSON: Data = Bundle.module.url(
     forResource: "getUserColor", withExtension: "json")!.data
+  public static let getContentClassificationLabelsJSON: Data = Bundle.module.url(
+    forResource: "getContentClassificationLabels", withExtension: "json")!.data
 }
 
 extension URL {
