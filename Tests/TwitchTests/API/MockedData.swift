@@ -49,6 +49,11 @@ public final class MockedData {
     forResource: "getUserColor", withExtension: "json")!.data
   public static let getContentClassificationLabelsJSON: Data = Bundle.module.url(
     forResource: "getContentClassificationLabels", withExtension: "json")!.data
+
+  public static let getGamesJSON: Data = Bundle.module.url(
+    forResource: "getGames", withExtension: "json")!.data
+  public static let getTopGamesJSON: Data = Bundle.module.url(
+    forResource: "getTopGames", withExtension: "json")!.data
 }
 
 extension URL {
