@@ -43,7 +43,7 @@ final class GamesTests: XCTestCase {
       data: [.get: MockedData.getTopGamesJSON]
     ).register()
 
-    let (cursor, games) = try await helix.getTopGames(limit: 1)
+    let (games, cursor) = try await helix.getTopGames(limit: 1)
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6MjB9fQ==")
 

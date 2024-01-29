@@ -6,10 +6,10 @@ import Foundation
 
 extension Helix {
   public func getTopGames(
-    limit: Int? = nil, after endCursor: String? = nil, before startCursor: String? = nil
+    limit: Int? = nil, after startCursor: String? = nil, before endCursor: String? = nil
   ) async throws -> (games: [Game], cursor: String?) {
     let queryItems = self.makeQueryItems(
-      ("after", endCursor), ("before", startCursor), ("first", limit.map(String.init)))
+      ("after", startCursor), ("before", endCursor), ("first", limit.map(String.init)))
 
     let (rawResponse, result): (_, HelixData<Game>?) = try await self.request(
       .get("games/top"), with: queryItems)
