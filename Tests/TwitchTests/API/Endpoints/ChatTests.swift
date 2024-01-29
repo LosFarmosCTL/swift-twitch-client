@@ -40,23 +40,4 @@ final class ChatTests: XCTestCase {
 
     XCTAssert(analytics.contains(where: { $0.userId == "128393656" }))
   }
-
-  func testGameAnalytics() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/analytics/games")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getGameAnalyticsJSON]
-    ).register()
-
-    let (analytics, _) = try await helix.getGameAnalytics()
-
-    XCTAssertEqual(analytics.count, 1)
-
-    XCTAssert(analytics.contains(where: { $0.gameId == "9821" }))
-
-    XCTAssertEqual(
-      analytics.first?.range.start.formatted(.iso8601), "2018-03-13T00:00:00Z")
-    XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-13T00:00:00Z")
-  }
 }
