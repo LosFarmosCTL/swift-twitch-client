@@ -4,6 +4,10 @@ import XCTest
 
 @testable import Twitch
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 final class ContentClassificationLabelsTests: XCTestCase {
   private var helix: Helix!
 
