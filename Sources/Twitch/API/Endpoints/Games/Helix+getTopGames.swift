@@ -7,7 +7,7 @@ import Foundation
 extension Helix {
   public func getTopGames(
     limit: Int? = nil, after endCursor: String? = nil, before startCursor: String? = nil
-  ) async throws -> (cursor: String?, games: [Game]) {
+  ) async throws -> (games: [Game], cursor: String?) {
     let queryItems = self.makeQueryItems(
       ("after", endCursor), ("before", startCursor), ("first", limit.map(String.init)))
 
@@ -16,6 +16,6 @@ extension Helix {
 
     guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
 
-    return (result.pagination?.cursor, result.data)
+    return (result.data, result.pagination?.cursor)
   }
 }
