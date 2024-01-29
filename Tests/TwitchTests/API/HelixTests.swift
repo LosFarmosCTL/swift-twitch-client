@@ -18,21 +18,34 @@ class HelixTests: XCTestCase {
     self.mockingURLSession = URLSession(configuration: configuration)
 
     self.helix = try Helix(
-      authentication: .init(oAuth: "abcdefg", clientID: "123456"),
+      authentication: .init(oAuth: "abcdefg", clientID: "123456", userId: "1234"),
       urlSession: mockingURLSession)
   }
 
   func testHelixInitialization() {
     XCTAssertNoThrow(
-      try Helix(authentication: .init(oAuth: "abcdefg", clientID: "123456")))
+      try Helix(
+        authentication: .init(oAuth: "abcdefg", clientID: "123456", userId: "1234")))
   }
 
   func testHelixInitializationWithoutClientId() {
-    XCTAssertThrowsError(try Helix(authentication: .init(oAuth: "abcdefghijkl123456789")))
-    { error in
+    XCTAssertThrowsError(
+      try Helix(authentication: .init(oAuth: "abcdefg", userId: "1234"))
+    ) { error in
       guard case HelixError.missingClientID = error else {
         return XCTFail(
           "Initializing Helix without a ClientID should throw a missingClientID error.")
+      }
+    }
+  }
+
+  func testHelixInitializationWithoutUserId() {
+    XCTAssertThrowsError(
+      try Helix(authentication: .init(oAuth: "abcdefg", clientID: "123456"))
+    ) { error in
+      guard case HelixError.missingUserID = error else {
+        return XCTFail(
+          "Initializing Helix without a user id should throw a missingUserId error.")
       }
     }
   }

@@ -17,7 +17,8 @@ final class ChannelsTests: XCTestCase {
     let urlSession = URLSession(configuration: configuration)
 
     helix = try Helix(
-      authentication: .init(oAuth: "1234567989", clientID: "abcdefghijkl"),
+      authentication: .init(
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
       urlSession: urlSession)
   }
 
@@ -45,7 +46,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelEditorsJSON]
     ).register()
 
-    let editors = try await helix.getChannelEditors(broadcasterId: "1234")
+    let editors = try await helix.getChannelEditors()
 
     XCTAssertEqual(editors.count, 2)
 
@@ -63,7 +64,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getFollowedChannelsJSON]
     ).register()
 
-    let (total, follows, cursor) = try await helix.getFollowedChannels(userId: "1234")
+    let (total, follows, cursor) = try await helix.getFollowedChannels()
 
     XCTAssertEqual(total, 8)
 
@@ -136,7 +137,7 @@ final class ChannelsTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.updateChannel(broadcasterId: "1234", gameId: "1234")
+    try await helix.updateChannel(gameId: "1234")
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

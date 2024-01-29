@@ -5,8 +5,8 @@ import Foundation
 #endif
 
 extension Helix {
-  public func getAdSchedule(broadcasterId: String) async throws -> [AdSchedule] {
-    let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
+  public func getAdSchedule() async throws -> [AdSchedule] {
+    let queryItems = self.makeQueryItems(("broadcaster_id", self.authenticatedUserId))
 
     let (rawResponse, result): (_, HelixData<AdSchedule>?) = try await self.request(
       .get("channels/ads"), with: queryItems)

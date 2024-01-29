@@ -13,10 +13,17 @@ public final class Helix {
   private let encoder = JSONEncoder()
   private let decoder = JSONDecoder()
 
+  internal let authenticatedUserId: String
+
   public init(authentication: TwitchCredentials, urlSession: URLSession? = nil) throws {
     guard authentication.clientID != nil else { throw HelixError.missingClientID }
+    guard let authenticatedUserId = authentication.userId else {
+      throw HelixError.missingUserID
+    }
 
     self.authentication = authentication
+    self.authenticatedUserId = authenticatedUserId
+
     self.session = urlSession ?? URLSession(configuration: .default)
 
     self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds

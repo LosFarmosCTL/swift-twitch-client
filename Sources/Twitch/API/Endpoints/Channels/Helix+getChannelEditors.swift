@@ -5,8 +5,8 @@ import Foundation
 #endif
 
 extension Helix {
-  public func getChannelEditors(broadcasterId: String) async throws -> [Editor] {
-    let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
+  public func getChannelEditors() async throws -> [Editor] {
+    let queryItems = self.makeQueryItems(("broadcaster_id", self.authenticatedUserId))
 
     let (rawResponse, result): (String, HelixData<Editor>?) = try await self.request(
       .get("channels/editors"), with: queryItems)

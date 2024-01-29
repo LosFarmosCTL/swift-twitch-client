@@ -17,7 +17,8 @@ final class AdsTests: XCTestCase {
     let urlSession = URLSession(configuration: configuration)
 
     helix = try Helix(
-      authentication: .init(oAuth: "1234567989", clientID: "abcdefghijkl"),
+      authentication: .init(
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
       urlSession: urlSession)
   }
 
@@ -29,7 +30,7 @@ final class AdsTests: XCTestCase {
       data: [.get: MockedData.getAdScheduleJSON]
     ).register()
 
-    let ads = try await helix.getAdSchedule(broadcasterId: "1234")
+    let ads = try await helix.getAdSchedule()
 
     XCTAssertEqual(ads.count, 1)
 
@@ -45,7 +46,7 @@ final class AdsTests: XCTestCase {
       data: [.post: MockedData.startCommercialJSON]
     ).register()
 
-    let commercial = try await helix.startCommercial(broadcasterId: "1234", length: 60)
+    let commercial = try await helix.startCommercial(length: 60)
 
     XCTAssertEqual(commercial.length, 60)
     XCTAssertEqual(commercial.message, "")
@@ -62,7 +63,7 @@ final class AdsTests: XCTestCase {
       data: [.post: MockedData.snoozeNextAdJSON]
     ).register()
 
-    let snoozeResult = try await helix.snoozeNextAd(broadcasterId: "1234")
+    let snoozeResult = try await helix.snoozeNextAd()
 
     XCTAssertEqual(snoozeResult.count, 1)
     XCTAssertEqual(snoozeResult.first?.snoozeCount, 1)

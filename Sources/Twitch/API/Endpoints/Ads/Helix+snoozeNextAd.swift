@@ -5,8 +5,8 @@ import Foundation
 #endif
 
 extension Helix {
-  public func snoozeNextAd(broadcasterId: String) async throws -> [SnoozeResult] {
-    let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
+  public func snoozeNextAd() async throws -> [SnoozeResult] {
+    let queryItems = self.makeQueryItems(("broadcaster_id", self.authenticatedUserId))
 
     let (rawResponse, result): (_, HelixData<SnoozeResult>?) = try await self.request(
       .post("channels/ads/schedule/snooze"), with: queryItems)

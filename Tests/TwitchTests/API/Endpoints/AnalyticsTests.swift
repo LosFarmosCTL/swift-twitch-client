@@ -17,7 +17,8 @@ final class AnalyticsTests: XCTestCase {
     let urlSession = URLSession(configuration: configuration)
 
     helix = try Helix(
-      authentication: .init(oAuth: "1234567989", clientID: "abcdefghijkl"),
+      authentication: .init(
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
       urlSession: urlSession)
   }
 

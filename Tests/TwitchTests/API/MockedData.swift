@@ -33,6 +33,20 @@ public final class MockedData {
 
   public static let getChattersJSON: Data = Bundle.module.url(
     forResource: "getChatters", withExtension: "json")!.data
+  public static let getChannelEmotesJSON: Data = Bundle.module.url(
+    forResource: "getChannelEmotes", withExtension: "json")!.data
+  public static let getGlobalEmotesJSON: Data = Bundle.module.url(
+    forResource: "getGlobalEmotes", withExtension: "json")!.data
+  public static let getEmoteSetsJSON: Data = Bundle.module.url(
+    forResource: "getEmoteSets", withExtension: "json")!.data
+  public static let getChannelBadgesJSON: Data = Bundle.module.url(
+    forResource: "getChannelBadges", withExtension: "json")!.data
+  public static let getGlobalBadgesJSON: Data = Bundle.module.url(
+    forResource: "getGlobalBadges", withExtension: "json")!.data
+  public static let getChatSettingsJSON: Data = Bundle.module.url(
+    forResource: "getChatSettings", withExtension: "json")!.data
+  public static let getUserColorJSON: Data = Bundle.module.url(
+    forResource: "getUserColor", withExtension: "json")!.data
 }
 
 extension URL {

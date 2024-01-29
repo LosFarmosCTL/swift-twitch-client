@@ -6,8 +6,8 @@ import Foundation
 
 extension Helix {
   public func updateChannel(
-    broadcasterId: String, gameId: String? = nil, broadcasterLanguage: String? = nil,
-    title: String? = nil, delay: Int? = nil, tag: [String]? = nil,
+    gameId: String? = nil, broadcasterLanguage: String? = nil, title: String? = nil,
+    delay: Int? = nil, tag: [String]? = nil,
     contentClassificationLabels: [Label: Bool]? = nil, isBrandedContent: Bool? = nil
   ) async throws {
     let contentClassificationLabels = contentClassificationLabels?.map {
@@ -20,7 +20,7 @@ extension Helix {
       delay: delay, tags: tag, contentClassificationLabels: contentClassificationLabels,
       isBrandedContent: isBrandedContent)
 
-    let queryItems = [URLQueryItem(name: "broadcaster_id", value: broadcasterId)]
+    let queryItems = self.makeQueryItems(("broadcaster_id", self.authenticatedUserId))
 
     (_, _) =
       try await self.request(.patch("channels"), with: queryItems, jsonBody: body)

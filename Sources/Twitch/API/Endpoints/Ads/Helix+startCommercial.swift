@@ -5,12 +5,11 @@ import Foundation
 #endif
 
 extension Helix {
-  public func startCommercial(broadcasterId: String, length: Int) async throws
-    -> Commercial
-  {
+  public func startCommercial(length: Int) async throws -> Commercial {
     let (rawResponse, result): (_, HelixData<Commercial>?) = try await self.request(
       .post("channels/commercial"),
-      jsonBody: StartCommercialRequestBody(broadcasterId: broadcasterId, length: length))
+      jsonBody: StartCommercialRequestBody(
+        broadcasterId: self.authenticatedUserId, length: length))
 
     guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
 

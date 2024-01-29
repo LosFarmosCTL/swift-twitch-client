@@ -3,8 +3,9 @@ private let oAuthPrefix = "oauth:"
 public struct TwitchCredentials {
   internal let oAuth: String
   internal let clientID: String?
+  internal let userId: String?
 
-  public init(oAuth: String, clientID: String? = nil) {
+  public init(oAuth: String, clientID: String? = nil, userId: String? = nil) {
     // assure that the stored token always starts with "oauth:"
     if !oAuth.starts(with: oAuthPrefix) {
       self.oAuth = oAuthPrefix + oAuth
@@ -13,6 +14,7 @@ public struct TwitchCredentials {
     }
 
     self.clientID = clientID
+    self.userId = userId
   }
 
   private var cleanOAuth: String { return String(oAuth.dropFirst(oAuthPrefix.count)) }

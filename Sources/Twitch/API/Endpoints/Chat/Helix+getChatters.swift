@@ -6,11 +6,10 @@ import Foundation
 
 extension Helix {
   public func getChatters(
-    broadcasterId: String, moderatorId: String, limit: Int? = nil,
-    after cursor: String? = nil
+    broadcasterId: String, limit: Int? = nil, after cursor: String? = nil
   ) async throws -> (total: Int, chatters: [Chatter], cursor: String?) {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId), ("moderator_id", moderatorId),
+      ("broadcaster_id", broadcasterId), ("moderator_id", self.authenticatedUserId),
       ("limit", limit.map(String.init)), ("after", cursor))
 
     let (rawResponse, result): (_, HelixData<Chatter>?) = try await self.request(

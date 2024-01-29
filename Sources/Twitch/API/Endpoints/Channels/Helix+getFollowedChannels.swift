@@ -5,11 +5,12 @@ import Foundation
 #endif
 
 extension Helix {
-  public func getFollowedChannels(
-    userId: String, limit: Int? = nil, after cursor: String? = nil
-  ) async throws -> (total: Int, follows: [Follow], cursor: String?) {
+  public func getFollowedChannels(limit: Int? = nil, after cursor: String? = nil)
+    async throws -> (total: Int, follows: [Follow], cursor: String?)
+  {
     let queryItems = self.makeQueryItems(
-      ("user_id", userId), ("first", limit.map(String.init)), ("after", cursor))
+      ("user_id", self.authenticatedUserId), ("first", limit.map(String.init)),
+      ("after", cursor))
 
     let (rawResponse, result): (_, HelixData<Follow>?) = try await self.request(
       .get("channels/followed"), with: queryItems)
