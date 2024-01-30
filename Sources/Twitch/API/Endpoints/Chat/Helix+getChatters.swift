@@ -10,7 +10,7 @@ extension Helix {
   ) async throws -> (total: Int, chatters: [Chatter], cursor: String?) {
     let queryItems = self.makeQueryItems(
       ("broadcaster_id", broadcasterId), ("moderator_id", self.authenticatedUserId),
-      ("limit", limit.map(String.init)), ("after", cursor))
+      ("first", limit.map(String.init)), ("after", cursor))
 
     let (rawResponse, result): (_, HelixData<Chatter>?) = try await self.request(
       .get("chat/chatters"), with: queryItems)
