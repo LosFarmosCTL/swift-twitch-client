@@ -67,6 +67,14 @@ public final class MockedData {
     forResource: "banUser", withExtension: "json")!.data
   public static let getBlockedTermsJSON: Data = Bundle.module.url(
     forResource: "getBlockedTerms", withExtension: "json")!.data
+  public static let getModeratedChannelsJSON: Data = Bundle.module.url(
+    forResource: "getModeratedChannels", withExtension: "json")!.data
+  public static let getModeratorsJSON: Data = Bundle.module.url(
+    forResource: "getModerators", withExtension: "json")!.data
+  public static let getVIPsJSON: Data = Bundle.module.url(
+    forResource: "getVIPs", withExtension: "json")!.data
+  public static let getShieldModeStatusJSON: Data = Bundle.module.url(
+    forResource: "getShieldModeStatus", withExtension: "json")!.data
 
   public static let searchCategoriesJSON: Data = Bundle.module.url(
     forResource: "searchCategories", withExtension: "json")!.data

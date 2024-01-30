@@ -8,6 +8,8 @@ import XCTest
   import FoundationNetworking
 #endif
 
+// swiftlint:disable file_length
+// swiftlint:disable:next type_body_length
 final class ModerationTests: XCTestCase {
   private var helix: Helix!
 
@@ -229,5 +231,177 @@ final class ModerationTests: XCTestCase {
     try await helix.removeBlockedTerm(inChannel: "5678", termId: "9876")
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testDeleteChatMessage() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/chat?broadcaster_id=5678&moderator_id=1234&message_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.deleteChatMessage(inChannel: "5678", withID: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testGetModeratedChannels() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/moderation/channels?user_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getModeratedChannelsJSON]
+    ).register()
+
+    let (channels, cursor) = try await helix.getModeratedChannels()
+
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6")
+
+    XCTAssertEqual(channels.count, 2)
+    XCTAssertEqual(channels.first?.id, "12345")
+    XCTAssertEqual(channels.last?.id, "98765")
+  }
+
+  func testGetModerators() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/moderation/moderators?broadcaster_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getModeratorsJSON]
+    ).register()
+
+    let (moderators, cursor) = try await helix.getModerators()
+
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
+
+    XCTAssertEqual(moderators.count, 1)
+    XCTAssertEqual(moderators.first?.id, "424596340")
+  }
+
+  func testAddChannelModerator() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/moderators?broadcaster_id=1234&user_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.addChannelModerator(userID: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testRemoveChannelModerator() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/moderators?broadcaster_id=1234&user_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.removeChannelModerator(userID: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testGetVIPs() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/channels/vips?broadcaster_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getVIPsJSON]
+    ).register()
+
+    let (vips, cursor) = try await helix.getVIPs()
+
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
+
+    XCTAssertEqual(vips.count, 1)
+    XCTAssertEqual(vips.first?.id, "11111")
+  }
+
+  func testAddChannelVIP() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/channels/vips?broadcaster_id=1234&user_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.addChannelVIP(userID: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testRemoveChannelVIP() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/channels/vips?broadcaster_id=1234&user_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.removeChannelVIP(userID: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
+
+  func testGetShieldModeStatus() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/shield_mode?broadcaster_id=5678&moderator_id=1234"
+    )!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getShieldModeStatusJSON]
+    ).register()
+
+    let result = try await helix.getShieldModeStatus(forChannel: "5678")
+
+    XCTAssertEqual(result.isActive, true)
+    XCTAssertEqual(result.moderatorID, "1234")
+  }
+
+  func testUpdateShieldModeStatus() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/shield_mode?broadcaster_id=5678&moderator_id=1234"
+    )!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.put: MockedData.getShieldModeStatusJSON]
+    ).register()
+
+    let result = try await helix.updateShieldModeStatus(inChannel: "5678", isActive: true)
+
+    XCTAssertEqual(result.isActive, true)
+    XCTAssertEqual(result.moderatorID, "1234")
   }
 }
