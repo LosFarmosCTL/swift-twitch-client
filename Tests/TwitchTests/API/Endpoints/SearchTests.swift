@@ -32,6 +32,8 @@ final class SearchTests: XCTestCase {
 
     let (categories, cursor) = try await helix.searchCategories(for: "fort")
 
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN")
+
     XCTAssertEqual(categories.count, 1)
     XCTAssert(categories.contains(where: { $0.id == "33214" }))
   }
@@ -45,6 +47,8 @@ final class SearchTests: XCTestCase {
     ).register()
 
     let (channels, cursor) = try await helix.searchChannels(for: "loser")
+
+    XCTAssertNil(cursor)
 
     XCTAssertEqual(channels.count, 2)
     XCTAssert(channels.contains(where: { $0.id == "41245072" }))
