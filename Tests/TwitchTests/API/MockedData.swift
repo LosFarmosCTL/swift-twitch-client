@@ -69,6 +69,13 @@ public final class MockedData {
     forResource: "getBroadcasterSubscriptions", withExtension: "json")!.data
   public static let checkUserSubscriptionJSON: Data = Bundle.module.url(
     forResource: "checkUserSubscription", withExtension: "json")!.data
+
+  public static let getUsersJSON: Data = Bundle.module.url(
+    forResource: "getUsers", withExtension: "json")!.data
+  public static let updateUserJSON: Data = Bundle.module.url(
+    forResource: "updateUser", withExtension: "json")!.data
+  public static let getUserBlocklistJSON: Data = Bundle.module.url(
+    forResource: "getUserBlocklist", withExtension: "json")!.data
 }
 
 extension URL {
