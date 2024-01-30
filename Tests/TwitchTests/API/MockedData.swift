@@ -55,6 +55,13 @@ public final class MockedData {
   public static let getTopGamesJSON: Data = Bundle.module.url(
     forResource: "getTopGames", withExtension: "json")!.data
 
+  public static let checkAutomodStatusJSON: Data = Bundle.module.url(
+    forResource: "checkAutomodStatus", withExtension: "json")!.data
+  public static let getAutomodSettingsJSON: Data = Bundle.module.url(
+    forResource: "getAutomodSettings", withExtension: "json")!.data
+  public static let updateAutomodSettingsJSON: Data = Bundle.module.url(
+    forResource: "updateAutomodSettings", withExtension: "json")!.data
+
   public static let searchCategoriesJSON: Data = Bundle.module.url(
     forResource: "searchCategories", withExtension: "json")!.data
   public static let searchChannelsJSON: Data = Bundle.module.url(
