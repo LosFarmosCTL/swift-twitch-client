@@ -119,4 +119,57 @@ final class ModerationTests: XCTestCase {
     XCTAssertEqual(result.raceEthnicityOrReligion, 3)
     XCTAssertEqual(result.sexBasedTerms, 3)
   }
+
+  func testGetBannedUsers() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/moderation/banned?broadcaster_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getBannedUsersJSON]
+    ).register()
+
+    let (users, cursor) = try await helix.getBannedUsers()
+
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI")
+
+    XCTAssertEqual(users.count, 2)
+    XCTAssertEqual(users.first?.userId, "423374343")
+  }
+
+  func testBanUser() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/bans?broadcaster_id=5678&moderator_id=1234"
+    )!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200, data: [.post: MockedData.banUserJSON]
+    ).register()
+
+    let ban = try await helix.banUser(withID: "9876", inChannel: "5678")
+
+    XCTAssertEqual(ban.broadcasterID, "5678")
+    XCTAssertEqual(ban.moderatorID, "1234")
+    XCTAssertEqual(ban.userID, "9876")
+    XCTAssertNil(ban.endTime)
+  }
+
+  func testUnbanUser() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/bans?broadcaster_id=5678&moderator_id=1234&user_id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.unbanUser(withID: "9876", inChannel: "5678")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
 }

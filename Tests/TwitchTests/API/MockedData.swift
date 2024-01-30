@@ -61,6 +61,10 @@ public final class MockedData {
     forResource: "getAutomodSettings", withExtension: "json")!.data
   public static let updateAutomodSettingsJSON: Data = Bundle.module.url(
     forResource: "updateAutomodSettings", withExtension: "json")!.data
+  public static let getBannedUsersJSON: Data = Bundle.module.url(
+    forResource: "getBannedUsers", withExtension: "json")!.data
+  public static let banUserJSON: Data = Bundle.module.url(
+    forResource: "banUser", withExtension: "json")!.data
 
   public static let searchCategoriesJSON: Data = Bundle.module.url(
     forResource: "searchCategories", withExtension: "json")!.data
