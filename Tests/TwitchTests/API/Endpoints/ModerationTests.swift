@@ -172,4 +172,62 @@ final class ModerationTests: XCTestCase {
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
+
+  func testGetBlockedTerms() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/blocked_terms?broadcaster_id=5678&moderator_id=1234"
+    )!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getBlockedTermsJSON]
+    ).register()
+
+    let (terms, cursor) = try await helix.getBlockedTerms(inChannel: "5678")
+
+    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
+
+    XCTAssertEqual(terms.count, 1)
+    XCTAssertEqual(terms.first?.text, "A phrase I'm not fond of")
+    XCTAssertNil(terms.first?.expiresAt)
+  }
+
+  func testAddBlockedTerm() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/blocked_terms?broadcaster_id=5678&moderator_id=1234"
+    )!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.post: MockedData.getBlockedTermsJSON]
+    ).register()
+
+    let term = try await helix.addBlockedTerm(
+      inChannel: "5678", text: "A phrase I'm not fond of")
+
+    XCTAssertEqual(term.broadcasterID, "5678")
+    XCTAssertEqual(term.moderatorID, "1234")
+    XCTAssertEqual(term.text, "A phrase I'm not fond of")
+    XCTAssertNil(term.expiresAt)
+  }
+
+  func testRemoveBlockedTerm() async throws {
+    let url = URL(
+      string:
+        "https://api.twitch.tv/helix/moderation/blocked_terms?broadcaster_id=5678&moderator_id=1234&id=9876"
+    )!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+
+    var mock = Mock(request: request, statusCode: 204)
+    let completionExpectation = expectationForCompletingMock(&mock)
+    mock.register()
+
+    try await helix.removeBlockedTerm(inChannel: "5678", termId: "9876")
+
+    await fulfillment(of: [completionExpectation], timeout: 2.0)
+  }
 }

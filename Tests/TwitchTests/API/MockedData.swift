@@ -65,6 +65,8 @@ public final class MockedData {
     forResource: "getBannedUsers", withExtension: "json")!.data
   public static let banUserJSON: Data = Bundle.module.url(
     forResource: "banUser", withExtension: "json")!.data
+  public static let getBlockedTermsJSON: Data = Bundle.module.url(
+    forResource: "getBlockedTerms", withExtension: "json")!.data
 
   public static let searchCategoriesJSON: Data = Bundle.module.url(
     forResource: "searchCategories", withExtension: "json")!.data
