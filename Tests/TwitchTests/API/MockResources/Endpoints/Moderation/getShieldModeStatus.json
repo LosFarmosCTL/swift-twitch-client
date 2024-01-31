@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "is_active": true,
+      "moderator_id": "1234",
+      "moderator_name": "SimplySimple",
+      "moderator_login": "simplysimple",
+      "last_activated_at": "2022-07-26T17:16:03.123Z"
+    }
+  ]
+}

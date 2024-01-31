@@ -1,5 +1,6 @@
 public enum HelixError: Error {
   case missingClientID
+  case missingUserID
   case invalidResponse(rawResponse: String)
   case invalidErrorResponse(status: Int, rawResponse: String)
 

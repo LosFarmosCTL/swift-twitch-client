@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "broadcaster_id": "141981764",
+      "broadcaster_login": "twitchdev",
+      "broadcaster_name": "TwitchDev",
+      "gifter_id": "12826",
+      "gifter_login": "twitch",
+      "gifter_name": "Twitch",
+      "is_gift": true,
+      "tier": "1000"
+    }
+  ]
+}

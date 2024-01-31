@@ -1,0 +1,14 @@
+{
+  "total": 8,
+  "data": [
+    {
+      "broadcaster_id": "11111",
+      "broadcaster_login": "userloginname",
+      "broadcaster_name": "UserDisplayName",
+      "followed_at": "2022-05-24T22:22:08Z"
+    }
+  ],
+  "pagination": {
+    "cursor": "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19"
+  }
+}

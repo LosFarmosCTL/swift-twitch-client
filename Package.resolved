@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WeTransfer/Mocker.git",
       "state" : {
-        "revision" : "4384e015cae4916a6828252467a4437173c7ae17",
-        "version" : "3.0.1"
+        "revision" : "95fa785c751f6bc40c49e112d433c3acf8417a97",
+        "version" : "3.0.2"
       }
     },
     {

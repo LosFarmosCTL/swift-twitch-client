@@ -8,7 +8,7 @@ let package = Package(
   products: [.library(name: "Twitch", targets: ["Twitch"])],
   dependencies: [
     .package(
-      url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.1")),
+      url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.2")),
     .package(url: "https://github.com/MahdiBM/TwitchIRC", from: "1.5.0"),
     .package(url: "https://github.com/vapor/websocket-kit", from: "2.14.0"),
   ],

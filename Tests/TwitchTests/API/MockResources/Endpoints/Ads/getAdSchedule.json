@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "next_ad_at": "2023-08-01T23:08:18+00:00",
+      "last_ad_at": "2023-08-01T23:08:18+00:00",
+      "duration": 60,
+      "preroll_free_time": 90,
+      "snooze_count": 1,
+      "snooze_refresh_at": "2023-08-01T23:08:18+00:00"
+    }
+  ]
+}

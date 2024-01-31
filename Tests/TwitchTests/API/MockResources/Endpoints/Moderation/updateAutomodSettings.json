@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "broadcaster_id": "5678",
+      "moderator_id": "1234",
+      "overall_level": 3,
+      "disability": 3,
+      "aggression": 3,
+      "sexuality_sex_or_gender": 3,
+      "misogyny": 3,
+      "bullying": 2,
+      "swearing": 0,
+      "race_ethnicity_or_religion": 3,
+      "sex_based_terms": 3
+    }
+  ]
+}
