@@ -9,7 +9,9 @@
       "game_name": "Science & Technology",
       "title": "TwitchDev Monthly Update // May 6, 2021",
       "delay": 0,
-      "tags": ["DevsInTheKnow"]
+      "tags": [
+        "DevsInTheKnow"
+      ]
     }
   ]
 }

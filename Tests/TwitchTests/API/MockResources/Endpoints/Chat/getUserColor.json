@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "user_id": "11111",
+      "user_name": "SpeedySpeedster1",
+      "user_login": "speedyspeedster1",
+      "color": "#9146FF"
+    },
+    {
+      "user_id": "44444",
+      "user_name": "SpeedySpeedster2",
+      "user_login": "speedyspeedster2",
+      "color": ""
+    }
+  ]
+}

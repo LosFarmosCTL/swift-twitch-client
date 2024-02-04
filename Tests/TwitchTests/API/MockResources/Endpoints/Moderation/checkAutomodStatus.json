@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "msg_id": "123",
+      "is_permitted": true
+    },
+    {
+      "msg_id": "393",
+      "is_permitted": false
+    }
+  ]
+}

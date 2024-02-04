@@ -1,0 +1,14 @@
+{
+  "total": 8,
+  "data": [
+    {
+      "user_id": "11111",
+      "user_name": "UserDisplayName",
+      "user_login": "userloginname",
+      "followed_at": "2022-05-24T22:22:08Z"
+    }
+  ],
+  "pagination": {
+    "cursor": "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19"
+  }
+}

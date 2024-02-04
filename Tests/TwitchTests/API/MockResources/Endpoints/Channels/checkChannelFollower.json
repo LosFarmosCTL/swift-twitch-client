@@ -1,0 +1,12 @@
+{
+  "total": 8,
+  "data": [
+    {
+      "user_id": "654321",
+      "user_login": "basketweaver101",
+      "user_name": "BasketWeaver101",
+      "followed_at": "2022-05-24T22:22:08Z"
+    }
+  ],
+  "pagination": {}
+}
