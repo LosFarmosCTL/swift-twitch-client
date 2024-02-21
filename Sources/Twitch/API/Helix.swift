@@ -4,135 +4,161 @@ import Foundation
   import FoundationNetworking
 #endif
 
+#if canImport(Combine)
+  import Combine
+#endif
+
 public final class Helix {
-  private let baseURL = URL(string: "https://api.twitch.tv/helix/")!
+  private let baseHelixURL = URL(string: "https://api.twitch.tv/helix/")!
 
   private let authentication: TwitchCredentials
-  private let session: URLSession
+  private let urlSession: URLSession
 
   private let encoder = JSONEncoder()
   private let decoder = JSONDecoder()
 
-  internal let authenticatedUserId: String
-
-  public init(authentication: TwitchCredentials, urlSession: URLSession? = nil) throws {
-    guard authentication.clientID != nil else { throw HelixError.missingClientID }
-    guard let authenticatedUserId = authentication.userId else {
-      throw HelixError.missingUserID
-    }
-
+  public init(
+    authentication: TwitchCredentials,
+    urlSession: URLSession = URLSession(configuration: .default)
+  ) throws {
     self.authentication = authentication
-    self.authenticatedUserId = authenticatedUserId
-
-    self.session = urlSession ?? URLSession(configuration: .default)
+    self.urlSession = urlSession
 
     self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
     self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
   }
 
-  internal func request<T: Decodable>(
-    _ request: HelixRequest, with queryItems: [URLQueryItem]? = nil,
-    jsonBody: Encodable? = nil
-  ) async throws -> (rawResponse: String, result: HelixData<T>?) {
-    var urlRequest = self.buildURLRequest(request, queryItems: queryItems)
+  // MARK: - Async methods
 
-    urlRequest.allHTTPHeaderFields = try? authentication.httpHeaders()
+  public func request(endpoint: HelixEndpoint<ResponseTypes.Void>) async throws {
+    let data = try await self.data(for: endpoint)
 
-    if let jsonBody {
-      urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-      urlRequest.httpBody = try encoder.encode(jsonBody)
+    guard data.isEmpty else {
+      let rawResponse = String(decoding: data, as: UTF8.self)
+      throw HelixError.nonEmptyResponse(rawResponse: rawResponse)
     }
+  }
 
-    let (statusCode, data) = try await self.send(urlRequest)
-
-    guard statusCode == 200 else {
-      let rawResponse: String = String(decoding: data, as: UTF8.self)
-      return (rawResponse, nil)
-    }
+  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Data<R>>) async throws
+    -> HelixResponse<R>
+  {
+    let data = try await self.data(for: endpoint)
 
     return try self.decode(data)
   }
 
-  private func send(_ request: URLRequest) async throws -> (statusCode: Int, data: Data) {
-    let (data, response) = try await self.session.data(for: request)
+  // MARK: - Callback methods
 
-    guard let httpResponse = response as? HTTPURLResponse else {
-      throw URLError(.badServerResponse)
-    }
-
-    guard (200...299).contains(httpResponse.statusCode) else {
-      let error = try? decoder.decode(TwitchError.self, from: data)
-
-      guard let error else {
-        let rawResponse = String(decoding: data, as: UTF8.self)
-        throw HelixError.invalidErrorResponse(
-          status: httpResponse.statusCode, rawResponse: rawResponse)
+  public func requestTask(
+    for endpoint: HelixEndpoint<ResponseTypes.Void>,
+    completionHandler: @escaping @Sendable (HelixError?) -> Void
+  ) {
+    Task {
+      do {
+        try await self.request(endpoint: endpoint)
+        completionHandler(nil)
+      } catch let error as HelixError {
+        completionHandler(error)
       }
-
-      throw HelixError.requestFailed(
-        error: error.error, status: error.status, message: error.message)
     }
-
-    return (httpResponse.statusCode, data)
   }
 
-  private func decode<T: Decodable>(_ data: Data) throws -> ((String, HelixData<T>)) {
-    let helixData = try? decoder.decode(HelixData<T>.self, from: data)
-    let rawResponse = String(decoding: data, as: UTF8.self)
-
-    guard let helixData else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
+  public func requestTask<R: Decodable>(
+    for endpoint: HelixEndpoint<ResponseTypes.Data<R>>,
+    completionHandler: @escaping @Sendable (HelixResponse<R>?, HelixError?) -> Void
+  ) {
+    Task {
+      do {
+        let result = try await self.request(endpoint: endpoint)
+        completionHandler(result, nil)
+      } catch let error as HelixError {
+        completionHandler(nil, error)
+      }
     }
-
-    return (rawResponse, helixData)
   }
 
-  private func buildURLRequest(_ request: HelixRequest, queryItems: [URLQueryItem]? = nil)
-    -> URLRequest
-  {
-    let (method, endpoint) = request.unwrap()
+  // MARK: - Combine methods
 
-    var urlComponents = URLComponents(string: endpoint)
-
-    if let queryItems = queryItems, !queryItems.isEmpty {
-      urlComponents?.queryItems = queryItems
-    }
-
-    let url = urlComponents?.url(relativeTo: self.baseURL)
-    guard let url else { fatalError("Invalid URL") }
-
-    var urlRequest = URLRequest(url: url)
-    urlRequest.httpMethod = method
-
-    return urlRequest
-  }
-
-  internal func makeQueryItems(_ items: (String, String?)...) -> [URLQueryItem] {
-    return items.compactMap({ (name, value) in
-      guard let value else { return nil }
-      return URLQueryItem(name: name, value: value)
-    })
-  }
-}
-
-// the FoundationNetworking implementation for Linux doesn't have
-// async support yet so we need to implement it ourselves
-#if canImport(FoundationNetworking)
-  extension URLSession {
-    fileprivate func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-      return try await withCheckedThrowingContinuation { continuation in
-        let task = self.dataTask(with: request) { data, response, error in
-          if let data, let response {
-            continuation.resume(returning: (data, response))
-          } else if let error {
-            continuation.resume(throwing: error)
-          } else {
-            fatalError()
+  #if canImport(Combine)
+    public func requestPublisher(
+      for endpoint: HelixEndpoint<ResponseTypes.Void>
+    ) -> AnyPublisher<Void, HelixError> {
+      return Future { promise in
+        Task {
+          do {
+            try await self.request(endpoint: endpoint)
+            promise(.success(()))
+          } catch let error as HelixError {
+            promise(.failure(error))
           }
         }
+      }.eraseToAnyPublisher()
+    }
 
-        task.resume()
+    public func requestPublisher<R>(
+      for endpoint: HelixEndpoint<ResponseTypes.Data<R>>
+    ) -> AnyPublisher<HelixResponse<R>, HelixError> {
+      return Future { promise in
+        Task {
+          do {
+            let result = try await self.request(endpoint: endpoint)
+            promise(.success(result))
+          } catch let error as HelixError {
+            promise(.failure(error))
+          }
+        }
+      }.eraseToAnyPublisher()
+    }
+  #endif
+
+  // MARK: - Networking implementation
+
+  private func data(for endpoint: HelixEndpoint<some ResponseType>)
+    async throws -> Data
+  {
+    let request = endpoint.makeRequest(using: self.authentication)
+
+    let (data, response): (Data, URLResponse)
+    do {
+      (data, response) = try await self.urlSession.data(for: request)
+    } catch {
+      throw HelixError.networkError(wrapped: error)
+    }
+
+    // since we are always using an http(s) url, we can force cast the response
+    // swiftlint:disable:next force_cast
+    let httpResponse = response as! HTTPURLResponse
+    try self.validate(data: data, response: httpResponse)
+
+    return data
+  }
+
+  private func validate(data: Data, response: HTTPURLResponse) throws {
+    let statusCode = response.statusCode
+
+    guard (200..<300) ~= statusCode else {
+      let errorResponse = try? self.decoder.decode(HelixErrorResponse.self, from: data)
+
+      guard let errorResponse else {
+        let rawResponse = String(decoding: data, as: UTF8.self)
+
+        throw HelixError.parsingErrorFailed(status: statusCode, rawResponse: rawResponse)
       }
+
+      throw HelixError.twitchError(
+        name: errorResponse.error, status: errorResponse.status,
+        message: errorResponse.message)
     }
   }
-#endif
+
+  private func decode<R>(_ data: Data) throws -> HelixResponse<R> {
+    let response = try? self.decoder.decode(HelixResponse<R>.self, from: data)
+
+    guard let response else {
+      let rawResponse = String(decoding: data, as: UTF8.self)
+      throw HelixError.parsingResponseFailed(rawResponse: rawResponse)
+    }
+
+    return response
+  }
+}
