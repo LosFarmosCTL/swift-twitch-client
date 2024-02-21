@@ -1,37 +1,30 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getGameAnalytics(
-    gameId: String? = nil, type: String? = nil, range: DateInterval? = nil,
+extension HelixEndpoint where Response == ResponseTypes.Data<ExtensionReport> {
+  public static func getExtensionAnalytics(
+    extensionId: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil
-  ) async throws -> (analytics: [GameReport], cursor: String?) {
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("game_id", gameId), ("type", type),
+      ("extension_id", extensionId),
+      ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
-      ("ended_at", range?.end.formatted(.iso8601)), ("first", limit.map(String.init)),
+      ("ended_at", range?.end.formatted(.iso8601)),
+      ("first", limit.map(String.init)),
       ("after", cursor))
 
-    let (rawResponse, result): (_, HelixData<GameReport>?) = try await self.request(
-      .get("analytics/games"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "analytics/extensions", queryItems: queryItems)
   }
 }
 
-public struct GameReport: Decodable {
-  let gameId: String
+public struct ExtensionReport: Decodable {
+  let extensionId: String
   let url: String
   let type: String
   let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
-    case gameId = "game_id"
+    case extensionId = "extension_id"
     case url = "URL"
     case type
     case range = "date_range"
@@ -45,7 +38,7 @@ public struct GameReport: Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    self.gameId = try container.decode(String.self, forKey: .gameId)
+    self.extensionId = try container.decode(String.self, forKey: .extensionId)
     self.url = try container.decode(String.self, forKey: .url)
     self.type = try container.decode(String.self, forKey: .type)
 
