@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public struct HelixEndpoint<Response: ResponseType> {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 
