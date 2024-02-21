@@ -30,7 +30,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getExtensionAnalyticsJSON]
     ).register()
 
-    let (analytics, _) = try await helix.getExtensionAnalytics()
+    let analytics = try await helix.request(endpoint: .getExtensionAnalytics()).data
 
     XCTAssertEqual(analytics.count, 1)
     XCTAssert(analytics.contains(where: { $0.extensionId == "efgh" }))
@@ -40,7 +40,7 @@ final class AnalyticsTests: XCTestCase {
     XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-01T00:00:00Z")
   }
 
-  func testGameAnalytics() async throws {
+  func testGetGameAnalytics() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/analytics/games")!
 
     Mock(
@@ -48,7 +48,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getGameAnalyticsJSON]
     ).register()
 
-    let (analytics, _) = try await helix.getGameAnalytics()
+    let analytics = try await helix.request(endpoint: .getGameAnalytics()).data
 
     XCTAssertEqual(analytics.count, 1)
 

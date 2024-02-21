@@ -32,13 +32,15 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChattersJSON]
     ).register()
 
-    let (total, analytics, cursor) = try await helix.getChatters(broadcasterId: "123")
+    let result = try await helix.request(
+      endpoint: .getChatters(broadcasterId: "123", moderatorId: "1234"))
 
-    XCTAssertEqual(analytics.count, 1)
-    XCTAssertEqual(total, 8)
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
+    XCTAssertEqual(result.data.count, 1)
+    XCTAssertEqual(result.total, 8)
+    XCTAssertEqual(
+      result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
-    XCTAssert(analytics.contains(where: { $0.userId == "128393656" }))
+    XCTAssert(result.data.contains(where: { $0.userId == "128393656" }))
   }
 
   func testGetChannelEmotes() async throws {
@@ -49,19 +51,20 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChannelEmotesJSON]
     ).register()
 
-    let (templateUrl, emotes) = try await helix.getChannelEmotes(broadcasterId: "1234")
+    let result = try await helix.request(
+      endpoint: .getChannelEmotes(broadcasterId: "1234"))
 
     XCTAssertEqual(
-      templateUrl,
+      result.template,
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(emotes.count, 2)
-    XCTAssert(emotes.contains(where: { $0.id == "304456832" }))
+    XCTAssertEqual(result.data.count, 2)
+    XCTAssert(result.data.contains(where: { $0.id == "304456832" }))
 
-    let emote = emotes.first(where: { $0.id == "304456832" })
+    let emote = result.data.first(where: { $0.id == "304456832" })
     XCTAssertEqual(
-      emote?.getURL(from: templateUrl)?.absoluteString,
+      emote?.getURL(from: result.template!)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/dark/3.0")
   }
 
@@ -73,19 +76,19 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getGlobalEmotesJSON]
     ).register()
 
-    let (templateUrl, emotes) = try await helix.getGlobalEmotes()
+    let result = try await helix.request(endpoint: .getGlobalEmotes())
 
     XCTAssertEqual(
-      templateUrl,
+      result.template,
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(emotes.count, 1)
-    XCTAssert(emotes.contains(where: { $0.id == "196892" }))
+    XCTAssertEqual(result.data.count, 1)
+    XCTAssert(result.data.contains(where: { $0.id == "196892" }))
 
-    let emote = emotes.first(where: { $0.id == "196892" })
+    let emote = result.data.first(where: { $0.id == "196892" })
     XCTAssertEqual(
-      emote?.getURL(from: templateUrl)?.absoluteString,
+      emote?.getURL(from: result.template!)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/196892/static/dark/3.0")
   }
 
@@ -99,19 +102,19 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getEmoteSetsJSON]
     ).register()
 
-    let (templateUrl, emotes) = try await helix.getEmoteSets(setIds: ["123", "456"])
+    let result = try await helix.request(endpoint: .getEmoteSets(setIds: ["123", "456"]))
 
     XCTAssertEqual(
-      templateUrl,
+      result.template,
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(emotes.count, 1)
-    XCTAssert(emotes.contains(where: { $0.id == "304456832" }))
+    XCTAssertEqual(result.data.count, 1)
+    XCTAssert(result.data.contains(where: { $0.id == "304456832" }))
 
-    let emote = emotes.first(where: { $0.id == "304456832" })
+    let emote = result.data.first(where: { $0.id == "304456832" })
     XCTAssertEqual(
-      emote?.getURL(from: templateUrl)?.absoluteString,
+      emote?.getURL(from: result.template!)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/dark/3.0")
   }
 
@@ -123,7 +126,9 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChannelBadgesJSON]
     ).register()
 
-    let badgeSets = try await helix.getChannelBadges(broadcasterId: "1234")
+    let badgeSets = try await helix.request(
+      endpoint: .getChannelBadges(broadcasterId: "1234")
+    ).data
 
     XCTAssertEqual(badgeSets.count, 2)
 
@@ -140,7 +145,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getGlobalBadgesJSON]
     ).register()
 
-    let badgeSets = try await helix.getGlobalBadges()
+    let badgeSets = try await helix.request(endpoint: .getGlobalBadges()).data
 
     XCTAssertEqual(badgeSets.count, 1)
 
@@ -160,8 +165,8 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChatSettingsJSON]
     ).register()
 
-    let settings = try await helix.getChatSettings(
-      broadcasterId: "713936733", moderatorId: "1234")
+    let settings = try await helix.request(
+      endpoint: .getChatSettings(broadcasterId: "713936733", moderatorId: "1234"))
 
     XCTAssertEqual(settings.broadcasterId, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
@@ -183,8 +188,10 @@ final class ChatTests: XCTestCase {
       data: [.patch: MockedData.getChatSettingsJSON]
     ).register()
 
-    let settings = try await helix.updateChatSettings(
-      broadcasterId: "713936733", .slowMode(5), .subscriberMode, .followerMode())
+    let settings = try await helix.request(
+      endpoint: .updateChatSettings(
+        broadcasterId: "713936733", moderatorId: "1234", .slowMode(5), .subscriberMode,
+        .followerMode()))
 
     XCTAssertEqual(settings.broadcasterId, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
@@ -208,8 +215,10 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.sendAnnouncement(
-      broadcasterId: "1234", message: "Hello, world!", color: .blue)
+    try await helix.request(
+      endpoint: .sendAnnouncement(
+        broadcasterId: "1234", message: "Hello, world!", color: .blue, moderatorId: "1234"
+      ))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -217,7 +226,7 @@ final class ChatTests: XCTestCase {
   func testSendShoutout() async throws {
     let url = URL(
       string:  // swiftlint:disable:next line_length
-        "https://api.twitch.tv/helix/chat/announcements?from_broadcaster_id=1234&to_broadcaster_id=4321&moderator_id=1234"
+        "https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id=1234&to_broadcaster_id=4321&moderator_id=1234"
     )!
 
     var request = URLRequest(url: url)
@@ -227,7 +236,8 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.sendShoutout(from: "1234", to: "4321")
+    try await helix.request(
+      endpoint: .sendShoutout(from: "1234", to: "4321", moderatorId: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -241,7 +251,9 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getUserColorJSON]
     ).register()
 
-    let colors = try await helix.getUserColor(userIDs: ["11111", "44444"])
+    let colors = try await helix.request(
+      endpoint: .getUserColors(userIDs: ["11111", "44444"])
+    ).data
 
     XCTAssertEqual(colors.count, 2)
 
@@ -259,7 +271,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.updateUserColor(color: .blue)
+    try await helix.request(endpoint: .updateUserColor(userId: "1234", color: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

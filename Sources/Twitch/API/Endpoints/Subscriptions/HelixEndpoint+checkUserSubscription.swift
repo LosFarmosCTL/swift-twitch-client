@@ -1,6 +1,6 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<Subscription> {
+extension HelixEndpoint where Response == ResponseTypes.Optional<Subscription> {
   public static func checkUserSubscription(
     of userId: String, to channelId: String
   ) -> Self {

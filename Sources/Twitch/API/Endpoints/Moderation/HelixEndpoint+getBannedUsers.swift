@@ -8,11 +8,12 @@ extension HelixEndpoint where Response == ResponseTypes.Array<BannedUser> {
     after startCursor: String? = nil,
     before endCursor: String? = nil
   ) -> Self {
-    var queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId),
-      ("after", startCursor),
-      ("before", endCursor),
-      ("first", limit.map(String.init)))
+    var queryItems =
+      self.makeQueryItems(
+        ("broadcaster_id", broadcasterId),
+        ("after", startCursor),
+        ("before", endCursor),
+        ("first", limit.map(String.init))) ?? []
 
     queryItems.append(
       contentsOf: filterUserIDs.compactMap { URLQueryItem(name: "user_id", value: $0) })

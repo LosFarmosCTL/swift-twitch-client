@@ -30,12 +30,12 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchCategoriesJSON]
     ).register()
 
-    let (categories, cursor) = try await helix.searchCategories(for: "fort")
+    let result = try await helix.request(endpoint: .searchCategories(for: "fort"))
 
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN")
+    XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7IkN")
 
-    XCTAssertEqual(categories.count, 1)
-    XCTAssert(categories.contains(where: { $0.id == "33214" }))
+    XCTAssertEqual(result.data.count, 1)
+    XCTAssert(result.data.contains(where: { $0.id == "33214" }))
   }
 
   func testSearchChannels() async throws {
@@ -46,11 +46,11 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchChannelsJSON]
     ).register()
 
-    let (channels, cursor) = try await helix.searchChannels(for: "loser")
+    let result = try await helix.request(endpoint: .searchChannels(for: "loser"))
 
-    XCTAssertNil(cursor)
+    XCTAssertNil(result.pagination?.cursor)
 
-    XCTAssertEqual(channels.count, 2)
-    XCTAssert(channels.contains(where: { $0.id == "41245072" }))
+    XCTAssertEqual(result.data.count, 2)
+    XCTAssert(result.data.contains(where: { $0.id == "41245072" }))
   }
 }

@@ -13,7 +13,7 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Follow> {
   }
 }
 
-extension HelixEndpoint where Response == ResponseTypes.Object<Follow> {
+extension HelixEndpoint where Response == ResponseTypes.Optional<Follow> {
   public static func checkFollow(from userId: String, to channelId: String) -> Self {
     let queryItems = [
       URLQueryItem(name: "user_id", value: userId),

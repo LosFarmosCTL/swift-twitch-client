@@ -31,7 +31,8 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelsJSON]
     ).register()
 
-    let channels = try await helix.getChannels(userIDs: ["141981764"])
+    let channels = try await helix.request(endpoint: .getChannels(userIDs: ["141981764"]))
+      .data
 
     XCTAssertEqual(channels.count, 1)
     XCTAssert(channels.contains(where: { $0.id == "141981764" }))
@@ -46,7 +47,9 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelEditorsJSON]
     ).register()
 
-    let editors = try await helix.getChannelEditors()
+    let editors = try await helix.request(
+      endpoint: .getChannelEditors(broadcasterId: "1234")
+    ).data
 
     XCTAssertEqual(editors.count, 2)
 
@@ -64,14 +67,17 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getFollowedChannelsJSON]
     ).register()
 
-    let (total, follows, cursor) = try await helix.getFollowedChannels()
+    let result = try await helix.request(
+      endpoint: .getFollowedChannels(of: "1234")
+    )
 
-    XCTAssertEqual(total, 8)
+    XCTAssertEqual(result.total, 8)
 
-    XCTAssertEqual(follows.first?.broadcasterId, "11111")
-    XCTAssertEqual(follows.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
+    XCTAssertEqual(result.data.first?.broadcasterId, "11111")
+    XCTAssertEqual(
+      result.data.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
 
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
+    XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
   }
 
   func testCheckFollow() async throws {
@@ -85,7 +91,9 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkFollowJSON]
     ).register()
 
-    let follow = try await helix.checkFollow(from: "123456", to: "654321")
+    let follow = try await helix.request(
+      endpoint: .checkFollow(from: "123456", to: "654321")
+    )
 
     XCTAssertEqual(follow?.broadcasterId, "654321")
     XCTAssertEqual(follow?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
@@ -100,15 +108,17 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelFollowersJSON]
     ).register()
 
-    let (total, follows, cursor) = try await helix.getChannelFollowers(
-      broadcasterId: "1234")
+    let result = try await helix.request(
+      endpoint: .getChannelFollowers(broadcasterId: "1234")
+    )
 
-    XCTAssertEqual(total, 8)
+    XCTAssertEqual(result.total, 8)
 
-    XCTAssertEqual(follows.first?.userId, "11111")
-    XCTAssertEqual(follows.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
+    XCTAssertEqual(result.data.first?.userId, "11111")
+    XCTAssertEqual(
+      result.data.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
 
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
+    XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
   }
 
   func testCheckChannelFollower() async throws {
@@ -122,7 +132,9 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkChannelFollowerJSON]
     ).register()
 
-    let follow = try await helix.checkChannelFollower(userId: "654321", follows: "123456")
+    let follow = try await helix.request(
+      endpoint: .checkChannelFollower(userId: "654321", follows: "123456")
+    )
 
     XCTAssertEqual(follow?.userId, "654321")
     XCTAssertEqual(follow?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
@@ -137,7 +149,8 @@ final class ChannelsTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.updateChannel(gameId: "1234")
+    try await helix.request(
+      endpoint: .updateChannel(broadcasterId: "1234", gameId: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

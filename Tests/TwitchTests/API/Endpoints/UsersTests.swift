@@ -29,7 +29,7 @@ final class UsersTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
     ).register()
 
-    let users = try await helix.getUsers(userIDs: ["141981764"])
+    let users = try await helix.request(endpoint: .getUsers(userIDs: ["141981764"])).data
 
     XCTAssertEqual(users.count, 1)
 
@@ -46,7 +46,7 @@ final class UsersTests: XCTestCase {
       data: [.put: MockedData.updateUserJSON]
     ).register()
 
-    let user = try await helix.updateUser(description: "Hello world!")
+    let user = try await helix.request(endpoint: .updateUser(description: "Hello world!"))
 
     XCTAssertEqual(user.description, "Hello world!")
     XCTAssertNotNil(user.email)
@@ -61,9 +61,9 @@ final class UsersTests: XCTestCase {
       data: [.get: MockedData.getUserBlocklistJSON]
     ).register()
 
-    let (blocks, cursor) = try await helix.getUserBlocklist(limit: 2)
-
-    XCTAssertNil(cursor)
+    let blocks = try await helix.request(
+      endpoint: .getUserBlocklist(broadcasterId: "1234", limit: 2)
+    ).data
 
     XCTAssertEqual(blocks.count, 2)
     XCTAssert(blocks.contains(where: { $0.userId == "135093069" }))
@@ -80,7 +80,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.blockUser(withID: "1234", reason: .spam)
+    try await helix.request(endpoint: .blockUser(withID: "1234", reason: .spam))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -95,7 +95,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.unblockUser(withID: "1234")
+    try await helix.request(endpoint: .unblockUser(withID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

@@ -2,8 +2,8 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func sendAnnouncement(
-    broadcasterId: String, moderatorId: String, message: String,
-    color: AnnouncementColor? = nil
+    broadcasterId: String, message: String, color: AnnouncementColor? = nil,
+    moderatorId: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
       ("broadcaster_id", broadcasterId),

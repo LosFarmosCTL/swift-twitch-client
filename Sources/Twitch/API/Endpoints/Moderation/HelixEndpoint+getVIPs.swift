@@ -7,10 +7,11 @@ extension HelixEndpoint where Response == ResponseTypes.Array<VIP> {
     limit: Int? = nil,
     after startCursor: String? = nil
   ) -> Self {
-    var queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId),
-      ("first", limit.map(String.init)),
-      ("after", startCursor))
+    var queryItems =
+      self.makeQueryItems(
+        ("broadcaster_id", broadcasterId),
+        ("first", limit.map(String.init)),
+        ("after", startCursor)) ?? []
 
     queryItems.append(
       contentsOf: filterUserIDs.compactMap { URLQueryItem(name: "user_id", value: $0) })

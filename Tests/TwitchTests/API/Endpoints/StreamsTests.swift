@@ -30,12 +30,12 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getStreamsJSON]
     ).register()
 
-    let (streams, cursor) = try await helix.getStreams(limit: 1)
+    let result = try await helix.request(endpoint: .getStreams(limit: 1))
 
-    XCTAssertNil(cursor)
+    XCTAssertNil(result.pagination?.cursor)
 
-    XCTAssertEqual(streams.count, 1)
-    XCTAssert(streams.contains(where: { $0.id == "40952121085" }))
+    XCTAssertEqual(result.data.count, 1)
+    XCTAssert(result.data.contains(where: { $0.id == "40952121085" }))
   }
 
   func testGetFollowedStreams() async throws {
@@ -47,7 +47,10 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getFollowedStreamsJSON]
     ).register()
 
-    let (streams, cursor) = try await helix.getFollowedStreams(limit: 1)
+    let result = try await helix.request(
+      endpoint: .getFollowedStreams(of: "1234", limit: 1))
+    let streams = result.data
+    let cursor = result.pagination?.cursor
 
     XCTAssertEqual(cursor, "eyJiIjp7IkN1cnNvciI6ImV5SnpJam8zT0RNMk5TNDBORFF4")
 

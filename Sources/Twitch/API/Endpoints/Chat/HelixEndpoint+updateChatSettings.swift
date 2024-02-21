@@ -2,7 +2,14 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
   public static func updateChatSettings(
-    broadcasterId: String, moderatorId: String, chatModes: [ChatSetting]
+    broadcasterId: String, moderatorId: String, _ chatModes: ChatSetting...
+  ) -> Self {
+    return self.updateChatSettings(
+      broadcasterId: broadcasterId, moderatorId: moderatorId, chatModes)
+  }
+
+  public static func updateChatSettings(
+    broadcasterId: String, moderatorId: String, _ chatModes: [ChatSetting]
   ) -> Self {
     let queryItems = self.makeQueryItems(
       ("broadcaster_id", broadcasterId),

@@ -31,7 +31,7 @@ final class ContentClassificationLabelsTests: XCTestCase {
       data: [.get: MockedData.getContentClassificationLabelsJSON]
     ).register()
 
-    let labels = try await helix.getContentClassificationLabels()
+    let labels = try await helix.request(endpoint: .getContentClassificationLabels()).data
 
     XCTAssertEqual(labels.count, 6)
     XCTAssert(labels.contains(where: { $0.id == "ViolentGraphic" }))

@@ -11,7 +11,9 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Follower> {
 
     return .init(method: "GET", path: "channels/followers", queryItems: queryItems)
   }
+}
 
+extension HelixEndpoint where Response == ResponseTypes.Optional<Follower> {
   public static func checkChannelFollower(userId: String, follows channelId: String)
     -> Self
   {

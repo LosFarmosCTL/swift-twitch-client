@@ -35,16 +35,18 @@ public struct HelixEndpoint<Response: ResponseType> {
     body: Encodable? = nil
   ) {
     self.method = method
-    self.path = path
+    self.path = "helix/" + path
     self.queryItems = queryItems
     self.body = body
   }
 
-  internal static func makeQueryItems(_ items: (String, String?)...) -> [URLQueryItem] {
-    items.compactMap({ key, value in
+  internal static func makeQueryItems(_ items: (String, String?)...) -> [URLQueryItem]? {
+    let queryItems: [URLQueryItem] = items.compactMap({ key, value in
       guard let value = value else { return nil }
       return URLQueryItem(name: key, value: value)
     })
+
+    return queryItems.isEmpty ? nil : queryItems
   }
 }
 
@@ -53,4 +55,5 @@ public enum ResponseTypes {
   public enum Void: ResponseType {}
   public enum Array<R: Decodable>: ResponseType {}
   public enum Object<R: Decodable>: ResponseType {}
+  public enum Optional<R: Decodable>: ResponseType {}
 }
