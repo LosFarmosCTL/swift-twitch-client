@@ -1,6 +1,6 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Data<Commercial> {
+extension HelixEndpoint where Response == ResponseTypes.Object<Commercial> {
   public static func startCommercial(broadcasterId: String, length: Int) -> Self {
     .init(
       method: "POST", path: "channels/commercial",

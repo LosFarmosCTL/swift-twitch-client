@@ -39,12 +39,26 @@ public final class Helix {
     }
   }
 
-  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Data<R>>) async throws
+  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Array<R>>) async throws
     -> HelixResponse<R>
   {
     let data = try await self.data(for: endpoint)
 
     return try self.decode(data)
+  }
+
+  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Object<R>>) async throws
+    -> R
+  {
+    let data = try await self.data(for: endpoint)
+    let response = try self.decode(data) as HelixResponse<R>
+
+    guard let result = response.data.first else {
+      let rawResponse = String(decoding: data, as: UTF8.self)
+      throw HelixError.parsingResponseFailed(rawResponse: rawResponse)
+    }
+
+    return result
   }
 
   // MARK: - Callback methods
@@ -64,8 +78,22 @@ public final class Helix {
   }
 
   public func requestTask<R: Decodable>(
-    for endpoint: HelixEndpoint<ResponseTypes.Data<R>>,
+    for endpoint: HelixEndpoint<ResponseTypes.Array<R>>,
     completionHandler: @escaping @Sendable (HelixResponse<R>?, HelixError?) -> Void
+  ) {
+    Task {
+      do {
+        let result = try await self.request(endpoint: endpoint)
+        completionHandler(result, nil)
+      } catch let error as HelixError {
+        completionHandler(nil, error)
+      }
+    }
+  }
+
+  public func requestTask<R: Decodable>(
+    for endpoint: HelixEndpoint<ResponseTypes.Object<R>>,
+    completionHandler: @escaping @Sendable (R?, HelixError?) -> Void
   ) {
     Task {
       do {
@@ -96,8 +124,23 @@ public final class Helix {
     }
 
     public func requestPublisher<R>(
-      for endpoint: HelixEndpoint<ResponseTypes.Data<R>>
+      for endpoint: HelixEndpoint<ResponseTypes.Array<R>>
     ) -> AnyPublisher<HelixResponse<R>, HelixError> {
+      return Future { promise in
+        Task {
+          do {
+            let result = try await self.request(endpoint: endpoint)
+            promise(.success(result))
+          } catch let error as HelixError {
+            promise(.failure(error))
+          }
+        }
+      }.eraseToAnyPublisher()
+    }
+
+    public func requestPublisher<R>(
+      for endpoint: HelixEndpoint<ResponseTypes.Object<R>>
+    ) -> AnyPublisher<R, HelixError> {
       return Future { promise in
         Task {
           do {

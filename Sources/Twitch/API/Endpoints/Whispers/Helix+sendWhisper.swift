@@ -1,18 +1,16 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func sendWhisper(to userID: String, message: String) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func sendWhisper(
+    from senderId: String, to userID: String, message: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("from_user_id", self.authenticatedUserId), ("to_user_id", userID))
+      ("from_user_id", senderId),
+      ("to_user_id", userID))
 
-    (_, _) =
-      try await self.request(
-        .post("whispers"), with: queryItems, jsonBody: Whisper(message: message))
-      as (_, HelixData<Int>?)
+    return .init(
+      method: "POST", path: "whispers", queryItems: queryItems,
+      body: Whisper(message: message))
   }
 }
 

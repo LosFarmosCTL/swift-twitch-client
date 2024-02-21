@@ -1,24 +1,19 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func searchChannels(
-    for searchQuery: String, liveOnly: Bool? = nil, limit: Int? = nil,
+extension HelixEndpoint where Response == ResponseTypes.Array<Channel> {
+  public static func searchChannels(
+    for searchQuery: String,
+    liveOnly: Bool? = nil,
+    limit: Int? = nil,
     after cursor: String? = nil
-  ) async throws -> (channels: [Channel], cursor: String?) {
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("query", searchQuery), ("live_only", liveOnly.map(String.init)), ("after", cursor),
+      ("query", searchQuery),
+      ("live_only", liveOnly.map(String.init)),
+      ("after", cursor),
       ("first", limit.map(String.init)))
 
-    let (rawResponse, result): (_, HelixData<Channel>?) = try await self.request(
-      .get("search/channels"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "search/channels", queryItems: queryItems)
   }
 }
 

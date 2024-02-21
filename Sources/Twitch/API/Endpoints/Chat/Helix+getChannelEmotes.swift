@@ -1,24 +1,10 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getChannelEmotes(broadcasterId: String) async throws -> (
-    templateUrl: String, emotes: [ChannelEmote]
-  ) {
+extension HelixEndpoint where Response == ResponseTypes.Array<ChannelEmote> {
+  public static func getChannelEmotes(broadcasterId: String) -> Self {
     let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterId))
 
-    let (rawResponse, result): (_, HelixData<ChannelEmote>?) = try await self.request(
-      .get("chat/emotes"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-    guard let template = result.template else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return (template, result.data)
+    return .init(method: "GET", path: "chat/emotes", queryItems: queryItems)
   }
 }
 

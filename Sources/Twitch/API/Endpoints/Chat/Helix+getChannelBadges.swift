@@ -1,19 +1,10 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getChannelBadges(broadcasterId: String) async throws -> [BadgeSet] {
+extension HelixEndpoint where Response == ResponseTypes.Array<BadgeSet> {
+  public static func getChannelBadges(broadcasterId: String) -> Self {
     let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterId))
 
-    let (rawResponse, result): (_, HelixData<BadgeSet>?) = try await self.request(
-      .get("chat/badges"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data
+    return .init(method: "GET", path: "chat/badges", queryItems: queryItems)
   }
 }
 

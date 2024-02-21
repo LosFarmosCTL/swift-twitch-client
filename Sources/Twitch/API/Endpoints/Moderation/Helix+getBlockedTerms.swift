@@ -1,23 +1,19 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getBlockedTerms(
-    inChannel broadcasterID: String, limit: Int? = nil, after cursor: String? = nil
-  ) async throws -> (terms: [BlockedTerm], cursor: String?) {
+extension HelixEndpoint where Response == ResponseTypes.Array<BlockedTerm> {
+  public static func getBlockedTerms(
+    inChannel broadcasterID: String,
+    limit: Int? = nil,
+    after cursor: String? = nil,
+    moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId),
-      ("first", limit.map(String.init)), ("after", cursor))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorId),
+      ("first", limit.map(String.init)),
+      ("after", cursor))
 
-    let (rawResponse, result): (_, HelixData<BlockedTerm>?) = try await self.request(
-      .get("moderation/blocked_terms"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "moderation/blocked_terms", queryItems: queryItems)
   }
 }
 

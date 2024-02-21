@@ -1,19 +1,14 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func sendShoutout(from sendingUserId: String, to receivingUserId: String)
-    async throws
-  {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func sendShoutout(
+    from sendingUserId: String, to receivingUserId: String, moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("from_broadcaster_id", sendingUserId), ("to_broadcaster_id", receivingUserId),
-      ("moderator_id", self.authenticatedUserId))
+      ("from_broadcaster_id", sendingUserId),
+      ("to_broadcaster_id", receivingUserId),
+      ("moderator_id", moderatorId))
 
-    (_, _) =
-      try await self.request(.post("chat/announcements"), with: queryItems)
-      as (_, HelixData<Int>?)
+    return .init(method: "POST", path: "chat/shoutouts", queryItems: queryItems)
   }
 }

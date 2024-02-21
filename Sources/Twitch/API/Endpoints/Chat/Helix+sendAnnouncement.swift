@@ -1,22 +1,19 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func sendAnnouncement(
-    broadcasterId: String, message: String, color: AnnouncementColor? = nil
-  ) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func sendAnnouncement(
+    broadcasterId: String, moderatorId: String, message: String,
+    color: AnnouncementColor? = nil
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterId),
+      ("moderator_id", moderatorId))
 
-    (_, _) =
-      try await self.request(
-        .post("chat/announcements"), with: queryItems,
-        jsonBody: SendAnnouncementRequestBody(message: message, color: color))
-      as (_, HelixData<Int>?)
+    return .init(
+      method: "POST", path: "chat/announcements", queryItems: queryItems,
+      body: SendAnnouncementRequestBody(message: message, color: color))
   }
+
 }
 
 internal struct SendAnnouncementRequestBody: Encodable {

@@ -1,30 +1,34 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func updateChannel(
-    gameId: String? = nil, broadcasterLanguage: String? = nil, title: String? = nil,
-    delay: Int? = nil, tag: [String]? = nil,
-    contentClassificationLabels: [Label: Bool]? = nil, isBrandedContent: Bool? = nil
-  ) async throws {
-    let contentClassificationLabels = contentClassificationLabels?.map {
-      (id, isEnabled) in
-      UpdateChannelRequestBody.Label(id: id.rawValue, isEnabled: isEnabled)
-    }
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func updateChannel(
+    broadcasterId: String,
+    gameId: String? = nil,
+    broadcasterLanguage: String? = nil,
+    title: String? = nil,
+    delay: Int? = nil,
+    tag: [String]? = nil,
+    contentClassificationLabels: [Label: Bool]? = nil,
+    isBrandedContent: Bool? = nil
+  ) -> Self {
+    let contentClassificationLabels =
+      contentClassificationLabels?.map { (id, isEnabled) in
+        UpdateChannelRequestBody.Label(id: id.rawValue, isEnabled: isEnabled)
+      }
 
     let body = UpdateChannelRequestBody(
-      gameId: gameId, broadcasterLanguage: broadcasterLanguage, title: title,
-      delay: delay, tags: tag, contentClassificationLabels: contentClassificationLabels,
+      gameId: gameId,
+      broadcasterLanguage: broadcasterLanguage,
+      title: title,
+      delay: delay,
+      tags: tag,
+      contentClassificationLabels: contentClassificationLabels,
       isBrandedContent: isBrandedContent)
 
-    let queryItems = self.makeQueryItems(("broadcaster_id", self.authenticatedUserId))
+    let queryItems = makeQueryItems(("broadcaster_id", broadcasterId))
 
-    (_, _) =
-      try await self.request(.patch("channels"), with: queryItems, jsonBody: body)
-      as (String, HelixData<Int>?)
+    return .init(
+      method: "PATCH", path: "channels", queryItems: queryItems, body: body)
   }
 }
 

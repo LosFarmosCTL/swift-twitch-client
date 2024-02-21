@@ -1,25 +1,16 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getGames(
+extension HelixEndpoint where Response == ResponseTypes.Array<Game> {
+  public static func getGames(
     gameIDs: [String] = [], names: [String] = [], igdbIDs: [String] = []
-  ) async throws -> [Game] {
+  ) -> Self {
     let idQueryItems = gameIDs.map { URLQueryItem(name: "id", value: $0) }
     let nameQueryItems = names.map { URLQueryItem(name: "name", value: $0) }
     let igdbQueryItems = igdbIDs.map { URLQueryItem(name: "igdb_id", value: $0) }
 
     let queryItems = idQueryItems + nameQueryItems + igdbQueryItems
 
-    let (rawResponse, result): (_, HelixData<Game>?) = try await self.request(
-      .get("games"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data
+    return .init(method: "GET", path: "games", queryItems: queryItems)
   }
 }
 

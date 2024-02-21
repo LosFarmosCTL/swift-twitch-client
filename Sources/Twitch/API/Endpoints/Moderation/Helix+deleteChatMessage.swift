@@ -1,19 +1,14 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func deleteChatMessage(inChannel broadcasterID: String, withID messageID: String)
-    async throws
-  {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func deleteChatMessage(
+    inChannel broadcasterID: String, withID messageID: String, moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId),
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorId),
       ("message_id", messageID))
 
-    (_, _) =
-      try await self.request(.delete("moderation/chat"), with: queryItems)
-      as (_, HelixData<BlockedTerm>?)
+    return .init(method: "DELETE", path: "moderation/chat", queryItems: queryItems)
   }
 }

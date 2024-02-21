@@ -1,16 +1,13 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func addChannelVIP(userID: String) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func addChannelVIP(
+    for broadcasterID: String, userID: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", self.authenticatedUserId), ("user_id", userID))
+      ("broadcaster_id", broadcasterID),
+      ("user_id", userID))
 
-    (_, _) =
-      try await self.request(.post("channels/vips"), with: queryItems)
-      as (_, HelixData<Int>?)
+    return .init(method: "POST", path: "channels/vips", queryItems: queryItems)
   }
 }

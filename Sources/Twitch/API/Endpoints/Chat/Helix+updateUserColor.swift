@@ -1,16 +1,12 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func updateUserColor(color: HelixColor) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func updateUserColor(userId: String, color: HelixColor) -> Self {
     let queryItems = self.makeQueryItems(
-      ("user_id", self.authenticatedUserId), ("color", color.rawValue))
+      ("user_id", userId),
+      ("color", color.rawValue))
 
-    _ =
-      try await self.request(.put("chat/color"), with: queryItems) as (_, HelixData<Int>?)
+    return .init(method: "PUT", path: "chat/color", queryItems: queryItems)
   }
 }
 

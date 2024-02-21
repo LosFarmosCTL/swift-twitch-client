@@ -1,19 +1,10 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getChannels(userIDs: [String]) async throws -> [Broadcaster] {
+extension HelixEndpoint where Response == ResponseTypes.Array<Broadcaster> {
+  public static func getChannels(userIDs: [String]) -> Self {
     let queryItems = userIDs.map { URLQueryItem(name: "broadcaster_id", value: $0) }
 
-    let (rawResponse, result): (_, HelixData<Broadcaster>?) = try await self.request(
-      .get("channels"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data
+    return .init(method: "GET", path: "channels", queryItems: queryItems)
   }
 }
 

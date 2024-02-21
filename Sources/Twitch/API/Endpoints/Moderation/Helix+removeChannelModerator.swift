@@ -1,16 +1,13 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func removeChannelModerator(userID: String) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func removeChannelModerator(
+    for broadcasterID: String, userID: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", self.authenticatedUserId), ("user_id", userID))
+      ("broadcaster_id", broadcasterID),
+      ("user_id", userID))
 
-    (_, _) =
-      try await self.request(.delete("moderation/moderators"), with: queryItems)
-      as (_, HelixData<Int>?)
+    return .init(method: "DELETE", path: "moderation/moderators", queryItems: queryItems)
   }
 }

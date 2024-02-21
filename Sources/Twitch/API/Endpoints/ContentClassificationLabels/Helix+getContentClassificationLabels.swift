@@ -1,21 +1,12 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getContentClassificationLabels(locale: String? = "en-US") async throws -> (
-    [ContentClassificationLabel]
-  ) {
+extension HelixEndpoint
+where Response == ResponseTypes.Array<ContentClassificationLabel> {
+  public static func getContentClassificationLabels(locale: String? = "en-US") -> Self {
     let queryItems = self.makeQueryItems(("locale", locale))
 
-    let (rawResponse, result): (_, HelixData<ContentClassificationLabel>?) =
-      try await self.request(.get("content_classification_labels"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data)
+    return .init(
+      method: "GET", path: "content_classification_labels", queryItems: queryItems)
   }
 }
 

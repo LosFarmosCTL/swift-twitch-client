@@ -1,22 +1,8 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getGlobalEmotes() async throws -> (
-    templateUrl: String, emotes: [GlobalEmote]
-  ) {
-    let (rawResponse, result): (_, HelixData<GlobalEmote>?) = try await self.request(
-      .get("chat/emotes/global"))
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-    guard let template = result.template else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return (template, result.data)
+extension HelixEndpoint where Response == ResponseTypes.Array<GlobalEmote> {
+  public static func getGlobalEmotes() -> Self {
+    return .init(method: "GET", path: "chat/emotes/global")
   }
 }
 

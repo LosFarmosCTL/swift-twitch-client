@@ -1,36 +1,30 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func updateAutomodSettings(forChannel broadcasterID: String, overall level: Int)
-    async throws -> AutomodSettings
-  {
-    try await self.updateAutomodSettings(
-      forChannel: broadcasterID, body: ["overall_level": level])
-  }
-
-  public func updateAutomodSettings(
-    forChannel broadcasterID: String, settings: AutomodConfiguration
-  ) async throws -> AutomodSettings {
-    try await self.updateAutomodSettings(forChannel: broadcasterID, body: settings)
-  }
-
-  private func updateAutomodSettings(forChannel broadcasterID: String, body: Encodable)
-    async throws -> AutomodSettings
-  {
+extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
+  private static func updateAutomodSettings(
+    forChannel broadcasterID: String, moderatorID: String, body: Encodable
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID))
 
-    let (rawResponse, result): (_, HelixData<AutomodSettings>?) = try await self.request(
-      .put("moderation/automod/settings"), with: queryItems, jsonBody: body)
-    guard let settings = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
+    return .init(
+      method: "PUT", path: "moderation/automod/settings", queryItems: queryItems,
+      body: body)
+  }
 
-    return settings
+  public static func updateAutomodSettings(
+    forChannel broadcasterID: String, settings: AutomodConfiguration, moderatorID: String
+  ) -> Self {
+    self.updateAutomodSettings(
+      forChannel: broadcasterID, moderatorID: moderatorID, body: settings)
+  }
+
+  public static func updateAutomodSettings(
+    forChannel broadcasterID: String, overall level: Int, moderatorID: String
+  ) -> Self {
+    self.updateAutomodSettings(
+      forChannel: broadcasterID, moderatorID: moderatorID, body: ["overall_level": level])
   }
 }
 

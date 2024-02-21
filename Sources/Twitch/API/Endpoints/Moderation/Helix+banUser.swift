@@ -1,27 +1,18 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func banUser(
+extension HelixEndpoint where Response == ResponseTypes.Object<Ban> {
+  public static func banUser(
     withID userID: String, inChannel channelID: String,
-    for timeoutLength: Duration? = nil, reason: String? = nil
-  ) async throws -> Ban {
+    for timeoutLength: Duration? = nil, reason: String? = nil, moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channelID), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", channelID),
+      ("moderator_id", moderatorId))
 
     let body = BanUserBody(userId: userID, reason: reason, duration: timeoutLength)
 
-    let (rawResponse, result): (_, HelixData<Ban>?) = try await self.request(
-      .post("moderation/bans"), with: queryItems, jsonBody: body)
-
-    guard let ban = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return ban
+    return .init(
+      method: "POST", path: "moderation/bans", queryItems: queryItems, body: body)
   }
 }
 

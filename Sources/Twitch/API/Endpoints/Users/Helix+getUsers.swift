@@ -1,24 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getUsers(userIDs: [String] = [], userLogins: [String] = []) async throws
-    -> [User]
-  {
+extension HelixEndpoint where Response == ResponseTypes.Array<User> {
+  public static func getUsers(
+    userIDs: [String] = [], userLogins: [String] = []
+  ) -> Self {
     let idQueryItems = userIDs.map { URLQueryItem(name: "id", value: $0) }
     let loginQueryItems = userLogins.map { URLQueryItem(name: "login", value: $0) }
 
     let queryItems = idQueryItems + loginQueryItems
 
-    let (rawResponse, result): (_, HelixData<User>?) = try await self.request(
-      .get("users"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data
+    return .init(method: "GET", path: "users", queryItems: queryItems)
   }
 }
 

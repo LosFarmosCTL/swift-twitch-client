@@ -1,23 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getModeratedChannels(limit: Int? = nil, after cursor: String? = nil)
-    async throws -> (channels: [ModeratedChannel], cursor: String?)
-  {
+extension HelixEndpoint where Response == ResponseTypes.Array<ModeratedChannel> {
+  public static func getModeratedChannels(
+    of userId: String, limit: Int? = nil, after cursor: String? = nil
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("user_id", self.authenticatedUserId), ("first", limit.map(String.init)),
+      ("user_id", userId),
+      ("first", limit.map(String.init)),
       ("after", cursor))
 
-    let (rawResponse, result): (_, HelixData<ModeratedChannel>?) = try await self.request(
-      .get("moderation/channels"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "moderation/channels", queryItems: queryItems)
   }
 }
 

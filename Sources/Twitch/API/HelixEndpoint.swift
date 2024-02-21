@@ -51,5 +51,6 @@ public struct HelixEndpoint<Response: ResponseType> {
 public protocol ResponseType {}
 public enum ResponseTypes {
   public enum Void: ResponseType {}
-  public enum Data<R: Decodable>: ResponseType {}
+  public enum Array<R: Decodable>: ResponseType {}
+  public enum Object<R: Decodable>: ResponseType {}
 }

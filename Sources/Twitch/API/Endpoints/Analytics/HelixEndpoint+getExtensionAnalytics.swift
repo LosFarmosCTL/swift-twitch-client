@@ -1,6 +1,6 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Data<ExtensionReport> {
+extension HelixEndpoint where Response == ResponseTypes.Array<ExtensionReport> {
   public static func getExtensionAnalytics(
     extensionId: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil

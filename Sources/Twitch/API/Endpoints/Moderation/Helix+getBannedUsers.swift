@@ -1,27 +1,24 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getBannedUsers(
-    userIDs: [String]? = nil, limit: Int? = nil, after startCursor: String? = nil,
+extension HelixEndpoint where Response == ResponseTypes.Array<BannedUser> {
+  public static func getBannedUsers(
+    for broadcasterId: String,
+    filterUserIDs: [String] = [],
+    limit: Int? = nil,
+    after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) async throws -> (games: [BannedUser], cursor: String?) {
+  ) -> Self {
     var queryItems = self.makeQueryItems(
-      ("broadcaster_id", self.authenticatedUserId), ("after", startCursor),
-      ("before", endCursor), ("first", limit.map(String.init)))
+      ("broadcaster_id", broadcasterId),
+      ("after", startCursor),
+      ("before", endCursor),
+      ("first", limit.map(String.init)))
 
     queryItems.append(
-      contentsOf: userIDs?.compactMap { URLQueryItem(name: "user_id", value: $0) } ?? [])
+      contentsOf: filterUserIDs.compactMap { URLQueryItem(name: "user_id", value: $0) })
 
-    let (rawResponse, result): (_, HelixData<BannedUser>?) = try await self.request(
-      .get("moderation/banned"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(
+      method: "GET", path: "moderation/banned", queryItems: queryItems, body: nil)
   }
 }
 

@@ -1,24 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getShieldModeStatus(forChannel broadcasterID: String) async throws
-    -> ShieldModeStatus
-  {
+extension HelixEndpoint where Response == ResponseTypes.Object<ShieldModeStatus> {
+  public static func getShieldModeStatus(
+    forChannel broadcasterID: String, moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorId))
 
-    let (rawResponse, result): (_, HelixData<ShieldModeStatus>?) = try await self.request(
-      .get("moderation/shield_mode"), with: queryItems)
-
-    guard let status = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return status
+    return .init(
+      method: "GET", path: "moderation/shield_mode", queryItems: queryItems)
   }
 }
 

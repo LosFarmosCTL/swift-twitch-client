@@ -1,19 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func sendChatMessage(
-    in channelId: String, message: String, replyingTo replyParentMessageId: String? = nil
-  ) async throws {
-    (_, _) =
-      try await self.request(
-        .post("chat/announcements"),
-        jsonBody: SendChatMessageRequestBody(
-          broadcasterId: channelId, senderId: self.authenticatedUserId, message: message,
-          replyParentMessageId: replyParentMessageId)) as (_, HelixData<Int>?)
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func sendChatMessage(
+    broadcasterId: String, senderId: String, message: String,
+    replyParentMessageId: String? = nil
+  ) -> Self {
+    return .init(
+      method: "POST", path: "chat/announcements",
+      body: SendChatMessageRequestBody(
+        broadcasterId: broadcasterId, senderId: senderId, message: message,
+        replyParentMessageId: replyParentMessageId))
   }
 }
 

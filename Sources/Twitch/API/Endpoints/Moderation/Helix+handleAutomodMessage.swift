@@ -1,26 +1,24 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func approveAutomodMessage(withID msgID: String) async throws {
-    try await self.handleAutomodMessage(withID: msgID, action: "APPROVE")
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  private static func handleAutomodMessage(
+    withID msgID: String, action: String, moderatorId: String
+  ) -> Self {
+    .init(
+      method: "POST", path: "moderation/automod/message",
+      body: ["data": ["user_id": moderatorId, "msg_id": msgID, "action": action]]
+    )
   }
 
-  public func denyAutomodMessage(withID msgID: String) async throws {
-    try await self.handleAutomodMessage(withID: msgID, action: "DENY")
+  public static func approveAutomodMessage(
+    withID msgID: String, moderatorId: String
+  ) -> Self {
+    self.handleAutomodMessage(withID: msgID, action: "APPROVE", moderatorId: moderatorId)
   }
 
-  private func handleAutomodMessage(withID msgID: String, action: String) async throws {
-    let (_, _) =
-      try await self.request(
-        .post("moderation/automod/message"),
-        jsonBody: [
-          "data": [
-            "user_id": self.authenticatedUserId, "msg_id": msgID, "action": action,
-          ]
-        ]) as (_, HelixData<Int>?)
+  public static func denyAutomodMessage(
+    withID msgID: String, moderatorId: String
+  ) -> Self {
+    self.handleAutomodMessage(withID: msgID, action: "DENY", moderatorId: moderatorId)
   }
 }

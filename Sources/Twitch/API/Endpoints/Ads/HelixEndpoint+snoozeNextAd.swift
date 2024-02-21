@@ -1,6 +1,6 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Data<SnoozeResult> {
+extension HelixEndpoint where Response == ResponseTypes.Array<SnoozeResult> {
   public static func snoozeNextAd(broadcasterId: String) -> Self {
     let queryItems = makeQueryItems(("broadcaster_id", broadcasterId))
 

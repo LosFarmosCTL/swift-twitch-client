@@ -1,27 +1,17 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func updateChatSettings(broadcasterId: String, _ chatModes: ChatSetting...)
-    async throws -> ChatSettings
-  {
+extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
+  public static func updateChatSettings(
+    broadcasterId: String, moderatorId: String, chatModes: [ChatSetting]
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterId),
+      ("moderator_id", moderatorId))
 
     let body = UpdateChatSettingsRequestBody(chatModes)
 
-    let (rawResponse, result) =
-      try await self.request(.patch("chat/settings"), with: queryItems, jsonBody: body)
-      as (String, HelixData<ChatSettings>?)
-
-    guard let settings = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return settings
+    return .init(
+      method: "PATCH", path: "chat/settings", queryItems: queryItems, body: body)
   }
 }
 

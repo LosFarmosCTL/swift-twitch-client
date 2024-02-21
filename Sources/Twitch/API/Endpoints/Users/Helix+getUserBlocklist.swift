@@ -1,23 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getUserBlocklist(limit: Int? = nil, after cursor: String? = nil)
-    async throws -> (blockedUsers: [BlockedUser], cursor: String?)
-  {
+extension HelixEndpoint where Response == ResponseTypes.Array<BlockedUser> {
+  public static func getUserBlocklist(
+    broadcasterId: String, limit: Int? = nil, after cursor: String? = nil
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", self.authenticatedUserId), ("first", limit.map(String.init)),
+      ("broadcaster_id", broadcasterId),
+      ("first", limit.map(String.init)),
       ("after", cursor))
 
-    let (rawResponse, result): (_, HelixData<BlockedUser>?) = try await self.request(
-      .get("users/blocks"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "users/blocks", queryItems: queryItems)
   }
 }
 

@@ -1,20 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+extension HelixEndpoint where Response == ResponseTypes.Object<Subscription> {
+  public static func checkUserSubscription(
+    of userId: String, to channelId: String
+  ) -> Self {
+    let queryItems = [
+      URLQueryItem(name: "broadcaster_id", value: channelId),
+      URLQueryItem(name: "user_id", value: userId),
+    ]
 
-extension Helix {
-  public func checkUserSubscription(to channelId: String) async throws -> Subscription? {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channelId), ("user_id", self.authenticatedUserId))
-
-    let (rawResponse, result): (_, HelixData<Subscription>?) = try await self.request(
-      .get("subscriptions/user"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data.first
+    return .init(method: "GET", path: "subscriptions/user", queryItems: queryItems)
   }
 }
 

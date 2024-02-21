@@ -1,21 +1,20 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getStreams(
-    userIDs: [String]? = nil, userLogins: [String]? = nil, gameIDs: [String]? = nil,
-    type: StreamType? = nil, languages: [String]? = nil, limit: Int? = nil,
-    before endCursor: String? = nil, after startCursor: String? = nil
-  ) async throws -> (streams: [Stream], cursor: String?) {
-    let userIDs = userIDs?.compactMap { URLQueryItem(name: "user_id", value: $0) } ?? []
-    let userLogins =
-      userLogins?.compactMap { URLQueryItem(name: "user_login", value: $0) } ?? []
-    let gameIDs = gameIDs?.compactMap { URLQueryItem(name: "game_id", value: $0) } ?? []
-    let languages =
-      languages?.compactMap { URLQueryItem(name: "language", value: $0) } ?? []
+extension HelixEndpoint where Response == ResponseTypes.Array<Stream> {
+  public static func getStreams(
+    userIDs: [String] = [],
+    userLogins: [String] = [],
+    gameIDs: [String] = [],
+    type: StreamType? = nil,
+    languages: [String] = [],
+    limit: Int? = nil,
+    before endCursor: String? = nil,
+    after startCursor: String? = nil
+  ) -> Self {
+    let userIDs = userIDs.compactMap { URLQueryItem(name: "user_id", value: $0) }
+    let userLogins = userLogins.compactMap { URLQueryItem(name: "user_login", value: $0) }
+    let gameIDs = gameIDs.compactMap { URLQueryItem(name: "game_id", value: $0) }
+    let languages = languages.compactMap { URLQueryItem(name: "language", value: $0) }
 
     let type = type.map { URLQueryItem(name: "type", value: $0.rawValue) }
     let limit = limit.map { URLQueryItem(name: "first", value: String($0)) }
@@ -25,12 +24,7 @@ extension Helix {
     var queryItems = userIDs + userLogins + gameIDs + languages
     queryItems.append(contentsOf: [type, limit, before, after].compactMap { $0 })
 
-    let (rawResponse, result): (_, HelixData<Stream>?) = try await self.request(
-      .get("streams"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return (result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "streams", queryItems: queryItems)
   }
 }
 

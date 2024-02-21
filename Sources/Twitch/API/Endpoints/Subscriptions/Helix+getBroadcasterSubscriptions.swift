@@ -1,32 +1,23 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getBroadcasterSubscribers(
-    userIDs: [String]? = nil, limit: Int? = nil, after startCursor: String? = nil,
+extension HelixEndpoint where Response == ResponseTypes.Array<Subscriber> {
+  public static func getBroadcasterSubscribers(
+    broadcasterId: String,
+    filterUserIds: [String] = [],
+    limit: Int? = nil,
+    after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) async throws -> (
-    (total: Int, points: Int), subscribers: [Subscriber], cursor: String?
-  ) {
+  ) -> Self {
     var queryItems = self.makeQueryItems(
-      ("broadcaster_id", self.authenticatedUserId), ("first", limit.map(String.init)),
-      ("after", startCursor), ("before", endCursor))
+      ("broadcaster_id", broadcasterId),
+      ("first", limit.map(String.init)),
+      ("after", startCursor),
+      ("before", endCursor))
 
     queryItems.append(
-      contentsOf: userIDs?.map { URLQueryItem(name: "user_id", value: $0) } ?? [])
+      contentsOf: filterUserIds.map { URLQueryItem(name: "user_id", value: $0) })
 
-    let (rawResponse, result): (_, HelixData<Subscriber>?) = try await self.request(
-      .get("subscriptions"), with: queryItems)
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-    guard let total = result.total, let points = result.points else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return ((total, points), result.data, result.pagination?.cursor)
+    return .init(method: "GET", path: "subscriptions", queryItems: queryItems)
   }
 }
 

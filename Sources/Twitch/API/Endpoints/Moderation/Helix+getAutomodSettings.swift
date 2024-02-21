@@ -1,22 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getAutomodSettings(broadcasterId: String) async throws -> AutomodSettings {
+extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
+  public static func getAutomodSettings(
+    for broadcasterID: String, moderatorID: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID))
 
-    let (rawResponse, result): (_, HelixData<AutomodSettings>?) = try await self.request(
-      .get("moderation/automod/settings"), with: queryItems)
-
-    guard let settings = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return settings
+    return .init(
+      method: "GET", path: "moderation/automod/settings", queryItems: queryItems)
   }
 }
 

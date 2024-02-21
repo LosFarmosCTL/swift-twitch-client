@@ -1,24 +1,14 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getChatSettings(broadcasterId: String, moderatorId: String? = nil)
-    async throws -> ChatSettings
-  {
+extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
+  public static func getChatSettings(
+    broadcasterId: String, moderatorId: String? = nil
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId), ("moderator_id", moderatorId))
+      ("broadcaster_id", broadcasterId),
+      ("moderator_id", moderatorId))
 
-    let (rawResponse, result): (_, HelixData<ChatSettings>?) = try await self.request(
-      .get("chat/settings"), with: queryItems)
-
-    guard let settings = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return settings
+    return .init(method: "GET", path: "chat/settings", queryItems: queryItems)
   }
 }
 

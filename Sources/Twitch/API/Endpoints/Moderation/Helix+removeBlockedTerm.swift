@@ -1,19 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func removeBlockedTerm(inChannel broadcasterID: String, termId: String)
-    async throws
-  {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func removeBlockedTerm(
+    inChannel broadcasterID: String, termId: String, moderatorId: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId),
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorId),
       ("id", termId))
 
-    (_, _) =
-      try await self.request(.delete("moderation/blocked_terms"), with: queryItems)
-      as (_, HelixData<BlockedTerm>?)
+    return .init(
+      method: "DELETE", path: "moderation/blocked_terms", queryItems: queryItems)
   }
 }

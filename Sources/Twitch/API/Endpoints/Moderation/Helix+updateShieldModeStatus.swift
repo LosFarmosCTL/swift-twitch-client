@@ -1,23 +1,15 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func updateShieldModeStatus(inChannel broadcasterID: String, isActive: Bool)
-    async throws -> ShieldModeStatus
-  {
+extension HelixEndpoint where Response == ResponseTypes.Object<ShieldModeStatus> {
+  public static func updateShieldModeStatus(
+    inChannel broadcasterID: String, isActive: Bool, moderatorID: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID), ("moderator_id", self.authenticatedUserId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID))
 
-    let (rawResponse, result): (_, HelixData<ShieldModeStatus>?) = try await self.request(
-      .put("moderation/shield_mode"), with: queryItems, jsonBody: ["is_active": isActive])
-
-    guard let status = result?.data.first else {
-      throw HelixError.invalidResponse(rawResponse: rawResponse)
-    }
-
-    return status
+    return .init(
+      method: "PUT", path: "moderation/shield_mode", queryItems: queryItems,
+      body: ["is_active": isActive])
   }
 }

@@ -1,17 +1,14 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func unbanUser(withID userID: String, inChannel channelID: String) async throws {
+extension HelixEndpoint where Response == ResponseTypes.Void {
+  public static func unbanUser(
+    withID userID: String, inChannel channelID: String, moderatorID: String
+  ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channelID), ("moderator_id", self.authenticatedUserId),
+      ("broadcaster_id", channelID),
+      ("moderator_id", moderatorID),
       ("user_id", userID))
 
-    let (_, _) =
-      try await self.request(.delete("moderation/bans"), with: queryItems)
-      as (_, HelixData<Int>?)
+    return .init(method: "DELETE", path: "moderation/bans", queryItems: queryItems)
   }
 }

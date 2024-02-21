@@ -1,16 +1,7 @@
 import Foundation
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-extension Helix {
-  public func getGlobalBadges() async throws -> [BadgeSet] {
-    let (rawResponse, result): (_, HelixData<BadgeSet>?) = try await self.request(
-      .get("chat/badges/global"))
-
-    guard let result else { throw HelixError.invalidResponse(rawResponse: rawResponse) }
-
-    return result.data
+extension HelixEndpoint where Response == ResponseTypes.Array<BadgeSet> {
+  public static func getGlobalBadges() -> Self {
+    return .init(method: "GET", path: "chat/badges/global")
   }
 }
