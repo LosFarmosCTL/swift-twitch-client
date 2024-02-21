@@ -3,47 +3,32 @@ import XCTest
 @testable import Twitch
 
 class AuthenticationTests: XCTestCase {
-  func testOAuthWithClientID() {
-    let oAuth = "oauth:abcdefghijklmnop"
-    let clientID = "1234567890"
-    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID)
+  let oAuth = "abcdefghijklmnop"
+  let clientID = "1234567890"
+  let userID = "1234"
 
-    XCTAssertEqual(auth.oAuth, oAuth)
-    XCTAssertEqual(auth.clientID, clientID)
-  }
+  func testOAuthWithPrefix() {
+    let auth = TwitchCredentials(
+      oAuth: "oauth:" + oAuth, clientID: clientID, userId: userID)
 
-  func testOAuthNoClientID() {
-    let oAuth = "oauth:abcdefghijklmnop"
-    let auth = TwitchCredentials(oAuth: oAuth)
-
-    XCTAssertNil(auth.clientID)
+    XCTAssertEqual(auth.oAuth, "oauth:" + oAuth)
   }
 
   func testOAuthWithoutPrefix() {
-    let oAuth = "abcdefghijklmnop"
-    let auth = TwitchCredentials(oAuth: oAuth)
+    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID, userId: userID)
 
     XCTAssertEqual(auth.oAuth, "oauth:" + oAuth)
   }
 
   func testHTTPHeaders() throws {
-    let oAuth = "abcdefghijklmnop"
-    let clientID = "1234567890"
-    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID)
+    let auth = TwitchCredentials(oAuth: oAuth, clientID: clientID, userId: userID)
 
-    let headers = try auth.httpHeaders()
+    let headers = auth.httpHeaders()
 
     XCTAssert(
       headers.contains(where: {
         $0.key == "Authorization" && $0.value == "Bearer \(oAuth)"
       }))
     XCTAssert(headers.contains(where: { $0.key == "Client-Id" && $0.value == clientID }))
-  }
-
-  func testHTTPHeadersWithoutClientId() {
-    let oAuth = "abcdefghijklmnop"
-    let auth = TwitchCredentials(oAuth: oAuth)
-
-    XCTAssertThrowsError(try auth.httpHeaders())
   }
 }

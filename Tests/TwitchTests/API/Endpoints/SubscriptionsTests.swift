@@ -31,13 +31,14 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.getBroadcasterSubscriptionsJSON]
     ).register()
 
-    let ((total, points), subscribers, cursor) =
-      try await helix.getBroadcasterSubscribers(limit: 2)
+    let result = try await helix.request(
+      endpoint: .getBroadcasterSubscribers(broadcasterId: "1234", limit: 2))
+    let subscribers = result.data
 
-    XCTAssertEqual(total, 13)
-    XCTAssertEqual(points, 13)
+    XCTAssertEqual(result.total, 13)
+    XCTAssertEqual(result.points, 13)
 
-    XCTAssertEqual(cursor, "jnksdfyg7is8do7fv7yuwbisudg")
+    XCTAssertEqual(result.pagination?.cursor, "jnksdfyg7is8do7fv7yuwbisudg")
 
     XCTAssertEqual(subscribers.count, 2)
     XCTAssertNotNil(subscribers.first?.gifter)
@@ -57,7 +58,8 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.checkUserSubscriptionJSON]
     ).register()
 
-    let subscription = try await helix.checkUserSubscription(to: "1234")
+    let subscription = try await helix.request(
+      endpoint: .checkUserSubscription(of: "1234", to: "1234"))
 
     XCTAssertEqual(subscription?.broadcasterId, "141981764")
     XCTAssertEqual(subscription?.gifter?.id, "12826")

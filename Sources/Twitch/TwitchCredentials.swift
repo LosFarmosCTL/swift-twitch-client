@@ -2,10 +2,10 @@ private let oAuthPrefix = "oauth:"
 
 public struct TwitchCredentials {
   internal let oAuth: String
-  internal let clientID: String?
-  internal let userId: String?
+  internal let clientID: String
+  internal let userId: String
 
-  public init(oAuth: String, clientID: String? = nil, userId: String? = nil) {
+  public init(oAuth: String, clientID: String, userId: String) {
     // assure that the stored token always starts with "oauth:"
     if !oAuth.starts(with: oAuthPrefix) {
       self.oAuth = oAuthPrefix + oAuth
@@ -19,9 +19,7 @@ public struct TwitchCredentials {
 
   private var cleanOAuth: String { return String(oAuth.dropFirst(oAuthPrefix.count)) }
 
-  internal func httpHeaders() throws -> [String: String] {
-    guard let clientID = self.clientID else { throw CredentialError.missingClientID }
-
+  internal func httpHeaders() -> [String: String] {
     var headers: [String: String] = [:]
 
     headers.updateValue(clientID, forKey: "Client-Id")
@@ -30,5 +28,3 @@ public struct TwitchCredentials {
     return headers
   }
 }
-
-public enum CredentialError: Error { case missingClientID }

@@ -1,14 +1,9 @@
 public enum HelixError: Error {
-  case missingClientID
-  case missingUserID
-  case invalidResponse(rawResponse: String)
-  case invalidErrorResponse(status: Int, rawResponse: String)
+  case networkError(wrapped: Error)
+  case twitchError(name: String, status: Int, message: String)
 
-  case requestFailed(error: String, status: Int, message: String)
-}
+  case parsingResponseFailed(rawResponse: String)
+  case parsingErrorFailed(status: Int, rawResponse: String)
 
-internal struct TwitchError: Error, Decodable {
-  let error: String
-  let status: Int
-  let message: String
+  case nonEmptyResponse(rawResponse: String)
 }

@@ -33,7 +33,8 @@ final class WhispersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.sendWhisper(to: "4321", message: "Hello, world!")
+    try await helix.request(
+      endpoint: .sendWhisper(from: "1234", to: "4321", message: "Hello, world!"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
