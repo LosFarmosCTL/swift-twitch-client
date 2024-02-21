@@ -225,7 +225,7 @@ final class ChatTests: XCTestCase {
 
   func testSendShoutout() async throws {
     let url = URL(
-      string:  // swiftlint:disable:next line_length
+      string:
         "https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id=1234&to_broadcaster_id=4321&moderator_id=1234"
     )!
 
