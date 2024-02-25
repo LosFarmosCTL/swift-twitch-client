@@ -16,7 +16,10 @@ public class TwitchIRCClient {
   private var listeners: [(Result<IncomingMessage, Error>) -> Void] = []
   private var continuations: [AsyncThrowingStream<IncomingMessage, Error>.Continuation] =
     []
-  private var subjects: [PassthroughSubject<IncomingMessage, Error>] = []
+
+  #if canImport(Combine)
+    private var subjects: [PassthroughSubject<IncomingMessage, Error>] = []
+  #endif
 
   internal init(with authentication: TwitchCredentials? = nil, urlSession: URLSession)
     async throws
@@ -39,9 +42,11 @@ public class TwitchIRCClient {
             continuation.yield(message)
           }
 
-          for subject in self.subjects {
-            subject.send(message)
-          }
+          #if canImport(Combine)
+            for subject in self.subjects {
+              subject.send(message)
+            }
+          #endif
         }
       } catch {
         for listener in self.listeners {
@@ -52,9 +57,11 @@ public class TwitchIRCClient {
           continuation.finish(throwing: error)
         }
 
-        for subject in self.subjects {
-          subject.send(completion: .failure(error))
-        }
+        #if canImport(Combine)
+          for subject in self.subjects {
+            subject.send(completion: .failure(error))
+          }
+        #endif
       }
     }
   }
