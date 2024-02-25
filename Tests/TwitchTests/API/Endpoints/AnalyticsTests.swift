@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class AnalyticsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -30,7 +30,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getExtensionAnalyticsJSON]
     ).register()
 
-    let analytics = try await helix.request(endpoint: .getExtensionAnalytics()).data
+    let analytics = try await twitch.request(endpoint: .getExtensionAnalytics()).data
 
     XCTAssertEqual(analytics.count, 1)
     XCTAssert(analytics.contains(where: { $0.extensionId == "efgh" }))
@@ -48,7 +48,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getGameAnalyticsJSON]
     ).register()
 
-    let analytics = try await helix.request(endpoint: .getGameAnalytics()).data
+    let analytics = try await twitch.request(endpoint: .getGameAnalytics()).data
 
     XCTAssertEqual(analytics.count, 1)
 

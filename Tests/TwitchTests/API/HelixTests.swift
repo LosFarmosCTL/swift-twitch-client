@@ -10,22 +10,17 @@ import XCTest
 
 class HelixTests: XCTestCase {
   private var mockingURLSession: URLSession!
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     self.mockingURLSession = URLSession(configuration: configuration)
 
-    self.helix = try Helix(
-      authentication: .init(oAuth: "abcdefg", clientID: "123456", userId: "1234"),
+    self.twitch = try TwitchClient(
+      authentication: .init(
+        oAuth: "abcdefg", clientID: "123456", userId: "1234", userLogin: "user"),
       urlSession: mockingURLSession)
-  }
-
-  func testHelixInitialization() {
-    XCTAssertNoThrow(
-      try Helix(
-        authentication: .init(oAuth: "abcdefg", clientID: "123456", userId: "1234")))
   }
 
   func testHelixAuthentication() async throws {
@@ -52,7 +47,7 @@ class HelixTests: XCTestCase {
 
     mock.register()
 
-    _ = try await self.helix.request(endpoint: .getGlobalBadges())
+    _ = try await self.twitch.request(endpoint: .getGlobalBadges())
   }
 
   func testWithJsonBody() async throws {
@@ -76,7 +71,7 @@ class HelixTests: XCTestCase {
 
     mock.register()
 
-    _ = try await self.helix.request(
+    _ = try await self.twitch.request(
       endpoint: .custom(method: "POST", path: "test", body: ["test": "test"]))
   }
 
@@ -89,7 +84,7 @@ class HelixTests: XCTestCase {
     ).register()
 
     await XCTAssertThrowsErrorAsync(
-      try await helix.request(endpoint: .custom(method: "GET", path: "invalid")),
+      try await twitch.request(endpoint: .custom(method: "GET", path: "invalid")),
       "An invalid request should throw an error."
     ) { err in
       guard case HelixError.twitchError(let name, let status, let message) = err else {
@@ -110,7 +105,7 @@ class HelixTests: XCTestCase {
       .register()
 
     await XCTAssertThrowsErrorAsync(
-      try await self.helix.request(endpoint: .custom(method: "GET", path: "invalid")),
+      try await self.twitch.request(endpoint: .custom(method: "GET", path: "invalid")),
       "An invalid response should throw a HelixError",
       { (error) in
         guard case HelixError.parsingResponseFailed(_) = error else {
@@ -127,7 +122,7 @@ class HelixTests: XCTestCase {
     ).register()
 
     await XCTAssertThrowsErrorAsync(
-      try await self.helix.request(endpoint: .custom(method: "GET", path: "invalid")),
+      try await self.twitch.request(endpoint: .custom(method: "GET", path: "invalid")),
       "An invalid response should throw a HelixError",
       { (error) in
         guard case HelixError.parsingErrorFailed(_, _) = error else {

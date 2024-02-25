@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class StreamsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -30,7 +30,7 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getStreamsJSON]
     ).register()
 
-    let result = try await helix.request(endpoint: .getStreams(limit: 1))
+    let result = try await twitch.request(endpoint: .getStreams(limit: 1))
 
     XCTAssertNil(result.pagination?.cursor)
 
@@ -47,7 +47,7 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getFollowedStreamsJSON]
     ).register()
 
-    let result = try await helix.request(
+    let result = try await twitch.request(
       endpoint: .getFollowedStreams(of: "1234", limit: 1))
     let streams = result.data
     let cursor = result.pagination?.cursor

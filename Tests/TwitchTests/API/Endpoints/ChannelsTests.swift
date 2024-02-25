@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class ChannelsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -31,8 +31,10 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelsJSON]
     ).register()
 
-    let channels = try await helix.request(endpoint: .getChannels(userIDs: ["141981764"]))
-      .data
+    let channels = try await twitch.request(
+      endpoint: .getChannels(userIDs: ["141981764"])
+    )
+    .data
 
     XCTAssertEqual(channels.count, 1)
     XCTAssert(channels.contains(where: { $0.id == "141981764" }))
@@ -47,7 +49,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelEditorsJSON]
     ).register()
 
-    let editors = try await helix.request(
+    let editors = try await twitch.request(
       endpoint: .getChannelEditors(broadcasterId: "1234")
     ).data
 
@@ -67,7 +69,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getFollowedChannelsJSON]
     ).register()
 
-    let result = try await helix.request(
+    let result = try await twitch.request(
       endpoint: .getFollowedChannels(of: "1234")
     )
 
@@ -91,7 +93,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkFollowJSON]
     ).register()
 
-    let follow = try await helix.request(
+    let follow = try await twitch.request(
       endpoint: .checkFollow(from: "123456", to: "654321")
     )
 
@@ -108,7 +110,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelFollowersJSON]
     ).register()
 
-    let result = try await helix.request(
+    let result = try await twitch.request(
       endpoint: .getChannelFollowers(broadcasterId: "1234")
     )
 
@@ -132,7 +134,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkChannelFollowerJSON]
     ).register()
 
-    let follow = try await helix.request(
+    let follow = try await twitch.request(
       endpoint: .checkChannelFollower(userId: "654321", follows: "123456")
     )
 
@@ -149,7 +151,7 @@ final class ChannelsTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.request(
+    try await twitch.request(
       endpoint: .updateChannel(broadcasterId: "1234", gameId: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
