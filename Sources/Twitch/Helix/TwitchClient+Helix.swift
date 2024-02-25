@@ -8,26 +8,7 @@ import Foundation
   import Combine
 #endif
 
-public final class Helix {
-  private let baseHelixURL = URL(string: "https://api.twitch.tv/helix/")!
-
-  private let authentication: TwitchCredentials
-  private let urlSession: URLSession
-
-  private let encoder = JSONEncoder()
-  private let decoder = JSONDecoder()
-
-  public init(
-    authentication: TwitchCredentials,
-    urlSession: URLSession = URLSession(configuration: .default)
-  ) throws {
-    self.authentication = authentication
-    self.urlSession = urlSession
-
-    self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
-    self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
-  }
-
+extension TwitchClient {
   // MARK: - Async methods
 
   public func request(endpoint: HelixEndpoint<ResponseTypes.Void>) async throws {
@@ -131,6 +112,7 @@ public final class Helix {
   // MARK: - Combine methods
 
   #if canImport(Combine)
+
     public func requestPublisher(
       for endpoint: HelixEndpoint<ResponseTypes.Void>
     ) -> AnyPublisher<Void, HelixError> {
@@ -190,6 +172,7 @@ public final class Helix {
         }
       }.eraseToAnyPublisher()
     }
+
   #endif
 
   // MARK: - Networking implementation
