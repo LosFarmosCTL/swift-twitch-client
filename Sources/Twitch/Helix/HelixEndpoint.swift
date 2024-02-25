@@ -39,7 +39,10 @@ public struct HelixEndpoint<Response: ResponseType> {
     body: Encodable? = nil
   ) {
     self.method = method
+
+    // TODO: fix the URLComponents assembly to not require this
     self.path = "helix/" + path
+
     self.queryItems = queryItems
     self.body = body
   }

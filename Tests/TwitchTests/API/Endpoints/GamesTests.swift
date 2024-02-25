@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class GamesTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -29,7 +29,7 @@ final class GamesTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getGamesJSON]
     ).register()
 
-    let games = try await helix.request(endpoint: .getGames(gameIDs: ["33214"])).data
+    let games = try await twitch.request(endpoint: .getGames(gameIDs: ["33214"])).data
 
     XCTAssertEqual(games.count, 1)
     XCTAssert(games.contains(where: { $0.id == "33214" }))
@@ -43,7 +43,7 @@ final class GamesTests: XCTestCase {
       data: [.get: MockedData.getTopGamesJSON]
     ).register()
 
-    let result = try await helix.request(endpoint: .getTopGames(limit: 1))
+    let result = try await twitch.request(endpoint: .getTopGames(limit: 1))
 
     XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6MjB9fQ==")
 

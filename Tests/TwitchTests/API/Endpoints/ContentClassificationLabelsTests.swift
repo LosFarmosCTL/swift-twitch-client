@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class ContentClassificationLabelsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -31,7 +31,8 @@ final class ContentClassificationLabelsTests: XCTestCase {
       data: [.get: MockedData.getContentClassificationLabelsJSON]
     ).register()
 
-    let labels = try await helix.request(endpoint: .getContentClassificationLabels()).data
+    let labels = try await twitch.request(endpoint: .getContentClassificationLabels())
+      .data
 
     XCTAssertEqual(labels.count, 6)
     XCTAssert(labels.contains(where: { $0.id == "ViolentGraphic" }))
