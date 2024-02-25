@@ -1,6 +1,10 @@
 import Foundation
 import TwitchIRC
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public actor IRCConnectionPool {
   private var connections: [IRCConnection] = []
 
