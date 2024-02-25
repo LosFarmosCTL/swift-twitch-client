@@ -12,8 +12,8 @@ public struct SetEmote: Decodable {
   let id: String
   let name: String
   let type: String
-  let setId: String
-  let ownerId: String
+  let setID: String
+  let ownerID: String
   let format: [Emote.Format]
   let scale: [Emote.Scale]
   let themeMode: [Emote.ThemeMode]
@@ -22,8 +22,8 @@ public struct SetEmote: Decodable {
     case id = "id"
     case name = "name"
     case type = "emote_type"
-    case setId = "emote_set_id"
-    case ownerId = "owner_id"
+    case setID = "emote_set_id"
+    case ownerID = "owner_id"
     case format = "format"
     case scale = "scale"
     case themeMode = "theme_mode"

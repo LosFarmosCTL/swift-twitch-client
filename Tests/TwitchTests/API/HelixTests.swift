@@ -19,7 +19,7 @@ class HelixTests: XCTestCase {
 
     self.twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "abcdefg", clientID: "123456", userId: "1234", userLogin: "user"),
+        oAuth: "abcdefg", clientID: "123456", userID: "1234", userLogin: "user"),
       urlSession: mockingURLSession)
   }
 

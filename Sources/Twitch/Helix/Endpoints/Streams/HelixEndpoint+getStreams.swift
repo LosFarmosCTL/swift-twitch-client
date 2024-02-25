@@ -36,7 +36,7 @@ public enum StreamType: String {
 public struct Stream: Decodable {
   let id: String
 
-  let userId: String
+  let userID: String
   let userLogin: String
   let userName: String
 
@@ -55,7 +55,7 @@ public struct Stream: Decodable {
 
   enum CodingKeys: String, CodingKey {
     case id
-    case userId = "user_id"
+    case userID = "user_id"
     case userLogin = "user_login"
     case userName = "user_name"
 

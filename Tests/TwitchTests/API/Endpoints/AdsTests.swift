@@ -18,7 +18,7 @@ final class AdsTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -30,7 +30,7 @@ final class AdsTests: XCTestCase {
       data: [.get: MockedData.getAdScheduleJSON]
     ).register()
 
-    let ads = try await twitch.request(endpoint: .getAdSchedule(broadcasterId: "1234"))
+    let ads = try await twitch.request(endpoint: .getAdSchedule(broadcasterID: "1234"))
       .data
 
     XCTAssertEqual(ads.count, 1)
@@ -48,7 +48,7 @@ final class AdsTests: XCTestCase {
     ).register()
 
     let commercial = try await twitch.request(
-      endpoint: .startCommercial(broadcasterId: "1234", length: 60)
+      endpoint: .startCommercial(broadcasterID: "1234", length: 60)
     )
 
     XCTAssertEqual(commercial.length, 60)
@@ -67,7 +67,7 @@ final class AdsTests: XCTestCase {
     ).register()
 
     let snoozeResult = try await twitch.request(
-      endpoint: .snoozeNextAd(broadcasterId: "1234")
+      endpoint: .snoozeNextAd(broadcasterID: "1234")
     ).data
 
     XCTAssertEqual(snoozeResult.count, 1)

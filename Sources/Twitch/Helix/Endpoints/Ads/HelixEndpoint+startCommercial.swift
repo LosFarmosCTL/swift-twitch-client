@@ -1,19 +1,19 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<Commercial> {
-  public static func startCommercial(broadcasterId: String, length: Int) -> Self {
+  public static func startCommercial(broadcasterID: String, length: Int) -> Self {
     .init(
       method: "POST", path: "channels/commercial",
-      body: StartCommercialRequestBody(broadcasterId: broadcasterId, length: length))
+      body: StartCommercialRequestBody(broadcasterID: broadcasterID, length: length))
   }
 }
 
 private struct StartCommercialRequestBody: Encodable {
-  let broadcasterId: String
+  let broadcasterID: String
   let length: Int
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterId = "broadcaster_id"
+    case broadcasterID = "broadcaster_id"
     case length
   }
 }

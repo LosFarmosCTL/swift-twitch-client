@@ -18,7 +18,7 @@ final class WhispersTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 

@@ -10,24 +10,24 @@ class AuthenticationTests: XCTestCase {
 
   func testInitialization() {
     let auth = TwitchCredentials(
-      oAuth: oAuth, clientID: clientID, userId: userID, userLogin: userLogin)
+      oAuth: oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
     XCTAssertEqual(auth.oAuth, oAuth)
     XCTAssertEqual(auth.clientID, clientID)
-    XCTAssertEqual(auth.userId, userID)
+    XCTAssertEqual(auth.userID, userID)
     XCTAssertEqual(auth.userLogin, userLogin)
   }
 
   func testWithOAuthPrefix() {
     let auth = TwitchCredentials(
-      oAuth: "oauth:" + oAuth, clientID: clientID, userId: userID, userLogin: userLogin)
+      oAuth: "oauth:" + oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
     XCTAssertEqual(auth.oAuth, oAuth)
   }
 
   func testHTTPHeaders() throws {
     let auth = TwitchCredentials(
-      oAuth: oAuth, clientID: clientID, userId: userID, userLogin: userLogin)
+      oAuth: oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
     let headers = auth.httpHeaders()
 

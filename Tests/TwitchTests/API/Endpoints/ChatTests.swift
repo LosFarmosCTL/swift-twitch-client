@@ -18,7 +18,7 @@ final class ChatTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -33,14 +33,14 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChatters(broadcasterId: "123", moderatorId: "1234"))
+      endpoint: .getChatters(broadcasterID: "123", moderatorID: "1234"))
 
     XCTAssertEqual(result.data.count, 1)
     XCTAssertEqual(result.total, 8)
     XCTAssertEqual(
       result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
-    XCTAssert(result.data.contains(where: { $0.userId == "128393656" }))
+    XCTAssert(result.data.contains(where: { $0.userID == "128393656" }))
   }
 
   func testGetChannelEmotes() async throws {
@@ -52,7 +52,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChannelEmotes(broadcasterId: "1234"))
+      endpoint: .getChannelEmotes(broadcasterID: "1234"))
 
     XCTAssertEqual(
       result.template,
@@ -128,7 +128,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let badgeSets = try await twitch.request(
-      endpoint: .getChannelBadges(broadcasterId: "1234")
+      endpoint: .getChannelBadges(broadcasterID: "1234")
     ).data
 
     XCTAssertEqual(badgeSets.count, 2)
@@ -167,9 +167,9 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let settings = try await twitch.request(
-      endpoint: .getChatSettings(broadcasterId: "713936733", moderatorId: "1234"))
+      endpoint: .getChatSettings(broadcasterID: "713936733", moderatorID: "1234"))
 
-    XCTAssertEqual(settings.broadcasterId, "713936733")
+    XCTAssertEqual(settings.broadcasterID, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
     XCTAssertEqual(settings.followerModeDuration, 0)
     XCTAssertEqual(settings.subscriberMode, true)
@@ -191,10 +191,10 @@ final class ChatTests: XCTestCase {
 
     let settings = try await twitch.request(
       endpoint: .updateChatSettings(
-        broadcasterId: "713936733", moderatorId: "1234", .slowMode(5), .subscriberMode,
+        broadcasterID: "713936733", moderatorID: "1234", .slowMode(5), .subscriberMode,
         .followerMode()))
 
-    XCTAssertEqual(settings.broadcasterId, "713936733")
+    XCTAssertEqual(settings.broadcasterID, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
     XCTAssertEqual(settings.followerModeDuration, 0)
     XCTAssertEqual(settings.subscriberMode, true)
@@ -218,7 +218,7 @@ final class ChatTests: XCTestCase {
 
     try await twitch.request(
       endpoint: .sendAnnouncement(
-        broadcasterId: "1234", message: "Hello, world!", color: .blue, moderatorId: "1234"
+        broadcasterID: "1234", message: "Hello, world!", color: .blue, moderatorID: "1234"
       ))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
@@ -238,7 +238,7 @@ final class ChatTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .sendShoutout(from: "1234", to: "4321", moderatorId: "1234"))
+      endpoint: .sendShoutout(from: "1234", to: "4321", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -258,7 +258,7 @@ final class ChatTests: XCTestCase {
 
     XCTAssertEqual(colors.count, 2)
 
-    XCTAssert(colors.contains(where: { $0.userId == "11111" }))
+    XCTAssert(colors.contains(where: { $0.userID == "11111" }))
   }
 
   func testUpdateUserColor() async throws {
@@ -273,7 +273,7 @@ final class ChatTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .updateUserColor(userId: "1234", color: .blue))
+      endpoint: .updateUserColor(userID: "1234", color: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

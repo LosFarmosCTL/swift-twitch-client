@@ -5,11 +5,11 @@ extension HelixEndpoint where Response == ResponseTypes.Array<BlockedTerm> {
     inChannel broadcasterID: String,
     limit: Int? = nil,
     after cursor: String? = nil,
-    moderatorId: String
+    moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
       ("broadcaster_id", broadcasterID),
-      ("moderator_id", moderatorId),
+      ("moderator_id", moderatorID),
       ("first", limit.map(String.init)),
       ("after", cursor))
 

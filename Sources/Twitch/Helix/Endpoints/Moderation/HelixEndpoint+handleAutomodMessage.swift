@@ -2,23 +2,23 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   private static func handleAutomodMessage(
-    withID msgID: String, action: String, moderatorId: String
+    withID msgID: String, action: String, moderatorID: String
   ) -> Self {
     .init(
       method: "POST", path: "moderation/automod/message",
-      body: ["data": ["user_id": moderatorId, "msg_id": msgID, "action": action]]
+      body: ["data": ["user_id": moderatorID, "msg_id": msgID, "action": action]]
     )
   }
 
   public static func approveAutomodMessage(
-    withID msgID: String, moderatorId: String
+    withID msgID: String, moderatorID: String
   ) -> Self {
-    self.handleAutomodMessage(withID: msgID, action: "APPROVE", moderatorId: moderatorId)
+    self.handleAutomodMessage(withID: msgID, action: "APPROVE", moderatorID: moderatorID)
   }
 
   public static func denyAutomodMessage(
-    withID msgID: String, moderatorId: String
+    withID msgID: String, moderatorID: String
   ) -> Self {
-    self.handleAutomodMessage(withID: msgID, action: "DENY", moderatorId: moderatorId)
+    self.handleAutomodMessage(withID: msgID, action: "DENY", moderatorID: moderatorID)
   }
 }

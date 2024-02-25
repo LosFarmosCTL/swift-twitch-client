@@ -18,12 +18,12 @@ public struct Game: Decodable {
   let id: String
   let name: String
   let boxArtUrl: String
-  let igdbId: String
+  let igdbID: String
 
   enum CodingKeys: String, CodingKey {
     case id
     case name
     case boxArtUrl = "box_art_url"
-    case igdbId = "igdb_id"
+    case igdbID = "igdb_id"
   }
 }

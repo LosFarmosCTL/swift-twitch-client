@@ -1,8 +1,8 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<ChannelEmote> {
-  public static func getChannelEmotes(broadcasterId: String) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterId))
+  public static func getChannelEmotes(broadcasterID: String) -> Self {
+    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterID))
 
     return .init(method: "GET", path: "chat/emotes", queryItems: queryItems)
   }
@@ -13,7 +13,7 @@ public struct ChannelEmote: Decodable {
   let name: String
   let tier: String?
   let type: String
-  let setId: String
+  let setID: String
   let format: [Emote.Format]
   let scale: [Emote.Scale]
   let themeMode: [Emote.ThemeMode]
@@ -23,7 +23,7 @@ public struct ChannelEmote: Decodable {
     case name = "name"
     case tier = "tier"
     case type = "emote_type"
-    case setId = "emote_set_id"
+    case setID = "emote_set_id"
     case format = "format"
     case scale = "scale"
     case themeMode = "theme_mode"

@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Follow> {
   public static func getFollowedChannels(
-    of userId: String, limit: Int? = nil, after cursor: String? = nil
+    of userID: String, limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("user_id", userId),
+      ("user_id", userID),
       ("first", limit.map(String.init)),
       ("after", cursor))
 
@@ -14,10 +14,10 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Follow> {
 }
 
 extension HelixEndpoint where Response == ResponseTypes.Optional<Follow> {
-  public static func checkFollow(from userId: String, to channelId: String) -> Self {
+  public static func checkFollow(from userID: String, to channelID: String) -> Self {
     let queryItems = [
-      URLQueryItem(name: "user_id", value: userId),
-      URLQueryItem(name: "broadcaster_id", value: channelId),
+      URLQueryItem(name: "user_id", value: userID),
+      URLQueryItem(name: "broadcaster_id", value: channelID),
     ]
 
     return .init(method: "GET", path: "channels/followed", queryItems: queryItems)
@@ -25,13 +25,13 @@ extension HelixEndpoint where Response == ResponseTypes.Optional<Follow> {
 }
 
 public struct Follow: Decodable {
-  let broadcasterId: String
+  let broadcasterID: String
   let broadcasterLogin: String
   let broadcasterName: String
   let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterId = "broadcaster_id"
+    case broadcasterID = "broadcaster_id"
     case broadcasterLogin = "broadcaster_login"
     case broadcasterName = "broadcaster_name"
     case followedAt = "followed_at"

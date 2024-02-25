@@ -18,7 +18,7 @@ final class UsersTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -63,11 +63,11 @@ final class UsersTests: XCTestCase {
     ).register()
 
     let blocks = try await twitch.request(
-      endpoint: .getUserBlocklist(broadcasterId: "1234", limit: 2)
+      endpoint: .getUserBlocklist(broadcasterID: "1234", limit: 2)
     ).data
 
     XCTAssertEqual(blocks.count, 2)
-    XCTAssert(blocks.contains(where: { $0.userId == "135093069" }))
+    XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))
   }
 
   func testBlockUser() async throws {

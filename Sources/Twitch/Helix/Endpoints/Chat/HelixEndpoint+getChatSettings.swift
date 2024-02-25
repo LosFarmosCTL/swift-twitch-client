@@ -2,18 +2,18 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
   public static func getChatSettings(
-    broadcasterId: String, moderatorId: String? = nil
+    broadcasterID: String, moderatorID: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId),
-      ("moderator_id", moderatorId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID))
 
     return .init(method: "GET", path: "chat/settings", queryItems: queryItems)
   }
 }
 
 public struct ChatSettings: Decodable {
-  let broadcasterId: String
+  let broadcasterID: String
   let slowModeWaitTime: Int?
   let followerModeDuration: Int?
   let subscriberMode: Bool
@@ -23,7 +23,7 @@ public struct ChatSettings: Decodable {
   let nonModeratorChatDelay: Int?
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterId = "broadcaster_id"
+    case broadcasterID = "broadcaster_id"
     case slowModeWaitTime = "slow_mode_wait_time"
     case followerModeDuration = "follower_mode_duration"
     case subscriberMode = "subscriber_mode"
@@ -36,7 +36,7 @@ public struct ChatSettings: Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    self.broadcasterId = try container.decode(String.self, forKey: .broadcasterId)
+    self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     self.slowModeWaitTime = try container.decodeIfPresent(
       Int.self, forKey: .slowModeWaitTime)
     self.followerModeDuration = try container.decodeIfPresent(

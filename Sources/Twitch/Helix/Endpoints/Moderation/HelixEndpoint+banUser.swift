@@ -3,13 +3,13 @@ import Foundation
 extension HelixEndpoint where Response == ResponseTypes.Object<Ban> {
   public static func banUser(
     withID userID: String, inChannel channelID: String,
-    for timeoutLength: Duration? = nil, reason: String? = nil, moderatorId: String
+    for timeoutLength: Duration? = nil, reason: String? = nil, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
       ("broadcaster_id", channelID),
-      ("moderator_id", moderatorId))
+      ("moderator_id", moderatorID))
 
-    let body = BanUserBody(userId: userID, reason: reason, duration: timeoutLength)
+    let body = BanUserBody(userID: userID, reason: reason, duration: timeoutLength)
 
     return .init(
       method: "POST", path: "moderation/bans", queryItems: queryItems, body: body)
@@ -17,12 +17,12 @@ extension HelixEndpoint where Response == ResponseTypes.Object<Ban> {
 }
 
 private struct BanUserBody: Encodable {
-  let userId: String
+  let userID: String
   let reason: String?
   let duration: Duration?
 
   enum CodingKeys: String, CodingKey {
-    case userId = "user_id"
+    case userID = "user_id"
     case reason
     case duration
   }

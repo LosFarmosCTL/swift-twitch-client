@@ -2,11 +2,11 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<ExtensionReport> {
   public static func getExtensionAnalytics(
-    extensionId: String? = nil, type: String? = nil, range: DateInterval? = nil,
+    extensionID: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("extension_id", extensionId),
+      ("extension_id", extensionID),
       ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
       ("ended_at", range?.end.formatted(.iso8601)),
@@ -18,13 +18,13 @@ extension HelixEndpoint where Response == ResponseTypes.Array<ExtensionReport> {
 }
 
 public struct ExtensionReport: Decodable {
-  let extensionId: String
+  let extensionID: String
   let url: String
   let type: String
   let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
-    case extensionId = "extension_id"
+    case extensionID = "extension_id"
     case url = "URL"
     case type
     case range = "date_range"
@@ -38,7 +38,7 @@ public struct ExtensionReport: Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    self.extensionId = try container.decode(String.self, forKey: .extensionId)
+    self.extensionID = try container.decode(String.self, forKey: .extensionID)
     self.url = try container.decode(String.self, forKey: .url)
     self.type = try container.decode(String.self, forKey: .type)
 

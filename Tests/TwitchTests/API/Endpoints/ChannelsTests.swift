@@ -18,7 +18,7 @@ final class ChannelsTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -50,13 +50,13 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let editors = try await twitch.request(
-      endpoint: .getChannelEditors(broadcasterId: "1234")
+      endpoint: .getChannelEditors(broadcasterID: "1234")
     ).data
 
     XCTAssertEqual(editors.count, 2)
 
-    XCTAssertEqual(editors.first?.userId, "182891647")
-    XCTAssertEqual(editors.last?.userId, "135093069")
+    XCTAssertEqual(editors.first?.userID, "182891647")
+    XCTAssertEqual(editors.last?.userID, "135093069")
 
     XCTAssertEqual(editors.first?.createdAt.formatted(.iso8601), "2019-02-15T21:19:50Z")
   }
@@ -75,7 +75,7 @@ final class ChannelsTests: XCTestCase {
 
     XCTAssertEqual(result.total, 8)
 
-    XCTAssertEqual(result.data.first?.broadcasterId, "11111")
+    XCTAssertEqual(result.data.first?.broadcasterID, "11111")
     XCTAssertEqual(
       result.data.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
 
@@ -97,7 +97,7 @@ final class ChannelsTests: XCTestCase {
       endpoint: .checkFollow(from: "123456", to: "654321")
     )
 
-    XCTAssertEqual(follow?.broadcasterId, "654321")
+    XCTAssertEqual(follow?.broadcasterID, "654321")
     XCTAssertEqual(follow?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
   }
 
@@ -111,12 +111,12 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChannelFollowers(broadcasterId: "1234")
+      endpoint: .getChannelFollowers(broadcasterID: "1234")
     )
 
     XCTAssertEqual(result.total, 8)
 
-    XCTAssertEqual(result.data.first?.userId, "11111")
+    XCTAssertEqual(result.data.first?.userID, "11111")
     XCTAssertEqual(
       result.data.first?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
 
@@ -135,10 +135,10 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let follow = try await twitch.request(
-      endpoint: .checkChannelFollower(userId: "654321", follows: "123456")
+      endpoint: .checkChannelFollower(userID: "654321", follows: "123456")
     )
 
-    XCTAssertEqual(follow?.userId, "654321")
+    XCTAssertEqual(follow?.userID, "654321")
     XCTAssertEqual(follow?.followedAt.formatted(.iso8601), "2022-05-24T22:22:08Z")
   }
 
@@ -152,7 +152,7 @@ final class ChannelsTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .updateChannel(broadcasterId: "1234", gameId: "1234"))
+      endpoint: .updateChannel(broadcasterID: "1234", gameID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

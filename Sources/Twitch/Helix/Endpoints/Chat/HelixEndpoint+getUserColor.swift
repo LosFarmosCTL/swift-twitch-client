@@ -9,13 +9,13 @@ extension HelixEndpoint where Response == ResponseTypes.Array<UserColor> {
 }
 
 public struct UserColor: Decodable {
-  let userId: String
+  let userID: String
   let userLogin: String
   let userName: String
   let color: String
 
   enum CodingKeys: String, CodingKey {
-    case userId = "user_id"
+    case userID = "user_id"
     case userLogin = "user_login"
     case userName = "user_name"
     case color

@@ -1,19 +1,19 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<BadgeSet> {
-  public static func getChannelBadges(broadcasterId: String) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterId))
+  public static func getChannelBadges(broadcasterID: String) -> Self {
+    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterID))
 
     return .init(method: "GET", path: "chat/badges", queryItems: queryItems)
   }
 }
 
 public struct BadgeSet: Decodable {
-  let setId: String
+  let setID: String
   let badges: [Badge]
 
   enum CodingKeys: String, CodingKey {
-    case setId = "set_id"
+    case setID = "set_id"
     case badges = "versions"
   }
 }

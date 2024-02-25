@@ -2,12 +2,12 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func sendAnnouncement(
-    broadcasterId: String, message: String, color: AnnouncementColor? = nil,
-    moderatorId: String
+    broadcasterID: String, message: String, color: AnnouncementColor? = nil,
+    moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId),
-      ("moderator_id", moderatorId))
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID))
 
     return .init(
       method: "POST", path: "chat/announcements", queryItems: queryItems,

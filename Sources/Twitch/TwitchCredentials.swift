@@ -2,14 +2,14 @@ public struct TwitchCredentials {
   public let oAuth: String
   public let clientID: String
 
-  public let userId: String
+  public let userID: String
   public let userLogin: String
 
-  public init(oAuth: String, clientID: String, userId: String, userLogin: String) {
+  public init(oAuth: String, clientID: String, userID: String, userLogin: String) {
     self.oAuth = String(oAuth.trimmingPrefix("oauth:"))
     self.clientID = clientID
 
-    self.userId = userId
+    self.userID = userID
     self.userLogin = userLogin.lowercased()
   }
 

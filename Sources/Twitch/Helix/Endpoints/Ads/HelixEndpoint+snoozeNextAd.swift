@@ -1,8 +1,8 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<SnoozeResult> {
-  public static func snoozeNextAd(broadcasterId: String) -> Self {
-    let queryItems = makeQueryItems(("broadcaster_id", broadcasterId))
+  public static func snoozeNextAd(broadcasterID: String) -> Self {
+    let queryItems = makeQueryItems(("broadcaster_id", broadcasterID))
 
     return .init(
       method: "POST", path: "channels/ads/schedule/snooze", queryItems: queryItems)

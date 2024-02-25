@@ -18,7 +18,7 @@ final class SubscriptionsTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -32,7 +32,7 @@ final class SubscriptionsTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getBroadcasterSubscribers(broadcasterId: "1234", limit: 2))
+      endpoint: .getBroadcasterSubscribers(broadcasterID: "1234", limit: 2))
     let subscribers = result.data
 
     XCTAssertEqual(result.total, 13)
@@ -61,7 +61,7 @@ final class SubscriptionsTests: XCTestCase {
     let subscription = try await twitch.request(
       endpoint: .checkUserSubscription(of: "1234", to: "1234"))
 
-    XCTAssertEqual(subscription?.broadcasterId, "141981764")
+    XCTAssertEqual(subscription?.broadcasterID, "141981764")
     XCTAssertEqual(subscription?.gifter?.id, "12826")
   }
 }

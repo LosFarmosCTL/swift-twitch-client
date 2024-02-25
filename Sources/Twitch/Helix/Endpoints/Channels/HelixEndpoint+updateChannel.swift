@@ -2,8 +2,8 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func updateChannel(
-    broadcasterId: String,
-    gameId: String? = nil,
+    broadcasterID: String,
+    gameID: String? = nil,
     broadcasterLanguage: String? = nil,
     title: String? = nil,
     delay: Int? = nil,
@@ -17,7 +17,7 @@ extension HelixEndpoint where Response == ResponseTypes.Void {
       }
 
     let body = UpdateChannelRequestBody(
-      gameId: gameId,
+      gameID: gameID,
       broadcasterLanguage: broadcasterLanguage,
       title: title,
       delay: delay,
@@ -25,7 +25,7 @@ extension HelixEndpoint where Response == ResponseTypes.Void {
       contentClassificationLabels: contentClassificationLabels,
       isBrandedContent: isBrandedContent)
 
-    let queryItems = makeQueryItems(("broadcaster_id", broadcasterId))
+    let queryItems = makeQueryItems(("broadcaster_id", broadcasterID))
 
     return .init(
       method: "PATCH", path: "channels", queryItems: queryItems, body: body)
@@ -41,7 +41,7 @@ public enum Label: String, Encodable {
 }
 
 internal struct UpdateChannelRequestBody: Encodable {
-  let gameId: String?
+  let gameID: String?
   let broadcasterLanguage: String?
   let title: String?
   let delay: Int?
@@ -55,7 +55,7 @@ internal struct UpdateChannelRequestBody: Encodable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case gameId = "game_id"
+    case gameID = "game_id"
     case broadcasterLanguage = "broadcaster_language"
     case title
     case delay
@@ -72,7 +72,7 @@ internal struct UpdateChannelRequestBody: Encodable {
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
 
-    try container.encodeIfPresent(self.gameId, forKey: .gameId)
+    try container.encodeIfPresent(self.gameID, forKey: .gameID)
     try container.encodeIfPresent(self.broadcasterLanguage, forKey: .broadcasterLanguage)
     try container.encodeIfPresent(self.title, forKey: .title)
     try container.encodeIfPresent(self.delay, forKey: .delay)

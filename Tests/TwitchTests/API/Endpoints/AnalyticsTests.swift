@@ -18,7 +18,7 @@ final class AnalyticsTests: XCTestCase {
 
     twitch = try TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234", userLogin: "user"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -33,7 +33,7 @@ final class AnalyticsTests: XCTestCase {
     let analytics = try await twitch.request(endpoint: .getExtensionAnalytics()).data
 
     XCTAssertEqual(analytics.count, 1)
-    XCTAssert(analytics.contains(where: { $0.extensionId == "efgh" }))
+    XCTAssert(analytics.contains(where: { $0.extensionID == "efgh" }))
 
     XCTAssertEqual(
       analytics.first?.range.start.formatted(.iso8601), "2018-03-01T00:00:00Z")
@@ -52,7 +52,7 @@ final class AnalyticsTests: XCTestCase {
 
     XCTAssertEqual(analytics.count, 1)
 
-    XCTAssert(analytics.contains(where: { $0.gameId == "9821" }))
+    XCTAssert(analytics.contains(where: { $0.gameID == "9821" }))
 
     XCTAssertEqual(
       analytics.first?.range.start.formatted(.iso8601), "2018-03-13T00:00:00Z")

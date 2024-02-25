@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func sendWhisper(
-    from senderId: String, to userID: String, message: String
+    from senderID: String, to userID: String, message: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("from_user_id", senderId),
+      ("from_user_id", senderID),
       ("to_user_id", userID))
 
     return .init(

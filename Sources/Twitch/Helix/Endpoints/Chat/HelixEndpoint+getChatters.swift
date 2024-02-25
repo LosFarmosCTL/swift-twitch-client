@@ -2,14 +2,14 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Chatter> {
   public static func getChatters(
-    broadcasterId: String,
-    moderatorId: String,
+    broadcasterID: String,
+    moderatorID: String,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterId),
-      ("moderator_id", moderatorId),
+      ("broadcaster_id", broadcasterID),
+      ("moderator_id", moderatorID),
       ("first", limit.map(String.init)),
       ("after", cursor))
 
@@ -18,12 +18,12 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Chatter> {
 }
 
 public struct Chatter: Decodable {
-  let userId: String
+  let userID: String
   let userLogin: String
   let userName: String
 
   enum CodingKeys: String, CodingKey {
-    case userId = "user_id"
+    case userID = "user_id"
     case userLogin = "user_login"
     case userName = "user_name"
   }

@@ -2,11 +2,11 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<GameReport> {
   public static func getGameAnalytics(
-    gameId: String? = nil, type: String? = nil, range: DateInterval? = nil,
+    gameID: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("game_id", gameId),
+      ("game_id", gameID),
       ("type", type),
       ("started_at", range?.start.formatted(.iso8601)),
       ("ended_at", range?.end.formatted(.iso8601)),
@@ -18,13 +18,13 @@ extension HelixEndpoint where Response == ResponseTypes.Array<GameReport> {
 }
 
 public struct GameReport: Decodable {
-  let gameId: String
+  let gameID: String
   let url: String
   let type: String
   let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
-    case gameId = "game_id"
+    case gameID = "game_id"
     case url = "URL"
     case type
     case range = "date_range"
@@ -38,7 +38,7 @@ public struct GameReport: Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    self.gameId = try container.decode(String.self, forKey: .gameId)
+    self.gameID = try container.decode(String.self, forKey: .gameID)
     self.url = try container.decode(String.self, forKey: .url)
     self.type = try container.decode(String.self, forKey: .type)
 
