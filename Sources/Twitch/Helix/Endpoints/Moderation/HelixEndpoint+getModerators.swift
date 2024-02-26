@@ -2,14 +2,14 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Moderator> {
   public static func getModerators(
-    of broadcasterID: String,
+    of channel: String,
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
   ) -> Self {
     var queryItems =
       self.makeQueryItems(
-        ("broadcaster_id", broadcasterID),
+        ("broadcaster_id", channel),
         ("first", limit.map(String.init)),
         ("after", startCursor)) ?? []
 

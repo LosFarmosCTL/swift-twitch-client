@@ -1,8 +1,8 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<ChannelEmote> {
-  public static func getChannelEmotes(broadcasterID: String) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterID))
+  public static func getChannelEmotes(of channel: UserID) -> Self {
+    let queryItems = self.makeQueryItems(("broadcaster_id", channel))
 
     return .init(method: "GET", path: "chat/emotes", queryItems: queryItems)
   }

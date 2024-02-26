@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
   public static func updateChatSettings(
-    broadcasterID: String, moderatorID: String, _ chatModes: ChatSetting...
+    of channel: String, moderatorID: String, _ chatModes: ChatSetting...
   ) -> Self {
     return self.updateChatSettings(
-      broadcasterID: broadcasterID, moderatorID: moderatorID, chatModes)
+      broadcasterID: channel, moderatorID: moderatorID, chatModes)
   }
 
   public static func updateChatSettings(

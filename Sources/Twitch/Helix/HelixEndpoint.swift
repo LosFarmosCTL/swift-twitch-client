@@ -64,3 +64,5 @@ public enum ResponseTypes {
   public enum Object<R: Decodable>: ResponseType {}
   public enum Optional<R: Decodable>: ResponseType {}
 }
+
+public typealias UserID = String

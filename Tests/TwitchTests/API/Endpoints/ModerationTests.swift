@@ -36,15 +36,15 @@ final class ModerationTests: XCTestCase {
 
     let result = try await twitch.request(
       endpoint: .checkAutomodStatus(
-        for: "1234",
+        in: "1234",
         messages: ("123", "This is a test message."),
         ("393", "This is another test message."))
     ).data
 
     XCTAssertEqual(result.count, 2)
-    XCTAssertEqual(result[0].msgID, "123")
+    XCTAssertEqual(result[0].messageID, "123")
     XCTAssertEqual(result[0].isPermitted, true)
-    XCTAssertEqual(result[1].msgID, "393")
+    XCTAssertEqual(result[1].messageID, "393")
     XCTAssertEqual(result[1].isPermitted, false)
   }
 
@@ -59,7 +59,7 @@ final class ModerationTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .approveAutomodMessage(withID: "123", moderatorID: "1234"))
+      endpoint: .approveAutomodMessage(messageID: "123", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -75,7 +75,7 @@ final class ModerationTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .denyAutomodMessage(withID: "123", moderatorID: "1234"))
+      endpoint: .denyAutomodMessage(messageID: "123", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -92,7 +92,7 @@ final class ModerationTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getAutomodSettings(for: "5678", moderatorID: "1234"))
+      endpoint: .getAutomodSettings(of: "5678", moderatorID: "1234"))
 
     XCTAssertEqual(result.broadcasterID, "5678")
     XCTAssertEqual(result.moderatorID, "1234")
@@ -114,7 +114,7 @@ final class ModerationTests: XCTestCase {
 
     let result = try await twitch.request(
       endpoint: .updateAutomodSettings(
-        forChannel: "5678", overall: 3, moderatorID: "1234"))
+        of: "5678", overall: 3, moderatorID: "1234"))
 
     XCTAssertEqual(result.broadcasterID, "5678")
     XCTAssertEqual(result.moderatorID, "1234")
@@ -139,7 +139,7 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getBannedUsersJSON]
     ).register()
 
-    let result = try await twitch.request(endpoint: .getBannedUsers(for: "1234"))
+    let result = try await twitch.request(endpoint: .getBannedUsers(in: "1234"))
 
     XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI")
 
@@ -158,7 +158,7 @@ final class ModerationTests: XCTestCase {
     ).register()
 
     let ban = try await twitch.request(
-      endpoint: .banUser(withID: "9876", inChannel: "5678", moderatorID: "1234"))
+      endpoint: .banUser("9876", in: "5678", moderatorID: "1234"))
 
     XCTAssertEqual(ban.broadcasterID, "5678")
     XCTAssertEqual(ban.moderatorID, "1234")
@@ -180,7 +180,7 @@ final class ModerationTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .unbanUser(withID: "9876", inChannel: "5678", moderatorID: "1234"))
+      endpoint: .unbanUser("9876", in: "5678", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -198,7 +198,7 @@ final class ModerationTests: XCTestCase {
 
     let result = try await twitch.request(
       endpoint: .getBlockedTerms(
-        inChannel: "5678", moderatorID: "1234"))
+        in: "5678", moderatorID: "1234"))
     let terms = result.data
 
     XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
@@ -221,7 +221,7 @@ final class ModerationTests: XCTestCase {
 
     let term = try await twitch.request(
       endpoint: .addBlockedTerm(
-        inChannel: "5678", text: "A phrase I'm not fond of", moderatorID: "1234"))
+        in: "5678", text: "A phrase I'm not fond of", moderatorID: "1234"))
 
     XCTAssertEqual(term.broadcasterID, "5678")
     XCTAssertEqual(term.moderatorID, "1234")
@@ -244,7 +244,7 @@ final class ModerationTests: XCTestCase {
 
     try await twitch.request(
       endpoint: .removeBlockedTerm(
-        inChannel: "5678", termID: "9876", moderatorID: "1234"))
+        in: "5678", termID: "9876", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -264,7 +264,7 @@ final class ModerationTests: XCTestCase {
 
     try await twitch.request(
       endpoint: .deleteChatMessage(
-        inChannel: "5678", withID: "9876", moderatorID: "1234"))
+        in: "5678", messageID: "9876", moderatorID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -318,7 +318,7 @@ final class ModerationTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .addChannelModerator(for: "1234", userID: "9876"))
+      endpoint: .addChannelModerator(in: "1234", userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -337,7 +337,7 @@ final class ModerationTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .removeChannelModerator(for: "1234", userID: "9876"))
+      endpoint: .removeChannelModerator(in: "1234", userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -350,7 +350,7 @@ final class ModerationTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getVIPsJSON]
     ).register()
 
-    let result = try await twitch.request(endpoint: .getVIPs(for: "1234"))
+    let result = try await twitch.request(endpoint: .getVIPs(of: "1234"))
 
     XCTAssertEqual(result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
@@ -370,7 +370,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .addChannelVIP(for: "1234", userID: "9876"))
+    try await twitch.request(endpoint: .addChannelVIP(in: "1234", userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -387,7 +387,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .removeChannelVIP(for: "1234", userID: "9876"))
+    try await twitch.request(endpoint: .removeChannelVIP(in: "1234", userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -404,7 +404,7 @@ final class ModerationTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getShieldModeStatus(forChannel: "5678", moderatorID: "1234"))
+      endpoint: .getShieldModeStatus(of: "5678", moderatorID: "1234"))
 
     XCTAssertEqual(result.isActive, true)
     XCTAssertEqual(result.moderatorID, "1234")
@@ -423,7 +423,7 @@ final class ModerationTests: XCTestCase {
 
     let result = try await twitch.request(
       endpoint: .updateShieldModeStatus(
-        inChannel: "5678", isActive: true, moderatorID: "1234"))
+        of: "5678", isActive: true, moderatorID: "1234"))
 
     XCTAssertEqual(result.isActive, true)
     XCTAssertEqual(result.moderatorID, "1234")

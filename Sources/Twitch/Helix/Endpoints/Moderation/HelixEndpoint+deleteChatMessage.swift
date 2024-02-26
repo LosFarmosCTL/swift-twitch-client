@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func deleteChatMessage(
-    inChannel broadcasterID: String, withID messageID: String, moderatorID: String
+    in channel: UserID, messageID: String, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID),
       ("message_id", messageID))
 

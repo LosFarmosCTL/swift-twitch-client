@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
   public static func getChatSettings(
-    broadcasterID: String, moderatorID: String? = nil
+    of channel: UserID, moderatorID: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID))
 
     return .init(method: "GET", path: "chat/settings", queryItems: queryItems)

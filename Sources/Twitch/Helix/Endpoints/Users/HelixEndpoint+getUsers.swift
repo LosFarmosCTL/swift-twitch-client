@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<User> {
   public static func getUsers(
-    userIDs: [String] = [], userLogins: [String] = []
+    ids: [UserID] = [], names: [String] = []
   ) -> Self {
-    let idQueryItems = userIDs.map { URLQueryItem(name: "id", value: $0) }
-    let loginQueryItems = userLogins.map { URLQueryItem(name: "login", value: $0) }
+    let idQueryItems = ids.map { URLQueryItem(name: "id", value: $0) }
+    let loginQueryItems = names.map { URLQueryItem(name: "login", value: $0) }
 
     let queryItems = idQueryItems + loginQueryItems
 

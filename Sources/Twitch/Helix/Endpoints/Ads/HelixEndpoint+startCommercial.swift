@@ -1,10 +1,10 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<Commercial> {
-  public static func startCommercial(broadcasterID: String, length: Int) -> Self {
+  public static func startCommercial(on channel: UserID, length: Int) -> Self {
     .init(
       method: "POST", path: "channels/commercial",
-      body: StartCommercialRequestBody(broadcasterID: broadcasterID, length: length))
+      body: StartCommercialRequestBody(broadcasterID: channel, length: length))
   }
 }
 

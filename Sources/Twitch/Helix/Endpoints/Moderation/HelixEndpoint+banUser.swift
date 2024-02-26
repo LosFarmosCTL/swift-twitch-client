@@ -2,14 +2,14 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<Ban> {
   public static func banUser(
-    withID userID: String, inChannel channelID: String,
-    for timeoutLength: Duration? = nil, reason: String? = nil, moderatorID: String
+    _ user: UserID, in channel: UserID,
+    for duration: Duration? = nil, reason: String? = nil, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channelID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID))
 
-    let body = BanUserBody(userID: userID, reason: reason, duration: timeoutLength)
+    let body = BanUserBody(userID: user, reason: reason, duration: duration)
 
     return .init(
       method: "POST", path: "moderation/bans", queryItems: queryItems, body: body)

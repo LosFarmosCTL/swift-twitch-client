@@ -2,12 +2,12 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func unbanUser(
-    withID userID: String, inChannel channelID: String, moderatorID: String
+    _ user: UserID, in channel: UserID, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channelID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID),
-      ("user_id", userID))
+      ("user_id", user))
 
     return .init(method: "DELETE", path: "moderation/bans", queryItems: queryItems)
   }

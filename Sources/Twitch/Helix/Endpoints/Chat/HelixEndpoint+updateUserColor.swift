@@ -1,9 +1,9 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
-  public static func updateUserColor(userID: String, color: HelixColor) -> Self {
+  public static func updateUserColor(of user: UserID, color: HelixColor) -> Self {
     let queryItems = self.makeQueryItems(
-      ("user_id", userID),
+      ("user_id", user),
       ("color", color.rawValue))
 
     return .init(method: "PUT", path: "chat/color", queryItems: queryItems)

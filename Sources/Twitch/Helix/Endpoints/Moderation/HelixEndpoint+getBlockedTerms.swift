@@ -2,13 +2,13 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<BlockedTerm> {
   public static func getBlockedTerms(
-    inChannel broadcasterID: String,
+    in channel: UserID,
     limit: Int? = nil,
     after cursor: String? = nil,
     moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID),
       ("first", limit.map(String.init)),
       ("after", cursor))

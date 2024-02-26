@@ -2,7 +2,7 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func updateChannel(
-    broadcasterID: String,
+    _ channel: UserID,
     gameID: String? = nil,
     broadcasterLanguage: String? = nil,
     title: String? = nil,
@@ -25,7 +25,7 @@ extension HelixEndpoint where Response == ResponseTypes.Void {
       contentClassificationLabels: contentClassificationLabels,
       isBrandedContent: isBrandedContent)
 
-    let queryItems = makeQueryItems(("broadcaster_id", broadcasterID))
+    let queryItems = makeQueryItems(("broadcaster_id", channel))
 
     return .init(
       method: "PATCH", path: "channels", queryItems: queryItems, body: body)

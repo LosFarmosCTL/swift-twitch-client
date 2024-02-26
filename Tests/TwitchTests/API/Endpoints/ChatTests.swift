@@ -33,7 +33,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChatters(broadcasterID: "123", moderatorID: "1234"))
+      endpoint: .getChatters(in: "123", moderatorID: "1234"))
 
     XCTAssertEqual(result.data.count, 1)
     XCTAssertEqual(result.total, 8)
@@ -52,7 +52,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChannelEmotes(broadcasterID: "1234"))
+      endpoint: .getChannelEmotes(of: "1234"))
 
     XCTAssertEqual(
       result.template,
@@ -103,7 +103,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getEmoteSets(setIds: ["123", "456"]))
+      endpoint: .getEmoteSets(["123", "456"]))
 
     XCTAssertEqual(
       result.template,
@@ -128,7 +128,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let badgeSets = try await twitch.request(
-      endpoint: .getChannelBadges(broadcasterID: "1234")
+      endpoint: .getChannelBadges(of: "1234")
     ).data
 
     XCTAssertEqual(badgeSets.count, 2)
@@ -167,7 +167,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let settings = try await twitch.request(
-      endpoint: .getChatSettings(broadcasterID: "713936733", moderatorID: "1234"))
+      endpoint: .getChatSettings(of: "713936733", moderatorID: "1234"))
 
     XCTAssertEqual(settings.broadcasterID, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
@@ -191,7 +191,7 @@ final class ChatTests: XCTestCase {
 
     let settings = try await twitch.request(
       endpoint: .updateChatSettings(
-        broadcasterID: "713936733", moderatorID: "1234", .slowMode(5), .subscriberMode,
+        of: "713936733", moderatorID: "1234", .slowMode(5), .subscriberMode,
         .followerMode()))
 
     XCTAssertEqual(settings.broadcasterID, "713936733")
@@ -218,7 +218,7 @@ final class ChatTests: XCTestCase {
 
     try await twitch.request(
       endpoint: .sendAnnouncement(
-        broadcasterID: "1234", message: "Hello, world!", color: .blue, moderatorID: "1234"
+        in: "1234", message: "Hello, world!", color: .blue, moderatorID: "1234"
       ))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
@@ -253,7 +253,7 @@ final class ChatTests: XCTestCase {
     ).register()
 
     let colors = try await twitch.request(
-      endpoint: .getUserColors(userIDs: ["11111", "44444"])
+      endpoint: .getUserColors(of: ["11111", "44444"])
     ).data
 
     XCTAssertEqual(colors.count, 2)
@@ -273,7 +273,7 @@ final class ChatTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .updateUserColor(userID: "1234", color: .blue))
+      endpoint: .updateUserColor(of: "1234", color: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

@@ -1,11 +1,11 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<BlockedUser> {
-  public static func getUserBlocklist(
-    broadcasterID: String, limit: Int? = nil, after cursor: String? = nil
+  public static func getBlocklist(
+    of user: UserID, limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", user),
       ("first", limit.map(String.init)),
       ("after", cursor))
 

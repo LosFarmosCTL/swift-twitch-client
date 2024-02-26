@@ -2,13 +2,13 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Chatter> {
   public static func getChatters(
-    broadcasterID: String,
+    in channel: UserID,
     moderatorID: String,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID),
       ("first", limit.map(String.init)),
       ("after", cursor))

@@ -2,7 +2,7 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<BannedUser> {
   public static func getBannedUsers(
-    for broadcasterID: String,
+    in channel: String,
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil,
@@ -10,7 +10,7 @@ extension HelixEndpoint where Response == ResponseTypes.Array<BannedUser> {
   ) -> Self {
     var queryItems =
       self.makeQueryItems(
-        ("broadcaster_id", broadcasterID),
+        ("broadcaster_id", channel),
         ("after", startCursor),
         ("before", endCursor),
         ("first", limit.map(String.init))) ?? []

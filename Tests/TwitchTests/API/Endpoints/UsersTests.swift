@@ -29,7 +29,7 @@ final class UsersTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
     ).register()
 
-    let users = try await twitch.request(endpoint: .getUsers(userIDs: ["141981764"])).data
+    let users = try await twitch.request(endpoint: .getUsers(ids: ["141981764"])).data
 
     XCTAssertEqual(users.count, 1)
 
@@ -63,7 +63,7 @@ final class UsersTests: XCTestCase {
     ).register()
 
     let blocks = try await twitch.request(
-      endpoint: .getUserBlocklist(broadcasterID: "1234", limit: 2)
+      endpoint: .getBlocklist(of: "1234", limit: 2)
     ).data
 
     XCTAssertEqual(blocks.count, 2)
@@ -81,7 +81,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .blockUser(withID: "1234", reason: .spam))
+    try await twitch.request(endpoint: .block("1234", reason: .spam))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -96,7 +96,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .unblockUser(withID: "1234"))
+    try await twitch.request(endpoint: .unblock("1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

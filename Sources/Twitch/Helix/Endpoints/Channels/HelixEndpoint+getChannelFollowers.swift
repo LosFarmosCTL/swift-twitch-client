@@ -1,11 +1,11 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Follower> {
-  public static func getChannelFollowers(
-    broadcasterID: String, limit: Int? = nil, after cursor: String? = nil
+  public static func getFollowers(
+    of channel: UserID, limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("first", limit.map(String.init)),
       ("after", cursor))
 
@@ -14,11 +14,11 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Follower> {
 }
 
 extension HelixEndpoint where Response == ResponseTypes.Optional<Follower> {
-  public static func checkChannelFollower(userID: String, follows channelID: String)
+  public static func checkFollower(_ user: UserID, follows channelID: String)
     -> Self
   {
     let queryItems = [
-      URLQueryItem(name: "user_id", value: userID),
+      URLQueryItem(name: "user_id", value: user),
       URLQueryItem(name: "broadcaster_id", value: channelID),
     ]
 

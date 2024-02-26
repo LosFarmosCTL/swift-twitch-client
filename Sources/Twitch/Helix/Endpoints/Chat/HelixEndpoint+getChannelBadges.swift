@@ -1,8 +1,8 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<BadgeSet> {
-  public static func getChannelBadges(broadcasterID: String) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterID))
+  public static func getChannelBadges(of channel: UserID) -> Self {
+    let queryItems = self.makeQueryItems(("broadcaster_id", channel))
 
     return .init(method: "GET", path: "chat/badges", queryItems: queryItems)
   }

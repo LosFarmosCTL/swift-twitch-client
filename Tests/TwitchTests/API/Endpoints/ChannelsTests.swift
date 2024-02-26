@@ -32,7 +32,7 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let channels = try await twitch.request(
-      endpoint: .getChannels(userIDs: ["141981764"])
+      endpoint: .getChannels(["141981764"])
     )
     .data
 
@@ -50,7 +50,7 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let editors = try await twitch.request(
-      endpoint: .getChannelEditors(broadcasterID: "1234")
+      endpoint: .getChannelEditors(of: "1234")
     ).data
 
     XCTAssertEqual(editors.count, 2)
@@ -111,7 +111,7 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getChannelFollowers(broadcasterID: "1234")
+      endpoint: .getFollowers(of: "1234")
     )
 
     XCTAssertEqual(result.total, 8)
@@ -135,7 +135,7 @@ final class ChannelsTests: XCTestCase {
     ).register()
 
     let follow = try await twitch.request(
-      endpoint: .checkChannelFollower(userID: "654321", follows: "123456")
+      endpoint: .checkFollower("654321", follows: "123456")
     )
 
     XCTAssertEqual(follow?.userID, "654321")
@@ -152,7 +152,7 @@ final class ChannelsTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .updateChannel(broadcasterID: "1234", gameID: "1234"))
+      endpoint: .updateChannel("1234", gameID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

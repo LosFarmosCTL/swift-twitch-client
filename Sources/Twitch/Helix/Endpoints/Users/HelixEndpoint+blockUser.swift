@@ -1,11 +1,11 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
-  public static func blockUser(
-    withID userID: String, sourceContext: SourceContext? = nil, reason: Reason? = nil
+  public static func block(
+    _ user: UserID, sourceContext: SourceContext? = nil, reason: Reason? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("target_user_id", userID),
+      ("target_user_id", user),
       ("source_context", sourceContext?.rawValue),
       ("reason", reason?.rawValue))
 

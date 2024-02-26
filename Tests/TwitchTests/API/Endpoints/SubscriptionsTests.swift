@@ -32,7 +32,7 @@ final class SubscriptionsTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getBroadcasterSubscribers(broadcasterID: "1234", limit: 2))
+      endpoint: .getSubscribers(of: "1234", limit: 2))
     let subscribers = result.data
 
     XCTAssertEqual(result.total, 13)
@@ -59,7 +59,7 @@ final class SubscriptionsTests: XCTestCase {
     ).register()
 
     let subscription = try await twitch.request(
-      endpoint: .checkUserSubscription(of: "1234", to: "1234"))
+      endpoint: .checkSubscription(of: "1234", to: "1234"))
 
     XCTAssertEqual(subscription?.broadcasterID, "141981764")
     XCTAssertEqual(subscription?.gifter?.id, "12826")

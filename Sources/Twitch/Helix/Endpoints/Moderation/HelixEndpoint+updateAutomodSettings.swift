@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
   private static func updateAutomodSettings(
-    forChannel broadcasterID: String, moderatorID: String, body: Encodable
+    of channel: UserID, moderatorID: String, body: Encodable
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID))
 
     return .init(
@@ -14,17 +14,17 @@ extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> 
   }
 
   public static func updateAutomodSettings(
-    forChannel broadcasterID: String, settings: AutomodConfiguration, moderatorID: String
+    of channel: UserID, settings: AutomodConfiguration, moderatorID: String
   ) -> Self {
     self.updateAutomodSettings(
-      forChannel: broadcasterID, moderatorID: moderatorID, body: settings)
+      of: channel, moderatorID: moderatorID, body: settings)
   }
 
   public static func updateAutomodSettings(
-    forChannel broadcasterID: String, overall level: Int, moderatorID: String
+    of channel: UserID, overall level: Int, moderatorID: String
   ) -> Self {
     self.updateAutomodSettings(
-      forChannel: broadcasterID, moderatorID: moderatorID, body: ["overall_level": level])
+      of: channel, moderatorID: moderatorID, body: ["overall_level": level])
   }
 }
 

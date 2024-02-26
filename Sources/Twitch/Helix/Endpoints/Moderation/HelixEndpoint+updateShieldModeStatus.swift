@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<ShieldModeStatus> {
   public static func updateShieldModeStatus(
-    inChannel broadcasterID: String, isActive: Bool, moderatorID: String
+    of channel: UserID, isActive: Bool, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID))
 
     return .init(

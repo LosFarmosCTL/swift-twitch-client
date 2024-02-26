@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Stream> {
   public static func getFollowedStreams(
-    of userID: String, limit: Int? = nil, after cursor: String? = nil
+    of user: UserID, limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("user_id", userID),
+      ("user_id", user),
       ("first", limit.map(String.init)),
       ("after", cursor))
 

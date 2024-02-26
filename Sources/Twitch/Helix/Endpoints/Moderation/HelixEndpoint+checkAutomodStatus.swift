@@ -2,28 +2,28 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<AutomodStatus> {
   public static func checkAutomodStatus(
-    for broadcasterID: String, messages: (msgID: String, msg: String)...
+    in channel: UserID, messages: (id: String, message: String)...
   ) -> Self {
-    return self.checkAutomodStatus(for: broadcasterID, messageList: messages)
+    return self.checkAutomodStatus(in: channel, messages: messages)
   }
 
   public static func checkAutomodStatus(
-    for broadcasterID: String, messageList: [(msgID: String, msg: String)]
+    in channel: String, messages: [(id: String, message: String)]
   ) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", broadcasterID))
+    let queryItems = self.makeQueryItems(("broadcaster_id", channel))
 
     return .init(
       method: "POST", path: "moderation/enforcements/status", queryItems: queryItems,
-      body: ["data": messageList.map { ["msg_id": $0.msgID, "msg_text": $0.msg] }])
+      body: ["data": messages.map { ["msg_id": $0.id, "msg_text": $0.message] }])
   }
 }
 
 public struct AutomodStatus: Decodable {
-  let msgID: String
+  let messageID: String
   let isPermitted: Bool
 
   enum CodingKeys: String, CodingKey {
-    case msgID = "msg_id"
+    case messageID = "msg_id"
     case isPermitted = "is_permitted"
   }
 }

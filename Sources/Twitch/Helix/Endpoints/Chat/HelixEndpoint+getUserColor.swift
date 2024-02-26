@@ -1,8 +1,8 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<UserColor> {
-  public static func getUserColors(userIDs: [String]) -> Self {
-    let queryItems = userIDs.map { URLQueryItem(name: "user_id", value: $0) }
+  public static func getUserColors(of users: [UserID]) -> Self {
+    let queryItems = users.map { URLQueryItem(name: "user_id", value: $0) }
 
     return .init(method: "GET", path: "chat/color", queryItems: queryItems)
   }

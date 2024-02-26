@@ -1,22 +1,22 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Array<Subscriber> {
-  public static func getBroadcasterSubscribers(
-    broadcasterID: String,
-    filterUserIds: [String] = [],
+  public static func getSubscribers(
+    of channel: UserID,
+    filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
   ) -> Self {
     var queryItems =
       self.makeQueryItems(
-        ("broadcaster_id", broadcasterID),
+        ("broadcaster_id", channel),
         ("first", limit.map(String.init)),
         ("after", startCursor),
         ("before", endCursor)) ?? []
 
     queryItems.append(
-      contentsOf: filterUserIds.map { URLQueryItem(name: "user_id", value: $0) })
+      contentsOf: filterUserIDs.map { URLQueryItem(name: "user_id", value: $0) })
 
     return .init(method: "GET", path: "subscriptions", queryItems: queryItems)
   }

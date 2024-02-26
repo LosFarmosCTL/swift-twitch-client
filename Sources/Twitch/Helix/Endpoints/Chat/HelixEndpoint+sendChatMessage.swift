@@ -2,13 +2,13 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func sendChatMessage(
-    broadcasterID: String, senderID: String, message: String,
+    in channel: UserID, as user: UserID, message: String,
     replyParentMessageID: String? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "chat/announcements",
       body: SendChatMessageRequestBody(
-        broadcasterID: broadcasterID, senderID: senderID, message: message,
+        broadcasterID: channel, senderID: user, message: message,
         replyParentMessageID: replyParentMessageID))
   }
 }

@@ -1,12 +1,12 @@
 import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Optional<Subscription> {
-  public static func checkUserSubscription(
-    of userID: String, to channelID: String
+  public static func checkSubscription(
+    of user: UserID, to channel: UserID
   ) -> Self {
     let queryItems = [
-      URLQueryItem(name: "broadcaster_id", value: channelID),
-      URLQueryItem(name: "user_id", value: userID),
+      URLQueryItem(name: "broadcaster_id", value: channel),
+      URLQueryItem(name: "user_id", value: user),
     ]
 
     return .init(method: "GET", path: "subscriptions/user", queryItems: queryItems)

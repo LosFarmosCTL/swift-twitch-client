@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func addChannelVIP(
-    for broadcasterID: String, userID: String
+    in channel: String, userID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("user_id", userID))
 
     return .init(method: "POST", path: "channels/vips", queryItems: queryItems)

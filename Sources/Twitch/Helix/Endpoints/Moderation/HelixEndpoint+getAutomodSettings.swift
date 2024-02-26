@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
   public static func getAutomodSettings(
-    for broadcasterID: String, moderatorID: String
+    of channel: UserID, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID))
 
     return .init(

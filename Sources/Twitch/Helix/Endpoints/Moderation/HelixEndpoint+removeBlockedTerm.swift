@@ -2,10 +2,10 @@ import Foundation
 
 extension HelixEndpoint where Response == ResponseTypes.Void {
   public static func removeBlockedTerm(
-    inChannel broadcasterID: String, termID: String, moderatorID: String
+    in channel: UserID, termID: String, moderatorID: String
   ) -> Self {
     let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
+      ("broadcaster_id", channel),
       ("moderator_id", moderatorID),
       ("id", termID))
 
