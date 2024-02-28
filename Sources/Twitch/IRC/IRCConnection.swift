@@ -30,17 +30,17 @@ internal actor IRCConnection {
     self.websocket = urlSession.webSocketTask(with: TMI)
     self.websocket?.resume()
 
-    let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
-
     try await self.requestCapabilities()
-
     let globalUserState = try await self.authenticate()
 
-    // FIXME: this does not work for some reason
-    continuation.yield(.globalUserState(globalUserState))
+    let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
 
     Task {
+      continuation.yield(.globalUserState(globalUserState))
+
       do {
+        // return global user state sent with the connection message
+
         while let message = try await self.websocket?.receive() {
           if case .string(let messageText) = message {
             let messages = IncomingMessage.parse(ircOutput: messageText)
@@ -127,6 +127,7 @@ internal actor IRCConnection {
       throw IRCError.loginFailed
     }
 
+    // pass on the GLOBALUSERSTATE message sent on connection
     return globalUserState
   }
 
