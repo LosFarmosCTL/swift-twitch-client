@@ -36,11 +36,10 @@ internal actor IRCConnection {
     let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
 
     Task {
+      // return global user state sent with the connection message
       continuation.yield(.globalUserState(globalUserState))
 
       do {
-        // return global user state sent with the connection message
-
         while let message = try await self.websocket?.receive() {
           if case .string(let messageText) = message {
             let messages = IncomingMessage.parse(ircOutput: messageText)
