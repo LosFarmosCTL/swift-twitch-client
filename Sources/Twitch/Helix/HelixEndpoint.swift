@@ -24,9 +24,7 @@ public struct HelixEndpoint<
     makeResponse: @escaping (HelixResponse<HelixResponseType>) throws -> ResponseType
   ) {
     self.method = method
-
-    // TODO: fix the URLComponents assembly to not require this
-    self.path = "helix/" + path
+    self.path = path
 
     self.makeQueryItems = queryItems
     self.makeBody = body
@@ -34,7 +32,7 @@ public struct HelixEndpoint<
   }
 
   internal func makeRequest(using authentication: TwitchCredentials) -> URLRequest {
-    var urlComponents = URLComponents(string: path)
+    var url = baseURL.appending(path: path)
 
     let queryItems =
       makeQueryItems(authentication).compactMap { (key, value) in
@@ -42,10 +40,7 @@ public struct HelixEndpoint<
         return URLQueryItem(name: key, value: value)
       } as [URLQueryItem]
 
-    urlComponents?.queryItems = !queryItems.isEmpty ? queryItems : nil
-
-    let url = urlComponents?.url(relativeTo: baseURL)
-    guard let url else { fatalError("Invalid URL") }
+    if !queryItems.isEmpty { url.append(queryItems: queryItems) }
 
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
