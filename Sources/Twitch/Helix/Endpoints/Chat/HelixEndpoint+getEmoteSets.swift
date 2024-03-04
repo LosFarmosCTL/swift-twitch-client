@@ -2,12 +2,33 @@ import Foundation
 
 public typealias EmoteSetID = String
 
-extension HelixEndpoint where Response == ResponseTypes.Array<SetEmote> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == EmoteSetResponse,
+  HelixResponseType == SetEmote
+{
   public static func getEmoteSets(_ sets: [EmoteSetID]) -> Self {
-    let queryItems = sets.map { URLQueryItem(name: "emote_set_id", value: $0) }
+    return .init(
+      method: "GET", path: "chat/emotes/set",
+      queryItems: { _ in
+        sets.map { ("emote_set_id", $0) }
+      },
+      makeResponse: {
+        guard let template = $0.template else {
+          throw HelixError.missingDataInResponse
+        }
 
-    return .init(method: "GET", path: "chat/emotes/set", queryItems: queryItems)
+        return EmoteSetResponse(emotes: $0.data, template: template)
+      }
+    )
   }
+}
+
+public struct EmoteSetResponse: Decodable {
+  public let emotes: [SetEmote]
+
+  public let template: String
 }
 
 public struct SetEmote: Decodable {

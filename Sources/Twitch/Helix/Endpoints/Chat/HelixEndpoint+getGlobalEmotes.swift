@@ -1,9 +1,28 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<GlobalEmote> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == GlobalEmotes, HelixResponseType == GlobalEmote
+{
   public static func getGlobalEmotes() -> Self {
-    return .init(method: "GET", path: "chat/emotes/global")
+    return .init(
+      method: "GET", path: "chat/emotes/global",
+      makeResponse: {
+        guard let template = $0.template else {
+          throw HelixError.missingDataInResponse
+        }
+
+        return GlobalEmotes(emotes: $0.data, template: template)
+
+      })
   }
+}
+
+public struct GlobalEmotes {
+  public let emotes: [GlobalEmote]
+
+  public let template: String
 }
 
 public struct GlobalEmote: Decodable {

@@ -1,12 +1,15 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
-  public static func updateUserColor(of user: UserID, color: HelixColor) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("user_id", user),
-      ("color", color.rawValue))
-
-    return .init(method: "PUT", path: "chat/color", queryItems: queryItems)
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+  public static func updateUserColor(to color: HelixColor) -> Self {
+    return .init(
+      method: "PUT", path: "chat/color",
+      queryItems: { auth in
+        [
+          ("user_id", auth.userID),
+          ("color", color.rawValue),
+        ]
+      })
   }
 }
 
