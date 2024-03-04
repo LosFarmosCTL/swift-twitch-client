@@ -13,9 +13,7 @@ extension TwitchClient {
 
   public func request(
     endpoint: HelixEndpoint<some Any, some Any, HelixEndpointResponseTypes.Void>
-  )
-    async throws
-  {
+  ) async throws {
     let data = try await self.data(for: endpoint)
 
     guard data.isEmpty else {
@@ -26,10 +24,7 @@ extension TwitchClient {
 
   public func request<R, H: Decodable>(
     endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
-  )
-    async throws
-    -> R
-  {
+  ) async throws -> R {
     let data = try await self.data(for: endpoint)
     let response = try self.decode(data) as HelixResponse<H>
 
