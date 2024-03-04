@@ -1,16 +1,36 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<EventSubSubscription> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == CreateEventSubResponse, HelixResponseType == EventSubSubscription
+{
   public static func createEventSubSubscription(
     using transport: EventSubTransport, type: EventSubSubscriptionType
-  )
-    -> Self
-  {
+  ) -> Self {
     .init(
       method: "POST", path: "eventsub/subscriptions",
-      body: CreateEventSubRequestBody(
-        type: type.type, version: type.version, condition: type.condition,
-        transport: transport.transport))
+      body: { _ in
+        CreateEventSubRequestBody(
+          type: type.type, version: type.version, condition: type.condition,
+          transport: transport.transport)
+      },
+      makeResponse: {
+        guard let subscription = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        guard let cost = $0.cost,
+          let totalCost = $0.totalCost,
+          let maxTotalCost = $0.maxTotalCost
+        else {
+          throw HelixError.missingDataInResponse
+        }
+
+        return CreateEventSubResponse(
+          subscription: subscription, cost: cost, totalCost: totalCost,
+          maxTotalCost: maxTotalCost)
+      })
   }
 }
 
@@ -33,6 +53,14 @@ public enum EventSubTransport {
         method: "webhook", callback: nil, secret: nil, sessionID: nil, conduitID: id)
     }
   }
+}
+
+public struct CreateEventSubResponse {
+  public let subscription: EventSubSubscription
+
+  public let cost: Int
+  public let totalCost: Int
+  public let maxTotalCost: Int
 }
 
 public struct EventSubSubscription: Decodable {
