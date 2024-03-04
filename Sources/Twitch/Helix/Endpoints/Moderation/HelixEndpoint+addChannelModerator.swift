@@ -1,13 +1,14 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
-  public static func addChannelModerator(
-    in channel: String, userID: String
-  ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("user_id", userID))
-
-    return .init(method: "POST", path: "moderation/moderators", queryItems: queryItems)
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+  public static func addChannelModerator(userID: String) -> Self {
+    return .init(
+      method: "POST", path: "moderation/moderators",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", auth.userID),
+          ("user_id", userID),
+        ]
+      })
   }
 }

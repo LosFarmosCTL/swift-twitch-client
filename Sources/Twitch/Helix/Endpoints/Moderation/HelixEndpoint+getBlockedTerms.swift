@@ -1,19 +1,28 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<BlockedTerm> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([BlockedTerm], PaginationCursor?), HelixResponseType == BlockedTerm
+{
   public static func getBlockedTerms(
     in channel: UserID,
     limit: Int? = nil,
-    after cursor: String? = nil,
-    moderatorID: String
+    after cursor: String? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID),
-      ("first", limit.map(String.init)),
-      ("after", cursor))
-
-    return .init(method: "GET", path: "moderation/blocked_terms", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "moderation/blocked_terms",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
+        ]
+      },
+      makeResponse: {
+        ($0.data, $0.pagination?.cursor)
+      })
   }
 }
 

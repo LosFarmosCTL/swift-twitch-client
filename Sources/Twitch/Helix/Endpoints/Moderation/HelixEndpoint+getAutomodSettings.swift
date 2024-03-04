@@ -1,15 +1,26 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
-  public static func getAutomodSettings(
-    of channel: UserID, moderatorID: String
-  ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID))
-
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
+{
+  public static func getAutomodSettings(of channel: UserID) -> Self {
     return .init(
-      method: "GET", path: "moderation/automod/settings", queryItems: queryItems)
+      method: "GET", path: "moderation/automod/settings",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+        ]
+      },
+      makeResponse: {
+        guard let settings = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return settings
+      })
   }
 }
 
