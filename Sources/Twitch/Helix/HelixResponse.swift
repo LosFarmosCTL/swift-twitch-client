@@ -1,4 +1,4 @@
-public struct HelixResponse<T: Decodable>: Decodable {
+internal struct HelixResponse<T: Decodable>: Decodable {
   let data: [T]
 
   let pagination: Pagination?
