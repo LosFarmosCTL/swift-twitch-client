@@ -29,3 +29,5 @@ internal struct HelixErrorResponse: Decodable {
   let status: Int
   let message: String
 }
+
+public struct EmptyResponse: Decodable {}
