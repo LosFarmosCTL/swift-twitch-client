@@ -70,9 +70,9 @@ public struct HelixEndpoint<
 }
 
 extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
-  private init(
+  internal init(
     method: String, path: String,
-    queryItems: @escaping (TwitchCredentials) -> [String: String?] = { _ in [:] },
+    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
     body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil }
   ) {
     // makeResponse should never be called on a Void endpoint!

@@ -1,8 +1,7 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func updateChannel(
-    _ channel: UserID,
     gameID: String? = nil,
     broadcasterLanguage: String? = nil,
     title: String? = nil,
@@ -16,19 +15,21 @@ extension HelixEndpoint where Response == ResponseTypes.Void {
         UpdateChannelRequestBody.Label(id: id.rawValue, isEnabled: isEnabled)
       }
 
-    let body = UpdateChannelRequestBody(
-      gameID: gameID,
-      broadcasterLanguage: broadcasterLanguage,
-      title: title,
-      delay: delay,
-      tags: tag,
-      contentClassificationLabels: contentClassificationLabels,
-      isBrandedContent: isBrandedContent)
-
-    let queryItems = makeQueryItems(("broadcaster_id", channel))
-
     return .init(
-      method: "PATCH", path: "channels", queryItems: queryItems, body: body)
+      method: "PATCH", path: "channels",
+      queryItems: { auth in
+        [("broadcaster_id", auth.userID)]
+      },
+      body: { _ in
+        UpdateChannelRequestBody(
+          gameID: gameID,
+          broadcasterLanguage: broadcasterLanguage,
+          title: title,
+          delay: delay,
+          tags: tag,
+          contentClassificationLabels: contentClassificationLabels,
+          isBrandedContent: isBrandedContent)
+      })
   }
 }
 

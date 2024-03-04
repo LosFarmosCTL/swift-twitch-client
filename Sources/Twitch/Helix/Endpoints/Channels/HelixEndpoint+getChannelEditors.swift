@@ -1,10 +1,19 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Editor> {
-  public static func getChannelEditors(of channel: UserID) -> Self {
-    let queryItems = makeQueryItems(("broadcaster_id", channel))
-
-    return .init(method: "GET", path: "channels/editors", queryItems: queryItems)
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == [Editor], HelixResponseType == Editor
+{
+  public static func getChannelEditors() -> Self {
+    return .init(
+      method: "GET", path: "channels/editors",
+      queryItems: { auth in
+        [("broadcaster_id", auth.userID)]
+      },
+      makeResponse: { result in
+        result.data
+      })
   }
 }
 
