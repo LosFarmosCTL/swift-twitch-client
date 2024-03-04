@@ -1,6 +1,11 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Stream> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([Stream], PaginationCursor?),
+  HelixResponseType == Stream
+{
   public static func getStreams(
     userIDs: [String] = [],
     userLogins: [String] = [],
@@ -11,20 +16,21 @@ extension HelixEndpoint where Response == ResponseTypes.Array<Stream> {
     before endCursor: String? = nil,
     after startCursor: String? = nil
   ) -> Self {
-    let userIDs = userIDs.compactMap { URLQueryItem(name: "user_id", value: $0) }
-    let userLogins = userLogins.compactMap { URLQueryItem(name: "user_login", value: $0) }
-    let gameIDs = gameIDs.compactMap { URLQueryItem(name: "game_id", value: $0) }
-    let languages = languages.compactMap { URLQueryItem(name: "language", value: $0) }
+    let userIDs = userIDs.compactMap { ("user_id", $0) }
+    let userLogins = userLogins.compactMap { ("user_login", $0) }
+    let gameIDs = gameIDs.compactMap { ("game_id", $0) }
+    let languages = languages.compactMap { ("language", $0) }
 
-    let type = type.map { URLQueryItem(name: "type", value: $0.rawValue) }
-    let limit = limit.map { URLQueryItem(name: "first", value: String($0)) }
-    let before = endCursor.map { URLQueryItem(name: "before", value: $0) }
-    let after = startCursor.map { URLQueryItem(name: "after", value: $0) }
-
-    var queryItems = userIDs + userLogins + gameIDs + languages
-    queryItems.append(contentsOf: [type, limit, before, after].compactMap { $0 })
-
-    return .init(method: "GET", path: "streams", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "streams",
+      queryItems: { _ in
+        [
+          ("type", type?.rawValue),
+          ("first", limit.map(String.init)),
+          ("before", endCursor),
+          ("after", startCursor),
+        ] + userIDs + userLogins + gameIDs + languages
+      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

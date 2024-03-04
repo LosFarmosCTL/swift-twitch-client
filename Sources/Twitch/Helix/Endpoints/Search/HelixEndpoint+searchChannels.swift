@@ -1,19 +1,29 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Channel> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([Channel], PaginationCursor?), HelixResponseType == Channel
+{
   public static func searchChannels(
     for searchQuery: String,
     liveOnly: Bool? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("query", searchQuery),
-      ("live_only", liveOnly.map(String.init)),
-      ("after", cursor),
-      ("first", limit.map(String.init)))
-
-    return .init(method: "GET", path: "search/channels", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "search/channels",
+      queryItems: { _ in
+        [
+          ("query", searchQuery),
+          ("live_only", liveOnly.map(String.init)),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
+        ]
+      },
+      makeResponse: {
+        ($0.data, $0.pagination?.cursor)
+      })
   }
 }
 
