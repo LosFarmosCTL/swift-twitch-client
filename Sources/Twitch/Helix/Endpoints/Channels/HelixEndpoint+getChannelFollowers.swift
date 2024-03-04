@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ChannelFollowers, HelixResponseType == Follower
+  ResponseType == FollowerResponse, HelixResponseType == Follower
 {
   public static func getChannelFollowers(
     of channel: UserID? = nil, limit: Int? = nil, after cursor: String? = nil
@@ -22,7 +22,7 @@ where
           throw HelixError.missingDataInResponse
         }
 
-        return ChannelFollowers(
+        return FollowerResponse(
           total: total,
           followers: $0.data,
           cursor: $0.pagination?.cursor)
@@ -46,7 +46,7 @@ where
   }
 }
 
-public struct ChannelFollowers {
+public struct FollowerResponse {
   public let total: Int
 
   public let followers: [Follower]

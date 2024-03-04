@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == FollowedChannels, HelixResponseType == Follow
+  ResponseType == FollowsResponse, HelixResponseType == Follow
 {
   public static func getFollowedChannels(limit: Int? = nil, after cursor: String? = nil)
     -> Self
@@ -22,7 +22,7 @@ where
           throw HelixError.missingDataInResponse
         }
 
-        return FollowedChannels(
+        return FollowsResponse(
           total: total,
           follows: $0.data,
           cursor: $0.pagination?.cursor)
@@ -45,7 +45,7 @@ where
   }
 }
 
-public struct FollowedChannels {
+public struct FollowsResponse {
   public let total: Int
 
   public let follows: [Follow]
