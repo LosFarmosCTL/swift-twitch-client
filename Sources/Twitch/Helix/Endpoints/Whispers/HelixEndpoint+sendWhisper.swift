@@ -1,16 +1,18 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func sendWhisper(
-    from sender: UserID, to receiver: UserID, message: String
+    to receiver: UserID, message: String
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("from_user_id", sender),
-      ("to_user_id", receiver))
-
     return .init(
-      method: "POST", path: "whispers", queryItems: queryItems,
-      body: Whisper(message: message))
+      method: "POST", path: "whispers",
+      queryItems: { auth in
+        [
+          ("from_user_id", auth.userID),
+          ("to_user_id", receiver),
+        ]
+      },
+      body: { _ in Whisper(message: message) })
   }
 }
 

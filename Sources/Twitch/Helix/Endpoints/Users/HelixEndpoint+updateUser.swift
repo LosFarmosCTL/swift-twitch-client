@@ -1,9 +1,22 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<User> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == User, HelixResponseType == User
+{
   public static func updateUser(description: String) -> Self {
-    let queryItems = self.makeQueryItems(("description", description))
+    return .init(
+      method: "PUT", path: "users",
+      queryItems: { _ in
+        [("description", description)]
+      },
+      makeResponse: {
+        guard let user = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
 
-    return .init(method: "PUT", path: "users", queryItems: queryItems)
+        return user
+      })
   }
 }

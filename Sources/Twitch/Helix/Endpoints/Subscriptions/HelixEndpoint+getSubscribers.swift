@@ -1,25 +1,47 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Subscriber> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == SubscribersResponse, HelixResponseType == Subscriber
+{
   public static func getSubscribers(
-    of channel: UserID,
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
   ) -> Self {
-    var queryItems =
-      self.makeQueryItems(
-        ("broadcaster_id", channel),
-        ("first", limit.map(String.init)),
-        ("after", startCursor),
-        ("before", endCursor)) ?? []
+    return .init(
+      method: "GET", path: "subscriptions",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", auth.userID),
+          ("first", limit.map(String.init)),
+          ("after", startCursor),
+          ("before", endCursor),
+        ] + filterUserIDs.map { ("user_id", $0) }
+      },
+      makeResponse: {
+        guard let total = $0.total, let points = $0.points else {
+          throw HelixError.missingDataInResponse
+        }
 
-    queryItems.append(
-      contentsOf: filterUserIDs.map { URLQueryItem(name: "user_id", value: $0) })
-
-    return .init(method: "GET", path: "subscriptions", queryItems: queryItems)
+        return SubscribersResponse(
+          subscribers: $0.data,
+          total: total,
+          points: points,
+          cursor: $0.pagination?.cursor)
+      })
   }
+}
+
+public struct SubscribersResponse {
+  public let subscribers: [Subscriber]
+
+  public let total: Int
+  public let points: Int
+
+  public let cursor: PaginationCursor?
 }
 
 public struct Subscriber: Decodable {

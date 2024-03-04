@@ -1,15 +1,18 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func block(
     _ user: UserID, sourceContext: SourceContext? = nil, reason: Reason? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("target_user_id", user),
-      ("source_context", sourceContext?.rawValue),
-      ("reason", reason?.rawValue))
-
-    return .init(method: "PUT", path: "users/blocks", queryItems: queryItems)
+    return .init(
+      method: "PUT", path: "users/blocks",
+      queryItems: { _ in
+        [
+          ("target_user_id", user),
+          ("source_context", sourceContext?.rawValue),
+          ("reason", reason?.rawValue),
+        ]
+      })
   }
 }
 
