@@ -42,10 +42,7 @@ where
       method: "GET", path: "channels/followers",
       queryItems: { auth in
         [("user_id", user), ("broadcaster_id", channelID ?? auth.userID)]
-      },
-      makeResponse: {
-        return $0.data.first
-      })
+      }, makeResponse: { $0.data.first })
   }
 }
 

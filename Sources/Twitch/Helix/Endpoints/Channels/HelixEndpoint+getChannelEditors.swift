@@ -10,10 +10,7 @@ where
       method: "GET", path: "channels/editors",
       queryItems: { auth in
         [("broadcaster_id", auth.userID)]
-      },
-      makeResponse: { result in
-        result.data
-      })
+      }, makeResponse: { $0.data })
   }
 }
 

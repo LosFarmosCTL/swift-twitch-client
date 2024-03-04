@@ -21,10 +21,7 @@ where
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
-      },
-      makeResponse: { result in
-        return (result.data, result.pagination?.cursor)
-      })
+      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

@@ -11,9 +11,7 @@ where
       queryItems: { auth in
         [("broadcaster_id", auth.userID)]
       },
-      makeResponse: { response in
-        response.data
-      })
+      makeResponse: { $0.data })
   }
 }
 

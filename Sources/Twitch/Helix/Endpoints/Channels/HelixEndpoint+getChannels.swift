@@ -10,11 +10,7 @@ where
       method: "GET", path: "channels",
       queryItems: { _ in
         channels.map { ("broadcaster_id", $0) }
-      },
-      makeResponse: { result in
-        result.data
-      }
-    )
+      }, makeResponse: { $0.data })
   }
 }
 

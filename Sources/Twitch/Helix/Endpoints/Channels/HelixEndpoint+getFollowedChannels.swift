@@ -41,9 +41,7 @@ where
       queryItems: { auth in
         [("user_id", auth.userID), ("broadcaster_id", channelID)]
       },
-      makeResponse: {
-        return $0.data.first
-      })
+      makeResponse: { $0.data.first })
   }
 }
 
