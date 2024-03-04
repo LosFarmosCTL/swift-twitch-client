@@ -1,10 +1,21 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<AdSchedule> {
-  public static func getAdSchedule(of channel: UserID) -> Self {
-    let queryItems = makeQueryItems(("broadcaster_id", channel))
-
-    return .init(method: "GET", path: "channels/ads", queryItems: queryItems)
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == [AdSchedule], HelixResponseType == AdSchedule
+{
+  public static func getAdSchedule() -> Self {
+    return .init(
+      method: "GET", path: "channels/ads",
+      queryItems: { auth in
+        [
+          "broadcaster_id": auth.userID
+        ]
+      },
+      makeResponse: { response in
+        response.data
+      })
   }
 }
 

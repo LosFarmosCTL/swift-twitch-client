@@ -5,5 +5,7 @@ public enum HelixError: Error {
   case parsingResponseFailed(rawResponse: String)
   case parsingErrorFailed(status: Int, rawResponse: String)
 
+  case noDataInResponse
+
   case nonEmptyResponse(rawResponse: String)
 }

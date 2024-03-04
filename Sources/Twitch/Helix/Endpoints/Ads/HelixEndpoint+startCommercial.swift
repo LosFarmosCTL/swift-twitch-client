@@ -1,10 +1,23 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<Commercial> {
-  public static func startCommercial(on channel: UserID, length: Int) -> Self {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == Commercial, HelixResponseType == Commercial
+{
+  public static func startCommercial(length: Int) -> Self {
     .init(
       method: "POST", path: "channels/commercial",
-      body: StartCommercialRequestBody(broadcasterID: channel, length: length))
+      body: { auth in
+        StartCommercialRequestBody(broadcasterID: auth.userID, length: length)
+      },
+      makeResponse: { result in
+        guard let response = result.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return response
+      })
   }
 }
 
