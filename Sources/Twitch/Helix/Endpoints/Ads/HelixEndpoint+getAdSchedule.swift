@@ -9,9 +9,7 @@ where
     return .init(
       method: "GET", path: "channels/ads",
       queryItems: { auth in
-        [
-          "broadcaster_id": auth.userID
-        ]
+        [("broadcaster_id", auth.userID)]
       },
       makeResponse: { response in
         response.data

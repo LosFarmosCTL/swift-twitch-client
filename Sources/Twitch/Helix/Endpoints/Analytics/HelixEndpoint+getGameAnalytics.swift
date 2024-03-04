@@ -13,12 +13,12 @@ where
       method: "GET", path: "analytics/games",
       queryItems: { _ in
         [
-          "game_id": gameID,
-          "type": type,
-          "started_at": range?.start.formatted(.iso8601),
-          "ended_at": range?.end.formatted(.iso8601),
-          "first": limit.map(String.init),
-          "after": cursor,
+          ("game_id", gameID),
+          ("type", type),
+          ("started_at", range?.start.formatted(.iso8601)),
+          ("ended_at", range?.end.formatted(.iso8601)),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
         ]
       },
       makeResponse: { result in

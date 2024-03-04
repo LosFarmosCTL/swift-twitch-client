@@ -9,7 +9,7 @@ where
     return .init(
       method: "POST", path: "channels/ads/schedule/snooze",
       queryItems: { auth in
-        ["broadcaster_id": auth.userID]
+        [("broadcaster_id", auth.userID)]
       },
       makeResponse: { result in
         guard let response = result.data.first else {

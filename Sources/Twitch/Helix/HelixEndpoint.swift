@@ -13,13 +13,13 @@ public struct HelixEndpoint<
   private let method: String
   private let path: String
 
-  private let makeQueryItems: (TwitchCredentials) -> [String: String?]
+  private let makeQueryItems: (TwitchCredentials) -> [(String, String?)]
   private let makeBody: (TwitchCredentials) -> Encodable?
   private let makeResponse: (HelixResponse<HelixResponseType>) throws -> ResponseType
 
   internal init(
     method: String, path: String,
-    queryItems: @escaping (TwitchCredentials) -> [String: String?] = { _ in [:] },
+    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
     body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil },
     makeResponse: @escaping (HelixResponse<HelixResponseType>) throws -> ResponseType
   ) {
@@ -36,11 +36,11 @@ public struct HelixEndpoint<
   internal func makeRequest(using authentication: TwitchCredentials) -> URLRequest {
     var urlComponents = URLComponents(string: path)
 
-    let queryItems: [URLQueryItem] =
-      makeQueryItems(authentication).compactMap({ pair in
-        guard let value = pair.value else { return nil }
-        return URLQueryItem(name: pair.key, value: value)
-      })
+    let queryItems =
+      makeQueryItems(authentication).compactMap { (key, value) in
+        guard let value else { return nil }
+        return URLQueryItem(name: key, value: value)
+      } as [URLQueryItem]
 
     urlComponents?.queryItems = !queryItems.isEmpty ? queryItems : nil
 

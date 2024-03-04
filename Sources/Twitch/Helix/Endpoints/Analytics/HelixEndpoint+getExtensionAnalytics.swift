@@ -14,12 +14,12 @@ where
       method: "GET", path: "analytics/extensions",
       queryItems: { _ in
         [
-          "extension_id": extensionID,
-          "type": type,
-          "started_at": range?.start.formatted(.iso8601),
-          "ended_at": range?.end.formatted(.iso8601),
-          "first": limit.map(String.init),
-          "after": cursor,
+          ("extension_id", extensionID),
+          ("type", type),
+          ("started_at", range?.start.formatted(.iso8601)),
+          ("ended_at", range?.end.formatted(.iso8601)),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
         ]
       },
       makeResponse: { result in
