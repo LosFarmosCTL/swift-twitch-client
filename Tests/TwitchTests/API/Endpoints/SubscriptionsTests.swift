@@ -31,8 +31,7 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.getBroadcasterSubscriptionsJSON]
     ).register()
 
-    let result = try await twitch.request(
-      endpoint: .getSubscribers(limit: 2))
+    let result = try await twitch.request(endpoint: .getSubscribers(limit: 2))
     let subscribers = result.subscribers
 
     XCTAssertEqual(result.total, 13)
