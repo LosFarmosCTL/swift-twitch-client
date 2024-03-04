@@ -1,14 +1,17 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func deleteChatMessage(
-    in channel: UserID, messageID: String, moderatorID: String
+    in channel: UserID, messageID: String
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID),
-      ("message_id", messageID))
-
-    return .init(method: "DELETE", path: "moderation/chat", queryItems: queryItems)
+    return .init(
+      method: "DELETE", path: "moderation/chat",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+          ("message_id", messageID),
+        ]
+      })
   }
 }

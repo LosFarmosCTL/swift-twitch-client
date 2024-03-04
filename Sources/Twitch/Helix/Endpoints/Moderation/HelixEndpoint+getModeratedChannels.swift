@@ -1,15 +1,24 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<ModeratedChannel> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([ModeratedChannel], PaginationCursor?),
+  HelixResponseType == ModeratedChannel
+{
   public static func getModeratedChannels(
-    of user: UserID, limit: Int? = nil, after cursor: String? = nil
+    limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("user_id", user),
-      ("first", limit.map(String.init)),
-      ("after", cursor))
-
-    return .init(method: "GET", path: "moderation/channels", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "moderation/channels",
+      queryItems: { auth in
+        [
+          ("user_id", auth.userID),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
+        ]
+      }, makeResponse: { ($0.data, $0.pagination?.cursor) }
+    )
   }
 }
 

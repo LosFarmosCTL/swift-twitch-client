@@ -1,22 +1,24 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<VIP> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([VIP], PaginationCursor?), HelixResponseType == VIP
+{
   public static func getVIPs(
-    of channel: String,
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
   ) -> Self {
-    var queryItems =
-      self.makeQueryItems(
-        ("broadcaster_id", channel),
-        ("first", limit.map(String.init)),
-        ("after", startCursor)) ?? []
-
-    queryItems.append(
-      contentsOf: filterUserIDs.compactMap { URLQueryItem(name: "user_id", value: $0) })
-
-    return .init(method: "GET", path: "channels/vips", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "channels/vips",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", auth.userID),
+          ("first", limit.map(String.init)),
+          ("after", startCursor),
+        ] + filterUserIDs.map { ("user_id", $0) }
+      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

@@ -4,17 +4,45 @@ import Foundation
   import FoundationNetworking
 #endif
 
-public struct HelixEndpoint<Response: ResponseType> {
+public struct HelixEndpoint<
+  ResponseType, HelixResponseType: Decodable,
+  EndpointResponseType: HelixEndpointResponseType
+> {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 
   private let method: String
   private let path: String
-  private let queryItems: [URLQueryItem]?
-  private let body: Encodable?
+
+  private let makeQueryItems: (TwitchCredentials) -> [(String, String?)]
+  private let makeBody: (TwitchCredentials) -> Encodable?
+  private let makeResponse: (HelixResponse<HelixResponseType>) throws -> ResponseType
+
+  internal init(
+    method: String, path: String,
+    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
+    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil },
+    makeResponse: @escaping (HelixResponse<HelixResponseType>) throws -> ResponseType
+  ) {
+    self.method = method
+
+    // TODO: fix the URLComponents assembly to not require this
+    self.path = "helix/" + path
+
+    self.makeQueryItems = queryItems
+    self.makeBody = body
+    self.makeResponse = makeResponse
+  }
 
   internal func makeRequest(using authentication: TwitchCredentials) -> URLRequest {
     var urlComponents = URLComponents(string: path)
-    urlComponents?.queryItems = queryItems
+
+    let queryItems =
+      makeQueryItems(authentication).compactMap { (key, value) in
+        guard let value else { return nil }
+        return URLQueryItem(name: key, value: value)
+      } as [URLQueryItem]
+
+    urlComponents?.queryItems = !queryItems.isEmpty ? queryItems : nil
 
     let url = urlComponents?.url(relativeTo: baseURL)
     guard let url else { fatalError("Invalid URL") }
@@ -26,7 +54,7 @@ public struct HelixEndpoint<Response: ResponseType> {
       urlRequest.addValue(value, forHTTPHeaderField: key)
     })
 
-    if let body {
+    if let body = makeBody(authentication) {
       urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
       urlRequest.httpBody = try? JSONEncoder().encode(body)
     }
@@ -34,35 +62,31 @@ public struct HelixEndpoint<Response: ResponseType> {
     return urlRequest
   }
 
-  internal init(
-    method: String, path: String, queryItems: [URLQueryItem]? = nil,
-    body: Encodable? = nil
-  ) {
-    self.method = method
-
-    // TODO: fix the URLComponents assembly to not require this
-    self.path = "helix/" + path
-
-    self.queryItems = queryItems
-    self.body = body
-  }
-
-  internal static func makeQueryItems(_ items: (String, String?)...) -> [URLQueryItem]? {
-    let queryItems: [URLQueryItem] = items.compactMap({ key, value in
-      guard let value = value else { return nil }
-      return URLQueryItem(name: key, value: value)
-    })
-
-    return queryItems.isEmpty ? nil : queryItems
+  internal func makeResponse(from response: HelixResponse<HelixResponseType>) throws
+    -> ResponseType
+  {
+    try makeResponse(response)
   }
 }
 
-public protocol ResponseType {}
-public enum ResponseTypes {
-  public enum Void: ResponseType {}
-  public enum Array<R: Decodable>: ResponseType {}
-  public enum Object<R: Decodable>: ResponseType {}
-  public enum Optional<R: Decodable>: ResponseType {}
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+  internal init(
+    method: String, path: String,
+    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
+    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil }
+  ) {
+    // makeResponse should never be called on a Void endpoint!
+    self.init(
+      method: method, path: path, queryItems: queryItems, body: body,
+      makeResponse: { _ in fatalError() })
+  }
+}
+
+public protocol HelixEndpointResponseType {}
+public enum HelixEndpointResponseTypes {
+  public enum Void: HelixEndpointResponseType {}
+  public enum Normal: HelixEndpointResponseType {}
 }
 
 public typealias UserID = String
+public typealias PaginationCursor = String

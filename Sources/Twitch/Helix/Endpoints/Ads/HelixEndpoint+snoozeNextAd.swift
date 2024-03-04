@@ -1,11 +1,24 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<SnoozeResult> {
-  public static func snoozeNextAd(on channel: UserID) -> Self {
-    let queryItems = makeQueryItems(("broadcaster_id", channel))
-
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == SnoozeResult, HelixResponseType == SnoozeResult
+{
+  public static func snoozeNextAd() -> Self {
     return .init(
-      method: "POST", path: "channels/ads/schedule/snooze", queryItems: queryItems)
+      method: "POST", path: "channels/ads/schedule/snooze",
+      queryItems: { auth in
+        [("broadcaster_id", auth.userID)]
+      },
+      makeResponse: { result in
+        guard let response = result.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return response
+      }
+    )
   }
 }
 

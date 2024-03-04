@@ -1,9 +1,9 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func unblock(_ user: UserID) -> Self {
-    let queryItems = self.makeQueryItems(("target_user_id", user))
-
-    return .init(method: "DELETE", path: "users/blocks", queryItems: queryItems)
+    return .init(
+      method: "DELETE", path: "users/blocks",
+      queryItems: { _ in [("target_user_id", user)] })
   }
 }

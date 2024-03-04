@@ -1,30 +1,39 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<AutomodSettings> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
+{
   private static func updateAutomodSettings(
-    of channel: UserID, moderatorID: String, body: Encodable
+    of channel: UserID, body: Encodable
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID))
-
     return .init(
-      method: "PUT", path: "moderation/automod/settings", queryItems: queryItems,
-      body: body)
+      method: "PUT", path: "moderation/automod/settings",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+        ]
+      }, body: { _ in body },
+      makeResponse: {
+        guard let settings = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return settings
+      })
   }
 
   public static func updateAutomodSettings(
-    of channel: UserID, settings: AutomodConfiguration, moderatorID: String
+    of channel: UserID, settings: AutomodConfiguration
   ) -> Self {
-    self.updateAutomodSettings(
-      of: channel, moderatorID: moderatorID, body: settings)
+    self.updateAutomodSettings(of: channel, body: settings)
   }
 
-  public static func updateAutomodSettings(
-    of channel: UserID, overall level: Int, moderatorID: String
-  ) -> Self {
-    self.updateAutomodSettings(
-      of: channel, moderatorID: moderatorID, body: ["overall_level": level])
+  public static func updateAutomodSettings(of channel: UserID, overall level: Int) -> Self
+  {
+    self.updateAutomodSettings(of: channel, body: ["overall_level": level])
   }
 }
 

@@ -1,24 +1,38 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<ChatSettings> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ChatSettings, HelixResponseType == ChatSettings
+{
   public static func updateChatSettings(
-    of channel: String, moderatorID: String, _ chatModes: ChatSetting...
+    of channel: String, _ chatModes: ChatSetting...
   ) -> Self {
     return self.updateChatSettings(
-      broadcasterID: channel, moderatorID: moderatorID, chatModes)
+      broadcasterID: channel, chatModes)
   }
 
   public static func updateChatSettings(
-    broadcasterID: String, moderatorID: String, _ chatModes: [ChatSetting]
+    broadcasterID: String, _ chatModes: [ChatSetting]
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", broadcasterID),
-      ("moderator_id", moderatorID))
-
-    let body = UpdateChatSettingsRequestBody(chatModes)
-
     return .init(
-      method: "PATCH", path: "chat/settings", queryItems: queryItems, body: body)
+      method: "PATCH", path: "chat/settings",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", auth.userID),
+        ]
+      },
+      body: { _ in
+        UpdateChatSettingsRequestBody(chatModes)
+      },
+      makeResponse: {
+        guard let settings = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return settings
+      })
   }
 }
 

@@ -1,12 +1,17 @@
 import Foundation
 
 extension HelixEndpoint
-where Response == ResponseTypes.Array<ContentClassificationLabel> {
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == [ContentClassificationLabel],
+  HelixResponseType == ContentClassificationLabel
+{
   public static func getContentClassificationLabels(locale: String? = "en-US") -> Self {
-    let queryItems = self.makeQueryItems(("locale", locale))
-
     return .init(
-      method: "GET", path: "content_classification_labels", queryItems: queryItems)
+      method: "GET", path: "content_classification_labels",
+      queryItems: { _ in
+        [("locale", locale)]
+      }, makeResponse: { $0.data })
   }
 }
 

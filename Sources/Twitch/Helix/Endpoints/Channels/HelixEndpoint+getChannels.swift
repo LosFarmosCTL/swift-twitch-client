@@ -1,10 +1,16 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Broadcaster> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == [Broadcaster], HelixResponseType == Broadcaster
+{
   public static func getChannels(_ channels: [UserID]) -> Self {
-    let queryItems = channels.map { URLQueryItem(name: "broadcaster_id", value: $0) }
-
-    return .init(method: "GET", path: "channels", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "channels",
+      queryItems: { _ in
+        channels.map { ("broadcaster_id", $0) }
+      }, makeResponse: { $0.data })
   }
 }
 

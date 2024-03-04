@@ -1,11 +1,28 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<ChannelEmote> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ChannelEmotes, HelixResponseType == ChannelEmote
+{
   public static func getChannelEmotes(of channel: UserID) -> Self {
-    let queryItems = self.makeQueryItems(("broadcaster_id", channel))
+    return .init(
+      method: "GET", path: "chat/emotes",
+      queryItems: { _ in [("broadcaster_id", channel)] },
+      makeResponse: {
+        guard let template = $0.template else {
+          throw HelixError.missingDataInResponse
+        }
 
-    return .init(method: "GET", path: "chat/emotes", queryItems: queryItems)
+        return ChannelEmotes(emotes: $0.data, template: template)
+      })
   }
+}
+
+public struct ChannelEmotes {
+  public let emotes: [ChannelEmote]
+
+  public let template: String
 }
 
 public struct ChannelEmote: Decodable {

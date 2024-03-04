@@ -1,27 +1,56 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<Follow> {
-  public static func getFollowedChannels(
-    of user: UserID, limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("user_id", user),
-      ("first", limit.map(String.init)),
-      ("after", cursor))
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == FollowsResponse, HelixResponseType == Follow
+{
+  public static func getFollowedChannels(limit: Int? = nil, after cursor: String? = nil)
+    -> Self
+  {
+    return .init(
+      method: "GET", path: "channels/followed",
+      queryItems: { auth in
+        [
+          ("user_id", auth.userID),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
+        ]
+      },
+      makeResponse: {
+        guard let total = $0.total else {
+          throw HelixError.missingDataInResponse
+        }
 
-    return .init(method: "GET", path: "channels/followed", queryItems: queryItems)
+        return FollowsResponse(
+          total: total,
+          follows: $0.data,
+          cursor: $0.pagination?.cursor)
+      })
   }
 }
 
-extension HelixEndpoint where Response == ResponseTypes.Optional<Follow> {
-  public static func checkFollow(from userID: String, to channelID: String) -> Self {
-    let queryItems = [
-      URLQueryItem(name: "user_id", value: userID),
-      URLQueryItem(name: "broadcaster_id", value: channelID),
-    ]
-
-    return .init(method: "GET", path: "channels/followed", queryItems: queryItems)
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == Follow?, HelixResponseType == Follow
+{
+  public static func checkFollow(to channelID: UserID) -> Self {
+    return .init(
+      method: "GET", path: "channels/followed",
+      queryItems: { auth in
+        [("user_id", auth.userID), ("broadcaster_id", channelID)]
+      },
+      makeResponse: { $0.data.first })
   }
+}
+
+public struct FollowsResponse {
+  public let total: Int
+
+  public let follows: [Follow]
+
+  public let cursor: PaginationCursor?
 }
 
 public struct Follow: Decodable {

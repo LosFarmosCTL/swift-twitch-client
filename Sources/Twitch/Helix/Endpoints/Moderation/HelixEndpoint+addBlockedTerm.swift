@@ -1,15 +1,28 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<BlockedTerm> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == BlockedTerm, HelixResponseType == BlockedTerm
+{
   public static func addBlockedTerm(
-    in channel: UserID, text: String, moderatorID: String
+    in channel: UserID, text: String
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID))
-
     return .init(
-      method: "POST", path: "moderation/blocked_terms", queryItems: queryItems,
-      body: ["text": text])
+      method: "POST", path: "moderation/blocked_terms",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+        ]
+      },
+      body: { _ in ["text": text] },
+      makeResponse: {
+        guard let term = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return term
+      })
   }
 }

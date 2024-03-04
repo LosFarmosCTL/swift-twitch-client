@@ -11,7 +11,9 @@ import Foundation
 extension TwitchClient {
   // MARK: - Async methods
 
-  public func request(endpoint: HelixEndpoint<ResponseTypes.Void>) async throws {
+  public func request(
+    endpoint: HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  ) async throws {
     let data = try await self.data(for: endpoint)
 
     guard data.isEmpty else {
@@ -20,41 +22,21 @@ extension TwitchClient {
     }
   }
 
-  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Array<R>>) async throws
-    -> HelixResponse<R>
-  {
+  public func request<R, H: Decodable>(
+    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
+  ) async throws -> R {
     let data = try await self.data(for: endpoint)
+    let response = try self.decode(data) as HelixResponse<H>
 
-    return try self.decode(data)
-  }
-
-  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Object<R>>) async throws
-    -> R
-  {
-    let data = try await self.data(for: endpoint)
-    let response = try self.decode(data) as HelixResponse<R>
-
-    guard let result = response.data.first else {
-      let rawResponse = String(decoding: data, as: UTF8.self)
-      throw HelixError.parsingResponseFailed(rawResponse: rawResponse)
-    }
-
-    return result
-  }
-
-  public func request<R>(endpoint: HelixEndpoint<ResponseTypes.Optional<R>>) async throws
-    -> R?
-  {
-    let data = try await self.data(for: endpoint)
-    let response = try self.decode(data) as HelixResponse<R>
-
-    return response.data.first
+    return try endpoint.makeResponse(from: response)
   }
 
   // MARK: - Callback methods
 
   public func requestTask(
-    for endpoint: HelixEndpoint<ResponseTypes.Void>,
+    for endpoint: HelixEndpoint<
+      EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void
+    >,
     completionHandler: @escaping @Sendable (HelixError?) -> Void
   ) {
     Task {
@@ -67,36 +49,8 @@ extension TwitchClient {
     }
   }
 
-  public func requestTask<R: Decodable>(
-    for endpoint: HelixEndpoint<ResponseTypes.Array<R>>,
-    completionHandler: @escaping @Sendable (HelixResponse<R>?, HelixError?) -> Void
-  ) {
-    Task {
-      do {
-        let result = try await self.request(endpoint: endpoint)
-        completionHandler(result, nil)
-      } catch let error as HelixError {
-        completionHandler(nil, error)
-      }
-    }
-  }
-
-  public func requestTask<R: Decodable>(
-    for endpoint: HelixEndpoint<ResponseTypes.Object<R>>,
-    completionHandler: @escaping @Sendable (R?, HelixError?) -> Void
-  ) {
-    Task {
-      do {
-        let result = try await self.request(endpoint: endpoint)
-        completionHandler(result, nil)
-      } catch let error as HelixError {
-        completionHandler(nil, error)
-      }
-    }
-  }
-
-  public func requestTask<R: Decodable>(
-    for endpoint: HelixEndpoint<ResponseTypes.Optional<R>>,
+  public func requestTask<R, H: Decodable>(
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
     completionHandler: @escaping @Sendable (R?, HelixError?) -> Void
   ) {
     Task {
@@ -114,7 +68,9 @@ extension TwitchClient {
   #if canImport(Combine)
 
     public func requestPublisher(
-      for endpoint: HelixEndpoint<ResponseTypes.Void>
+      for endpoint: HelixEndpoint<
+        EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void
+      >
     ) -> AnyPublisher<Void, HelixError> {
       return Future { promise in
         Task {
@@ -128,39 +84,9 @@ extension TwitchClient {
       }.eraseToAnyPublisher()
     }
 
-    public func requestPublisher<R>(
-      for endpoint: HelixEndpoint<ResponseTypes.Array<R>>
-    ) -> AnyPublisher<HelixResponse<R>, HelixError> {
-      return Future { promise in
-        Task {
-          do {
-            let result = try await self.request(endpoint: endpoint)
-            promise(.success(result))
-          } catch let error as HelixError {
-            promise(.failure(error))
-          }
-        }
-      }.eraseToAnyPublisher()
-    }
-
-    public func requestPublisher<R>(
-      for endpoint: HelixEndpoint<ResponseTypes.Object<R>>
+    public func requestPublisher<R, H: Decodable>(
+      for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
     ) -> AnyPublisher<R, HelixError> {
-      return Future { promise in
-        Task {
-          do {
-            let result = try await self.request(endpoint: endpoint)
-            promise(.success(result))
-          } catch let error as HelixError {
-            promise(.failure(error))
-          }
-        }
-      }.eraseToAnyPublisher()
-    }
-
-    public func requestPublisher<R>(
-      for endpoint: HelixEndpoint<ResponseTypes.Optional<R>>
-    ) -> AnyPublisher<R?, HelixError> {
       return Future { promise in
         Task {
           do {
@@ -177,9 +103,9 @@ extension TwitchClient {
 
   // MARK: - Networking implementation
 
-  private func data(for endpoint: HelixEndpoint<some ResponseType>)
-    async throws -> Data
-  {
+  private func data(
+    for endpoint: HelixEndpoint<some Any, some Decodable, some HelixEndpointResponseType>
+  ) async throws -> Data {
     let request = endpoint.makeRequest(using: self.authentication)
 
     let (data, response): (Data, URLResponse)

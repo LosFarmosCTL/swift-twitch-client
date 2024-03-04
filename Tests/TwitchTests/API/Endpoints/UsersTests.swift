@@ -29,7 +29,7 @@ final class UsersTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
     ).register()
 
-    let users = try await twitch.request(endpoint: .getUsers(ids: ["141981764"])).data
+    let users = try await twitch.request(endpoint: .getUsers(ids: ["141981764"]))
 
     XCTAssertEqual(users.count, 1)
 
@@ -62,9 +62,7 @@ final class UsersTests: XCTestCase {
       data: [.get: MockedData.getUserBlocklistJSON]
     ).register()
 
-    let blocks = try await twitch.request(
-      endpoint: .getBlocklist(of: "1234", limit: 2)
-    ).data
+    let blocks = try await twitch.request(endpoint: .getBlocklist(limit: 2))
 
     XCTAssertEqual(blocks.count, 2)
     XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))

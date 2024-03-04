@@ -32,15 +32,14 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChattersJSON]
     ).register()
 
-    let result = try await twitch.request(
-      endpoint: .getChatters(in: "123", moderatorID: "1234"))
+    let result = try await twitch.request(endpoint: .getChatters(in: "123"))
 
-    XCTAssertEqual(result.data.count, 1)
+    XCTAssertEqual(result.chatters.count, 1)
     XCTAssertEqual(result.total, 8)
     XCTAssertEqual(
-      result.pagination?.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
+      result.cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
-    XCTAssert(result.data.contains(where: { $0.userID == "128393656" }))
+    XCTAssert(result.chatters.contains(where: { $0.userID == "128393656" }))
   }
 
   func testGetChannelEmotes() async throws {
@@ -59,12 +58,12 @@ final class ChatTests: XCTestCase {
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(result.data.count, 2)
-    XCTAssert(result.data.contains(where: { $0.id == "304456832" }))
+    XCTAssertEqual(result.emotes.count, 2)
+    XCTAssert(result.emotes.contains(where: { $0.id == "304456832" }))
 
-    let emote = result.data.first(where: { $0.id == "304456832" })
+    let emote = result.emotes.first(where: { $0.id == "304456832" })
     XCTAssertEqual(
-      emote?.getURL(from: result.template!)?.absoluteString,
+      emote?.getURL(from: result.template)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/dark/3.0")
   }
 
@@ -83,12 +82,12 @@ final class ChatTests: XCTestCase {
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(result.data.count, 1)
-    XCTAssert(result.data.contains(where: { $0.id == "196892" }))
+    XCTAssertEqual(result.emotes.count, 1)
+    XCTAssert(result.emotes.contains(where: { $0.id == "196892" }))
 
-    let emote = result.data.first(where: { $0.id == "196892" })
+    let emote = result.emotes.first(where: { $0.id == "196892" })
     XCTAssertEqual(
-      emote?.getURL(from: result.template!)?.absoluteString,
+      emote?.getURL(from: result.template)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/196892/static/dark/3.0")
   }
 
@@ -110,12 +109,12 @@ final class ChatTests: XCTestCase {
       "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
     )
 
-    XCTAssertEqual(result.data.count, 1)
-    XCTAssert(result.data.contains(where: { $0.id == "304456832" }))
+    XCTAssertEqual(result.emotes.count, 1)
+    XCTAssert(result.emotes.contains(where: { $0.id == "304456832" }))
 
-    let emote = result.data.first(where: { $0.id == "304456832" })
+    let emote = result.emotes.first(where: { $0.id == "304456832" })
     XCTAssertEqual(
-      emote?.getURL(from: result.template!)?.absoluteString,
+      emote?.getURL(from: result.template)?.absoluteString,
       "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/dark/3.0")
   }
 
@@ -129,7 +128,7 @@ final class ChatTests: XCTestCase {
 
     let badgeSets = try await twitch.request(
       endpoint: .getChannelBadges(of: "1234")
-    ).data
+    )
 
     XCTAssertEqual(badgeSets.count, 2)
 
@@ -146,7 +145,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getGlobalBadgesJSON]
     ).register()
 
-    let badgeSets = try await twitch.request(endpoint: .getGlobalBadges()).data
+    let badgeSets = try await twitch.request(endpoint: .getGlobalBadges())
 
     XCTAssertEqual(badgeSets.count, 1)
 
@@ -191,8 +190,7 @@ final class ChatTests: XCTestCase {
 
     let settings = try await twitch.request(
       endpoint: .updateChatSettings(
-        of: "713936733", moderatorID: "1234", .slowMode(5), .subscriberMode,
-        .followerMode()))
+        of: "713936733", .slowMode(5), .subscriberMode, .followerMode()))
 
     XCTAssertEqual(settings.broadcasterID, "713936733")
     XCTAssertEqual(settings.slowModeWaitTime, 5)
@@ -217,9 +215,7 @@ final class ChatTests: XCTestCase {
     mock.register()
 
     try await twitch.request(
-      endpoint: .sendAnnouncement(
-        in: "1234", message: "Hello, world!", color: .blue, moderatorID: "1234"
-      ))
+      endpoint: .sendAnnouncement(in: "1234", message: "Hello, world!", color: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -237,8 +233,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(
-      endpoint: .sendShoutout(from: "1234", to: "4321", moderatorID: "1234"))
+    try await twitch.request(endpoint: .sendShoutout(from: "1234", to: "4321"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -254,7 +249,7 @@ final class ChatTests: XCTestCase {
 
     let colors = try await twitch.request(
       endpoint: .getUserColors(of: ["11111", "44444"])
-    ).data
+    )
 
     XCTAssertEqual(colors.count, 2)
 
@@ -272,8 +267,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(
-      endpoint: .updateUserColor(of: "1234", color: .blue))
+    try await twitch.request(endpoint: .updateUserColor(to: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

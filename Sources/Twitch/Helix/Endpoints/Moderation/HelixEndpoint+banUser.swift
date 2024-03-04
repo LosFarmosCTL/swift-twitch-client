@@ -1,18 +1,35 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<Ban> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == Ban, HelixResponseType == Ban
+{
   public static func banUser(
     _ user: UserID, in channel: UserID,
-    for duration: Duration? = nil, reason: String? = nil, moderatorID: String
+    for duration: Duration? = nil, reason: String? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID))
-
-    let body = BanUserBody(userID: user, reason: reason, duration: duration)
-
     return .init(
-      method: "POST", path: "moderation/bans", queryItems: queryItems, body: body)
+      method: "POST", path: "moderation/bans",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+        ]
+      },
+      body: { _ in
+        BanUserBody(
+          userID: user,
+          reason: reason,
+          duration: duration)
+      },
+      makeResponse: {
+        guard let ban = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+
+        return ban
+      })
   }
 }
 

@@ -1,15 +1,26 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Object<ShieldModeStatus> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ShieldModeStatus, HelixResponseType == ShieldModeStatus
+{
   public static func updateShieldModeStatus(
-    of channel: UserID, isActive: Bool, moderatorID: String
+    of channel: UserID, isActive: Bool
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID))
-
     return .init(
-      method: "PUT", path: "moderation/shield_mode", queryItems: queryItems,
-      body: ["is_active": isActive])
+      method: "PUT", path: "moderation/shield_mode",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+        ]
+      }, body: { _ in ["is_active": isActive] },
+      makeResponse: {
+        guard let status = $0.data.first else {
+          throw HelixError.noDataInResponse
+        }
+        return status
+      })
   }
 }

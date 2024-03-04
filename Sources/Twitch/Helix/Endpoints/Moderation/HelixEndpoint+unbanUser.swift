@@ -1,14 +1,17 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Void {
+extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   public static func unbanUser(
-    _ user: UserID, in channel: UserID, moderatorID: String
+    _ user: UserID, in channel: UserID
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("broadcaster_id", channel),
-      ("moderator_id", moderatorID),
-      ("user_id", user))
-
-    return .init(method: "DELETE", path: "moderation/bans", queryItems: queryItems)
+    return .init(
+      method: "DELETE", path: "moderation/bans",
+      queryItems: { auth in
+        [
+          ("broadcaster_id", channel),
+          ("moderator_id", auth.userID),
+          ("user_id", user),
+        ]
+      })
   }
 }

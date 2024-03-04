@@ -1,19 +1,27 @@
 import Foundation
 
-extension HelixEndpoint where Response == ResponseTypes.Array<ExtensionReport> {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Normal,
+  ResponseType == ([ExtensionReport], PaginationCursor?),
+  HelixResponseType == ExtensionReport
+{
   public static func getExtensionAnalytics(
     extensionID: String? = nil, type: String? = nil, range: DateInterval? = nil,
     limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
-    let queryItems = self.makeQueryItems(
-      ("extension_id", extensionID),
-      ("type", type),
-      ("started_at", range?.start.formatted(.iso8601)),
-      ("ended_at", range?.end.formatted(.iso8601)),
-      ("first", limit.map(String.init)),
-      ("after", cursor))
-
-    return .init(method: "GET", path: "analytics/extensions", queryItems: queryItems)
+    return .init(
+      method: "GET", path: "analytics/extensions",
+      queryItems: { _ in
+        [
+          ("extension_id", extensionID),
+          ("type", type),
+          ("started_at", range?.start.formatted(.iso8601)),
+          ("ended_at", range?.end.formatted(.iso8601)),
+          ("first", limit.map(String.init)),
+          ("after", cursor),
+        ]
+      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 
