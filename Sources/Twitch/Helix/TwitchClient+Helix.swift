@@ -24,7 +24,7 @@ extension TwitchClient {
     }
   }
 
-  public func request<R: Decodable, H: Decodable>(
+  public func request<R, H: Decodable>(
     endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
   )
     async throws
@@ -54,7 +54,7 @@ extension TwitchClient {
     }
   }
 
-  public func requestTask<R: Decodable, H: Decodable>(
+  public func requestTask<R, H: Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
     completionHandler: @escaping @Sendable (R?, HelixError?) -> Void
   ) {
@@ -89,7 +89,7 @@ extension TwitchClient {
       }.eraseToAnyPublisher()
     }
 
-    public func requestPublisher<R: Decodable, H: Decodable>(
+    public func requestPublisher<R, H: Decodable>(
       for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
     ) -> AnyPublisher<R, HelixError> {
       return Future { promise in
@@ -109,12 +109,8 @@ extension TwitchClient {
   // MARK: - Networking implementation
 
   private func data(
-    for endpoint: HelixEndpoint<
-      some Decodable, some Decodable, some HelixEndpointResponseType
-    >
-  )
-    async throws -> Data
-  {
+    for endpoint: HelixEndpoint<some Any, some Decodable, some HelixEndpointResponseType>
+  ) async throws -> Data {
     let request = endpoint.makeRequest(using: self.authentication)
 
     let (data, response): (Data, URLResponse)

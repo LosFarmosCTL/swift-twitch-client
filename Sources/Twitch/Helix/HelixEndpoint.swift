@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 public struct HelixEndpoint<
-  ResponseType: Decodable, HelixResponseType: Decodable,
+  ResponseType, HelixResponseType: Decodable,
   EndpointResponseType: HelixEndpointResponseType
 > {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
