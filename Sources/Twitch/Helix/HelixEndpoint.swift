@@ -91,3 +91,4 @@ public enum HelixEndpointResponseTypes {
 public struct VoidResponse: Decodable {}
 
 public typealias UserID = String
+public typealias PaginationCursor = String
