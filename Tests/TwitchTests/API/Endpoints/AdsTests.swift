@@ -30,8 +30,7 @@ final class AdsTests: XCTestCase {
       data: [.get: MockedData.getAdScheduleJSON]
     ).register()
 
-    let ads = try await twitch.request(endpoint: .getAdSchedule(of: "1234"))
-      .data
+    let ads = try await twitch.request(endpoint: .getAdSchedule())
 
     XCTAssertEqual(ads.count, 1)
 
@@ -48,7 +47,7 @@ final class AdsTests: XCTestCase {
     ).register()
 
     let commercial = try await twitch.request(
-      endpoint: .startCommercial(on: "1234", length: 60)
+      endpoint: .startCommercial(length: 60)
     )
 
     XCTAssertEqual(commercial.length, 60)
@@ -66,13 +65,10 @@ final class AdsTests: XCTestCase {
       data: [.post: MockedData.snoozeNextAdJSON]
     ).register()
 
-    let snoozeResult = try await twitch.request(
-      endpoint: .snoozeNextAd(on: "1234")
-    ).data
+    let snoozeResult = try await twitch.request(endpoint: .snoozeNextAd())
 
-    XCTAssertEqual(snoozeResult.count, 1)
-    XCTAssertEqual(snoozeResult.first?.snoozeCount, 1)
+    XCTAssertEqual(snoozeResult.snoozeCount, 1)
     XCTAssertEqual(
-      snoozeResult.first?.snoozeRefreshAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
+      snoozeResult.snoozeRefreshAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
   }
 }

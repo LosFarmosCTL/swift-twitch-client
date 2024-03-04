@@ -32,13 +32,13 @@ final class SubscriptionsTests: XCTestCase {
     ).register()
 
     let result = try await twitch.request(
-      endpoint: .getSubscribers(of: "1234", limit: 2))
-    let subscribers = result.data
+      endpoint: .getSubscribers(limit: 2))
+    let subscribers = result.subscribers
 
     XCTAssertEqual(result.total, 13)
     XCTAssertEqual(result.points, 13)
 
-    XCTAssertEqual(result.pagination?.cursor, "jnksdfyg7is8do7fv7yuwbisudg")
+    XCTAssertEqual(result.cursor, "jnksdfyg7is8do7fv7yuwbisudg")
 
     XCTAssertEqual(subscribers.count, 2)
     XCTAssertNotNil(subscribers.first?.gifter)
@@ -58,8 +58,7 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.checkUserSubscriptionJSON]
     ).register()
 
-    let subscription = try await twitch.request(
-      endpoint: .checkSubscription(of: "1234", to: "1234"))
+    let subscription = try await twitch.request(endpoint: .checkSubscription(to: "1234"))
 
     XCTAssertEqual(subscription?.broadcasterID, "141981764")
     XCTAssertEqual(subscription?.gifter?.id, "12826")

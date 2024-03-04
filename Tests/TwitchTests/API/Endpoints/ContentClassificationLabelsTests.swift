@@ -32,7 +32,6 @@ final class ContentClassificationLabelsTests: XCTestCase {
     ).register()
 
     let labels = try await twitch.request(endpoint: .getContentClassificationLabels())
-      .data
 
     XCTAssertEqual(labels.count, 6)
     XCTAssert(labels.contains(where: { $0.id == "ViolentGraphic" }))
