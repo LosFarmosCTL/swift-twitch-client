@@ -33,7 +33,7 @@ final class WhispersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .sendWhisper(to: "4321", message: "Hello, world!"))
+    try await twitch.helix(endpoint: .sendWhisper(to: "4321", message: "Hello, world!"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

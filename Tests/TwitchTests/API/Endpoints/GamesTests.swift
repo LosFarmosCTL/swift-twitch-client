@@ -29,7 +29,7 @@ final class GamesTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getGamesJSON]
     ).register()
 
-    let games = try await twitch.request(endpoint: .getGames(gameIDs: ["33214"]))
+    let games = try await twitch.helix(endpoint: .getGames(gameIDs: ["33214"]))
 
     XCTAssertEqual(games.count, 1)
     XCTAssert(games.contains(where: { $0.id == "33214" }))
@@ -43,7 +43,7 @@ final class GamesTests: XCTestCase {
       data: [.get: MockedData.getTopGamesJSON]
     ).register()
 
-    let (games, cursor) = try await twitch.request(endpoint: .getTopGames(limit: 1))
+    let (games, cursor) = try await twitch.helix(endpoint: .getTopGames(limit: 1))
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6MjB9fQ==")
 

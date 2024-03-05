@@ -30,7 +30,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getExtensionAnalyticsJSON]
     ).register()
 
-    let (analytics, _) = try await twitch.request(endpoint: .getExtensionAnalytics())
+    let (analytics, _) = try await twitch.helix(endpoint: .getExtensionAnalytics())
 
     XCTAssertEqual(analytics.count, 1)
     XCTAssert(analytics.contains(where: { $0.extensionID == "efgh" }))
@@ -48,7 +48,7 @@ final class AnalyticsTests: XCTestCase {
       data: [.get: MockedData.getGameAnalyticsJSON]
     ).register()
 
-    let (analytics, _) = try await twitch.request(endpoint: .getGameAnalytics())
+    let (analytics, _) = try await twitch.helix(endpoint: .getGameAnalytics())
 
     XCTAssertEqual(analytics.count, 1)
 

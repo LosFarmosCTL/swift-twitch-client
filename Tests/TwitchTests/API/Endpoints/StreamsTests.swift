@@ -30,7 +30,7 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getStreamsJSON]
     ).register()
 
-    let (streams, cursor) = try await twitch.request(endpoint: .getStreams(limit: 1))
+    let (streams, cursor) = try await twitch.helix(endpoint: .getStreams(limit: 1))
 
     XCTAssertNil(cursor)
 
@@ -47,7 +47,7 @@ final class StreamsTests: XCTestCase {
       data: [.get: MockedData.getFollowedStreamsJSON]
     ).register()
 
-    let (streams, cursor) = try await twitch.request(
+    let (streams, cursor) = try await twitch.helix(
       endpoint: .getFollowedStreams(limit: 1))
 
     XCTAssertEqual(cursor, "eyJiIjp7IkN1cnNvciI6ImV5SnpJam8zT0RNMk5TNDBORFF4")

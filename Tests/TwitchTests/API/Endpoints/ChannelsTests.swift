@@ -31,7 +31,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelsJSON]
     ).register()
 
-    let channels = try await twitch.request(
+    let channels = try await twitch.helix(
       endpoint: .getChannels(["141981764"])
     )
 
@@ -48,7 +48,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelEditorsJSON]
     ).register()
 
-    let editors = try await twitch.request(endpoint: .getChannelEditors())
+    let editors = try await twitch.helix(endpoint: .getChannelEditors())
 
     XCTAssertEqual(editors.count, 2)
 
@@ -66,7 +66,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getFollowedChannelsJSON]
     ).register()
 
-    let result = try await twitch.request(endpoint: .getFollowedChannels())
+    let result = try await twitch.helix(endpoint: .getFollowedChannels())
 
     XCTAssertEqual(result.total, 8)
 
@@ -88,7 +88,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkFollowJSON]
     ).register()
 
-    let follow = try await twitch.request(
+    let follow = try await twitch.helix(
       endpoint: .checkFollow(to: "654321")
     )
 
@@ -105,7 +105,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.getChannelFollowersJSON]
     ).register()
 
-    let result = try await twitch.request(
+    let result = try await twitch.helix(
       endpoint: .getChannelFollowers(of: "1234")
     )
 
@@ -129,7 +129,7 @@ final class ChannelsTests: XCTestCase {
       data: [.get: MockedData.checkChannelFollowerJSON]
     ).register()
 
-    let follow = try await twitch.request(
+    let follow = try await twitch.helix(
       endpoint: .checkFollower("654321", follows: "123456")
     )
 
@@ -146,7 +146,7 @@ final class ChannelsTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .updateChannel(gameID: "1234"))
+    try await twitch.helix(endpoint: .updateChannel(gameID: "1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

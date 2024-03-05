@@ -29,7 +29,7 @@ final class UsersTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
     ).register()
 
-    let users = try await twitch.request(endpoint: .getUsers(ids: ["141981764"]))
+    let users = try await twitch.helix(endpoint: .getUsers(ids: ["141981764"]))
 
     XCTAssertEqual(users.count, 1)
 
@@ -46,7 +46,7 @@ final class UsersTests: XCTestCase {
       data: [.put: MockedData.updateUserJSON]
     ).register()
 
-    let user = try await twitch.request(
+    let user = try await twitch.helix(
       endpoint: .updateUser(description: "Hello world!"))
 
     XCTAssertEqual(user.description, "Hello world!")
@@ -62,7 +62,7 @@ final class UsersTests: XCTestCase {
       data: [.get: MockedData.getUserBlocklistJSON]
     ).register()
 
-    let blocks = try await twitch.request(endpoint: .getBlocklist(limit: 2))
+    let blocks = try await twitch.helix(endpoint: .getBlocklist(limit: 2))
 
     XCTAssertEqual(blocks.count, 2)
     XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))
@@ -79,7 +79,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .block("1234", reason: .spam))
+    try await twitch.helix(endpoint: .block("1234", reason: .spam))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -94,7 +94,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .unblock("1234"))
+    try await twitch.helix(endpoint: .unblock("1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

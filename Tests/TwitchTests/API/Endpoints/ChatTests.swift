@@ -32,7 +32,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChattersJSON]
     ).register()
 
-    let result = try await twitch.request(endpoint: .getChatters(in: "123"))
+    let result = try await twitch.helix(endpoint: .getChatters(in: "123"))
 
     XCTAssertEqual(result.chatters.count, 1)
     XCTAssertEqual(result.total, 8)
@@ -50,7 +50,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChannelEmotesJSON]
     ).register()
 
-    let result = try await twitch.request(
+    let result = try await twitch.helix(
       endpoint: .getChannelEmotes(of: "1234"))
 
     XCTAssertEqual(
@@ -75,7 +75,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getGlobalEmotesJSON]
     ).register()
 
-    let result = try await twitch.request(endpoint: .getGlobalEmotes())
+    let result = try await twitch.helix(endpoint: .getGlobalEmotes())
 
     XCTAssertEqual(
       result.template,
@@ -101,7 +101,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getEmoteSetsJSON]
     ).register()
 
-    let result = try await twitch.request(
+    let result = try await twitch.helix(
       endpoint: .getEmoteSets(["123", "456"]))
 
     XCTAssertEqual(
@@ -126,7 +126,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChannelBadgesJSON]
     ).register()
 
-    let badgeSets = try await twitch.request(
+    let badgeSets = try await twitch.helix(
       endpoint: .getChannelBadges(of: "1234")
     )
 
@@ -145,7 +145,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getGlobalBadgesJSON]
     ).register()
 
-    let badgeSets = try await twitch.request(endpoint: .getGlobalBadges())
+    let badgeSets = try await twitch.helix(endpoint: .getGlobalBadges())
 
     XCTAssertEqual(badgeSets.count, 1)
 
@@ -165,7 +165,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getChatSettingsJSON]
     ).register()
 
-    let settings = try await twitch.request(
+    let settings = try await twitch.helix(
       endpoint: .getChatSettings(of: "713936733", moderatorID: "1234"))
 
     XCTAssertEqual(settings.broadcasterID, "713936733")
@@ -188,7 +188,7 @@ final class ChatTests: XCTestCase {
       data: [.patch: MockedData.getChatSettingsJSON]
     ).register()
 
-    let settings = try await twitch.request(
+    let settings = try await twitch.helix(
       endpoint: .updateChatSettings(
         of: "713936733", .slowMode(5), .subscriberMode, .followerMode()))
 
@@ -214,7 +214,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(
+    try await twitch.helix(
       endpoint: .sendAnnouncement(in: "1234", message: "Hello, world!", color: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
@@ -233,7 +233,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .sendShoutout(from: "1234", to: "4321"))
+    try await twitch.helix(endpoint: .sendShoutout(from: "1234", to: "4321"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -247,7 +247,7 @@ final class ChatTests: XCTestCase {
       data: [.get: MockedData.getUserColorJSON]
     ).register()
 
-    let colors = try await twitch.request(
+    let colors = try await twitch.helix(
       endpoint: .getUserColors(of: ["11111", "44444"])
     )
 
@@ -267,7 +267,7 @@ final class ChatTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await twitch.request(endpoint: .updateUserColor(to: .blue))
+    try await twitch.helix(endpoint: .updateUserColor(to: .blue))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

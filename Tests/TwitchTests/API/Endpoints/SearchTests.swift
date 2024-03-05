@@ -30,7 +30,7 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchCategoriesJSON]
     ).register()
 
-    let (categories, cursor) = try await twitch.request(
+    let (categories, cursor) = try await twitch.helix(
       endpoint: .searchCategories(for: "fort"))
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN")
@@ -47,7 +47,7 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchChannelsJSON]
     ).register()
 
-    let (channels, cursor) = try await twitch.request(
+    let (channels, cursor) = try await twitch.helix(
       endpoint: .searchChannels(for: "loser"))
 
     XCTAssertNil(cursor)
