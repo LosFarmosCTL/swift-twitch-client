@@ -18,14 +18,14 @@ let twitch = TwitchClient(with: credentials)
 
 // Completion Handlers
 
-twitch.requestTask(for: .doSomething(param1: "forsen")) { result, error in
+twitch.helixTask(for: .doSomething(param1: "forsen")) { result, error in
 }
 
 // Async/Await
-let result = try await twitch.request(endpoint: .doSomething(param1: "forsen"))
+let result = try await twitch.helix(endpoint: .doSomething(param1: "forsen"))
 
 // Combine
-twitch.requestPublisher(for: .doSomething(param1: "forsen")).sink(
+twitch.helixPublisher(for: .doSomething(param1: "forsen")).sink(
   receiveCompletion: { error in
 
   },
