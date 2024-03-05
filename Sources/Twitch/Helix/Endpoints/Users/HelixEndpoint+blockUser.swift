@@ -1,6 +1,10 @@
 import Foundation
 
-extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Void,
+  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
+{
   public static func block(
     _ user: UserID, sourceContext: SourceContext? = nil, reason: Reason? = nil
   ) -> Self {

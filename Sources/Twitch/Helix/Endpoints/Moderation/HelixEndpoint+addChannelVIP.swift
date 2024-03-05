@@ -1,6 +1,11 @@
 import Foundation
 
-extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Void,
+  ResponseType == EmptyResponse,
+  HelixResponseType == EmptyResponse
+{
   public static func addChannelVIP(userID: String) -> Self {
     return .init(
       method: "POST", path: "channels/vips",

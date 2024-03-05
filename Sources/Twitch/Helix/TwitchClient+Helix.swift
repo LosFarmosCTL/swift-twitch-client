@@ -11,8 +11,8 @@ import Foundation
 extension TwitchClient {
   // MARK: - Async methods
 
-  public func request(
-    endpoint: HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  public func request<R, H: Decodable>(
+    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>
   ) async throws {
     let data = try await self.data(for: endpoint)
 
@@ -33,9 +33,9 @@ extension TwitchClient {
 
   // MARK: - Callback methods
 
-  public func requestTask(
+  public func requestTask<R, H: Decodable>(
     for endpoint: HelixEndpoint<
-      EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void
+      R, H, HelixEndpointResponseTypes.Void
     >,
     completionHandler: @escaping @Sendable (HelixError?) -> Void
   ) {
@@ -67,9 +67,9 @@ extension TwitchClient {
 
   #if canImport(Combine)
 
-    public func requestPublisher(
+    public func requestPublisher<R, H: Decodable>(
       for endpoint: HelixEndpoint<
-        EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void
+        R, H, HelixEndpointResponseTypes.Void
       >
     ) -> AnyPublisher<Void, HelixError> {
       return Future { promise in

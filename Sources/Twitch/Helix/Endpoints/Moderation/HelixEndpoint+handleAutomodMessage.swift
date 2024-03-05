@@ -1,6 +1,10 @@
 import Foundation
 
-extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+extension HelixEndpoint
+where
+  EndpointResponseType == HelixEndpointResponseTypes.Void,
+  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
+{
   private static func handleAutomodMessage(messageID: String, action: String) -> Self {
     .init(
       method: "POST", path: "moderation/automod/message",
