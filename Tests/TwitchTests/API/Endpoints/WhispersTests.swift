@@ -16,7 +16,7 @@ final class WhispersTests: XCTestCase {
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    twitch = try TwitchClient(
+    twitch = TwitchClient(
       authentication: .init(
         oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)

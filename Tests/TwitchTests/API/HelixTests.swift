@@ -17,7 +17,7 @@ class HelixTests: XCTestCase {
     configuration.protocolClasses = [MockingURLProtocol.self]
     self.mockingURLSession = URLSession(configuration: configuration)
 
-    self.twitch = try TwitchClient(
+    self.twitch = TwitchClient(
       authentication: .init(
         oAuth: "abcdefg", clientID: "123456", userID: "1234", userLogin: "user"),
       urlSession: mockingURLSession)

@@ -14,7 +14,7 @@ public actor TwitchClient {
   public init(
     authentication: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
-  ) throws {
+  ) {
     self.authentication = authentication
     self.urlSession = urlSession
 
