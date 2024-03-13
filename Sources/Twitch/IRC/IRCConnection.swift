@@ -37,7 +37,7 @@ internal actor IRCConnection {
 
     Task {
       // return global user state sent with the connection message
-      continuation.yield(.globalUserState(globalUserState))
+      if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
 
       do {
         while let message = try await self.websocket?.receive() {
@@ -97,7 +97,7 @@ internal actor IRCConnection {
     }
   }
 
-  private func authenticate() async throws -> GlobalUserState {
+  private func authenticate() async throws -> GlobalUserState? {
     if let credentials {
       // when connecting anonymously, the PASS message can be omitted
       let pass = OutgoingMessage.pass(pass: credentials.oAuth)
@@ -116,14 +116,22 @@ internal actor IRCConnection {
 
     let parsedMessages = IncomingMessage.parse(ircOutput: messageText).map(\.message)
 
-    let didReceiveConnectionMessage = parsedMessages.contains(where: {
+    let receivedConnectionMessage = parsedMessages.contains(where: {
       if case .connectionNotice = $0 { true } else { false }
     })
 
-    guard didReceiveConnectionMessage,
-      case .globalUserState(let globalUserState) = parsedMessages.last
-    else {
+    guard receivedConnectionMessage else {
       throw IRCError.loginFailed
+    }
+
+    // verify that we receive the global user state message if authenticated
+    var globalUserState: GlobalUserState?
+    if credentials != nil {
+      guard case .globalUserState(let userState) = parsedMessages.last else {
+        throw IRCError.loginFailed
+      }
+
+      globalUserState = userState
     }
 
     // pass on the GLOBALUSERSTATE message sent on connection
