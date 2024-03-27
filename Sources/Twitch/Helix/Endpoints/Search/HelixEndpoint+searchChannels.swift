@@ -62,10 +62,10 @@ public struct Channel: Decodable {
 }
 
 @propertyWrapper public struct NilOnTypeMismatch<Value> {
-	public var wrappedValue: Value?
-	public init(wrappedValue: Value?) {
-		self.wrappedValue = wrappedValue
-	}
+  public var wrappedValue: Value?
+  public init(wrappedValue: Value?) {
+    self.wrappedValue = wrappedValue
+  }
 }
 
 extension NilOnTypeMismatch: Decodable where Value: Decodable {
