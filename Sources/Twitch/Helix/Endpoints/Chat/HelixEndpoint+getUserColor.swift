@@ -16,10 +16,10 @@ where
 }
 
 public struct UserColor: Decodable {
-  let userID: String
-  let userLogin: String
-  let userName: String
-  let color: String
+  public let userID: String
+  public let userLogin: String
+  public let userName: String
+  public let color: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "user_id"

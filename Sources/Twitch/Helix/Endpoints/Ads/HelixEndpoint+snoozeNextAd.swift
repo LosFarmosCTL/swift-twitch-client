@@ -23,9 +23,9 @@ where
 }
 
 public struct SnoozeResult: Decodable {
-  let snoozeCount: Int
-  let snoozeRefreshAt: Date
-  let nextAdAt: Date
+  public let snoozeCount: Int
+  public let snoozeRefreshAt: Date
+  public let nextAdAt: Date
 
   enum CodingKeys: String, CodingKey {
     case snoozeCount = "snooze_count"

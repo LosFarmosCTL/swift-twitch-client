@@ -15,15 +15,15 @@ where
 }
 
 public struct Broadcaster: Decodable {
-  let id: String
-  let login: String
-  let name: String
-  let language: String
-  let gameID: String
-  let gameName: String
-  let title: String
-  let delay: Int
-  let tags: [String]
+  public let id: String
+  public let login: String
+  public let name: String
+  public let language: String
+  public let gameID: String
+  public let gameName: String
+  public let title: String
+  public let delay: Int
+  public let tags: [String]
 
   enum CodingKeys: String, CodingKey {
     case id = "broadcaster_id"

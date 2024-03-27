@@ -38,14 +38,14 @@ where
 }
 
 public struct AutomodConfiguration: Encodable {
-  let aggression: Int
-  let bullying: Int
-  let disability: Int
-  let misogyny: Int
-  let raceEthnicityOrReligion: Int
-  let sexBasedTerms: Int
-  let sexualitySexOrGender: Int
-  let swearing: Int
+  public let aggression: Int
+  public let bullying: Int
+  public let disability: Int
+  public let misogyny: Int
+  public let raceEthnicityOrReligion: Int
+  public let sexBasedTerms: Int
+  public let sexualitySexOrGender: Int
+  public let swearing: Int
 
   enum CodingKeys: String, CodingKey {
     case aggression, bullying, disability, misogyny, swearing

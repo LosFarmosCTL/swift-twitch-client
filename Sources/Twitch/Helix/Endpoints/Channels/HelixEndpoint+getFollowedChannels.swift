@@ -54,10 +54,10 @@ public struct FollowsResponse {
 }
 
 public struct Follow: Decodable {
-  let broadcasterID: String
-  let broadcasterLogin: String
-  let broadcasterName: String
-  let followedAt: Date
+  public let broadcasterID: String
+  public let broadcasterLogin: String
+  public let broadcasterName: String
+  public let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"

@@ -22,13 +22,13 @@ where
 }
 
 public struct Subscription: Decodable {
-  let broadcasterID: String
-  let broadcasterLogin: String
-  let broadcasterName: String
+  public let broadcasterID: String
+  public let broadcasterLogin: String
+  public let broadcasterName: String
 
-  let gifter: SubGifter?
+  public let gifter: SubGifter?
 
-  let tier: SubTier
+  public let tier: SubTier
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"
@@ -70,7 +70,7 @@ public enum SubTier: String, Decodable {
 }
 
 public struct SubGifter: Decodable {
-  let id: String
-  let login: String
-  let name: String
+  public let id: String
+  public let login: String
+  public let name: String
 }

@@ -23,9 +23,9 @@ where
 }
 
 public struct ModeratedChannel: Decodable {
-  let id: String
-  let login: String
-  let displayName: String
+  public let id: String
+  public let login: String
+  public let displayName: String
 
   enum CodingKeys: String, CodingKey {
     case id = "broadcaster_id"

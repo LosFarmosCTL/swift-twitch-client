@@ -14,8 +14,8 @@ where
 }
 
 public struct BadgeSet: Decodable {
-  let setID: String
-  let badges: [Badge]
+  public let setID: String
+  public let badges: [Badge]
 
   enum CodingKeys: String, CodingKey {
     case setID = "set_id"
@@ -24,13 +24,13 @@ public struct BadgeSet: Decodable {
 }
 
 public struct Badge: Decodable {
-  let id: String
-  let images: BadgeImages
-  let title: String
-  let description: String
+  public let id: String
+  public let images: BadgeImages
+  public let title: String
+  public let description: String
 
-  let clickAction: String?
-  let clickUrl: String?
+  public let clickAction: String?
+  public let clickUrl: String?
 
   enum CodingKeys: String, CodingKey {
     case id = "id"
@@ -59,9 +59,9 @@ public struct Badge: Decodable {
     self.clickUrl = try container.decodeIfPresent(String.self, forKey: .clickUrl)
   }
 
-  struct BadgeImages {
-    let url1x: URL
-    let url2x: URL
-    let url4x: URL
+  public struct BadgeImages {
+    public let url1x: URL
+    public let url2x: URL
+    public let url4x: URL
   }
 }

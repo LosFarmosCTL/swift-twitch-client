@@ -24,9 +24,9 @@ where
 }
 
 public struct BlockedUser: Decodable {
-  let userID: String
-  let userLogin: String
-  let displayName: String
+  public let userID: String
+  public let userLogin: String
+  public let displayName: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "user_id"

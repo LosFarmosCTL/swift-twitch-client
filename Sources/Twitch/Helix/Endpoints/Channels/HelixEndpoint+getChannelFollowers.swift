@@ -55,10 +55,10 @@ public struct FollowerResponse {
 }
 
 public struct Follower: Decodable {
-  let userID: String
-  let userLogin: String
-  let userName: String
-  let followedAt: Date
+  public let userID: String
+  public let userLogin: String
+  public let userName: String
+  public let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case userID = "user_id"

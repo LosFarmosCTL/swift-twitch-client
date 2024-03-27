@@ -40,24 +40,24 @@ public enum StreamType: String {
 }
 
 public struct Stream: Decodable {
-  let id: String
+  public let id: String
 
-  let userID: String
-  let userLogin: String
-  let userName: String
+  public let userID: String
+  public let userLogin: String
+  public let userName: String
 
-  let gameID: String
-  let gameName: String
+  public let gameID: String
+  public let gameName: String
 
-  let type: String
-  let title: String
-  let language: String
-  let tags: [String]
-  let isMature: Bool
+  public let type: String
+  public let title: String
+  public let language: String
+  public let tags: [String]
+  public let isMature: Bool
 
-  let viewerCount: Int
-  let startedAt: Date
-  let thumbnailURL: String
+  public let viewerCount: Int
+  public let startedAt: Date
+  public let thumbnailURL: String
 
   enum CodingKeys: String, CodingKey {
     case id

@@ -26,10 +26,10 @@ where
 }
 
 public struct ExtensionReport: Decodable {
-  let extensionID: String
-  let url: String
-  let type: String
-  let range: DateInterval
+  public let extensionID: String
+  public let url: String
+  public let type: String
+  public let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
     case extensionID = "extension_id"

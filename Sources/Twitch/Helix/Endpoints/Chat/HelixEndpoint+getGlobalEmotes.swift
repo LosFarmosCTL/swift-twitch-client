@@ -26,11 +26,11 @@ public struct GlobalEmotes {
 }
 
 public struct GlobalEmote: Decodable {
-  let id: String
-  let name: String
-  let format: [Emote.Format]
-  let scale: [Emote.Scale]
-  let themeMode: [Emote.ThemeMode]
+  public let id: String
+  public let name: String
+  public let format: [Emote.Format]
+  public let scale: [Emote.Scale]
+  public let themeMode: [Emote.ThemeMode]
 
   enum CodingKeys: String, CodingKey {
     case id = "id"
@@ -40,7 +40,7 @@ public struct GlobalEmote: Decodable {
     case themeMode = "theme_mode"
   }
 
-  func getURL(
+  public func getURL(
     from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark
   ) -> URL? {

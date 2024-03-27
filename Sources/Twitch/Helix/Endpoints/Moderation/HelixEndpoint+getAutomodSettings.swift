@@ -25,18 +25,18 @@ where
 }
 
 public struct AutomodSettings: Decodable {
-  let broadcasterID: String
-  let moderatorID: String
-  let overallLevel: Int?
+  public let broadcasterID: String
+  public let moderatorID: String
+  public let overallLevel: Int?
 
-  let disability: Int
-  let aggression: Int
-  let sexualitySexOrGender: Int
-  let misogyny: Int
-  let bullying: Int
-  let swearing: Int
-  let raceEthnicityOrReligion: Int
-  let sexBasedTerms: Int
+  public let disability: Int
+  public let aggression: Int
+  public let sexualitySexOrGender: Int
+  public let misogyny: Int
+  public let bullying: Int
+  public let swearing: Int
+  public let raceEthnicityOrReligion: Int
+  public let sexBasedTerms: Int
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"

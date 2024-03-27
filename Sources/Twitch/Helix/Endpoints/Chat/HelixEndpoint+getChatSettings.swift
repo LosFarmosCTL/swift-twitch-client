@@ -24,14 +24,14 @@ where
 }
 
 public struct ChatSettings: Decodable {
-  let broadcasterID: String
-  let slowModeWaitTime: Int?
-  let followerModeDuration: Int?
-  let subscriberMode: Bool
-  let emoteMode: Bool
-  let uniqueChatMode: Bool
+  public let broadcasterID: String
+  public let slowModeWaitTime: Int?
+  public let followerModeDuration: Int?
+  public let subscriberMode: Bool
+  public let emoteMode: Bool
+  public let uniqueChatMode: Bool
 
-  let nonModeratorChatDelay: Int?
+  public let nonModeratorChatDelay: Int?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"
