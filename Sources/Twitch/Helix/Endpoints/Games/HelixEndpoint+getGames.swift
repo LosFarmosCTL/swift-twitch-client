@@ -25,10 +25,10 @@ where
 }
 
 public struct Game: Decodable {
-  let id: String
-  let name: String
-  let boxArtUrl: String
-  let igdbID: String
+  public let id: String
+  public let name: String
+  public let boxArtUrl: String
+  public let igdbID: String
 
   enum CodingKeys: String, CodingKey {
     case id

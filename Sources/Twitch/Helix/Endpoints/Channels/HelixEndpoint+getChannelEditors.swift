@@ -15,9 +15,9 @@ where
 }
 
 public struct Editor: Decodable {
-  let userID: String
-  let userName: String
-  let createdAt: Date
+  public let userID: String
+  public let userName: String
+  public let createdAt: Date
 
   enum CodingKeys: String, CodingKey {
     case userID = "user_id"

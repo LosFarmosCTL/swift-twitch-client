@@ -25,10 +25,10 @@ where
 }
 
 public struct GameReport: Decodable {
-  let gameID: String
-  let url: String
-  let type: String
-  let range: DateInterval
+  public let gameID: String
+  public let url: String
+  public let type: String
+  public let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
     case gameID = "game_id"

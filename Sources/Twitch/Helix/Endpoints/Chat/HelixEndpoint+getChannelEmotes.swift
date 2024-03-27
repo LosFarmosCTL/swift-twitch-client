@@ -26,14 +26,14 @@ public struct ChannelEmotes {
 }
 
 public struct ChannelEmote: Decodable {
-  let id: String
-  let name: String
-  let tier: String?
-  let type: String
-  let setID: String
-  let format: [Emote.Format]
-  let scale: [Emote.Scale]
-  let themeMode: [Emote.ThemeMode]
+  public let id: String
+  public let name: String
+  public let tier: String?
+  public let type: String
+  public let setID: String
+  public let format: [Emote.Format]
+  public let scale: [Emote.Scale]
+  public let themeMode: [Emote.ThemeMode]
 
   enum CodingKeys: String, CodingKey {
     case id = "id"
@@ -46,7 +46,7 @@ public struct ChannelEmote: Decodable {
     case themeMode = "theme_mode"
   }
 
-  func getURL(
+  public func getURL(
     from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark
   ) -> URL? {
@@ -59,16 +59,16 @@ public struct ChannelEmote: Decodable {
 }
 
 public enum Emote {
-  enum Format: String, Decodable {
+  public enum Format: String, Decodable {
     case gif = "animated"
     case png = "static"
   }
 
-  enum Scale: String, Decodable {
+  public enum Scale: String, Decodable {
     case small = "1.0"
     case medium = "2.0"
     case large = "3.0"
   }
 
-  enum ThemeMode: String, Decodable { case light, dark }
+  public enum ThemeMode: String, Decodable { case light, dark }
 }

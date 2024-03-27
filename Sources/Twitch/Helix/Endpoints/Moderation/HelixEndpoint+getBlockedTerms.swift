@@ -27,16 +27,16 @@ where
 }
 
 public struct BlockedTerm: Decodable {
-  let broadcasterID: String
-  let moderatorID: String
+  public let broadcasterID: String
+  public let moderatorID: String
 
-  let id: String
-  let text: String
+  public let id: String
+  public let text: String
 
-  let createdAt: Date
-  let updatedAt: Date
+  public let createdAt: Date
+  public let updatedAt: Date
 
-  let expiresAt: Date?
+  public let expiresAt: Date?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"

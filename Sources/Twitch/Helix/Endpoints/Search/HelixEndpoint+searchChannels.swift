@@ -28,20 +28,20 @@ where
 }
 
 public struct Channel: Decodable {
-  let id: String
-  let login: String
-  let name: String
-  let language: String
+  public let id: String
+  public let login: String
+  public let name: String
+  public let language: String
 
-  let gameID: String
-  let gameName: String
+  public let gameID: String
+  public let gameName: String
 
-  let isLive: Bool
-  let tags: [String]
+  public let isLive: Bool
+  public let tags: [String]
 
-  let profilePictureURL: String
-  let title: String
-  @NilOnTypeMismatch var startedAt: Date?
+  public let profilePictureURL: String
+  public let title: String
+  @NilOnTypeMismatch public var startedAt: Date?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -61,10 +61,15 @@ public struct Channel: Decodable {
   }
 }
 
-@propertyWrapper struct NilOnTypeMismatch<Value> { var wrappedValue: Value? }
+@propertyWrapper public struct NilOnTypeMismatch<Value> {
+  public var wrappedValue: Value?
+  public init(wrappedValue: Value?) {
+    self.wrappedValue = wrappedValue
+  }
+}
 
 extension NilOnTypeMismatch: Decodable where Value: Decodable {
-  init(from decoder: Decoder) throws {
+  public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     self.wrappedValue = try? container.decode(Value.self)
   }

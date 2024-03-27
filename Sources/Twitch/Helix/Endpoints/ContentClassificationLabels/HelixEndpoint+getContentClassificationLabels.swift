@@ -16,7 +16,7 @@ where
 }
 
 public struct ContentClassificationLabel: Decodable {
-  let id: String
-  let description: String
-  let name: String
+  public let id: String
+  public let description: String
+  public let name: String
 }

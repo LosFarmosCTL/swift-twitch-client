@@ -46,11 +46,11 @@ private struct BanUserBody: Encodable {
 }
 
 public struct Ban: Decodable {
-  let broadcasterID: String
-  let moderatorID: String
-  let userID: String
-  let createdAt: Date
-  let endTime: Date?
+  public let broadcasterID: String
+  public let moderatorID: String
+  public let userID: String
+  public let createdAt: Date
+  public let endTime: Date?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcaster_id"

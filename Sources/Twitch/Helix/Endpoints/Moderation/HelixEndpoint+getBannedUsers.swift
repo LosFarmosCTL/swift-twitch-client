@@ -28,18 +28,18 @@ where
 }
 
 public struct BannedUser: Decodable {
-  let userID: String
-  let userLogin: String
-  let userName: String
+  public let userID: String
+  public let userLogin: String
+  public let userName: String
 
-  let expiresAt: Date
-  let createdAt: Date
+  public let expiresAt: Date
+  public let createdAt: Date
 
-  let reason: String?
+  public let reason: String?
 
-  let moderatorID: String
-  let moderatorLogin: String
-  let moderatorName: String
+  public let moderatorID: String
+  public let moderatorLogin: String
+  public let moderatorName: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "user_id"

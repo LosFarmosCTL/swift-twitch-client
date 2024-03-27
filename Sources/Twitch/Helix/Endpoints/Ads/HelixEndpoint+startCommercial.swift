@@ -32,9 +32,9 @@ private struct StartCommercialRequestBody: Encodable {
 }
 
 public struct Commercial: Decodable {
-  let length: Int
-  let message: String
-  let retryAfter: Int
+  public let length: Int
+  public let message: String
+  public let retryAfter: Int
 
   enum CodingKeys: String, CodingKey {
     case length

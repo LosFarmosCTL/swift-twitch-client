@@ -27,11 +27,11 @@ where
 }
 
 public struct ShieldModeStatus: Decodable {
-  let isActive: Bool
-  let moderatorID: String
-  let moderatorName: String
-  let moderatorLogin: String
-  @NilOnTypeMismatch var lastActivatedAt: Date?
+  public let isActive: Bool
+  public let moderatorID: String
+  public let moderatorName: String
+  public let moderatorLogin: String
+  @NilOnTypeMismatch public var lastActivatedAt: Date?
 
   enum CodingKeys: String, CodingKey {
     case isActive = "is_active"

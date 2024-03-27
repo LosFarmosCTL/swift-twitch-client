@@ -17,21 +17,21 @@ where
 }
 
 public struct User: Decodable {
-  let id: String
-  let login: String
-  let displayName: String
+  public let id: String
+  public let login: String
+  public let displayName: String
 
-  let type: String
-  let broadcasterType: BroadcasterType
+  public let type: String
+  public let broadcasterType: BroadcasterType
 
-  let description: String
-  let profileImageUrl: String
-  let offlineImageUrl: String
-  let createdAt: Date
+  public let description: String
+  public let profileImageUrl: String
+  public let offlineImageUrl: String
+  public let createdAt: Date
 
-  let email: String?
+  public let email: String?
 
-  enum BroadcasterType: String, Decodable {
+  public enum BroadcasterType: String, Decodable {
     case partner
     case affiliate
     case none = ""

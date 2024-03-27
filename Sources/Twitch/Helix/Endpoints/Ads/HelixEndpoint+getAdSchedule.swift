@@ -16,12 +16,12 @@ where
 }
 
 public struct AdSchedule: Decodable {
-  let nextAdAt: Date
-  let lastAdAt: Date
-  let duration: Int
-  let prerollFreeTime: Int
-  let snoozeCount: Int
-  let snoozeRefreshAt: Date
+  public let nextAdAt: Date
+  public let lastAdAt: Date
+  public let duration: Int
+  public let prerollFreeTime: Int
+  public let snoozeCount: Int
+  public let snoozeRefreshAt: Date
 
   enum CodingKeys: String, CodingKey {
     case nextAdAt = "next_ad_at"
