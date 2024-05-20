@@ -29,12 +29,20 @@ internal actor EventSubConnection {
   internal func connect() async throws -> String {
     // guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
     self.websocket = urlSession.webSocketTask(with: eventsubURL)
+    self.websocket?.resume()
 
     let welcomeMessage = try await withCheckedThrowingContinuation { continuation in
       self.welcomeContinuation = continuation
 
-      self.websocket?.receive(completionHandler: receiveMessage)
-      self.websocket?.resume()
+      Task {
+        do {
+          while let result = try await self.websocket?.receive() {
+            receiveMessage(.success(result))
+          }
+        } catch let error {
+          receiveMessage(.failure(error))
+        }
+      }
     }
 
     return welcomeMessage.sessionID
