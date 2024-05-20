@@ -3,10 +3,11 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == CreateEventSubResponse, HelixResponseType == EventSubSubscription
+  ResponseType == CreateEventSubResponse,
+  HelixResponseType == CreateEventSubResponse.EventSubSubscription
 {
   public static func createEventSubSubscription(
-    using transport: EventSubTransport, type: EventSubSubscriptionType
+    using transport: EventSubTransport, type: EventSubSubscription<some Decodable>
   ) -> Self {
     .init(
       method: "POST", path: "eventsub/subscriptions",
@@ -61,42 +62,42 @@ public struct CreateEventSubResponse {
   public let cost: Int
   public let totalCost: Int
   public let maxTotalCost: Int
-}
 
-public struct EventSubSubscription: Decodable {
-  public let id: String
-  public let status: String
-  public let type: String
-  public let version: String
-  public let condition: [String: String]
-  public let createdAt: Date
-  public let transport: TransportResponse
-}
+  public struct EventSubSubscription: Decodable {
+    public let id: String
+    public let status: String
+    public let type: String
+    public let version: String
+    public let condition: [String: String]
+    public let createdAt: Date
+    public let transport: TransportResponse
+  }
 
-public struct TransportResponse: Decodable {
-  public let method: String
+  public struct TransportResponse: Decodable {
+    public let method: String
 
-  // only included if method is "webhook"
-  public let callback: String?
-  public let secret: String?
+    // only included if method is "webhook"
+    public let callback: String?
+    public let secret: String?
 
-  // only included if method is "websocket"
-  public let sessionID: String?
-  public let connectedAt: Date?
+    // only included if method is "websocket"
+    public let sessionID: String?
+    public let connectedAt: Date?
 
-  // only included if method is "conduit"
-  public let conduitID: String?
+    // only included if method is "conduit"
+    public let conduitID: String?
 
-  enum CodingKeys: String, CodingKey {
-    case method
+    enum CodingKeys: String, CodingKey {
+      case method
 
-    case callback
-    case secret
+      case callback
+      case secret
 
-    case sessionID = "session_id"
-    case connectedAt = "connected_at"
+      case sessionID = "session_id"
+      case connectedAt = "connected_at"
 
-    case conduitID = "conduit_id"
+      case conduitID = "conduit_id"
+    }
   }
 }
 
