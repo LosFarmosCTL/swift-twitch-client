@@ -27,7 +27,7 @@ class HelixTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/chat/badges/global")!
     var mock = Mock(
       url: url, contentType: .json, statusCode: 200,
-      data: [.get: "{\"data\":[]}".data(using: .utf8)!])
+      data: [.get: Data("{\"data\":[]}".utf8)])
 
     mock.onRequestHandler = OnRequestHandler(requestCallback: { request in
       guard let clientIDHeader = request.value(forHTTPHeaderField: "Client-Id") else {
@@ -54,7 +54,7 @@ class HelixTests: XCTestCase {
     let url = URL(string: "https://api.twitch.tv/helix/test")!
     var mock = Mock(
       url: url, contentType: .json, statusCode: 200,
-      data: [.post: "{\"data\":[\"forsen\"]}".data(using: .utf8)!])
+      data: [.post: Data("{\"data\":[\"forsen\"]}".utf8)])
 
     mock.onRequestHandler = OnRequestHandler(
       httpBodyType: [String: String].self,
@@ -117,9 +117,8 @@ class HelixTests: XCTestCase {
 
   func testInvalidErrorResponse() async throws {
     let url = URL(string: "https://api.twitch.tv/helix/invalid")!
-    Mock(
-      url: url, contentType: .json, statusCode: 500, data: [.get: "".data(using: .utf8)!]
-    ).register()
+    Mock(url: url, contentType: .json, statusCode: 500, data: [.get: Data("".utf8)])
+      .register()
 
     await XCTAssertThrowsErrorAsync(
       try await self.twitch.helix(endpoint: .custom(method: "GET", path: "invalid")),
