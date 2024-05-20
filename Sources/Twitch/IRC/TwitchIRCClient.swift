@@ -11,7 +11,6 @@ import TwitchIRC
 
 public class TwitchIRCClient {
   private let connectionPool: IRCConnectionPool
-  private let messageStream: AsyncThrowingStream<IncomingMessage, Error>
 
   private var listeners: [(Result<IncomingMessage, Error>) -> Void] = []
   private var continuations: [AsyncThrowingStream<IncomingMessage, Error>.Continuation] =
@@ -29,11 +28,11 @@ public class TwitchIRCClient {
       urlSession: urlSession
     )
 
-    self.messageStream = try await connectionPool.connect()
+    let messageStream = try await connectionPool.connect()
 
     Task {
       do {
-        for try await message in self.messageStream {
+        for try await message in messageStream {
           for listener in self.listeners {
             listener(.success(message))
           }
