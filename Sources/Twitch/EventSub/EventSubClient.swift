@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 internal class EventSubClient {
   private static let maxSubscriptionsPerConnection = 300
 
