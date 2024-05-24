@@ -34,10 +34,8 @@ public struct ShieldModeStatus: Decodable {
   @NilOnTypeMismatch public var lastActivatedAt: Date?
 
   enum CodingKeys: String, CodingKey {
-    case isActive = "is_active"
-    case moderatorID = "moderator_id"
-    case moderatorName = "moderator_name"
-    case moderatorLogin = "moderator_login"
-    case lastActivatedAt = "last_activated_at"
+    case moderatorID = "moderatorId"
+    case moderatorName, moderatorLogin
+    case isActive, lastActivatedAt
   }
 }

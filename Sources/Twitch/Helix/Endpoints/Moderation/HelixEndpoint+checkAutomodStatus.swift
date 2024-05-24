@@ -35,7 +35,7 @@ public struct AutomodStatus: Decodable {
   public let isPermitted: Bool
 
   enum CodingKeys: String, CodingKey {
-    case messageID = "msg_id"
-    case isPermitted = "is_permitted"
+    case messageID = "msgId"
+    case isPermitted
   }
 }

@@ -32,15 +32,14 @@ public struct ExtensionReport: Decodable {
   public let range: DateInterval
 
   enum CodingKeys: String, CodingKey {
-    case extensionID = "extension_id"
+    case extensionID = "extensionId"
     case url = "URL"
     case type
-    case range = "date_range"
+    case range = "dateRange"
   }
 
   enum DateRangeCodingKeys: String, CodingKey {
-    case startedAt = "started_at"
-    case endedAt = "ended_at"
+    case startedAt, endedAt
   }
 
   public init(from decoder: Decoder) throws {

@@ -107,13 +107,6 @@ private struct CreateEventSubRequestBody: Encodable {
   let condition: [String: String]
 
   let transport: Transport
-
-  enum CodingKeys: String, CodingKey {
-    case type
-    case version
-    case condition
-    case transport
-  }
 }
 
 private struct Transport: Encodable {
@@ -124,10 +117,8 @@ private struct Transport: Encodable {
   let conduitID: String?
 
   enum CodingKeys: String, CodingKey {
-    case method
-    case callback
-    case secret
-    case sessionID = "session_id"
-    case conduitID = "conduit_id"
+    case method, callback, secret
+    case sessionID = "sessionId"
+    case conduitID = "conduitId"
   }
 }

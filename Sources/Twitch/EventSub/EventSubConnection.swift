@@ -57,6 +57,9 @@ internal actor EventSubConnection {
   private func receiveMessage(
     _ result: Result<URLSessionWebSocketTask.Message, any Error>
   ) {
+    // recursively receive the next message
+    self.websocket?.receive(completionHandler: receiveMessage)
+
     switch result {
     case .success(let message):
       switch message {
@@ -83,8 +86,6 @@ internal actor EventSubConnection {
           .failure(EventSubError.disconnected(with: error, socketID: socketID ?? "")))
       }
     }
-
-    self.websocket?.receive(completionHandler: receiveMessage)
   }
 
   private func parseMessage(_ message: String) throws -> EventSubMessage {

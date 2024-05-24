@@ -22,13 +22,4 @@ public struct AdSchedule: Decodable {
   public let prerollFreeTime: Int
   public let snoozeCount: Int
   public let snoozeRefreshAt: Date
-
-  enum CodingKeys: String, CodingKey {
-    case nextAdAt = "next_ad_at"
-    case lastAdAt = "last_ad_at"
-    case duration
-    case prerollFreeTime = "preroll_free_time"
-    case snoozeCount = "snooze_count"
-    case snoozeRefreshAt = "snooze_refresh_at"
-  }
 }

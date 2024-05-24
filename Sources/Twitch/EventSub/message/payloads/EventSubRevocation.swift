@@ -10,12 +10,12 @@ public struct EventSubRevocation: Decodable {
     case versionRemoved = "version_removed"
   }
 
-  internal struct Subscription: Decodable {
+  struct Subscription: Decodable {
     let id: String
     let status: Status
   }
 
-  internal enum CodingKeys: CodingKey {
+  enum CodingKeys: CodingKey {
     case subscription
   }
 

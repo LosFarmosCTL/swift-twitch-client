@@ -42,14 +42,11 @@ public struct SetEmote: Decodable {
   public let themeMode: [Emote.ThemeMode]
 
   enum CodingKeys: String, CodingKey {
-    case id = "id"
-    case name = "name"
-    case type = "emote_type"
-    case setID = "emote_set_id"
-    case ownerID = "owner_id"
-    case format = "format"
-    case scale = "scale"
-    case themeMode = "theme_mode"
+    case id, name
+    case type = "emoteType"
+    case setID = "emoteSetId"
+    case ownerID = "ownerId"
+    case format, scale, themeMode
   }
 
   public func getURL(

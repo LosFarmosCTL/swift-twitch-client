@@ -9,16 +9,6 @@ internal struct HelixResponse<T: Decodable>: Decodable {
   let totalCost: Int?
   let maxTotalCost: Int?
 
-  enum CodingKeys: String, CodingKey {
-    case data
-    case pagination
-    case total
-    case points
-    case template
-    case totalCost
-    case maxTotalCost
-  }
-
   internal struct Pagination: Decodable { let cursor: String? }
 }
 

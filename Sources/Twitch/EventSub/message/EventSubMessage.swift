@@ -16,10 +16,10 @@ internal struct EventSubMessage: Decodable {
     let metadata = try container.decode(Metadata.self, forKey: .metadata)
 
     // self.id = metadata.id
-    self.timestamp = metadata.timestamp
+    self.timestamp = metadata.messageTimestamp
 
     // depending on the type of message, we need to decode a different payload
-    switch metadata.type {
+    switch metadata.messageType {
     case .welcome:
       self.payload = .welcome(
         try container.decode(EventSubWelcome.self, forKey: .payload))
@@ -38,18 +38,15 @@ internal struct EventSubMessage: Decodable {
   }
 
   internal struct Metadata: Decodable {
-    let id: String
-    let type: MessageType
-    let timestamp: Date
+    let messageID: String
+    let messageType: MessageType
+    let messageTimestamp: Date
 
     let subscriptionType: SubscriptionType?
 
     enum CodingKeys: String, CodingKey {
-      case id = "messageId"
-      case type = "messageType"
-      case timestamp = "messageTimestamp"
-
-      case subscriptionType = "subscriptionType"
+      case messageID = "messageId"
+      case messageType, messageTimestamp, subscriptionType
     }
 
     enum MessageType: String, Decodable {
