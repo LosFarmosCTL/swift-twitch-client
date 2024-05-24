@@ -31,7 +31,10 @@ public struct HelixEndpoint<
     self.makeResponse = makeResponse
   }
 
-  internal func makeRequest(using authentication: TwitchCredentials) -> URLRequest {
+  internal func makeRequest(
+    using authentication: TwitchCredentials,
+    encoder: JSONEncoder
+  ) -> URLRequest {
     var url = baseURL.appending(path: path)
 
     let queryItems =
@@ -51,7 +54,7 @@ public struct HelixEndpoint<
 
     if let body = makeBody(authentication) {
       urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
-      urlRequest.httpBody = try? JSONEncoder().encode(body)
+      urlRequest.httpBody = try? encoder.encode(body)
     }
 
     return urlRequest
