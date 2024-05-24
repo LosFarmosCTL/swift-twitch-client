@@ -8,7 +8,6 @@ public actor TwitchClient {
   internal let authentication: TwitchCredentials
   internal let urlSession: URLSession
 
-  // TODO: use .convertFromSnakeCase encoding strategy
   internal let encoder = JSONEncoder()
   internal let decoder = JSONDecoder()
 
@@ -26,7 +25,10 @@ public actor TwitchClient {
     self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
     self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
 
+    self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+    self.encoder.keyEncodingStrategy = .convertToSnakeCase
+
     self.eventSubClient = EventSubClient(
-      credentials: authentication, urlSession: urlSession)
+      credentials: authentication, urlSession: urlSession, decoder: self.decoder)
   }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 internal struct EventSubMessage: Decodable {
-  let id: String
+  // let id: String
   let timestamp: Date
 
   let payload: EventSubPayload
@@ -13,9 +13,9 @@ internal struct EventSubMessage: Decodable {
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    let metadata = try container.decode(Self.Metadata.self, forKey: .metadata)
+    let metadata = try container.decode(Metadata.self, forKey: .metadata)
 
-    self.id = metadata.id
+    // self.id = metadata.id
     self.timestamp = metadata.timestamp
 
     // depending on the type of message, we need to decode a different payload
@@ -45,11 +45,11 @@ internal struct EventSubMessage: Decodable {
     let subscriptionType: SubscriptionType?
 
     enum CodingKeys: String, CodingKey {
-      case id = "message_id"
-      case type = "message_type"
-      case timestamp = "message_timestamp"
+      case id = "messageId"
+      case type = "messageType"
+      case timestamp = "messageTimestamp"
 
-      case subscriptionType
+      case subscriptionType = "subscriptionType"
     }
 
     enum MessageType: String, Decodable {
@@ -61,7 +61,10 @@ internal struct EventSubMessage: Decodable {
     }
   }
 
+  // TODO: use this enum for the EventSubSubscription initializers
   internal enum SubscriptionType: String, Decodable {
     case channelFollow = "channel.follow"
+    case channelChatClear = "channel.chat.clear"
+    case channelChatMessage = "channel.chat.message"
   }
 }

@@ -31,4 +31,4 @@ internal struct EventSubNotification: Decodable {
   }
 }
 
-internal protocol Event: Decodable {}
+public protocol Event: Decodable {}

@@ -7,7 +7,7 @@ where
   HelixResponseType == CreateEventSubResponse.EventSubSubscription
 {
   public static func createEventSubSubscription(
-    using transport: EventSubTransport, type: EventSubSubscription<some Decodable>
+    using transport: EventSubTransport, type: EventSubSubscription<some Event>
   ) -> Self {
     .init(
       method: "POST", path: "eventsub/subscriptions",
@@ -21,7 +21,7 @@ where
           throw HelixError.noDataInResponse
         }
 
-        guard let cost = $0.cost,
+        guard let total = $0.total,
           let totalCost = $0.totalCost,
           let maxTotalCost = $0.maxTotalCost
         else {
@@ -29,7 +29,7 @@ where
         }
 
         return CreateEventSubResponse(
-          subscription: subscription, cost: cost, totalCost: totalCost,
+          subscription: subscription, total: total, totalCost: totalCost,
           maxTotalCost: maxTotalCost)
       })
   }
@@ -48,10 +48,10 @@ public enum EventSubTransport {
         conduitID: nil)
     case .websocket(let id):
       return .init(
-        method: "webhook", callback: nil, secret: nil, sessionID: id, conduitID: nil)
+        method: "websocket", callback: nil, secret: nil, sessionID: id, conduitID: nil)
     case .conduit(let id):
       return .init(
-        method: "webhook", callback: nil, secret: nil, sessionID: nil, conduitID: id)
+        method: "conduit", callback: nil, secret: nil, sessionID: nil, conduitID: id)
     }
   }
 }
@@ -59,7 +59,7 @@ public enum EventSubTransport {
 public struct CreateEventSubResponse {
   public let subscription: EventSubSubscription
 
-  public let cost: Int
+  public let total: Int
   public let totalCost: Int
   public let maxTotalCost: Int
 
@@ -93,10 +93,10 @@ public struct CreateEventSubResponse {
       case callback
       case secret
 
-      case sessionID = "session_id"
-      case connectedAt = "connected_at"
+      case sessionID = "sessionId"
+      case connectedAt
 
-      case conduitID = "conduit_id"
+      case conduitID = "conduitId"
     }
   }
 }
