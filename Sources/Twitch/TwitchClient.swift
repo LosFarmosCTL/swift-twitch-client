@@ -11,8 +11,6 @@ public actor TwitchClient {
   internal let encoder = JSONEncoder()
   internal let decoder = JSONDecoder()
 
-  internal var eventSubHandlers = [any EventSubHandler]()
-
   internal var eventSubClient: EventSubClient
 
   public init(
