@@ -1,4 +1,5 @@
 #if canImport(FoundationNetworking)
+  import Foundation
   import FoundationNetworking
 
   extension URL {
