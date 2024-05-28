@@ -1,4 +1,6 @@
 #if canImport(FoundationNetworking)
+  import FoundationNetworking
+
   extension URL {
     internal func appending(queryItems: [URLQueryItem]) -> URL {
       var components = URLComponents(url: self, resolvingAgainstBaseURL: false)!
