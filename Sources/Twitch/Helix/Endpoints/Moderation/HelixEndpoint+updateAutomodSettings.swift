@@ -49,9 +49,6 @@ public struct AutomodConfiguration: Encodable {
 
   enum CodingKeys: String, CodingKey {
     case aggression, bullying, disability, misogyny, swearing
-
-    case raceEthnicityOrReligion = "race_ethnicity_or_religion"
-    case sexBasedTerms = "sex_based_terms"
-    case sexualitySexOrGender = "sexuality_sex_or_gender"
+    case raceEthnicityOrReligion, sexBasedTerms, sexualitySexOrGender
   }
 }

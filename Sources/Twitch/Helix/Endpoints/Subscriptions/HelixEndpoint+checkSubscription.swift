@@ -31,14 +31,12 @@ public struct Subscription: Decodable {
   public let tier: SubTier
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
-    case broadcasterLogin = "broadcaster_login"
-    case broadcasterName = "broadcaster_name"
+    case broadcasterID = "broadcasterId"
+    case broadcasterLogin, broadcasterName
 
-    case isGift = "is_gift"
-    case gifterID = "gifter_id"
-    case gifterLogin = "gifter_login"
-    case gifterName = "gifter_name"
+    case isGift
+    case gifterID = "gifterId"
+    case gifterLogin, gifterName
 
     case tier
   }

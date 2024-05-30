@@ -106,7 +106,7 @@ extension TwitchClient {
   private func data(
     for endpoint: HelixEndpoint<some Any, some Decodable, some HelixEndpointResponseType>
   ) async throws -> Data {
-    let request = endpoint.makeRequest(using: self.authentication)
+    let request = endpoint.makeRequest(using: self.authentication, encoder: self.encoder)
 
     let (data, response): (Data, URLResponse)
     do {

@@ -45,32 +45,16 @@ public struct Channel: Decodable {
 
   enum CodingKeys: String, CodingKey {
     case id
-    case login = "broadcaster_login"
-    case name = "display_name"
-    case language = "broadcaster_language"
+    case login = "broadcasterLogin"
+    case name = "displayName"
+    case language = "broadcasterLanguage"
 
-    case gameID = "game_id"
-    case gameName = "game_name"
+    case gameID = "gameId"
+    case gameName
 
-    case isLive = "is_live"
-    case tags
+    case isLive, tags
 
-    case profilePictureURL = "thumbnail_url"
-    case title
-    case startedAt = "started_at"
-  }
-}
-
-@propertyWrapper public struct NilOnTypeMismatch<Value> {
-  public var wrappedValue: Value?
-  public init(wrappedValue: Value?) {
-    self.wrappedValue = wrappedValue
-  }
-}
-
-extension NilOnTypeMismatch: Decodable where Value: Decodable {
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.singleValueContainer()
-    self.wrappedValue = try? container.decode(Value.self)
+    case profilePictureURL = "thumbnailUrl"
+    case title, startedAt
   }
 }

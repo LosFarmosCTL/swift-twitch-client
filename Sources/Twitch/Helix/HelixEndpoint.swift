@@ -31,7 +31,10 @@ public struct HelixEndpoint<
     self.makeResponse = makeResponse
   }
 
-  internal func makeRequest(using authentication: TwitchCredentials) -> URLRequest {
+  internal func makeRequest(
+    using authentication: TwitchCredentials,
+    encoder: JSONEncoder
+  ) -> URLRequest {
     var url = baseURL.appending(path: path)
 
     let queryItems =
@@ -51,7 +54,7 @@ public struct HelixEndpoint<
 
     if let body = makeBody(authentication) {
       urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
-      urlRequest.httpBody = try? JSONEncoder().encode(body)
+      urlRequest.httpBody = try? encoder.encode(body)
     }
 
     return urlRequest
@@ -85,17 +88,3 @@ public enum HelixEndpointResponseTypes {
 
 public typealias UserID = String
 public typealias PaginationCursor = String
-
-#if canImport(FoundationNetworking)
-  extension URL {
-    internal func appending(queryItems: [URLQueryItem]) -> URL {
-      var components = URLComponents(url: self, resolvingAgainstBaseURL: false)!
-      components.queryItems = (components.queryItems ?? []) + queryItems
-      return components.url!
-    }
-
-    internal func appending(path: String) -> URL {
-      appendingPathComponent(path)
-    }
-  }
-#endif

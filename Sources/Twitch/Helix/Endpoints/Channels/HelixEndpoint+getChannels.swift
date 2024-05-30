@@ -26,14 +26,11 @@ public struct Broadcaster: Decodable {
   public let tags: [String]
 
   enum CodingKeys: String, CodingKey {
-    case id = "broadcaster_id"
-    case login = "broadcaster_login"
-    case name = "broadcaster_name"
-    case language = "broadcaster_language"
-    case gameID = "game_id"
-    case gameName = "game_name"
-    case title
-    case delay
-    case tags
+    case id = "broadcasterId"
+    case login = "broadcasterLogin"
+    case name = "broadcasterName"
+    case language = "broadcasterLanguage"
+    case gameID = "gameId"
+    case gameName, title, delay, tags
   }
 }

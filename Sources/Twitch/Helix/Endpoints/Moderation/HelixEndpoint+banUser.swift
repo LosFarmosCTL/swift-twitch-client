@@ -39,9 +39,8 @@ private struct BanUserBody: Encodable {
   let duration: Duration?
 
   enum CodingKeys: String, CodingKey {
-    case userID = "user_id"
-    case reason
-    case duration
+    case userID = "userId"
+    case reason, duration
   }
 }
 
@@ -53,10 +52,9 @@ public struct Ban: Decodable {
   public let endTime: Date?
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
-    case moderatorID = "moderator_id"
-    case userID = "user_id"
-    case createdAt = "created_at"
-    case endTime = "end_time"
+    case broadcasterID = "broadcasterId"
+    case moderatorID = "moderatorId"
+    case userID = "userId"
+    case createdAt, endTime
   }
 }

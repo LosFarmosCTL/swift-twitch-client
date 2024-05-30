@@ -28,8 +28,8 @@ public struct VIP: Decodable {
   public let displayName: String
 
   enum CodingKeys: String, CodingKey {
-    case id = "user_id"
-    case login = "user_login"
-    case displayName = "user_name"
+    case id = "userId"
+    case login = "userLogin"
+    case displayName = "userName"
   }
 }

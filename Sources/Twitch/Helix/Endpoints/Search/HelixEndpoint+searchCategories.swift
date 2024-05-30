@@ -28,10 +28,4 @@ public struct Category: Decodable {
   public let id: String
   public let name: String
   public let boxArtUrl: String
-
-  enum CodingKeys: String, CodingKey {
-    case id
-    case name
-    case boxArtUrl = "box_art_url"
-  }
 }

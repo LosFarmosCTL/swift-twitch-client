@@ -39,14 +39,9 @@ public struct BlockedTerm: Decodable {
   public let expiresAt: Date?
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
-    case moderatorID = "moderator_id"
+    case broadcasterID = "broadcasterId"
+    case moderatorID = "moderatorId"
 
-    case id, text
-
-    case createdAt = "created_at"
-    case updatedAt = "updated_at"
-
-    case expiresAt = "expires_at"
+    case id, text, createdAt, updatedAt, expiresAt
   }
 }

@@ -61,9 +61,7 @@ public struct Follower: Decodable {
   public let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
-    case userID = "user_id"
-    case userLogin = "user_login"
-    case userName = "user_name"
-    case followedAt = "followed_at"
+    case userID = "userId"
+    case userLogin, userName, followedAt
   }
 }

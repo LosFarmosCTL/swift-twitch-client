@@ -34,14 +34,14 @@ public struct ChatSettings: Decodable {
   public let nonModeratorChatDelay: Int?
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
-    case slowModeWaitTime = "slow_mode_wait_time"
-    case followerModeDuration = "follower_mode_duration"
-    case subscriberMode = "subscriber_mode"
-    case emoteMode = "emote_mode"
-    case uniqueChatMode = "unique_chat_mode"
+    case broadcasterID = "broadcasterId"
+    case slowModeWaitTime
+    case followerModeDuration
+    case subscriberMode
+    case emoteMode
+    case uniqueChatMode
 
-    case nonModeratorChatDelayDuration = "non_moderator_chat_delay_duration"
+    case nonModeratorChatDelayDuration
   }
 
   public init(from decoder: Decoder) throws {

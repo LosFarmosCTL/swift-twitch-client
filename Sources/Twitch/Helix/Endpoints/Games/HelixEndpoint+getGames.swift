@@ -31,9 +31,7 @@ public struct Game: Decodable {
   public let igdbID: String
 
   enum CodingKeys: String, CodingKey {
-    case id
-    case name
-    case boxArtUrl = "box_art_url"
-    case igdbID = "igdb_id"
+    case id, name, boxArtUrl
+    case igdbID = "igdbId"
   }
 }

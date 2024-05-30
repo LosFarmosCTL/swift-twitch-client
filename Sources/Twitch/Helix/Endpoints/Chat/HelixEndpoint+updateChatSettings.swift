@@ -58,19 +58,6 @@ internal struct UpdateChatSettingsRequestBody: Encodable {
   var nonModeratorChatDelay: Bool?
   var nonModeratorChatDelayDuration: Int?
 
-  enum CodingKeys: String, CodingKey {
-    case slowMode = "slow_mode"
-    case slowModeWaitTime = "slow_mode_wait_time"
-    case followerMode = "follower_mode"
-    case followerModeDuration = "follower_mode_duration"
-    case subscriberMode = "subscriber_mode"
-    case emoteMode = "emote_mode"
-    case uniqueChatMode = "unique_chat_mode"
-
-    case nonModeratorChatDelay = "non_moderator_chat_delay"
-    case nonModeratorChatDelayDuration = "non_moderator_chat_delay_duration"
-  }
-
   init(_ settings: [ChatSetting]) {
     for setting in settings {
       switch setting {

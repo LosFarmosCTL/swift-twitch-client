@@ -59,21 +59,17 @@ public struct Subscriber: Decodable {
   public let tier: SubTier
 
   enum CodingKeys: String, CodingKey {
-    case userID = "user_id"
-    case userLogin = "user_login"
-    case userName = "user_name"
+    case userID = "userId"
+    case userLogin, userName
 
-    case broadcasterID = "broadcaster_id"
-    case broadcasterLogin = "broadcaster_login"
-    case broadcasterName = "broadcaster_name"
+    case broadcasterID = "broadcasterId"
+    case broadcasterLogin, broadcasterName
 
-    case isGift = "is_gift"
-    case gifterID = "gifter_id"
-    case gifterLogin = "gifter_login"
-    case gifterName = "gifter_name"
+    case isGift
+    case gifterID = "gifterId"
+    case gifterLogin, gifterName
 
-    case planName = "plan_name"
-    case tier
+    case planName, tier
   }
 
   public init(from decoder: Decoder) throws {

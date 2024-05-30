@@ -28,8 +28,8 @@ public struct ModeratedChannel: Decodable {
   public let displayName: String
 
   enum CodingKeys: String, CodingKey {
-    case id = "broadcaster_id"
-    case login = "broadcaster_login"
-    case displayName = "broadcaster_name"
+    case id = "broadcasterId"
+    case login = "broadcasterLogin"
+    case displayName = "broadcasterName"
   }
 }
