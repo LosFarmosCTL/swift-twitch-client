@@ -16,8 +16,7 @@ internal class EventSubClient {
 
   private var connections = [SocketID: EventSubConnection]()
   private var connectionEvents = [SocketID: [EventID]]()
-
-  private var handlers = [EventID: EventSubHandler]()
+  private var eventHandlers = [EventID: EventSubHandler]()
 
   internal init(
     credentials: TwitchCredentials, urlSession: URLSession, decoder: JSONDecoder
@@ -30,7 +29,7 @@ internal class EventSubClient {
   internal func addHandler(
     _ handler: EventSubHandler, for eventID: String, on socketID: String
   ) {
-    handlers[eventID] = handler
+    eventHandlers[eventID] = handler
 
     connectionEvents[socketID, default: []].append(eventID)
   }
@@ -44,26 +43,53 @@ internal class EventSubClient {
     return try await createConnection()
   }
 
-  private func createConnection() async throws -> SocketID {
+  private func createConnection(
+    url: URL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
+  ) async throws -> SocketID {
     let connection = EventSubConnection(
-      credentials: credentials, urlSession: urlSession, decoder: decoder)
+      credentials: credentials, urlSession: urlSession, decoder: decoder,
+      eventSubURL: url, onMessage: receiveMessage(_:))
 
-    let socketID = try await connection.connect(completionHandler: receiveMessage)
+    let socketID = try await connection.resume()
+
     connections[socketID] = connection
     return socketID
   }
 
-  private func receiveMessage(_ result: Result<EventSubNotification, EventSubError>) {
+  private func receiveMessage(
+    _ result: Result<EventSubNotification, EventSubConnectionError>
+  ) {
     switch result {
     case .success(let notification):
-      handlers[notification.subscription.id]?.yield(notification.event)
+      eventHandlers[notification.subscription.id]?.yield(notification.event)
+
     case .failure(let error):
       switch error {
-      case .disconnected(_, let socketID):
-        finishConnection(socketID, throwing: error)
       case .revocation(let revocation):
-        handlers[revocation.subscriptionID]?.finish(throwing: .revocation(revocation))
-      default: break
+        eventHandlers[revocation.subscriptionID]?.finish(
+          throwing: .revocation(revocation))
+      case .reconnectRequested(let reconnectURL, let socketID):
+        self.reconnect(socketID, reconnectURL: reconnectURL)
+      case .disconnected(let error, let socketID):
+        finishConnection(socketID, throwing: .disconnected(with: error))
+      case .timedOut(let socketID):
+        finishConnection(socketID, throwing: .timedOut)
+      }
+    }
+  }
+
+  private func reconnect(_ socketID: SocketID, reconnectURL: URL) {
+    Task {
+      do {
+        let newSocketID = try await self.createConnection()
+
+        // move all events to the new connection
+        connectionEvents[newSocketID] = connectionEvents[socketID]
+
+        connections.removeValue(forKey: socketID)
+        connectionEvents.removeValue(forKey: socketID)
+      } catch {
+        finishConnection(socketID, throwing: .disconnected(with: error))
       }
     }
   }
@@ -71,10 +97,11 @@ internal class EventSubClient {
   private func finishConnection(_ socketID: SocketID, throwing error: EventSubError) {
     for (socket, events) in connectionEvents where socket == socketID {
       events.forEach { event in
-        handlers[event]?.finish(throwing: error)
+        eventHandlers[event]?.finish(throwing: error)
       }
     }
 
+    connectionEvents.removeValue(forKey: socketID)
     connections.removeValue(forKey: socketID)
   }
 }

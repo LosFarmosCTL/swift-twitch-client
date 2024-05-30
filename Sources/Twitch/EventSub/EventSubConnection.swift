@@ -4,107 +4,120 @@ import Foundation
   import FoundationNetworking
 #endif
 
-internal actor EventSubConnection {
-  private let eventsubURL: URL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
+internal class EventSubConnection {
+  private let eventSubURL: URL
 
   private let credentials: TwitchCredentials
   private let urlSession: URLSession
   private let decoder: JSONDecoder
 
+  private var keepaliveTimer: KeepaliveTimer?
   private var websocket: URLSessionWebSocketTask?
-  private var completionHandler: ((Result<EventSubNotification, EventSubError>) -> Void)?
+  private var socketID: String?
 
+  private var onMessage: ((Result<EventSubNotification, EventSubConnectionError>) -> Void)
   private var welcomeContinuation: CheckedContinuation<EventSubWelcome, any Error>?
 
-  internal var socketID: String?
-
-  init(credentials: TwitchCredentials, urlSession: URLSession, decoder: JSONDecoder) {
-    self.credentials = credentials
-    self.urlSession = urlSession
-    self.decoder = decoder
-  }
-
+  // TODO: look into deinitilizations
   deinit {
     self.websocket?.cancel(with: .goingAway, reason: nil)
   }
 
-  internal func connect(
-    completionHandler: @escaping (Result<EventSubNotification, EventSubError>) -> Void
-  ) async throws -> String {
-    guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
+  init(
+    credentials: TwitchCredentials, urlSession: URLSession, decoder: JSONDecoder,
+    eventSubURL: URL,
+    onMessage: @escaping (Result<EventSubNotification, EventSubConnectionError>) -> Void
+  ) {
+    self.credentials = credentials
+    self.urlSession = urlSession
+    self.decoder = decoder
 
-    self.completionHandler = completionHandler
+    self.eventSubURL = eventSubURL
 
-    let welcomeMessage = try await self.startWebsocket()
-    self.socketID = welcomeMessage.sessionID
-    return welcomeMessage.sessionID
+    self.onMessage = onMessage
   }
 
-  private func startWebsocket() async throws -> EventSubWelcome {
-    self.websocket = urlSession.webSocketTask(with: eventsubURL)
-    self.websocket?.receive(completionHandler: receiveMessage)
+  internal func resume() async throws -> String {
+    if let socketID = self.socketID { return socketID }
+
+    self.websocket = urlSession.webSocketTask(with: eventSubURL)
+    self.websocket?.receive(completionHandler: receiveMessage(_:))
     self.websocket?.resume()
 
-    return try await waitForWelcomeMessage()
-  }
+    // Twitch sends keepalive messages in a specified time interval,
+    // if we don't receive a message within that interval, we should
+    // consider the connection to be timed out
+    self.keepaliveTimer = KeepaliveTimer(duration: .seconds(10)) {
+      self.onMessage(
+        .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
+      self.websocket?.cancel()
+    }
 
-  private func waitForWelcomeMessage() async throws -> EventSubWelcome {
-    return try await withCheckedThrowingContinuation { continuation in
+    // wait for the welcome message to be received
+    let welcomeMessage = try await withCheckedThrowingContinuation { continuation in
       self.welcomeContinuation = continuation
     }
+
+    // use a slightly longer keepalive timeout to account for network latency
+    let timeout = welcomeMessage.keepaliveTimeout + .seconds(1)
+    await self.keepaliveTimer?.reset(duration: timeout)
+
+    self.socketID = welcomeMessage.sessionID
+    return welcomeMessage.sessionID
   }
 
   private func receiveMessage(
     _ result: Result<URLSessionWebSocketTask.Message, any Error>
   ) {
-    // recursively receive the next message
-    self.websocket?.receive(completionHandler: receiveMessage)
-
     switch result {
     case .success(let message):
-      switch message {
-      case .string(let string):
-        print(string)
-        let message = try? parseMessage(string)
+      // reset the keepalive timer on every message
+      Task { await self.keepaliveTimer?.reset() }
 
-        guard let message else {
-          welcomeContinuation?.resume(throwing: EventSubError.invalidWelcomeMessage)
-          welcomeContinuation = nil
-          break
-        }
+      if let message = parseMessage(message) { handleMessage(message) }
 
-        handleMessage(message)
-      case .data: fallthrough
-      @unknown default: break
-      }
+      // recursively receive the next message
+      self.websocket?.receive(completionHandler: receiveMessage)
     case .failure(let error):
+      let disconnectedError = EventSubConnectionError.disconnected(
+        with: error, socketID: socketID ?? "")
+
       if let welcomeContinuation {
-        welcomeContinuation.resume(throwing: error)
+        welcomeContinuation.resume(throwing: disconnectedError)
         self.welcomeContinuation = nil
-      } else {
-        completionHandler?(
-          .failure(EventSubError.disconnected(with: error, socketID: socketID ?? "")))
       }
+
+      onMessage(.failure(disconnectedError))
     }
   }
 
-  private func parseMessage(_ message: String) throws -> EventSubMessage {
-    let data = Data(message.utf8)
-
-    return try decoder.decode(EventSubMessage.self, from: data)
+  private func parseMessage(_ message: URLSessionWebSocketTask.Message)
+    -> EventSubMessage?
+  {
+    switch message {
+    case .string(let string):
+      return try? decoder.decode(EventSubMessage.self, from: Data(string.utf8))
+    // ignore binary messages, Twitch only sends JSON
+    case .data: return nil
+    @unknown default: return nil
+    }
   }
 
   private func handleMessage(_ message: EventSubMessage) {
     switch message.payload {
-    case .notification(let notification):
-      completionHandler?(.success(notification))
+    case .keepalive: break  // nothing to do for keepalive messages
     case .welcome(let welcome):
       welcomeContinuation?.resume(returning: welcome)
       welcomeContinuation = nil
+    case .notification(let notification):
+      onMessage(.success(notification))
     case .revocation(let revocation):
-      completionHandler?(.failure(EventSubError.revocation(revocation)))
-    case .reconnect: break
-    case .keepalive: print("KEEPALIVE")
+      onMessage(.failure(EventSubConnectionError.revocation(revocation)))
+    case .reconnect(let reconnect):
+      onMessage(
+        .failure(
+          EventSubConnectionError.reconnectRequested(
+            reconnectURL: reconnect.reconnectURL, socketID: socketID ?? "")))
     }
   }
 }

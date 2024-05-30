@@ -17,6 +17,7 @@ internal struct EventSubNotification: Decodable {
     self.event =
       switch subscription.type {
       case .channelFollow: try container.decode(ChannelFollowEvent.self, forKey: .event)
+      case .chatMessage: try container.decode(ChatMessageEvent.self, forKey: .event)
       }
   }
 
@@ -26,8 +27,10 @@ internal struct EventSubNotification: Decodable {
     let version: String
   }
 
+  // TODO: wayyy to many of these subscription string enums
   enum EventType: String, Decodable {
     case channelFollow = "channel.follow"
+    case chatMessage = "channel.chat.message"
   }
 }
 

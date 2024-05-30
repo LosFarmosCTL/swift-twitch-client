@@ -9,7 +9,6 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  // TODO: handle keepalives, disconnect after not receiving messages for the specified amount of time
   public func eventStream<R: Decodable>(for event: EventSubSubscription<R>) async throws
     -> AsyncThrowingStream<R, any Error>
   {
@@ -50,12 +49,9 @@ extension TwitchClient {
     -> (response: CreateEventSubResponse, socketID: String)
   {
     let socketID = try await self.eventSubClient.getFreeWebsocketID()
-    print("Received socket ID: \(socketID)")
 
     let response = try await self.helix(
       endpoint: .createEventSubSubscription(using: .websocket(id: socketID), type: event))
-
-    print(response)
 
     return (response, socketID)
   }
