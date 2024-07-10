@@ -8,6 +8,7 @@ private typealias EventID = String
 private typealias SocketID = String
 
 internal class EventSubClient {
+  private static let eventSubURL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
   private static let maxSubscriptionsPerConnection = 300
 
   private let credentials: TwitchCredentials
@@ -43,9 +44,7 @@ internal class EventSubClient {
     return try await createConnection()
   }
 
-  private func createConnection(
-    url: URL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
-  ) async throws -> SocketID {
+  private func createConnection(url: URL = eventSubURL) async throws -> SocketID {
     let connection = EventSubConnection(
       credentials: credentials, urlSession: urlSession, decoder: decoder,
       eventSubURL: url, onMessage: receiveMessage(_:))
