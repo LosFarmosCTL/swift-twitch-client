@@ -1,6 +1,7 @@
 import Foundation
 
 internal struct EventSubMessage: Decodable {
+  // TODO: ??
   // let id: String
   let timestamp: Date
 
@@ -42,11 +43,9 @@ internal struct EventSubMessage: Decodable {
     let messageType: MessageType
     let messageTimestamp: Date
 
-    let subscriptionType: SubscriptionType?
-
     enum CodingKeys: String, CodingKey {
       case messageID = "messageId"
-      case messageType, messageTimestamp, subscriptionType
+      case messageType, messageTimestamp
     }
 
     enum MessageType: String, Decodable {
@@ -56,12 +55,5 @@ internal struct EventSubMessage: Decodable {
       case reconnect = "session_reconnect"
       case revocation = "revocation"
     }
-  }
-
-  // TODO: use this enum for the EventSubSubscription initializers
-  internal enum SubscriptionType: String, Decodable {
-    case channelFollow = "channel.follow"
-    case channelChatClear = "channel.chat.clear"
-    case channelChatMessage = "channel.chat.message"
   }
 }
