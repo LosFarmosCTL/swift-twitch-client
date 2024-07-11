@@ -35,10 +35,10 @@ public struct ChatMessageResponse: Decodable {
   public let dropReason: DropReason?
 
   enum CodingKeys: String, CodingKey {
-    case messageID = "message_id"
-    case isSent = "is_sent"
+    case messageID = "messageId"
+    case isSent
 
-    case dropReason = "drop_reason"
+    case dropReason
   }
 
   public struct DropReason: Decodable {
@@ -55,10 +55,10 @@ internal struct SendChatMessageRequestBody: Encodable {
   let replyParentMessageID: String?
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
-    case senderID = "sender_id"
+    case broadcasterID = "broadcasterId"
+    case senderID = "senderId"
     case message
 
-    case replyParentMessageID = "reply_parent_message_id"
+    case replyParentMessageID = "replyParentMessageId"
   }
 }

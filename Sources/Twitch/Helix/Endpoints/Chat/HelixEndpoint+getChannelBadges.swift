@@ -18,7 +18,7 @@ public struct BadgeSet: Decodable {
   public let badges: [Badge]
 
   enum CodingKeys: String, CodingKey {
-    case setID = "set_id"
+    case setID = "setId"
     case badges = "versions"
   }
 }
@@ -33,15 +33,10 @@ public struct Badge: Decodable {
   public let clickUrl: String?
 
   enum CodingKeys: String, CodingKey {
-    case id = "id"
-    case imageUrl1x = "image_url_1x"
-    case imageUrl2x = "image_url_2x"
-    case imageUrl4x = "image_url_4x"
-    case title = "title"
-    case description = "description"
-
-    case clickAction = "click_action"
-    case clickUrl = "click_url"
+    case id, title, description, clickAction, clickUrl
+    case imageUrl1x = "imageUrl1X"
+    case imageUrl2x = "imageUrl2X"
+    case imageUrl4x = "imageUrl4X"
   }
 
   public init(from decoder: Decoder) throws {

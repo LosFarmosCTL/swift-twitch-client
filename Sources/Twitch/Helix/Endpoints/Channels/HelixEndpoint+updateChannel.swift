@@ -60,18 +60,14 @@ internal struct UpdateChannelRequestBody: Encodable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case gameID = "game_id"
-    case broadcasterLanguage = "broadcaster_language"
-    case title
-    case delay
-    case tags
-    case contentClassificationLabels = "content_classification_labels"
-    case isBrandedContent = "is_branded_content"
+    case gameID = "gameId"
+    case broadcasterLanguage, title, delay, tags
+    case contentClassificationLabels
+    case isBrandedContent
   }
 
   enum LabelCodingKeys: String, CodingKey {
-    case id
-    case isEnabled = "is_enabled"
+    case id, isEnabled
   }
 
   func encode(to encoder: Encoder) throws {

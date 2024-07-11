@@ -61,21 +61,16 @@ public struct Stream: Decodable {
 
   enum CodingKeys: String, CodingKey {
     case id
-    case userID = "user_id"
-    case userLogin = "user_login"
-    case userName = "user_name"
+    case userID = "userId"
+    case userLogin, userName
 
-    case gameID = "game_id"
-    case gameName = "game_name"
+    case gameID = "gameId"
+    case gameName
 
-    case type
-    case title
-    case language
-    case tags
-    case isMature = "is_mature"
+    case type, title, language, tags, isMature
 
-    case viewerCount = "viewer_count"
-    case startedAt = "started_at"
-    case thumbnailURL = "thumbnail_url"
+    case viewerCount
+    case startedAt
+    case thumbnailURL = "thumbnailUrl"
   }
 }

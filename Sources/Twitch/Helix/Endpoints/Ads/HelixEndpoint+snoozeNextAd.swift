@@ -26,10 +26,4 @@ public struct SnoozeResult: Decodable {
   public let snoozeCount: Int
   public let snoozeRefreshAt: Date
   public let nextAdAt: Date
-
-  enum CodingKeys: String, CodingKey {
-    case snoozeCount = "snooze_count"
-    case snoozeRefreshAt = "snooze_refresh_at"
-    case nextAdAt = "next_ad_at"
-  }
 }

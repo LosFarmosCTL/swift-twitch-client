@@ -26,7 +26,7 @@ private struct StartCommercialRequestBody: Encodable {
   let length: Int
 
   enum CodingKeys: String, CodingKey {
-    case broadcasterID = "broadcaster_id"
+    case broadcasterID = "broadcasterId"
     case length
   }
 }
@@ -35,10 +35,4 @@ public struct Commercial: Decodable {
   public let length: Int
   public let message: String
   public let retryAfter: Int
-
-  enum CodingKeys: String, CodingKey {
-    case length
-    case message
-    case retryAfter = "retry_after"
-  }
 }

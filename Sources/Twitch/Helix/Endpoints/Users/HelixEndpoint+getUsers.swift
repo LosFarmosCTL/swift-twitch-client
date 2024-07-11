@@ -36,20 +36,4 @@ public struct User: Decodable {
     case affiliate
     case none = ""
   }
-
-  enum CodingKeys: String, CodingKey {
-    case id
-    case login
-    case displayName = "display_name"
-
-    case type
-    case broadcasterType = "broadcaster_type"
-
-    case description
-    case profileImageUrl = "profile_image_url"
-    case offlineImageUrl = "offline_image_url"
-    case createdAt = "created_at"
-
-    case email
-  }
 }

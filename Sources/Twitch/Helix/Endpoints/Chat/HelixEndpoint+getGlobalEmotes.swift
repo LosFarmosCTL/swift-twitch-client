@@ -32,14 +32,6 @@ public struct GlobalEmote: Decodable {
   public let scale: [Emote.Scale]
   public let themeMode: [Emote.ThemeMode]
 
-  enum CodingKeys: String, CodingKey {
-    case id = "id"
-    case name = "name"
-    case format = "format"
-    case scale = "scale"
-    case themeMode = "theme_mode"
-  }
-
   public func getURL(
     from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark

@@ -22,9 +22,7 @@ public struct UserColor: Decodable {
   public let color: String
 
   enum CodingKeys: String, CodingKey {
-    case userID = "user_id"
-    case userLogin = "user_login"
-    case userName = "user_name"
-    case color
+    case userID = "userId"
+    case userLogin, userName, color
   }
 }
