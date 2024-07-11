@@ -18,6 +18,8 @@ internal class EventSubConnection {
   private var onMessage: ((Result<EventSubNotification, EventSubConnectionError>) -> Void)
   private var welcomeContinuation: CheckedContinuation<EventSubWelcome, any Error>?
 
+  private var receivedMessageIDs = [String]()
+
   // TODO: look into deinitilizations
   deinit {
     self.websocket?.cancel(with: .goingAway, reason: nil)
@@ -74,7 +76,19 @@ internal class EventSubConnection {
       // reset the keepalive timer on every message
       Task { await self.keepaliveTimer?.reset() }
 
-      if let message = parseMessage(message) { handleMessage(message) }
+      if let message = parseMessage(message) {
+
+        // ignore duplicate messages
+        if !receivedMessageIDs.contains(message.id) {
+          handleMessage(message)
+          receivedMessageIDs.append(message.id)
+
+          // only keep the last 100 message IDs
+          if receivedMessageIDs.count > 100 {
+            receivedMessageIDs.removeFirst()
+          }
+        }
+      }
 
       // recursively receive the next message
       self.websocket?.receive(completionHandler: receiveMessage)

@@ -1,8 +1,7 @@
 import Foundation
 
 internal struct EventSubMessage: Decodable {
-  // TODO: ??
-  // let id: String
+  let id: String
   let timestamp: Date
 
   let payload: EventSubPayload
@@ -16,7 +15,7 @@ internal struct EventSubMessage: Decodable {
 
     let metadata = try container.decode(Metadata.self, forKey: .metadata)
 
-    // self.id = metadata.id
+    self.id = metadata.messageID
     self.timestamp = metadata.messageTimestamp
 
     // depending on the type of message, we need to decode a different payload
