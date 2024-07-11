@@ -51,14 +51,14 @@ extension TwitchClient {
 
   public func helixTask<R, H: Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
-    completionHandler: @escaping @Sendable (R?, HelixError?) -> Void
+    completionHandler: @escaping @Sendable (Result<R, HelixError>) -> Void
   ) {
     Task {
       do {
         let result = try await self.helix(endpoint: endpoint)
-        completionHandler(result, nil)
+        completionHandler(.success(result))
       } catch let error as HelixError {
-        completionHandler(nil, error)
+        completionHandler(.failure(error))
       }
     }
   }
