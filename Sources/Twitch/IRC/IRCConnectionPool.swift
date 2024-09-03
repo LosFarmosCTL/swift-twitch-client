@@ -36,6 +36,14 @@ public actor IRCConnectionPool {
     self.continuation?.finish()
   }
 
+  internal func send(_ message: OutgoingMessage, to channel: String) async throws {
+    guard let connection = await self.getConnection(to: channel) else {
+      return
+    }
+
+    try await connection.send(message)
+  }
+
   internal func join(to channel: String) async throws {
     // ignore if there is already a connection to the channel
     guard await self.getConnection(to: channel) == nil else {

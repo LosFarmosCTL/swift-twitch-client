@@ -57,6 +57,10 @@ public class TwitchIRCClient {
   public func part(from channel: String) async throws {
     try await self.connectionPool.part(from: channel)
   }
+
+  public func send(_ message: OutgoingMessage, to channel: String) async throws {
+    try await self.connectionPool.send(message, to: channel)
+  }
 }
 
 #if canImport(Combine)
