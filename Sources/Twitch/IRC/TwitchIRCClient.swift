@@ -5,13 +5,14 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public class TwitchIRCClient {
+public actor TwitchIRCClient {
   private let connectionPool: IRCConnectionPool
   private var handlers = [IRCMessageHandler]()
 
-  internal init(with authentication: TwitchCredentials? = nil, urlSession: URLSession)
-    async throws
-  {
+  public init(
+    with authentication: TwitchCredentials? = nil,
+    urlSession: URLSession = URLSession(configuration: .default)
+  ) async throws {
     self.connectionPool = IRCConnectionPool(
       with: authentication,
       urlSession: urlSession
