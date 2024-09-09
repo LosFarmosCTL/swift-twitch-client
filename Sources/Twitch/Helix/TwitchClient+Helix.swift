@@ -17,8 +17,7 @@ extension TwitchClient {
     let data = try await self.data(for: endpoint)
 
     guard data.isEmpty else {
-      let rawResponse = String(decoding: data, as: UTF8.self)
-      throw HelixError.nonEmptyResponse(rawResponse: rawResponse)
+      throw HelixError.nonEmptyResponse(responseData: data)
     }
   }
 
@@ -130,9 +129,7 @@ extension TwitchClient {
       let errorResponse = try? self.decoder.decode(HelixErrorResponse.self, from: data)
 
       guard let errorResponse else {
-        let rawResponse = String(decoding: data, as: UTF8.self)
-
-        throw HelixError.parsingErrorFailed(status: statusCode, rawResponse: rawResponse)
+        throw HelixError.parsingErrorFailed(status: statusCode, responseData: data)
       }
 
       throw HelixError.twitchError(
@@ -145,8 +142,7 @@ extension TwitchClient {
     let response = try? self.decoder.decode(HelixResponse<R>.self, from: data)
 
     guard let response else {
-      let rawResponse = String(decoding: data, as: UTF8.self)
-      throw HelixError.parsingResponseFailed(rawResponse: rawResponse)
+      throw HelixError.parsingResponseFailed(responseData: data)
     }
 
     return response
