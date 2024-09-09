@@ -1,12 +1,14 @@
+import Foundation
+
 public enum HelixError: Error {
   case networkError(wrapped: Error)
   case twitchError(name: String, status: Int, message: String)
 
-  case parsingResponseFailed(rawResponse: String)
-  case parsingErrorFailed(status: Int, rawResponse: String)
+  case parsingResponseFailed(responseData: Data)
+  case parsingErrorFailed(status: Int, responseData: Data)
 
   case noDataInResponse
   case missingDataInResponse
 
-  case nonEmptyResponse(rawResponse: String)
+  case nonEmptyResponse(responseData: Data)
 }
