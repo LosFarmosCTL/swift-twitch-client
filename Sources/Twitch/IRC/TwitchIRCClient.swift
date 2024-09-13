@@ -11,11 +11,21 @@ public actor TwitchIRCClient {
     case authenticated(_ credentials: TwitchCredentials)
   }
 
-  private let connectionPool: IRCConnectionPool
+  public struct Options {
+    let enableWriteConnection: Bool
+
+    public init(enableWriteConnection: Bool = true) {
+      self.enableWriteConnection = enableWriteConnection
+    }
+  }
+
+  private let writeConnection: IRCConnection?
+  private let readConnectionPool: IRCConnectionPool
   private var handlers = [IRCMessageHandler]()
 
   public init(
     _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws {
     let credentials: TwitchCredentials? =
@@ -24,12 +34,22 @@ public actor TwitchIRCClient {
       case let .authenticated(credentials): credentials
       }
 
-    self.connectionPool = IRCConnectionPool(
+    if options.enableWriteConnection {
+      self.writeConnection = IRCConnection(
+        credentials: credentials,
+        urlSession: urlSession
+      )
+    } else {
+      self.writeConnection = nil
+    }
+
+    self.readConnectionPool = IRCConnectionPool(
       with: credentials,
       urlSession: urlSession
     )
-    
-    let messageStream = try await connectionPool.connect()
+
+    try await writeConnection?.connect()
+    let messageStream = try await readConnectionPool.connect()
 
     Task {
       do {
@@ -63,15 +83,19 @@ public actor TwitchIRCClient {
   // MARK: - IRC
 
   public func join(to channel: String) async throws {
-    try await self.connectionPool.join(to: channel)
+    try await self.readConnectionPool.join(to: channel)
   }
 
   public func part(from channel: String) async throws {
-    try await self.connectionPool.part(from: channel)
+    try await self.readConnectionPool.part(from: channel)
   }
 
-  public func send(_ message: OutgoingMessage, to channel: String) async throws {
-    try await self.connectionPool.send(message, to: channel)
+  public func send(_ message: OutgoingMessage) async throws {
+    guard let writeConnection else {
+      throw IRCError.writeConnectionNotEnabled
+    }
+
+    try await writeConnection.send(message)
   }
 }
 

@@ -23,6 +23,7 @@ internal actor IRCConnection {
     self.websocket?.cancel(with: .goingAway, reason: nil)
   }
 
+  @discardableResult
   internal func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
