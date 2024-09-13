@@ -6,20 +6,10 @@ import TwitchIRC
 #endif
 
 extension TwitchClient {
-  public func ircClient(_ authenticationStyle: IRCAuthenticationStyle) async throws
-    -> TwitchIRCClient
-  {
-    let credentials: TwitchCredentials? = {
-      switch authenticationStyle {
-      case .authenticated: self.authentication
-      case .anonymous: nil
-      }
-    }()
-
-    return try await TwitchIRCClient(with: credentials, urlSession: self.urlSession)
+  public func ircClient() async throws -> TwitchIRCClient {
+    return try await TwitchIRCClient(
+      .authenticated(self.authentication),
+      urlSession: self.urlSession
+    )
   }
-}
-
-public enum IRCAuthenticationStyle {
-  case anonymous, authenticated
 }

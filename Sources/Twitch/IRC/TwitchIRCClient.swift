@@ -6,18 +6,29 @@ import TwitchIRC
 #endif
 
 public actor TwitchIRCClient {
+  public enum AuthenticationStyle {
+    case anonymous
+    case authenticated(_ credentials: TwitchCredentials)
+  }
+
   private let connectionPool: IRCConnectionPool
   private var handlers = [IRCMessageHandler]()
 
   public init(
-    with authentication: TwitchCredentials? = nil,
+    _ authenticationStyle: AuthenticationStyle,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws {
+    let credentials: TwitchCredentials? =
+      switch authenticationStyle {
+      case .anonymous: nil
+      case let .authenticated(credentials): credentials
+      }
+
     self.connectionPool = IRCConnectionPool(
-      with: authentication,
+      with: credentials,
       urlSession: urlSession
     )
-
+    
     let messageStream = try await connectionPool.connect()
 
     Task {
