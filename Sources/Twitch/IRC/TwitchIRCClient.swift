@@ -90,7 +90,21 @@ public actor TwitchIRCClient {
     try await self.readConnectionPool.part(from: channel)
   }
 
-  public func send(_ message: OutgoingMessage) async throws {
+  public func sendMessage(
+    _ message: String,
+    to channel: String,
+    replyTo replyMessageID: String? = nil,
+    clientNonce: String? = nil
+  ) async throws {
+    try await send(.privateMessage(
+      to: channel,
+      message: message,
+      messageIdToReply: replyMessageID,
+      clientNonce: clientNonce
+    ))
+  }
+
+  private func send(_ message: OutgoingMessage) async throws {
     guard let writeConnection else {
       throw IRCError.writeConnectionNotEnabled
     }
