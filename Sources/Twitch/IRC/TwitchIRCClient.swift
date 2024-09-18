@@ -5,19 +5,51 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public class TwitchIRCClient {
-  private let connectionPool: IRCConnectionPool
+public actor TwitchIRCClient {
+  public enum AuthenticationStyle {
+    case anonymous
+    case authenticated(_ credentials: TwitchCredentials)
+  }
+
+  public struct Options {
+    let enableWriteConnection: Bool
+
+    public init(enableWriteConnection: Bool = true) {
+      self.enableWriteConnection = enableWriteConnection
+    }
+  }
+
+  private let writeConnection: IRCConnection?
+  private let readConnectionPool: IRCConnectionPool
   private var handlers = [IRCMessageHandler]()
 
-  internal init(with authentication: TwitchCredentials? = nil, urlSession: URLSession)
-    async throws
-  {
-    self.connectionPool = IRCConnectionPool(
-      with: authentication,
+  public init(
+    _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
+    urlSession: URLSession = URLSession(configuration: .default)
+  ) async throws {
+    let credentials: TwitchCredentials? =
+      switch authenticationStyle {
+      case .anonymous: nil
+      case .authenticated(let credentials): credentials
+      }
+
+    if options.enableWriteConnection {
+      self.writeConnection = IRCConnection(
+        credentials: credentials,
+        urlSession: urlSession
+      )
+    } else {
+      self.writeConnection = nil
+    }
+
+    self.readConnectionPool = IRCConnectionPool(
+      with: credentials,
       urlSession: urlSession
     )
 
-    let messageStream = try await connectionPool.connect()
+    try await writeConnection?.connect()
+    let messageStream = try await readConnectionPool.connect()
 
     Task {
       do {
@@ -51,11 +83,35 @@ public class TwitchIRCClient {
   // MARK: - IRC
 
   public func join(to channel: String) async throws {
-    try await self.connectionPool.join(to: channel)
+    try await self.readConnectionPool.join(to: channel)
   }
 
   public func part(from channel: String) async throws {
-    try await self.connectionPool.part(from: channel)
+    try await self.readConnectionPool.part(from: channel)
+  }
+
+  public func sendMessage(
+    _ message: String,
+    to channel: String,
+    replyTo replyMessageID: String? = nil,
+    clientNonce: String? = nil
+  ) async throws {
+    try await send(
+      .privateMessage(
+        to: channel,
+        message: message,
+        messageIdToReply: replyMessageID,
+        clientNonce: clientNonce
+      )
+    )
+  }
+
+  private func send(_ message: OutgoingMessage) async throws {
+    guard let writeConnection else {
+      throw IRCError.writeConnectionNotEnabled
+    }
+
+    try await writeConnection.send(message)
   }
 }
 

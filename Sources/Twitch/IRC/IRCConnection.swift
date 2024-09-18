@@ -23,6 +23,7 @@ internal actor IRCConnection {
     self.websocket?.cancel(with: .goingAway, reason: nil)
   }
 
+  @discardableResult
   internal func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
@@ -61,14 +62,16 @@ internal actor IRCConnection {
     return stream
   }
 
-  internal func join(to channel: String) async throws {
-    let message = OutgoingMessage.join(to: channel)
+  internal func send(_ message: OutgoingMessage) async throws {
     try await self.websocket?.send(.string(message.serialize()))
   }
 
+  internal func join(to channel: String) async throws {
+    try await self.send(.join(to: channel))
+  }
+
   internal func part(from channel: String) async throws {
-    let message = OutgoingMessage.part(from: channel)
-    try await self.websocket?.send(.string(message.serialize()))
+    try await self.send(.part(from: channel))
   }
 
   internal func disconnect() {
@@ -79,8 +82,7 @@ internal actor IRCConnection {
   }
 
   private func requestCapabilities() async throws {
-    let capReq = OutgoingMessage.capabilities([.commands, .tags])
-    try await websocket?.send(.string(capReq.serialize()))
+    try await self.send(.capabilities([.commands, .tags]))
 
     // verify that we receive the capabilities message
     let nextMessage = try await websocket?.receive()
@@ -100,13 +102,11 @@ internal actor IRCConnection {
   private func authenticate() async throws -> GlobalUserState? {
     if let credentials {
       // when connecting anonymously, the PASS message can be omitted
-      let pass = OutgoingMessage.pass(pass: credentials.oAuth)
-      try await self.websocket?.send(.string(pass.serialize()))
+      try await self.send(.pass(pass: credentials.oAuth))
     }
 
     // twitch allows anonymous connections using justinfanXXXXX
-    let nick = OutgoingMessage.nick(name: credentials?.userLogin ?? "justinfan12345")
-    try await self.websocket?.send(.string(nick.serialize()))
+    try await self.send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
 
     // verify that we receive the connection message
     let nextMessage = try await self.websocket?.receive()
@@ -141,7 +141,7 @@ internal actor IRCConnection {
   private func handleMessage(_ message: IncomingMessage) async throws -> Bool {
     switch message {
     case .ping:
-      try await self.websocket?.send(.string(OutgoingMessage.pong.serialize()))
+      try await self.send(.pong)
       return true
     case .join(let join):
       joinedChannels.insert(join.channel)
