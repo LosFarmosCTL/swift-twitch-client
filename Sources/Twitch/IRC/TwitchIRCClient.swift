@@ -31,7 +31,7 @@ public actor TwitchIRCClient {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
       case .anonymous: nil
-      case let .authenticated(credentials): credentials
+      case .authenticated(let credentials): credentials
       }
 
     if options.enableWriteConnection {
@@ -96,12 +96,14 @@ public actor TwitchIRCClient {
     replyTo replyMessageID: String? = nil,
     clientNonce: String? = nil
   ) async throws {
-    try await send(.privateMessage(
-      to: channel,
-      message: message,
-      messageIdToReply: replyMessageID,
-      clientNonce: clientNonce
-    ))
+    try await send(
+      .privateMessage(
+        to: channel,
+        message: message,
+        messageIdToReply: replyMessageID,
+        clientNonce: clientNonce
+      )
+    )
   }
 
   private func send(_ message: OutgoingMessage) async throws {
