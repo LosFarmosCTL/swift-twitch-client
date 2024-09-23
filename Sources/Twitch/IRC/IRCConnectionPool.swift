@@ -83,8 +83,12 @@ public actor IRCConnectionPool {
     let messageStream = try await connection.connect()
 
     Task {
-      for try await message in messageStream {
-        self.continuation?.yield(message)
+      do {
+        for try await message in messageStream {
+          self.continuation?.yield(message)
+        }
+      } catch {
+        self.continuation?.finish(throwing: error)
       }
     }
 
