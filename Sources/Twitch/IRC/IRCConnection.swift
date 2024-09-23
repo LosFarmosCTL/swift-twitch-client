@@ -54,7 +54,18 @@ internal actor IRCConnection {
           }
         }
       } catch {
-        continuation.finish(throwing: error)
+        // If we get the 'socket disconnected' error, check whether we have parted from all rooms.
+        // Doing so is what causes us to get this error on the next websocket.receive() call
+        let nsError = error as NSError
+        if nsError.domain == "NSPOSIXErrorDomain", nsError.code == 57,
+          joinedChannels.isEmpty
+        {
+          continuation.finish()
+        } else {
+          // If we can't identify the origin of the error, return it in the stream to be hanlded upstream
+          continuation.finish(throwing: error)
+        }
+
         self.disconnect()
       }
     }
