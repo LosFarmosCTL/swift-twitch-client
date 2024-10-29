@@ -1,4 +1,4 @@
-internal enum WebSocketError: Error {
+package enum WebSocketError: Error {
   case alreadyConnected
   case unsupportedDataReceived
 }
