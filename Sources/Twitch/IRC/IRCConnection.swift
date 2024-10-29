@@ -5,16 +5,17 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-internal actor IRCConnection {
+public actor IRCConnection: IRCConnectionProtocol {
   private let TMI: URL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
 
   private let credentials: TwitchCredentials?
   private let urlSession: URLSession
 
   private var websocket: URLSessionWebSocketTask?
-  private(set) var joinedChannels: Set<String> = []
+  private var _joinedChannels: Set<String> = []
+  public var joinedChannels: Set<String> { _joinedChannels }
 
-  init(credentials: TwitchCredentials? = nil, urlSession: URLSession) {
+  public init(credentials: TwitchCredentials? = nil, urlSession: URLSession) {
     self.credentials = credentials
     self.urlSession = urlSession
   }
@@ -24,7 +25,7 @@ internal actor IRCConnection {
   }
 
   @discardableResult
-  internal func connect() async throws -> AsyncThrowingStream<
+  public func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
     guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
@@ -66,30 +67,30 @@ internal actor IRCConnection {
           continuation.finish(throwing: error)
         }
 
-        self.disconnect()
+        try? await self.disconnect()
       }
     }
 
     return stream
   }
 
-  internal func send(_ message: OutgoingMessage) async throws {
+  public func send(_ message: OutgoingMessage) async throws {
     try await self.websocket?.send(.string(message.serialize()))
   }
 
-  internal func join(to channel: String) async throws {
+  public func join(to channel: String) async throws {
     try await self.send(.join(to: channel))
   }
 
-  internal func part(from channel: String) async throws {
+  public func part(from channel: String) async throws {
     try await self.send(.part(from: channel))
   }
 
-  internal func disconnect() {
+  public func disconnect() async throws {
     self.websocket?.cancel(with: .goingAway, reason: nil)
     self.websocket = nil
 
-    self.joinedChannels.removeAll()
+    self._joinedChannels.removeAll()
   }
 
   private func requestCapabilities() async throws {
@@ -155,9 +156,9 @@ internal actor IRCConnection {
       try await self.send(.pong)
       return true
     case .join(let join):
-      joinedChannels.insert(join.channel)
+      _joinedChannels.insert(join.channel)
     case .part(let part):
-      joinedChannels.remove(part.channel)
+      _joinedChannels.remove(part.channel)
     default: break
     }
 

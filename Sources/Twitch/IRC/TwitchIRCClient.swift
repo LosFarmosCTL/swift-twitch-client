@@ -5,7 +5,7 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor TwitchIRCClient {
+public actor TwitchIRCClient<Connection: IRCConnectionProtocol> {
   public enum AuthenticationStyle {
     case anonymous
     case authenticated(_ credentials: TwitchCredentials)
@@ -19,14 +19,15 @@ public actor TwitchIRCClient {
     }
   }
 
-  private let writeConnection: IRCConnection?
-  private let readConnectionPool: IRCConnectionPool
+  private let writeConnection: Connection?
+  private let readConnectionPool: IRCConnectionPool<Connection>
   private var handlers = [IRCMessageHandler]()
 
   public init(
     _ authenticationStyle: AuthenticationStyle,
     options: Options = .init(),
-    urlSession: URLSession = URLSession(configuration: .default)
+    urlSession: URLSession = URLSession(configuration: .default),
+    connectionFactory: @escaping Connection.Factory
   ) async throws {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
@@ -35,17 +36,15 @@ public actor TwitchIRCClient {
       }
 
     if options.enableWriteConnection {
-      self.writeConnection = IRCConnection(
-        credentials: credentials,
-        urlSession: urlSession
-      )
+      self.writeConnection = connectionFactory(credentials, urlSession)
     } else {
       self.writeConnection = nil
     }
 
     self.readConnectionPool = IRCConnectionPool(
       with: credentials,
-      urlSession: urlSession
+      urlSession: urlSession,
+      connectionFactory: connectionFactory
     )
 
     try await writeConnection?.connect()
@@ -112,6 +111,21 @@ public actor TwitchIRCClient {
     }
 
     try await writeConnection.send(message)
+  }
+}
+
+extension TwitchIRCClient where Connection == IRCConnection {
+  public init(
+    _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
+    urlSession: URLSession = URLSession(configuration: .default)
+  ) async throws {
+    try await self.init(
+      authenticationStyle,
+      options: options,
+      urlSession: urlSession,
+      connectionFactory: IRCConnection.init
+    )
   }
 }
 
