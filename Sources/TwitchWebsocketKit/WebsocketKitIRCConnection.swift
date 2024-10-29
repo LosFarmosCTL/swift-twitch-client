@@ -20,6 +20,15 @@ public struct AsyncWebsocketProvider: WebsocketTaskProvider {
 
 public typealias WebsocketKitIRCConnection = IRCConnection<AsyncWebsocketProvider>
 
+extension TwitchIRCClient where WebsocketProvider == AsyncWebsocketProvider {
+  public init(
+      _ authenticationStyle: AuthenticationStyle,
+      options: Options = .init()
+  ) async throws {
+    try await self.init(authenticationStyle, options: options, websocketProvider: .shared)
+  }
+}
+
 extension TwitchClient {
   public func ircClient(
     with options: TwitchIRCClient<AsyncWebsocketProvider>.Options = .init()
