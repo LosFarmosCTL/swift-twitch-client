@@ -5,7 +5,7 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor TwitchIRCClient<Connection: IRCConnectionProtocol> {
+public actor TwitchIRCClient<WebsocketProvider: WebsocketTaskProvider> {
   public enum AuthenticationStyle {
     case anonymous
     case authenticated(_ credentials: TwitchCredentials)
@@ -19,15 +19,14 @@ public actor TwitchIRCClient<Connection: IRCConnectionProtocol> {
     }
   }
 
-  private let writeConnection: Connection?
-  private let readConnectionPool: IRCConnectionPool<Connection>
+  private let writeConnection: IRCConnection<WebsocketProvider>?
+  private let readConnectionPool: IRCConnectionPool<WebsocketProvider>
   private var handlers = [IRCMessageHandler]()
 
   public init(
     _ authenticationStyle: AuthenticationStyle,
     options: Options = .init(),
-    urlSession: URLSession = URLSession(configuration: .default),
-    connectionFactory: @escaping Connection.Factory
+    websocketProvider: WebsocketProvider
   ) async throws {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
@@ -36,16 +35,14 @@ public actor TwitchIRCClient<Connection: IRCConnectionProtocol> {
       }
 
     if options.enableWriteConnection {
-      self.writeConnection = connectionFactory(credentials, urlSession)
+      self.writeConnection = IRCConnection(
+        credentials: credentials, websocketProvider: websocketProvider)
     } else {
       self.writeConnection = nil
     }
 
     self.readConnectionPool = IRCConnectionPool(
-      with: credentials,
-      urlSession: urlSession,
-      connectionFactory: connectionFactory
-    )
+      with: credentials, websocketProvider: websocketProvider)
 
     try await writeConnection?.connect()
     let messageStream = try await readConnectionPool.connect()
@@ -111,21 +108,6 @@ public actor TwitchIRCClient<Connection: IRCConnectionProtocol> {
     }
 
     try await writeConnection.send(message)
-  }
-}
-
-extension TwitchIRCClient where Connection == IRCConnection {
-  public init(
-    _ authenticationStyle: AuthenticationStyle,
-    options: Options = .init(),
-    urlSession: URLSession = URLSession(configuration: .default)
-  ) async throws {
-    try await self.init(
-      authenticationStyle,
-      options: options,
-      urlSession: urlSession,
-      connectionFactory: IRCConnection.init
-    )
   }
 }
 

@@ -5,23 +5,19 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor IRCConnectionPool<Connection: IRCConnectionProtocol> {
+public actor IRCConnectionPool<WebsocketProvider: WebsocketTaskProvider> {
+  typealias Connection = IRCConnection<WebsocketProvider>
+
   private var connections: [Connection] = []
 
   private let credentials: TwitchCredentials?
-  private let urlSession: URLSession
-  private let connectionFactory: Connection.Factory
+  private let websocketProvider: WebsocketProvider
 
   private var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
 
-  init(
-    with credentials: TwitchCredentials? = nil,
-    urlSession: URLSession,
-    connectionFactory: @escaping Connection.Factory
-  ) {
+  init(with credentials: TwitchCredentials? = nil, websocketProvider: WebsocketProvider) {
     self.credentials = credentials
-    self.urlSession = urlSession
-    self.connectionFactory = connectionFactory
+    self.websocketProvider = websocketProvider
   }
 
   internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
@@ -85,7 +81,7 @@ public actor IRCConnectionPool<Connection: IRCConnectionProtocol> {
   }
 
   @discardableResult private func createConnection() async throws -> Connection {
-    let connection = self.connectionFactory(credentials, urlSession)
+    let connection = Connection(credentials: credentials, websocketProvider: websocketProvider)
     let messageStream = try await connection.connect()
 
     Task {

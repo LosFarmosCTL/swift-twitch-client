@@ -6,26 +6,24 @@ import TwitchIRC
 #endif
 
 extension TwitchClient {
-  public func ircClient<Connection: IRCConnectionProtocol>(
-    with options: TwitchIRCClient<Connection>.Options = .init(),
-    connectionFactory: @escaping Connection.Factory
-  ) async throws -> TwitchIRCClient<Connection> {
+  public func ircClient<WebsocketProvider: WebsocketTaskProvider>(
+    with options: TwitchIRCClient<WebsocketProvider>.Options = .init(),
+    websocketProvider: WebsocketProvider
+  ) async throws -> TwitchIRCClient<WebsocketProvider> {
     return try await TwitchIRCClient(
       .authenticated(self.authentication),
       options: options,
-      urlSession: self.urlSession,
-      connectionFactory: connectionFactory
+      websocketProvider: websocketProvider
     )
   }
 
   public func ircClient(
-    with options: TwitchIRCClient<IRCConnection>.Options = .init()
-  ) async throws -> TwitchIRCClient<IRCConnection> {
+    with options: TwitchIRCClient<URLSession>.Options = .init()
+  ) async throws -> TwitchIRCClient<URLSession> {
     return try await TwitchIRCClient(
       .authenticated(self.authentication),
       options: options,
-      urlSession: self.urlSession,
-      connectionFactory: IRCConnection.init
+      websocketProvider: self.urlSession
     )
   }
 }

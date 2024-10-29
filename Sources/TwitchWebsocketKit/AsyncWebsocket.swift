@@ -8,7 +8,7 @@ import WebSocketKit
   import FoundationNetworking
 #endif
 
-final class AsyncWebsocket {
+public final class AsyncWebsocket: WebsocketTask {
   private let url: URL
   private let eventLoopGroup: EventLoopGroup
 
@@ -22,7 +22,7 @@ final class AsyncWebsocket {
     self.eventLoopGroup = eventLoopGroup
   }
 
-  func resume() throws {
+  public func resume() throws {
     guard websocket == nil else {
       throw WebSocketError.alreadyConnected
     }
@@ -49,15 +49,24 @@ final class AsyncWebsocket {
     }
   }
 
-  func receive() async throws -> String? {
+  public func receive() async throws -> String? {
     return try await iterator?.next()
   }
 
-  func send(_ text: String) async throws {
+  public func send(_ text: String) async throws {
     try await websocket?.send(text)
   }
 
-  func cancel(with code: WebSocketErrorCode) {
-    _ = websocket?.close(code: code)
+  public func cancel(with code: WebsocketTaskCloseCode) {
+    _ = websocket?.close(code: code.websoketKitCloseCode)
+  }
+}
+
+extension Twitch.WebsocketTaskCloseCode {
+  var websoketKitCloseCode: WebSocketErrorCode {
+    switch self {
+    case .goingAway: .goingAway
+    case .serverError: .unexpectedServerError
+    }
   }
 }
