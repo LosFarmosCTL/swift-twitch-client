@@ -4,11 +4,7 @@ import NIOWebSocket
 import Twitch
 import WebSocketKit
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
-public final class AsyncWebsocket: WebsocketTask {
+public final class WebsocketKitTask: WebsocketTask {
   private static let connectionTimeout: TimeInterval = 30
   private static let connectionCheckSleep: TimeInterval = 0.1
 
