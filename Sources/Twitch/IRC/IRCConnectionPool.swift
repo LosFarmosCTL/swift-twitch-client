@@ -81,7 +81,8 @@ public actor IRCConnectionPool<WebsocketProvider: WebsocketTaskProvider> {
   }
 
   @discardableResult private func createConnection() async throws -> Connection {
-    let connection = Connection(credentials: credentials, websocketProvider: websocketProvider)
+    let connection = Connection(
+      credentials: credentials, websocketProvider: websocketProvider)
     let messageStream = try await connection.connect()
 
     Task {

@@ -113,11 +113,12 @@ public actor TwitchIRCClient<WebsocketProvider: WebsocketTaskProvider> {
 
 extension TwitchIRCClient where WebsocketProvider == URLSession {
   public init(
-      _ authenticationStyle: AuthenticationStyle,
-      options: Options = .init(),
-      urlSession: URLSession = URLSession(configuration: .default)
+    _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
+    urlSession: URLSession = URLSession(configuration: .default)
   ) async throws {
-    try await self.init(authenticationStyle, options: options, websocketProvider: urlSession)
+    try await self.init(
+      authenticationStyle, options: options, websocketProvider: urlSession)
   }
 }
 

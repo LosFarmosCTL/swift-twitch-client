@@ -15,7 +15,8 @@ public actor IRCConnection<WebsocketProvider: WebsocketTaskProvider> {
   private var _joinedChannels: Set<String> = []
   public var joinedChannels: Set<String> { _joinedChannels }
 
-  public init(credentials: TwitchCredentials? = nil, websocketProvider: WebsocketProvider) {
+  public init(credentials: TwitchCredentials? = nil, websocketProvider: WebsocketProvider)
+  {
     self.credentials = credentials
     self.websocketProvider = websocketProvider
   }
