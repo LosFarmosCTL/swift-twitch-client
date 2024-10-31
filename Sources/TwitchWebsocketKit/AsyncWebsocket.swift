@@ -9,6 +9,9 @@ import WebSocketKit
 #endif
 
 public final class AsyncWebsocket: WebsocketTask {
+  private static let connectionTimeout: TimeInterval = 30
+  private static let connectionCheckSleep: TimeInterval = 0.1
+
   private let url: URL
   private let eventLoopGroup: EventLoopGroup
 
@@ -16,6 +19,8 @@ public final class AsyncWebsocket: WebsocketTask {
   private var stream: AsyncThrowingStream<String, Error>?
   private var iterator: AsyncThrowingStream<String, Error>.Iterator?
   private var continuation: AsyncThrowingStream<String, Error>.Continuation?
+
+  private var connected: Bool = false
 
   init(url: URL, eventLoopGroup: EventLoopGroup) {
     self.url = url
@@ -32,7 +37,7 @@ public final class AsyncWebsocket: WebsocketTask {
     self.iterator = stream.makeAsyncIterator()
     self.continuation = continuation
 
-    _ = WebSocket.connect(to: url, on: eventLoopGroup) { [weak self] ws in
+    try WebSocket.connect(to: url, on: eventLoopGroup) { [weak self] ws in
       guard let self else {
         _ = ws.close(code: .goingAway)
         return
@@ -43,22 +48,56 @@ public final class AsyncWebsocket: WebsocketTask {
         self.continuation?.finish()
       }
 
+      ws.onPing { ws, buffer in
+        self.continuation?.yield("PING :")
+      }
+
+      ws.onPong { ws, buffer in
+        // Skip first pong coming from our connection ping
+        guard self.connected else {
+          self.connected = true
+          return
+        }
+        self.continuation?.yield("PONG :")
+      }
+
       ws.onText { ws, text in
         self.continuation?.yield(text)
       }
-    }
+
+      // Kickoff the connectiong with a ping
+      ws.sendPing()
+    }.wait()
   }
 
   public func receive() async throws -> String? {
+    try await ensureConnection()
     return try await iterator?.next()
   }
 
   public func send(_ text: String) async throws {
+    try await ensureConnection()
     try await websocket?.send(text)
   }
 
   public func cancel(with code: WebsocketTaskCloseCode) {
     _ = websocket?.close(code: code.websoketKitCloseCode)
+  }
+
+  private func ensureConnection() async throws {
+    if websocket != nil, connected {
+      return
+    }
+
+    let start = Date.now
+    while websocket == nil, !connected {
+      try await Task.sleep(for: .seconds(Self.connectionCheckSleep))
+
+      let time = Date.now.timeIntervalSince(start)
+      if time > Self.connectionTimeout {
+        throw WebSocketError.connectionTimeout
+      }
+    }
   }
 }
 
