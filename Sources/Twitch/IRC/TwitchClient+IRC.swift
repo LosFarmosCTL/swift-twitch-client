@@ -1,6 +1,10 @@
 import Foundation
 import TwitchIRC
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 #if canImport(Combine)
   import Combine
 #endif
@@ -20,10 +24,6 @@ extension TwitchClient {
   public func ircClient(
     with options: TwitchIRCClient<URLSession>.Options = .init()
   ) async throws -> TwitchIRCClient<URLSession> {
-    return try await TwitchIRCClient(
-      .authenticated(self.authentication),
-      options: options,
-      websocketProvider: self.urlSession
-    )
+    return try await ircClient(with: options, websocketProvider: self.urlSession)
   }
 }
