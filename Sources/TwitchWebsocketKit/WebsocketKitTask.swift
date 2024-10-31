@@ -11,7 +11,7 @@ public final class WebsocketKitTask: WebsocketTask {
   private let url: URL
   private let eventLoopGroup: EventLoopGroup
 
-  private var websocket: WebSocket? = nil
+  private var websocket: WebSocket?
   private var stream: AsyncThrowingStream<String, Error>?
   private var iterator: AsyncThrowingStream<String, Error>.Iterator?
   private var continuation: AsyncThrowingStream<String, Error>.Continuation?
@@ -33,22 +33,22 @@ public final class WebsocketKitTask: WebsocketTask {
     self.iterator = stream.makeAsyncIterator()
     self.continuation = continuation
 
-    try WebSocket.connect(to: url, on: eventLoopGroup) { [weak self] ws in
+    try WebSocket.connect(to: url, on: eventLoopGroup) { [weak self] socket in
       guard let self else {
-        _ = ws.close(code: .goingAway)
+        _ = socket.close(code: .goingAway)
         return
       }
-      self.websocket = ws
+      self.websocket = socket
 
-      _ = ws.onClose.map {
+      _ = socket.onClose.map {
         self.continuation?.finish()
       }
 
-      ws.onPing { ws, buffer in
+      socket.onPing { _, _ in
         self.continuation?.yield("PING :")
       }
 
-      ws.onPong { ws, buffer in
+      socket.onPong { _, _ in
         // Skip first pong coming from our connection ping
         guard self.connected else {
           self.connected = true
@@ -57,12 +57,12 @@ public final class WebsocketKitTask: WebsocketTask {
         self.continuation?.yield("PONG :")
       }
 
-      ws.onText { ws, text in
+      socket.onText { _, text in
         self.continuation?.yield(text)
       }
 
       // Kickoff the connectiong with a ping
-      ws.sendPing()
+      socket.sendPing()
     }.wait()
   }
 

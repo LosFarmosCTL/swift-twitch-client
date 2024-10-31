@@ -16,7 +16,7 @@ extension WebsocketTaskCloseCode {
 extension URLSessionWebSocketTask: WebsocketTask {
   public func receive() async throws -> String? {
     let message: Message = try await self.receive()
-    guard case let .string(text) = message else {
+    guard case .string(let text) = message else {
       return nil
     }
 
