@@ -5,17 +5,19 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor IRCConnectionPool {
-  private var connections: [IRCConnection] = []
+public actor IRCConnectionPool<WebsocketProvider: WebsocketTaskProvider> {
+  typealias Connection = IRCConnection<WebsocketProvider>
+
+  private var connections: [Connection] = []
 
   private let credentials: TwitchCredentials?
-  private let urlSession: URLSession
+  private let websocketProvider: WebsocketProvider
 
   private var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
 
-  init(with credentials: TwitchCredentials? = nil, urlSession: URLSession) {
+  init(with credentials: TwitchCredentials? = nil, websocketProvider: WebsocketProvider) {
     self.credentials = credentials
-    self.urlSession = urlSession
+    self.websocketProvider = websocketProvider
   }
 
   internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
@@ -30,7 +32,7 @@ public actor IRCConnectionPool {
   }
 
   internal func disconnect() async {
-    for connection in self.connections { await connection.disconnect() }
+    for connection in self.connections { try? await connection.disconnect() }
     self.connections.removeAll()
 
     self.continuation?.finish()
@@ -52,7 +54,7 @@ public actor IRCConnectionPool {
     }
 
     guard await connection.joinedChannels.count >= 2 else {
-      await connection.disconnect()
+      try? await connection.disconnect()
       self.connections.removeAll(where: { $0 === connection })
       return
     }
@@ -60,7 +62,7 @@ public actor IRCConnectionPool {
     try await connection.part(from: channel)
   }
 
-  private func getConnection(to channel: String) async -> IRCConnection? {
+  private func getConnection(to channel: String) async -> Connection? {
     for connection in self.connections
     where await connection.joinedChannels.contains(channel) {
       return connection
@@ -69,7 +71,7 @@ public actor IRCConnectionPool {
     return nil
   }
 
-  private func getFreeConnection() async throws -> IRCConnection {
+  private func getFreeConnection() async throws -> Connection {
     for connection in self.connections
     where await connection.joinedChannels.count < 90 {
       return connection
@@ -78,8 +80,9 @@ public actor IRCConnectionPool {
     return try await self.createConnection()
   }
 
-  @discardableResult private func createConnection() async throws -> IRCConnection {
-    let connection = IRCConnection(credentials: credentials, urlSession: urlSession)
+  @discardableResult private func createConnection() async throws -> Connection {
+    let connection = Connection(
+      credentials: credentials, websocketProvider: websocketProvider)
     let messageStream = try await connection.connect()
 
     Task {

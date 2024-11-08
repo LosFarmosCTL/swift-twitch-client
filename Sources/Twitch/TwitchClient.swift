@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 public actor TwitchClient {
-  internal let authentication: TwitchCredentials
+  package let authentication: TwitchCredentials
   internal let urlSession: URLSession
 
   internal let encoder = JSONEncoder()

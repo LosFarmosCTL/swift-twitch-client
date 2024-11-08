@@ -5,7 +5,7 @@
     func receive(completionHandler: @escaping (Result<Message, Error>) -> Void) {
       Task {
         do {
-          let message = try await self.receive()
+          let message: Message = try await self.receive()
           completionHandler(.success(message))
         } catch {
           completionHandler(.failure(error))

@@ -5,31 +5,33 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-internal actor IRCConnection {
+public actor IRCConnection<WebsocketProvider: WebsocketTaskProvider> {
   private let TMI: URL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
 
   private let credentials: TwitchCredentials?
-  private let urlSession: URLSession
+  private let websocketProvider: WebsocketProvider
 
-  private var websocket: URLSessionWebSocketTask?
-  private(set) var joinedChannels: Set<String> = []
+  private var websocket: WebsocketProvider.Task?
+  private var _joinedChannels: Set<String> = []
+  public var joinedChannels: Set<String> { _joinedChannels }
 
-  init(credentials: TwitchCredentials? = nil, urlSession: URLSession) {
+  public init(credentials: TwitchCredentials? = nil, websocketProvider: WebsocketProvider)
+  {
     self.credentials = credentials
-    self.urlSession = urlSession
+    self.websocketProvider = websocketProvider
   }
 
   deinit {
-    self.websocket?.cancel(with: .goingAway, reason: nil)
+    self.websocket?.cancel(with: .goingAway)
   }
 
   @discardableResult
-  internal func connect() async throws -> AsyncThrowingStream<
+  public func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
     guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
-    self.websocket = urlSession.webSocketTask(with: TMI)
-    self.websocket?.resume()
+    self.websocket = websocketProvider.task(with: TMI)
+    try self.websocket?.resume()
 
     try await self.requestCapabilities()
     let globalUserState = try await self.authenticate()
@@ -41,16 +43,14 @@ internal actor IRCConnection {
       if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
 
       do {
-        while let message = try await self.websocket?.receive() {
-          if case .string(let messageText) = message {
-            let messages = IncomingMessage.parse(ircOutput: messageText)
-              .compactMap(\.message)
+        while let messageText = try await self.websocket?.receive() {
+          let messages = IncomingMessage.parse(ircOutput: messageText)
+            .compactMap(\.message)
 
-            for message in messages {
-              guard try await !self.handleMessage(message) else { continue }
+          for message in messages {
+            guard try await !self.handleMessage(message) else { continue }
 
-              continuation.yield(message)
-            }
+            continuation.yield(message)
           }
         }
       } catch {
@@ -66,38 +66,37 @@ internal actor IRCConnection {
           continuation.finish(throwing: error)
         }
 
-        self.disconnect()
+        try? await self.disconnect()
       }
     }
 
     return stream
   }
 
-  internal func send(_ message: OutgoingMessage) async throws {
-    try await self.websocket?.send(.string(message.serialize()))
+  public func send(_ message: OutgoingMessage) async throws {
+    try await self.websocket?.send(message.serialize())
   }
 
-  internal func join(to channel: String) async throws {
+  public func join(to channel: String) async throws {
     try await self.send(.join(to: channel))
   }
 
-  internal func part(from channel: String) async throws {
+  public func part(from channel: String) async throws {
     try await self.send(.part(from: channel))
   }
 
-  internal func disconnect() {
-    self.websocket?.cancel(with: .goingAway, reason: nil)
+  public func disconnect() async throws {
+    self.websocket?.cancel(with: .goingAway)
     self.websocket = nil
 
-    self.joinedChannels.removeAll()
+    self._joinedChannels.removeAll()
   }
 
   private func requestCapabilities() async throws {
     try await self.send(.capabilities([.commands, .tags]))
 
     // verify that we receive the capabilities message
-    let nextMessage = try await websocket?.receive()
-    guard case .string(let messageText) = nextMessage else {
+    guard let messageText = try await websocket?.receive() else {
       throw WebSocketError.unsupportedDataReceived
     }
 
@@ -120,8 +119,7 @@ internal actor IRCConnection {
     try await self.send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
 
     // verify that we receive the connection message
-    let nextMessage = try await self.websocket?.receive()
-    guard case .string(let messageText) = nextMessage else {
+    guard let messageText = try await self.websocket?.receive() else {
       throw WebSocketError.unsupportedDataReceived
     }
 
@@ -155,9 +153,9 @@ internal actor IRCConnection {
       try await self.send(.pong)
       return true
     case .join(let join):
-      joinedChannels.insert(join.channel)
+      _joinedChannels.insert(join.channel)
     case .part(let part):
-      joinedChannels.remove(part.channel)
+      _joinedChannels.remove(part.channel)
     default: break
     }
 

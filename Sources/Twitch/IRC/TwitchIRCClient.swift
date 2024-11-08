@@ -5,7 +5,7 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor TwitchIRCClient {
+public actor TwitchIRCClient<WebsocketProvider: WebsocketTaskProvider> {
   public enum AuthenticationStyle {
     case anonymous
     case authenticated(_ credentials: TwitchCredentials)
@@ -19,14 +19,14 @@ public actor TwitchIRCClient {
     }
   }
 
-  private let writeConnection: IRCConnection?
-  private let readConnectionPool: IRCConnectionPool
+  private let writeConnection: IRCConnection<WebsocketProvider>?
+  private let readConnectionPool: IRCConnectionPool<WebsocketProvider>
   private var handlers = [IRCMessageHandler]()
 
   public init(
     _ authenticationStyle: AuthenticationStyle,
     options: Options = .init(),
-    urlSession: URLSession = URLSession(configuration: .default)
+    websocketProvider: WebsocketProvider
   ) async throws {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
@@ -36,17 +36,13 @@ public actor TwitchIRCClient {
 
     if options.enableWriteConnection {
       self.writeConnection = IRCConnection(
-        credentials: credentials,
-        urlSession: urlSession
-      )
+        credentials: credentials, websocketProvider: websocketProvider)
     } else {
       self.writeConnection = nil
     }
 
     self.readConnectionPool = IRCConnectionPool(
-      with: credentials,
-      urlSession: urlSession
-    )
+      with: credentials, websocketProvider: websocketProvider)
 
     try await writeConnection?.connect()
     let messageStream = try await readConnectionPool.connect()
@@ -112,6 +108,17 @@ public actor TwitchIRCClient {
     }
 
     try await writeConnection.send(message)
+  }
+}
+
+extension TwitchIRCClient where WebsocketProvider == URLSession {
+  public init(
+    _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
+    urlSession: URLSession = URLSession(configuration: .default)
+  ) async throws {
+    try await self.init(
+      authenticationStyle, options: options, websocketProvider: urlSession)
   }
 }
 

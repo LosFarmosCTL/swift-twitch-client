@@ -5,7 +5,10 @@ import PackageDescription
 let package = Package(
   name: "swift-twitch-client",
   platforms: [.macOS(.v13), .iOS(.v16), .tvOS(.v16), .watchOS(.v9)],
-  products: [.library(name: "Twitch", targets: ["Twitch"])],
+  products: [
+    .library(name: "Twitch", targets: ["Twitch"]),
+    .library(name: "TwitchWebsocketKit", targets: ["TwitchWebsocketKit"]),
+  ],
   dependencies: [
     .package(
       url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.2")),
@@ -15,11 +18,14 @@ let package = Package(
   targets: [
     .target(
       name: "Twitch",
+      dependencies: ["TwitchIRC"]),
+    .target(
+      name: "TwitchWebsocketKit",
       dependencies: [
         "TwitchIRC",
+        "Twitch",
         .product(
-          name: "WebSocketKit", package: "websocket-kit",
-          condition: .when(platforms: [.linux])),
+          name: "WebSocketKit", package: "websocket-kit"),
       ]),
     .testTarget(
       name: "TwitchTests", dependencies: ["Twitch", "Mocker"],
