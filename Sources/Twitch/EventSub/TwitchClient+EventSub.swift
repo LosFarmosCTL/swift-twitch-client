@@ -16,7 +16,11 @@ extension TwitchClient {
 
     return AsyncThrowingStream { continuation in
       let handler = EventSubContinuationHandler(continuation: continuation)
-      self.eventSubClient.addHandler(handler, for: response.subscription.id, on: socketID)
+
+      Task {
+        await self.eventSubClient.addHandler(
+          handler, for: response.subscription.id, on: socketID)
+      }
     }
   }
 
@@ -27,7 +31,11 @@ extension TwitchClient {
     let (response, socketID) = try await self.subscribe(to: event)
 
     let handler = EventSubCallbackHandler(callback: eventHandler)
-    self.eventSubClient.addHandler(handler, for: response.subscription.id, on: socketID)
+
+    Task {
+      await self.eventSubClient.addHandler(
+        handler, for: response.subscription.id, on: socketID)
+    }
   }
 
   #if canImport(Combine)
@@ -39,7 +47,10 @@ extension TwitchClient {
       let subject = PassthroughSubject<R, EventSubError>()
       let handler = EventSubSubjectHandler(subject: subject)
 
-      self.eventSubClient.addHandler(handler, for: response.subscription.id, on: socketID)
+      Task {
+        await self.eventSubClient.addHandler(
+          handler, for: response.subscription.id, on: socketID)
+      }
 
       return subject.eraseToAnyPublisher()
     }

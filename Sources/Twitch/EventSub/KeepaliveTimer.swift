@@ -1,29 +1,40 @@
-internal actor KeepaliveTimer {
-  private var task: Task<Void, any Error>
+internal final actor KeepaliveTimer {
+  private var task: Task<Void, Never>?
   private var duration: Duration
 
-  private let onTimeout: () -> Void
+  private let onTimeout: @Sendable () -> Void
 
-  init(duration: Duration = .seconds(10), onTimeout: @escaping () -> Void) {
+  init(duration: Duration = .seconds(10), onTimeout: @escaping @Sendable () -> Void) {
     self.duration = duration
     self.onTimeout = onTimeout
 
-    self.task = Task {
-      try await Task.sleep(for: duration)
-    }
+    self.task = Self.makeTask(delay: duration, handler: onTimeout)
+  }
+
+  deinit {
+    self.task?.cancel()
   }
 
   func reset(duration: Duration? = nil) {
-    if let duration {
-      self.duration = duration
-    }
+    if let duration { self.duration = duration }
 
-    self.task.cancel()
+    self.task?.cancel()
+    self.task = Self.makeTask(delay: self.duration, handler: self.onTimeout)
+  }
 
-    self.task = Task {
-      try await Task.sleep(for: self.duration)
+  func cancel() {
+    self.task?.cancel()
+    self.task = nil
+  }
 
-      self.onTimeout()
+  private nonisolated static func makeTask(
+    delay: Duration,
+    handler: @escaping @Sendable () -> Void
+  ) -> Task<Void, Never> {
+    Task { [delay, handler] in
+      do { try await Task.sleep(for: delay) } catch { return }
+      if Task.isCancelled { return }
+      handler()
     }
   }
 }
