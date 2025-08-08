@@ -14,16 +14,38 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            swift-version: "6.2"
+            swift-version: "6.2-snapshot"
           - os: macos-15
-            swift-version: "6.2"
+            swift-version: "6.2-snapshot"
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install Swift ${{ matrix.swift-version }}
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: ${{ matrix.swift-version }}
+
+      - name: Install Swiftly & Swift ${{ matrix.swift-version }}
+        run: |
+          if swift --version 2>/dev/null | grep -q "${{ matrix.swift-version }}"; then
+            echo "Swift ${{ matrix.swift-version }} already installed, skipping installation."
+          else
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              echo "Installing Swiftly on Linux..."
+              curl -L https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz > swiftly.tar.gz
+              tar zxf swiftly.tar.gz
+              ./swiftly init --verbose --assume-yes --skip-install
+              source "/home/runner/.local/share/swiftly/env.sh"
+            elif [[ "$RUNNER_OS" == "macOS" ]]; then
+              echo "Installing Swiftly on macOS..."
+              brew install swiftly
+              swiftly init --verbose --assume-yes --skip-install || true
+              source "$HOME/.swiftly/env.sh"
+            fi
+
+            echo "Installing Swift ${{ matrix.swift-version }}..."
+            swiftly install ${{ matrix.swift-version }} --post-install-file=post-install.sh
+            if [[ -f post-install.sh ]]; then
+              source post-install.sh
+            fi
+          fi
+
       - name: Build
         run: swift build -v
       - name: Test
