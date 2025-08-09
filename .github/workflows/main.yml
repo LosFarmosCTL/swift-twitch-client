@@ -21,14 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Swift toolchains
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/share/swiftly/toolchains
-            ~/.swiftly/toolchains
-          key: swift-toolchain-${{ runner.os }}-${{ matrix.swift-version }}
-
       - name: Cache Swift build
         uses: actions/cache@v4
         with:
