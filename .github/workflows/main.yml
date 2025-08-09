@@ -61,9 +61,11 @@ jobs:
 
             echo "Installing Swift ${{ matrix.swift-version }}..."
             swiftly install ${{ matrix.swift-version }} --post-install-file=post-install.sh
+
             if [[ -f post-install.sh ]]; then
               echo "Running post-install.sh..."
-              cat post-install.sh
+
+              # alias apt-get to automatically run with sudo
               bash -c '
                 shopt -s expand_aliases
                 alias apt-get="sudo apt-get"
