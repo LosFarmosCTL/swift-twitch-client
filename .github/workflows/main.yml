@@ -43,6 +43,10 @@ jobs:
             echo "Swift ${{ matrix.swift-version }} already installed, skipping installation."
           else
             if [[ "$RUNNER_OS" == "Linux" ]]; then
+              echo "Disabling man-db on Linux..."
+              sudo apt-get remove -y man-db || true
+              sudo apt-get update
+
               echo "Installing Swiftly on Linux..."
               curl -L https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz > swiftly.tar.gz
               tar zxf swiftly.tar.gz
