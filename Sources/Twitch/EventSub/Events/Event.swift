@@ -1,4 +1,4 @@
-public protocol Event: Decodable {}
+public protocol Event: Decodable, Sendable {}
 
 internal enum EventType: String, Decodable {
   case channelFollow = "channel.follow"

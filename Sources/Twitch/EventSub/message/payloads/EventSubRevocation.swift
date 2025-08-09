@@ -1,10 +1,10 @@
 import Foundation
 
-public struct EventSubRevocation: Decodable {
+public struct EventSubRevocation: Decodable, Sendable {
   internal let subscriptionID: String
   public let status: Status
 
-  public enum Status: String, Decodable {
+  public enum Status: String, Decodable, Sendable {
     case authorizationRevoked = "authorization_revoked"
     case userRemoved = "user_removed"
     case versionRemoved = "version_removed"

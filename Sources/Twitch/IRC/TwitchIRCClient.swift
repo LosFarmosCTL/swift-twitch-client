@@ -11,7 +11,7 @@ public actor TwitchIRCClient {
     case authenticated(_ credentials: TwitchCredentials)
   }
 
-  public struct Options {
+  public struct Options: Sendable {
     let enableWriteConnection: Bool
 
     public init(enableWriteConnection: Bool = true) {

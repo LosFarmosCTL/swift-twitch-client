@@ -67,9 +67,13 @@ jobs:
           fi
 
       - name: Build
-        run: swift build -v
+        run: |
+          swiftly use ${{ matrix.swift-version }}
+          swift build -v
       - name: Test
-        run: swift test
+        run: |
+          swiftly use ${{ matrix.swift-version }}
+          swift test
 
   lint:
     name: Lint

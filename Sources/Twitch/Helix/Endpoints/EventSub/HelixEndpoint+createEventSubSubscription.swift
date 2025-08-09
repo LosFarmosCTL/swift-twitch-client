@@ -56,14 +56,14 @@ public enum EventSubTransport {
   }
 }
 
-public struct CreateEventSubResponse {
+public struct CreateEventSubResponse: Sendable {
   public let subscription: EventSubSubscription
 
   public let total: Int
   public let totalCost: Int
   public let maxTotalCost: Int
 
-  public struct EventSubSubscription: Decodable {
+  public struct EventSubSubscription: Decodable, Sendable {
     public let id: String
     public let status: String
     public let type: String
@@ -73,7 +73,7 @@ public struct CreateEventSubResponse {
     public let transport: TransportResponse
   }
 
-  public struct TransportResponse: Decodable {
+  public struct TransportResponse: Decodable, Sendable {
     public let method: String
 
     // only included if method is "webhook"
