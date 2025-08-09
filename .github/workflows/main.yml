@@ -42,7 +42,13 @@ jobs:
             echo "Installing Swift ${{ matrix.swift-version }}..."
             swiftly install ${{ matrix.swift-version }} --post-install-file=post-install.sh
             if [[ -f post-install.sh ]]; then
-              source post-install.sh
+              echo "Running post-install.sh..."
+              cat post-install.sh
+              bash -c '
+                shopt -s expand_aliases
+                alias apt-get="sudo apt-get"
+                source post-install.sh
+              '
             fi
           fi
 
