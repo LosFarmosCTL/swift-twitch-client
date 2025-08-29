@@ -1,4 +1,4 @@
-public struct TwitchCredentials {
+public struct TwitchCredentials: Sendable {
   public let oAuth: String
   public let clientID: String
 

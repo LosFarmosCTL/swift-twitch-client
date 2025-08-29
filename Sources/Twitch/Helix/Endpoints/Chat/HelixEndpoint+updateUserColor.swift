@@ -17,7 +17,7 @@ where
   }
 }
 
-public enum HelixColor {
+public enum HelixColor: Sendable {
   case blue, blueViolet, cadetBlue, chocolate, coral, dodgerBlue, firebrick, goldenRod,
     green, hotPink, orangeRed, red, seaGreen, springGreen, yellowGreen
   case customHex(_ hexValue: String)

@@ -1,35 +1,26 @@
 import Foundation
 
-extension Formatter {
-  static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-  static let iso8601: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime]
-    return formatter
-  }()
-}
-
 extension JSONDecoder.DateDecodingStrategy {
-  static let iso8601withFractionalSeconds = custom {
-    let container = try $0.singleValueContainer()
+  static let iso8601withFractionalSeconds = custom { decoder in
+    let container = try decoder.singleValueContainer()
     let string = try container.decode(String.self)
-    if let date = Formatter.iso8601withFractionalSeconds.date(from: string)
-      ?? Formatter.iso8601.date(from: string)
-    {
-      return date
-    }
+
+    let fractionalStyle = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
+    if let date = try? Date(string, strategy: fractionalStyle) { return date }
+
+    // fallback: no fractional seconds
+    if let date = try? Date(string, strategy: .iso8601) { return date }
+
     throw DecodingError.dataCorruptedError(
-      in: container, debugDescription: "Invalid date: \(string)")
+      in: container,
+      debugDescription: "Invalid date: \(string)")
   }
 }
 
 extension JSONEncoder.DateEncodingStrategy {
-  static let iso8601withFractionalSeconds = custom {
-    var container = $1.singleValueContainer()
-    try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
+  static let iso8601withFractionalSeconds = custom { (date: Date, encoder: Encoder) in
+    var container = encoder.singleValueContainer()
+    let fractionalStyle = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
+    try container.encode(date.formatted(fractionalStyle))
   }
 }

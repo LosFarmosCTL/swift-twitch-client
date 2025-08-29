@@ -37,7 +37,7 @@ where
   }
 }
 
-public struct AutomodConfiguration: Encodable {
+public struct AutomodConfiguration: Encodable, Sendable {
   public let aggression: Int
   public let bullying: Int
   public let disability: Int

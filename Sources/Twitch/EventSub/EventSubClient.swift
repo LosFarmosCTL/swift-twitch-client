@@ -7,7 +7,7 @@ import Foundation
 private typealias EventID = String
 private typealias SocketID = String
 
-internal class EventSubClient {
+internal actor EventSubClient {
   private static let eventSubURL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
   private static let maxSubscriptionsPerConnection = 300
 

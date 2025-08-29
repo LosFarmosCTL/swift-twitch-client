@@ -21,7 +21,7 @@ where
   }
 }
 
-private struct StartCommercialRequestBody: Encodable {
+private struct StartCommercialRequestBody: Encodable, Sendable {
   let broadcasterID: String
   let length: Int
 
@@ -31,7 +31,7 @@ private struct StartCommercialRequestBody: Encodable {
   }
 }
 
-public struct Commercial: Decodable {
+public struct Commercial: Decodable, Sendable {
   public let length: Int
   public let message: String
   public let retryAfter: Int

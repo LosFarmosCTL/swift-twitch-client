@@ -4,7 +4,7 @@ import Foundation
   import FoundationNetworking
 #endif
 
-internal class EventSubConnection {
+internal actor EventSubConnection {
   private let eventSubURL: URL
 
   private let credentials: TwitchCredentials
@@ -20,7 +20,6 @@ internal class EventSubConnection {
 
   private var receivedMessageIDs = [String]()
 
-  // TODO: look into deinitilizations
   deinit {
     self.websocket?.cancel(with: .goingAway, reason: nil)
   }
@@ -43,16 +42,16 @@ internal class EventSubConnection {
     if let socketID = self.socketID { return socketID }
 
     self.websocket = urlSession.webSocketTask(with: eventSubURL)
-    self.websocket?.receive(completionHandler: receiveMessage(_:))
     self.websocket?.resume()
+    self.scheduleReceive()
 
     // Twitch sends keepalive messages in a specified time interval,
     // if we don't receive a message within that interval, we should
     // consider the connection to be timed out
     self.keepaliveTimer = KeepaliveTimer(duration: .seconds(10)) {
-      self.onMessage(
-        .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
-      self.websocket?.cancel()
+      @Sendable [weak self] in
+
+      Task { await self?.handleKeepaliveTimeout() }
     }
 
     // wait for the welcome message to be received
@@ -68,13 +67,19 @@ internal class EventSubConnection {
     return welcomeMessage.sessionID
   }
 
+  private func scheduleReceive() {
+    self.websocket?.receive { @Sendable [weak self] result in
+      Task { await self?.receiveMessage(result) }
+    }
+  }
+
   private func receiveMessage(
     _ result: Result<URLSessionWebSocketTask.Message, any Error>
-  ) {
+  ) async {
     switch result {
     case .success(let message):
       // reset the keepalive timer on every message
-      Task { await self.keepaliveTimer?.reset() }
+      await self.keepaliveTimer?.reset()
 
       if let message = parseMessage(message) {
 
@@ -91,7 +96,7 @@ internal class EventSubConnection {
       }
 
       // recursively receive the next message
-      self.websocket?.receive(completionHandler: receiveMessage)
+      self.scheduleReceive()
     case .failure(let error):
       let disconnectedError = EventSubConnectionError.disconnected(
         with: error, socketID: socketID ?? "")
@@ -101,6 +106,7 @@ internal class EventSubConnection {
         self.welcomeContinuation = nil
       }
 
+      await self.keepaliveTimer?.cancel()
       onMessage(.failure(disconnectedError))
     }
   }
@@ -133,5 +139,11 @@ internal class EventSubConnection {
           EventSubConnectionError.reconnectRequested(
             reconnectURL: reconnect.reconnectURL, socketID: socketID ?? "")))
     }
+  }
+
+  private func handleKeepaliveTimeout() {
+    self.onMessage(
+      .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
+    self.websocket?.cancel()
   }
 }

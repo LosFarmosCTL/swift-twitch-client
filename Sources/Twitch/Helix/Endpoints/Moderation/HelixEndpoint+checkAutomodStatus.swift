@@ -30,7 +30,7 @@ where
   }
 }
 
-public struct AutomodStatus: Decodable {
+public struct AutomodStatus: Decodable, Sendable {
   public let messageID: String
   public let isPermitted: Bool
 

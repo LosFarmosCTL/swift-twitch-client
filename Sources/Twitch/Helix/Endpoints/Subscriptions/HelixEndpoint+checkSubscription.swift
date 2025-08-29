@@ -21,7 +21,7 @@ where
   }
 }
 
-public struct Subscription: Decodable {
+public struct Subscription: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
   public let broadcasterName: String
@@ -61,13 +61,13 @@ public struct Subscription: Decodable {
   }
 }
 
-public enum SubTier: String, Decodable {
+public enum SubTier: String, Decodable, Sendable {
   case tier1 = "1000"
   case tier2 = "2000"
   case tier3 = "3000"
 }
 
-public struct SubGifter: Decodable {
+public struct SubGifter: Decodable, Sendable {
   public let id: String
   public let login: String
   public let name: String

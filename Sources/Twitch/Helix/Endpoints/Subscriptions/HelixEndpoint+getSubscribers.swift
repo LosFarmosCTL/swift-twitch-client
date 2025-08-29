@@ -35,7 +35,7 @@ where
   }
 }
 
-public struct SubscribersResponse {
+public struct SubscribersResponse: Sendable {
   public let subscribers: [Subscriber]
 
   public let total: Int
@@ -44,7 +44,7 @@ public struct SubscribersResponse {
   public let cursor: PaginationCursor?
 }
 
-public struct Subscriber: Decodable {
+public struct Subscriber: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let userName: String

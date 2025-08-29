@@ -13,7 +13,7 @@ where
   }
 }
 
-public struct BadgeSet: Decodable {
+public struct BadgeSet: Decodable, Sendable {
   public let setID: String
   public let badges: [Badge]
 
@@ -23,7 +23,7 @@ public struct BadgeSet: Decodable {
   }
 }
 
-public struct Badge: Decodable {
+public struct Badge: Decodable, Sendable {
   public let id: String
   public let images: BadgeImages
   public let title: String
@@ -54,7 +54,7 @@ public struct Badge: Decodable {
     self.clickUrl = try container.decodeIfPresent(String.self, forKey: .clickUrl)
   }
 
-  public struct BadgeImages {
+  public struct BadgeImages: Sendable {
     public let url1x: URL
     public let url2x: URL
     public let url4x: URL

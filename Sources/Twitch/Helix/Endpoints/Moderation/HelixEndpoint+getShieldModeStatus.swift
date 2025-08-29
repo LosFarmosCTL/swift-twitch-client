@@ -26,7 +26,7 @@ where
   }
 }
 
-public struct ShieldModeStatus: Decodable {
+public struct ShieldModeStatus: Decodable, Sendable {
   public let isActive: Bool
   public let moderatorID: String
   public let moderatorName: String

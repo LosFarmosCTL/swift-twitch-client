@@ -19,11 +19,11 @@ where
   }
 }
 
-internal struct SendAnnouncementRequestBody: Encodable {
+internal struct SendAnnouncementRequestBody: Encodable, Sendable {
   let message: String
   let color: AnnouncementColor?
 }
 
-public enum AnnouncementColor: String, Encodable {
+public enum AnnouncementColor: String, Encodable, Sendable {
   case blue, green, orange, purple, primary
 }

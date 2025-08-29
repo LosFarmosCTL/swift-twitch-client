@@ -24,7 +24,7 @@ where
   }
 }
 
-public struct AutomodSettings: Decodable {
+public struct AutomodSettings: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String
   public let overallLevel: Int?

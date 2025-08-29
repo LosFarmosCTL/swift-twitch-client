@@ -23,7 +23,7 @@ where
   }
 }
 
-public struct ChatSettings: Decodable {
+public struct ChatSettings: Decodable, Sendable {
   public let broadcasterID: String
   public let slowModeWaitTime: Int?
   public let followerModeDuration: Int?

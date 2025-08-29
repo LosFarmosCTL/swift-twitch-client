@@ -36,7 +36,7 @@ where
   }
 }
 
-public enum ChatSetting: Equatable {
+public enum ChatSetting: Equatable, Sendable {
   case slowMode(Int? = nil)
   case followerMode(Int? = nil)
   case subscriberMode
@@ -46,7 +46,7 @@ public enum ChatSetting: Equatable {
   case nonModeratorChatDelay(Int? = nil)
 }
 
-internal struct UpdateChatSettingsRequestBody: Encodable {
+internal struct UpdateChatSettingsRequestBody: Encodable, Sendable {
   var slowMode: Bool?
   var slowModeWaitTime: Int?
   var followerMode: Bool?

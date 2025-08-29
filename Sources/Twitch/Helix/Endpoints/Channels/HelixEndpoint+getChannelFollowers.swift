@@ -46,7 +46,7 @@ where
   }
 }
 
-public struct FollowerResponse {
+public struct FollowerResponse: Sendable {
   public let total: Int
 
   public let followers: [Follower]
@@ -54,7 +54,7 @@ public struct FollowerResponse {
   public let cursor: PaginationCursor?
 }
 
-public struct Follower: Decodable {
+public struct Follower: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let userName: String

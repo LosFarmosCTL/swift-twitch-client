@@ -15,7 +15,7 @@ where
   }
 }
 
-public struct AdSchedule: Decodable {
+public struct AdSchedule: Decodable, Sendable {
   public let nextAdAt: Date
   public let lastAdAt: Date
   public let duration: Int

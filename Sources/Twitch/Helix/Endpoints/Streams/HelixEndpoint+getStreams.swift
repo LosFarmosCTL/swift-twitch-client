@@ -34,12 +34,12 @@ where
   }
 }
 
-public enum StreamType: String {
+public enum StreamType: String, Sendable {
   case live
   case all
 }
 
-public struct Stream: Decodable {
+public struct Stream: Decodable, Sendable {
   public let id: String
 
   public let userID: String

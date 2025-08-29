@@ -26,7 +26,7 @@ where
   }
 }
 
-public struct BlockedTerm: Decodable {
+public struct BlockedTerm: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String
 

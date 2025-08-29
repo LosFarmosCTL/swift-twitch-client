@@ -15,7 +15,7 @@ where
   }
 }
 
-public struct ContentClassificationLabel: Decodable {
+public struct ContentClassificationLabel: Decodable, Sendable {
   public let id: String
   public let description: String
   public let name: String

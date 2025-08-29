@@ -23,7 +23,7 @@ where
   }
 }
 
-public struct BlockedUser: Decodable {
+public struct BlockedUser: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let displayName: String

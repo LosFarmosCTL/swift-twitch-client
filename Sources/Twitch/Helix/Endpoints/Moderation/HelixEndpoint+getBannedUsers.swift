@@ -27,7 +27,7 @@ where
   }
 }
 
-public struct BannedUser: Decodable {
+public struct BannedUser: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let userName: String

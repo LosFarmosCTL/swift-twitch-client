@@ -28,7 +28,7 @@ where
   }
 }
 
-public struct ChatMessageResponse: Decodable {
+public struct ChatMessageResponse: Decodable, Sendable {
   public let messageID: String
   public let isSent: Bool
 
@@ -41,13 +41,13 @@ public struct ChatMessageResponse: Decodable {
     case dropReason
   }
 
-  public struct DropReason: Decodable {
+  public struct DropReason: Decodable, Sendable {
     let code: String
     let message: String
   }
 }
 
-internal struct SendChatMessageRequestBody: Encodable {
+internal struct SendChatMessageRequestBody: Encodable, Sendable {
   let broadcasterID: String
   let senderID: String
   let message: String

@@ -27,7 +27,7 @@ where
   }
 }
 
-public struct Channel: Decodable {
+public struct Channel: Decodable, Sendable {
   public let id: String
   public let login: String
   public let name: String

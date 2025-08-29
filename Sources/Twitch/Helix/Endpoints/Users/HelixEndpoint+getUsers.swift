@@ -16,7 +16,7 @@ where
   }
 }
 
-public struct User: Decodable {
+public struct User: Decodable, Sendable {
   public let id: String
   public let login: String
   public let displayName: String
@@ -31,7 +31,7 @@ public struct User: Decodable {
 
   public let email: String?
 
-  public enum BroadcasterType: String, Decodable {
+  public enum BroadcasterType: String, Decodable, Sendable {
     case partner
     case affiliate
     case none = ""

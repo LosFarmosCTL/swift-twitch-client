@@ -35,7 +35,7 @@ where
   }
 }
 
-public enum EventSubTransport {
+public enum EventSubTransport: Sendable {
   case webhook(callback: String, secret: String)
   case websocket(id: String)
   case conduit(id: String)
@@ -56,14 +56,14 @@ public enum EventSubTransport {
   }
 }
 
-public struct CreateEventSubResponse {
+public struct CreateEventSubResponse: Sendable {
   public let subscription: EventSubSubscription
 
   public let total: Int
   public let totalCost: Int
   public let maxTotalCost: Int
 
-  public struct EventSubSubscription: Decodable {
+  public struct EventSubSubscription: Decodable, Sendable {
     public let id: String
     public let status: String
     public let type: String
@@ -73,7 +73,7 @@ public struct CreateEventSubResponse {
     public let transport: TransportResponse
   }
 
-  public struct TransportResponse: Decodable {
+  public struct TransportResponse: Decodable, Sendable {
     public let method: String
 
     // only included if method is "webhook"
@@ -101,7 +101,7 @@ public struct CreateEventSubResponse {
   }
 }
 
-private struct CreateEventSubRequestBody: Encodable {
+private struct CreateEventSubRequestBody: Encodable, Sendable {
   let type: String
   let version: String
   let condition: [String: String]
@@ -109,7 +109,7 @@ private struct CreateEventSubRequestBody: Encodable {
   let transport: Transport
 }
 
-private struct Transport: Encodable {
+private struct Transport: Encodable, Sendable {
   let method: String
   let callback: String?
   let secret: String?

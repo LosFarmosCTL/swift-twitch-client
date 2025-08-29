@@ -67,9 +67,23 @@ jobs:
           fi
 
       - name: Build
-        run: swift build -v
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            source /home/runner/.local/share/swiftly/env.sh
+          else
+            source "$HOME/.swiftly/env.sh"
+          fi
+          swiftly use ${{ matrix.swift-version }}
+          swift build -v
       - name: Test
-        run: swift test
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            source /home/runner/.local/share/swiftly/env.sh
+          else
+            source "$HOME/.swiftly/env.sh"
+          fi
+          swiftly use ${{ matrix.swift-version }}
+          swift test
 
   lint:
     name: Lint

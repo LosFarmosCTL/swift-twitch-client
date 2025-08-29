@@ -25,13 +25,13 @@ where
   }
 }
 
-public struct EmoteSetResponse: Decodable {
+public struct EmoteSetResponse: Decodable, Sendable {
   public let emotes: [SetEmote]
 
   public let template: String
 }
 
-public struct SetEmote: Decodable {
+public struct SetEmote: Decodable, Sendable {
   public let id: String
   public let name: String
   public let type: String
