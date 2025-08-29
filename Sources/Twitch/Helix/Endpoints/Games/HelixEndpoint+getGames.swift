@@ -24,7 +24,7 @@ where
   }
 }
 
-public struct Game: Decodable {
+public struct Game: Decodable, Sendable {
   public let id: String
   public let name: String
   public let boxArtUrl: String

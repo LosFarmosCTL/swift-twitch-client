@@ -22,7 +22,7 @@ where
   }
 }
 
-public struct ModeratedChannel: Decodable {
+public struct ModeratedChannel: Decodable, Sendable {
   public let id: String
   public let login: String
   public let displayName: String

@@ -35,7 +35,7 @@ where
   }
 }
 
-public enum EventSubTransport {
+public enum EventSubTransport: Sendable {
   case webhook(callback: String, secret: String)
   case websocket(id: String)
   case conduit(id: String)
@@ -101,7 +101,7 @@ public struct CreateEventSubResponse: Sendable {
   }
 }
 
-private struct CreateEventSubRequestBody: Encodable {
+private struct CreateEventSubRequestBody: Encodable, Sendable {
   let type: String
   let version: String
   let condition: [String: String]
@@ -109,7 +109,7 @@ private struct CreateEventSubRequestBody: Encodable {
   let transport: Transport
 }
 
-private struct Transport: Encodable {
+private struct Transport: Encodable, Sendable {
   let method: String
   let callback: String?
   let secret: String?

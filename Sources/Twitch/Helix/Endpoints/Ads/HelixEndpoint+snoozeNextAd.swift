@@ -22,7 +22,7 @@ where
   }
 }
 
-public struct SnoozeResult: Decodable {
+public struct SnoozeResult: Decodable, Sendable {
   public let snoozeCount: Int
   public let snoozeRefreshAt: Date
   public let nextAdAt: Date

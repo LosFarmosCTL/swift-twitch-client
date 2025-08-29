@@ -20,4 +20,4 @@ where
   }
 }
 
-internal struct Whisper: Encodable { let message: String }
+internal struct Whisper: Encodable, Sendable { let message: String }

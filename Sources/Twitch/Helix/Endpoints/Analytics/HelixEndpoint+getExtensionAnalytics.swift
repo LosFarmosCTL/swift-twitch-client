@@ -25,7 +25,7 @@ where
   }
 }
 
-public struct ExtensionReport: Decodable {
+public struct ExtensionReport: Decodable, Sendable {
   public let extensionID: String
   public let url: String
   public let type: String

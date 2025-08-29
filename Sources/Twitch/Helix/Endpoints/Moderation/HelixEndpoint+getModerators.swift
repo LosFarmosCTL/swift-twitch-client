@@ -22,7 +22,7 @@ where
   }
 }
 
-public struct Moderator: Decodable {
+public struct Moderator: Decodable, Sendable {
   public let id: String
   public let login: String
   public let displayName: String

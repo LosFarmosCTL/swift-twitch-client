@@ -19,13 +19,13 @@ where
   }
 }
 
-public struct ChannelEmotes {
+public struct ChannelEmotes: Sendable {
   public let emotes: [ChannelEmote]
 
   public let template: String
 }
 
-public struct ChannelEmote: Decodable {
+public struct ChannelEmote: Decodable, Sendable {
   public let id: String
   public let name: String
   public let tier: String?
@@ -55,16 +55,16 @@ public struct ChannelEmote: Decodable {
 }
 
 public enum Emote {
-  public enum Format: String, Decodable {
+  public enum Format: String, Decodable, Sendable {
     case gif = "animated"
     case png = "static"
   }
 
-  public enum Scale: String, Decodable {
+  public enum Scale: String, Decodable, Sendable {
     case small = "1.0"
     case medium = "2.0"
     case large = "3.0"
   }
 
-  public enum ThemeMode: String, Decodable { case light, dark }
+  public enum ThemeMode: String, Decodable, Sendable { case light, dark }
 }

@@ -20,5 +20,5 @@ where
   }
 }
 
-public enum SourceContext: String, Decodable { case chat, whisper }
-public enum Reason: String, Decodable { case harassment, spam, other }
+public enum SourceContext: String, Decodable, Sendable { case chat, whisper }
+public enum Reason: String, Decodable, Sendable { case harassment, spam, other }

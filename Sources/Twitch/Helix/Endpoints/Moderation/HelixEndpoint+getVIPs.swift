@@ -22,7 +22,7 @@ where
   }
 }
 
-public struct VIP: Decodable {
+public struct VIP: Decodable, Sendable {
   public let id: String
   public let login: String
   public let displayName: String

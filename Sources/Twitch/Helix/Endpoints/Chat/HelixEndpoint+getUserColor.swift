@@ -15,7 +15,7 @@ where
   }
 }
 
-public struct UserColor: Decodable {
+public struct UserColor: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let userName: String

@@ -37,7 +37,7 @@ where
   }
 }
 
-public enum Label: String, Encodable {
+public enum Label: String, Encodable, Sendable {
   case drugsIntoxication = "DrugsIntoxication"
   case sexualThemes = "SexualThemes"
   case violentGraphic = "ViolentGraphic"
@@ -45,7 +45,7 @@ public enum Label: String, Encodable {
   case profanityVulgarity = "ProfanityVulgarity"
 }
 
-internal struct UpdateChannelRequestBody: Encodable {
+internal struct UpdateChannelRequestBody: Encodable, Sendable {
   let gameID: String?
   let broadcasterLanguage: String?
   let title: String?
@@ -54,7 +54,7 @@ internal struct UpdateChannelRequestBody: Encodable {
   let contentClassificationLabels: [Label]?
   let isBrandedContent: Bool?
 
-  struct Label: Encodable {
+  struct Label: Encodable, Sendable {
     let id: String
     let isEnabled: Bool
   }

@@ -14,7 +14,7 @@ where
   }
 }
 
-public struct Editor: Decodable {
+public struct Editor: Decodable, Sendable {
   public let userID: String
   public let userName: String
   public let createdAt: Date

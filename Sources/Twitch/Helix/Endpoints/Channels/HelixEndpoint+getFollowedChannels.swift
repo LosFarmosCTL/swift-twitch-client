@@ -45,7 +45,7 @@ where
   }
 }
 
-public struct FollowsResponse {
+public struct FollowsResponse: Sendable {
   public let total: Int
 
   public let follows: [Follow]
@@ -53,7 +53,7 @@ public struct FollowsResponse {
   public let cursor: PaginationCursor?
 }
 
-public struct Follow: Decodable {
+public struct Follow: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
   public let broadcasterName: String

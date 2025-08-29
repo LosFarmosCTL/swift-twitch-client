@@ -14,7 +14,7 @@ where
   }
 }
 
-public struct Broadcaster: Decodable {
+public struct Broadcaster: Decodable, Sendable {
   public let id: String
   public let login: String
   public let name: String

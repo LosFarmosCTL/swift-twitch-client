@@ -33,7 +33,7 @@ where
   }
 }
 
-private struct BanUserBody: Encodable {
+private struct BanUserBody: Encodable, Sendable {
   let userID: String
   let reason: String?
   let duration: Duration?
@@ -44,7 +44,7 @@ private struct BanUserBody: Encodable {
   }
 }
 
-public struct Ban: Decodable {
+public struct Ban: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String
   public let userID: String

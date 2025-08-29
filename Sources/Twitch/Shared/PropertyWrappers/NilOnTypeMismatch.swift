@@ -1,4 +1,4 @@
-@propertyWrapper public struct NilOnTypeMismatch<Value> {
+@propertyWrapper public struct NilOnTypeMismatch<Value: Sendable>: Sendable {
   public var wrappedValue: Value?
   public init(wrappedValue: Value?) {
     self.wrappedValue = wrappedValue

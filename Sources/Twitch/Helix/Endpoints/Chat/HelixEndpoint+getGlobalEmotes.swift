@@ -19,13 +19,13 @@ where
   }
 }
 
-public struct GlobalEmotes {
+public struct GlobalEmotes: Sendable {
   public let emotes: [GlobalEmote]
 
   public let template: String
 }
 
-public struct GlobalEmote: Decodable {
+public struct GlobalEmote: Decodable, Sendable {
   public let id: String
   public let name: String
   public let format: [Emote.Format]

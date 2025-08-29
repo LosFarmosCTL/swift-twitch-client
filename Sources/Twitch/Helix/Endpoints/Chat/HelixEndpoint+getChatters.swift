@@ -33,7 +33,7 @@ where
   }
 }
 
-public struct Chatters {
+public struct Chatters: Sendable {
   public let total: Int
 
   public let chatters: [Chatter]
@@ -41,7 +41,7 @@ public struct Chatters {
   public let cursor: PaginationCursor?
 }
 
-public struct Chatter: Decodable {
+public struct Chatter: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
   public let userName: String
