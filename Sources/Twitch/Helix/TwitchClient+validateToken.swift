@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 extension TwitchClient {
   public static func validateToken(token: String) async throws -> ValidatedToken {
     let urlSession = URLSession(configuration: .default)
