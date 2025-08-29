@@ -2,7 +2,8 @@
   import FoundationNetworking
 
   extension URLSessionWebSocketTask {
-    func receive(completionHandler: @escaping (Result<Message, Error>) -> Void) {
+    func receive(completionHandler: @Sendable @escaping (Result<Message, Error>) -> Void)
+    {
       Task {
         do {
           let message = try await self.receive()
