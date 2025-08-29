@@ -10,7 +10,7 @@ where
     replyParentMessageID: String? = nil
   ) -> Self {
     return .init(
-      method: "POST", path: "chat/announcements",
+      method: "POST", path: "chat/messages",
       body: { auth in
         SendChatMessageRequestBody(
           broadcasterID: channel,
