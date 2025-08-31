@@ -86,7 +86,9 @@ internal actor EventSubClient {
 
   private func reconnect(_ socketID: SocketID, reconnectURL: URL) async {
     do {
-      let newSocketID = try await self.createConnection()
+      if let old = connections[socketID] { await old.cancel() }
+
+      let newSocketID = try await self.createConnection(url: reconnectURL)
 
       // move all events to the new connection
       connectionEvents[newSocketID] = connectionEvents[socketID]
@@ -98,7 +100,10 @@ internal actor EventSubClient {
     }
   }
 
-  private func finishConnection(_ socketID: SocketID, throwing error: EventSubError) {
+  private func finishConnection(_ socketID: SocketID, throwing error: EventSubError) async
+  {
+    if let connection = connections[socketID] { await connection.cancel() }
+
     for (socket, events) in connectionEvents where socket == socketID {
       events.forEach { event in
         eventHandlers[event]?.finish(throwing: error)

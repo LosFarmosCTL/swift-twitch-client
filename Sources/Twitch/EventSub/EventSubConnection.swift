@@ -21,10 +21,9 @@ internal actor EventSubConnection {
 
   private var receivedMessageIDs = [String]()
 
-  deinit {
-    Task.detached { [websocket] in
-      await websocket?.cancel(with: .goingAway, reason: nil)
-    }
+  internal func cancel() async {
+    await websocket?.cancel(with: .goingAway, reason: nil)
+    await keepaliveTimer?.cancel()
   }
 
   init(
