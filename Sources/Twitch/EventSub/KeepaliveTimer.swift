@@ -4,7 +4,10 @@ internal final actor KeepaliveTimer {
 
   private let onTimeout: @Sendable () async -> Void
 
-  init(duration: Duration = .seconds(10), onTimeout: @escaping @Sendable () async -> Void) {
+  init(
+    duration: Duration = .seconds(10),
+    onTimeout: @escaping @Sendable () async -> Void
+  ) {
     self.duration = duration
     self.onTimeout = onTimeout
 
