@@ -17,7 +17,9 @@ internal actor EventSubConnection {
 
   private var onMessage:
     (@Sendable (Result<EventSubNotification, EventSubConnectionError>) async -> Void)
+
   private var welcomeContinuation: CheckedContinuation<EventSubWelcome, any Error>?
+  private var pendingWelcomeResult: Result<EventSubWelcome, EventSubConnectionError>?
 
   private var receivedMessageIDs = [String]()
 
@@ -54,7 +56,7 @@ internal actor EventSubConnection {
     // Twitch sends keepalive messages in a specified time interval,
     // if we don't receive a message within that interval, we should
     // consider the connection to be timed out
-    self.keepaliveTimer = KeepaliveTimer(duration: .seconds(10)) {
+    self.keepaliveTimer = KeepaliveTimer(duration: .seconds(7)) {
       @Sendable [weak self] in
 
       await self?.handleKeepaliveTimeout()
@@ -63,6 +65,12 @@ internal actor EventSubConnection {
     // wait for the welcome message to be received
     let welcomeMessage = try await withCheckedThrowingContinuation { continuation in
       self.welcomeContinuation = continuation
+
+      // in case the welcome message was received before the continuation was set
+      if let pending = self.pendingWelcomeResult {
+        self.pendingWelcomeResult = nil
+        self.finishWelcome(pending)
+      }
     }
 
     // use a slightly longer keepalive timeout to account for network latency
@@ -74,8 +82,8 @@ internal actor EventSubConnection {
   }
 
   private func scheduleReceive() async {
-    await self.websocket?.receive { @Sendable [weak self] result in
-      Task { await self?.receiveMessage(result) }
+    await self.websocket?.receive { @Sendable result in
+      Task { await self.receiveMessage(result) }
     }
   }
 
@@ -106,10 +114,7 @@ internal actor EventSubConnection {
       let disconnectedError = EventSubConnectionError.disconnected(
         with: error, socketID: socketID ?? "")
 
-      if let welcomeContinuation {
-        welcomeContinuation.resume(throwing: disconnectedError)
-        self.welcomeContinuation = nil
-      }
+      self.finishWelcome(.failure(disconnectedError))
 
       await self.keepaliveTimer?.cancel()
       await onMessage(.failure(disconnectedError))
@@ -132,8 +137,7 @@ internal actor EventSubConnection {
     switch message.payload {
     case .keepalive: break  // nothing to do for keepalive messages
     case .welcome(let welcome):
-      welcomeContinuation?.resume(returning: welcome)
-      welcomeContinuation = nil
+      self.finishWelcome(.success(welcome))
     case .notification(let notification):
       await onMessage(.success(notification))
     case .revocation(let revocation):
@@ -146,6 +150,22 @@ internal actor EventSubConnection {
     }
   }
 
+  private func finishWelcome(
+    _ result: Result<EventSubWelcome, EventSubConnectionError>
+  ) {
+    if let continuation = self.welcomeContinuation {
+      self.welcomeContinuation = nil
+      switch result {
+      case .success(let welcome):
+        continuation.resume(returning: welcome)
+      case .failure(let err):
+        continuation.resume(throwing: err)
+      }
+    } else {
+      pendingWelcomeResult = result
+    }
+  }
+
   private func handleKeepaliveTimeout() async {
     // NOTE: onMessage needs to be async because of this call, since the keepalive timer
     // runs in a different thread, this call would otherwise cross actor boundaries. Swift
@@ -155,5 +175,8 @@ internal actor EventSubConnection {
     await self.onMessage(
       .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
     await self.websocket?.cancel(with: .goingAway, reason: nil)
+
+    self.finishWelcome(
+      .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
   }
 }
