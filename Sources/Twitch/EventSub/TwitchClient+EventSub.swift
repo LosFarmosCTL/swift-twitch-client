@@ -14,28 +14,27 @@ extension TwitchClient {
   {
     let (response, socketID) = try await self.subscribe(to: event)
 
-    return AsyncThrowingStream { continuation in
-      let handler = EventSubContinuationHandler(continuation: continuation)
+    let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
 
-      Task {
-        await self.eventSubClient.addHandler(
-          handler, for: response.subscription.id, on: socketID)
-      }
-    }
+    let handler = EventSubContinuationHandler(continuation: continuation)
+    await self.eventSubClient.addHandler(
+      handler, for: response.subscription.id, on: socketID
+    )
+
+    return stream
   }
 
   public func eventListener<R>(
     on event: EventSubSubscription<R>,
-    eventHandler: @escaping (Result<R, EventSubError>) -> Void
+    eventHandler: @escaping @Sendable (Result<R, EventSubError>) -> Void
   ) async throws {
     let (response, socketID) = try await self.subscribe(to: event)
 
     let handler = EventSubCallbackHandler(callback: eventHandler)
 
-    Task {
-      await self.eventSubClient.addHandler(
-        handler, for: response.subscription.id, on: socketID)
-    }
+    await self.eventSubClient.addHandler(
+      handler, for: response.subscription.id, on: socketID
+    )
   }
 
   #if canImport(Combine)
