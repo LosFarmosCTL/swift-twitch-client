@@ -19,7 +19,10 @@ actor MockWebSocketTask: WebSocketTask {
   func cancel(
     with closeCode: URLSessionWebSocketTask.CloseCode,
     reason: Data?
-  ) { didCancel = true }
+  ) {
+    didCancel = true
+    pendingReceives.removeAll()
+  }
 
   func send(
     _ message: URLSessionWebSocketTask.Message

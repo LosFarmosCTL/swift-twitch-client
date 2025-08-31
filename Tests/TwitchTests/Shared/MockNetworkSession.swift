@@ -7,19 +7,17 @@ import Foundation
 #endif
 
 actor MockNetworkSession: NetworkSession {
-  private let webSocketTask: WebSocketTask
-
   struct Key: Hashable {
     let url: URL
     let method: String
   }
 
+  private var webSocketTasks: [MockWebSocketTask] = []
+  var queuedWebSocketMessages: [URLSessionWebSocketTask.Message] = []
+  var queuedWebSocketErrors: [Error] = []
+
   private var stubs: [Key: (Data, HTTPURLResponse)] = [:]
   private var onRequest: (@Sendable (URLRequest) -> Void)?
-
-  init(webSocketTask: WebSocketTask) {
-    self.webSocketTask = webSocketTask
-  }
 
   func data(for request: URLRequest) async throws -> (Data, URLResponse) {
     onRequest?(request)
@@ -31,7 +29,22 @@ actor MockNetworkSession: NetworkSession {
     throw URLError(.unsupportedURL)
   }
 
-  func webSocketTask(with url: URL) async -> WebSocketTask { webSocketTask }
+  func webSocketTask(with url: URL) async -> WebSocketTask {
+    let task = MockWebSocketTask()
+
+    for message in queuedWebSocketMessages {
+      await task.simulateIncoming(message)
+    }
+    for error in queuedWebSocketErrors {
+      await task.simulateError(error)
+    }
+
+    queuedWebSocketMessages.removeAll()
+    queuedWebSocketErrors.removeAll()
+
+    webSocketTasks.append(task)
+    return task
+  }
 
   func stub(
     url: URL, method: String = "GET",
@@ -46,6 +59,43 @@ actor MockNetworkSession: NetworkSession {
       headerFields: headers)!
 
     stubs[Key(url: url, method: method)] = (body, response)
+  }
+
+  func simulateIncoming(
+    _ message: URLSessionWebSocketTask.Message,
+    queue: Bool = false
+  ) async {
+    if queue {
+      queuedWebSocketMessages.append(message)
+      return
+    }
+
+    if let task = lastTask() {
+      await task.simulateIncoming(message)
+    } else {
+      queuedWebSocketMessages.append(message)
+    }
+  }
+
+  func simulateError(_ error: Error, queue: Bool = false) async {
+    if queue {
+      queuedWebSocketErrors.append(error)
+      return
+    }
+
+    if let task = lastTask() {
+      await task.simulateError(error)
+    } else {
+      queuedWebSocketErrors.append(error)
+    }
+  }
+
+  func task(at index: Int) -> MockWebSocketTask? {
+    webSocketTasks.indices.contains(index) ? webSocketTasks[index] : nil
+  }
+
+  func lastTask() -> MockWebSocketTask? {
+    webSocketTasks.last
   }
 
   func onRequest(_ handler: @escaping @Sendable (URLRequest) -> Void) {
