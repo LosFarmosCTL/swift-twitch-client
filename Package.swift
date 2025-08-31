@@ -27,5 +27,8 @@ let package = Package(
     ),
     .testTarget(
       name: "TwitchTests", dependencies: ["Twitch", "Mocker"],
-      resources: [.process("API/MockResources")]),
+      resources: [
+        .process("API/MockResources"),
+        .process("EventSub/MockResources"),
+      ]),
   ])

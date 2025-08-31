@@ -9,18 +9,20 @@ internal actor IRCConnection {
   private let TMI: URL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
 
   private let credentials: TwitchCredentials?
-  private let urlSession: URLSession
+  private let network: NetworkSession
 
-  private var websocket: URLSessionWebSocketTask?
+  private var websocket: WebSocketTask?
   private(set) var joinedChannels: Set<String> = []
 
-  init(credentials: TwitchCredentials? = nil, urlSession: URLSession) {
+  init(credentials: TwitchCredentials? = nil, network: NetworkSession) {
     self.credentials = credentials
-    self.urlSession = urlSession
+    self.network = network
   }
 
   deinit {
-    self.websocket?.cancel(with: .goingAway, reason: nil)
+    Task.detached { [websocket] in
+      await websocket?.cancel(with: .goingAway, reason: nil)
+    }
   }
 
   @discardableResult
@@ -28,8 +30,8 @@ internal actor IRCConnection {
     IncomingMessage, Error
   > {
     guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
-    self.websocket = urlSession.webSocketTask(with: TMI)
-    self.websocket?.resume()
+    self.websocket = await network.webSocketTask(with: TMI)
+    await self.websocket?.resume()
 
     try await self.requestCapabilities()
     let globalUserState = try await self.authenticate()
@@ -66,7 +68,7 @@ internal actor IRCConnection {
           continuation.finish(throwing: error)
         }
 
-        self.disconnect()
+        await self.disconnect()
       }
     }
 
@@ -85,8 +87,8 @@ internal actor IRCConnection {
     try await self.send(.part(from: channel))
   }
 
-  internal func disconnect() {
-    self.websocket?.cancel(with: .goingAway, reason: nil)
+  internal func disconnect() async {
+    await self.websocket?.cancel(with: .goingAway, reason: nil)
     self.websocket = nil
 
     self.joinedChannels.removeAll()

@@ -109,7 +109,7 @@ extension TwitchClient {
 
     let (data, response): (Data, URLResponse)
     do {
-      (data, response) = try await self.urlSession.data(for: request)
+      (data, response) = try await self.network.data(for: request)
     } catch {
       throw HelixError.networkError(wrapped: error)
     }

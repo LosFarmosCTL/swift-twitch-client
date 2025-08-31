@@ -6,12 +6,18 @@ internal enum EventType: String, Decodable {
   case channelUpdate = "channel.update"
   case chatClear = "channel.chat.clear"
 
+  case mock = "mock"
+
   var event: Event.Type {
     switch self {
     case .channelFollow: return ChannelFollowEvent.self
     case .chatMessage: return ChatMessageEvent.self
     case .channelUpdate: return ChannelUpdateEvent.self
     case .chatClear: return ChatClearEvent.self
+
+    case .mock: return MockEvent.self
     }
   }
 }
+
+struct MockEvent: Event {}

@@ -9,13 +9,13 @@ public actor IRCConnectionPool {
   private var connections: [IRCConnection] = []
 
   private let credentials: TwitchCredentials?
-  private let urlSession: URLSession
+  private let network: NetworkSession
 
   private var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
 
-  init(with credentials: TwitchCredentials? = nil, urlSession: URLSession) {
+  init(with credentials: TwitchCredentials? = nil, network: NetworkSession) {
     self.credentials = credentials
-    self.urlSession = urlSession
+    self.network = network
   }
 
   internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
@@ -79,7 +79,7 @@ public actor IRCConnectionPool {
   }
 
   @discardableResult private func createConnection() async throws -> IRCConnection {
-    let connection = IRCConnection(credentials: credentials, urlSession: urlSession)
+    let connection = IRCConnection(credentials: credentials, network: network)
     let messageStream = try await connection.connect()
 
     Task {

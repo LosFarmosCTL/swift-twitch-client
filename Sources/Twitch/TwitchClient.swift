@@ -6,7 +6,7 @@ import Foundation
 
 public actor TwitchClient {
   internal let authentication: TwitchCredentials
-  internal let urlSession: URLSession
+  internal let network: NetworkSession
 
   internal let encoder = JSONEncoder()
   internal let decoder = JSONDecoder()
@@ -17,8 +17,19 @@ public actor TwitchClient {
     authentication: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) {
+    let network = URLSessionNetworkSession(session: urlSession)
+
+    self.init(
+      authentication: authentication,
+      network: network)
+  }
+
+  internal init(
+    authentication: TwitchCredentials,
+    network: NetworkSession
+  ) {
     self.authentication = authentication
-    self.urlSession = urlSession
+    self.network = network
 
     self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
     self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
@@ -27,6 +38,8 @@ public actor TwitchClient {
     self.encoder.keyEncodingStrategy = .convertToSnakeCase
 
     self.eventSubClient = EventSubClient(
-      credentials: authentication, urlSession: urlSession, decoder: self.decoder)
+      credentials: authentication,
+      network: network,
+      decoder: self.decoder)
   }
 }

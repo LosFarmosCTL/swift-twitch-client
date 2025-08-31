@@ -26,7 +26,19 @@ public actor TwitchIRCClient {
   public init(
     _ authenticationStyle: AuthenticationStyle,
     options: Options = .init(),
-    urlSession: URLSession = URLSession(configuration: .default)
+    urlSession: URLSession
+  ) async throws {
+    try await self.init(
+      authenticationStyle,
+      options: options,
+      network: URLSessionNetworkSession(session: urlSession)
+    )
+  }
+
+  internal init(
+    _ authenticationStyle: AuthenticationStyle,
+    options: Options = .init(),
+    network: NetworkSession
   ) async throws {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
@@ -37,7 +49,7 @@ public actor TwitchIRCClient {
     if options.enableWriteConnection {
       self.writeConnection = IRCConnection(
         credentials: credentials,
-        urlSession: urlSession
+        network: network
       )
     } else {
       self.writeConnection = nil
@@ -45,7 +57,7 @@ public actor TwitchIRCClient {
 
     self.readConnectionPool = IRCConnectionPool(
       with: credentials,
-      urlSession: urlSession
+      network: network
     )
 
     try await writeConnection?.connect()
