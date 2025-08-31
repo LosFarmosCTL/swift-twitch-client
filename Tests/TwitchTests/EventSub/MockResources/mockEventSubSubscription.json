@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "id": "45ddd5d7-0d5d-4af3-9a07-624fca441fd1",
+      "status": "enabled",
+      "type": "mock",
+      "version": "1",
+      "condition": {
+        "broadcaster_user_id": "618699913",
+        "user_id": "101676978"
+      },
+      "created_at": "2025-08-30T00:36:38.667761911Z",
+      "transport": {
+        "method": "websocket",
+        "session_id": "AgoQJr9vxmk9TD6-wyCCKkvi1BIGY2VsbC1j",
+        "connected_at": "2025-08-30T00:36:38Z"
+      },
+      "cost": 0
+    }
+  ],
+  "total": 2,
+  "max_total_cost": 10,
+  "total_cost": 0
+}

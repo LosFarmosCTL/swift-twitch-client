@@ -12,7 +12,7 @@ extension TwitchClient {
     return try await TwitchIRCClient(
       .authenticated(self.authentication),
       options: options,
-      urlSession: self.urlSession
+      network: self.network
     )
   }
 }

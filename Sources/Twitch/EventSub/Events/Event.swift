@@ -12,6 +12,8 @@ internal enum EventType: String, Decodable {
     case .chatMessage: return ChatMessageEvent.self
     case .channelUpdate: return ChannelUpdateEvent.self
     case .chatClear: return ChatClearEvent.self
+
+    case .mock: return MockEvent.self
     }
   }
 }

@@ -2,9 +2,9 @@ internal final actor KeepaliveTimer {
   private var task: Task<Void, Never>?
   private var duration: Duration
 
-  private let onTimeout: @Sendable () -> Void
+  private let onTimeout: @Sendable () async -> Void
 
-  init(duration: Duration = .seconds(10), onTimeout: @escaping @Sendable () -> Void) {
+  init(duration: Duration = .seconds(10), onTimeout: @escaping @Sendable () async -> Void) {
     self.duration = duration
     self.onTimeout = onTimeout
 
@@ -29,12 +29,12 @@ internal final actor KeepaliveTimer {
 
   private nonisolated static func makeTask(
     delay: Duration,
-    handler: @escaping @Sendable () -> Void
+    handler: @escaping @Sendable () async -> Void
   ) -> Task<Void, Never> {
     Task { [delay, handler] in
       do { try await Task.sleep(for: delay) } catch { return }
       if Task.isCancelled { return }
-      handler()
+      await handler()
     }
   }
 }

@@ -12,7 +12,7 @@ internal actor EventSubClient {
   private static let maxSubscriptionsPerConnection = 300
 
   private let credentials: TwitchCredentials
-  private let urlSession: URLSession
+  private let network: NetworkSession
   private let decoder: JSONDecoder
 
   private var connections = [SocketID: EventSubConnection]()
@@ -20,10 +20,12 @@ internal actor EventSubClient {
   private var eventHandlers = [EventID: EventSubHandler]()
 
   internal init(
-    credentials: TwitchCredentials, urlSession: URLSession, decoder: JSONDecoder
+    credentials: TwitchCredentials,
+    network: NetworkSession,
+    decoder: JSONDecoder
   ) {
     self.credentials = credentials
-    self.urlSession = urlSession
+    self.network = network
     self.decoder = decoder
   }
 
@@ -46,8 +48,11 @@ internal actor EventSubClient {
 
   private func createConnection(url: URL = eventSubURL) async throws -> SocketID {
     let connection = EventSubConnection(
-      credentials: credentials, urlSession: urlSession, decoder: decoder,
-      eventSubURL: url, onMessage: receiveMessage(_:))
+      credentials: credentials,
+      network: network,
+      decoder: decoder,
+      eventSubURL: url,
+      onMessage: receiveMessage)
 
     let socketID = try await connection.resume()
 
@@ -55,9 +60,11 @@ internal actor EventSubClient {
     return socketID
   }
 
+  // NOTE: needs to be async because of the keepalive timer, actor isolation gets erased
+  // when passing this method as the onMessage handler to the connection.
   private func receiveMessage(
     _ result: Result<EventSubNotification, EventSubConnectionError>
-  ) {
+  ) async {
     switch result {
     case .success(let notification):
       eventHandlers[notification.subscription.id]?.yield(notification.event)
@@ -68,7 +75,7 @@ internal actor EventSubClient {
         eventHandlers[revocation.subscriptionID]?.finish(
           throwing: .revocation(revocation))
       case .reconnectRequested(let reconnectURL, let socketID):
-        self.reconnect(socketID, reconnectURL: reconnectURL)
+        await self.reconnect(socketID, reconnectURL: reconnectURL)
       case .disconnected(let error, let socketID):
         finishConnection(socketID, throwing: .disconnected(with: error))
       case .timedOut(let socketID):
@@ -77,19 +84,17 @@ internal actor EventSubClient {
     }
   }
 
-  private func reconnect(_ socketID: SocketID, reconnectURL: URL) {
-    Task {
-      do {
-        let newSocketID = try await self.createConnection()
+  private func reconnect(_ socketID: SocketID, reconnectURL: URL) async {
+    do {
+      let newSocketID = try await self.createConnection()
 
-        // move all events to the new connection
-        connectionEvents[newSocketID] = connectionEvents[socketID]
+      // move all events to the new connection
+      connectionEvents[newSocketID] = connectionEvents[socketID]
 
-        connections.removeValue(forKey: socketID)
-        connectionEvents.removeValue(forKey: socketID)
-      } catch {
-        finishConnection(socketID, throwing: .disconnected(with: error))
-      }
+      connections.removeValue(forKey: socketID)
+      connectionEvents.removeValue(forKey: socketID)
+    } catch {
+      finishConnection(socketID, throwing: .disconnected(with: error))
     }
   }
 
