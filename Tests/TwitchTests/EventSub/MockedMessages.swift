@@ -4,8 +4,10 @@ import Foundation
 
 struct MockedMessages {
   // Helix response for creating a subscription
-  static let mockEventSubSubscription = Bundle.module.url(
-    forResource: "mockEventSubSubscription", withExtension: "json")!.data
+  static let mockEventSubSubscription = String(
+    data: Bundle.module.url(
+      forResource: "mockEventSubSubscription", withExtension: "json")!.data,
+    encoding: .utf8)!
 
   // MARK: - EventSub Messages
 
@@ -30,5 +32,27 @@ struct MockedMessages {
 
   static let mockEventMessage = String(
     data: Bundle.module.url(forResource: "mockEventMessage", withExtension: "json")!.data,
+    encoding: .utf8)!
+
+  // MARK: - Automod Messages
+
+  static let automodMessageHold = String(
+    data: Bundle.module.url(forResource: "automodMessageHold", withExtension: "json")!
+      .data,
+    encoding: .utf8)!
+
+  static let automodMessageUpdate = String(
+    data: Bundle.module.url(forResource: "automodMessageUpdate", withExtension: "json")!
+      .data,
+    encoding: .utf8)!
+
+  static let automodSettingsUpdate = String(
+    data: Bundle.module.url(forResource: "automodSettingsUpdate", withExtension: "json")!
+      .data,
+    encoding: .utf8)!
+
+  static let automodTermsUpdate = String(
+    data: Bundle.module.url(forResource: "automodTermsUpdate", withExtension: "json")!
+      .data,
     encoding: .utf8)!
 }

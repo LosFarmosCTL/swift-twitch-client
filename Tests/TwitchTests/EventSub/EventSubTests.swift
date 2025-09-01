@@ -19,11 +19,16 @@ struct WebSocketClientTests {
       authentication: .init(oAuth: "", clientID: "", userID: "", userLogin: ""),
       network: session)
 
+    let subscriptionMessage = MockedMessages.mockEventSubSubscription
+      .replacingOccurrences(of: "%type%", with: "mock")
+      .replacingOccurrences(of: "%version%", with: "1")
+      .data(using: .utf8)!
+
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
     await session.stub(
       url: url, method: "POST",
       status: 200, headers: ["Content-Type": "application/json"],
-      body: MockedMessages.mockEventSubSubscription)
+      body: subscriptionMessage)
   }
 
   @Test("Client creates WebSocket task and EventSub subscription")
