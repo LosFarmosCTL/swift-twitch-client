@@ -14,6 +14,12 @@ actor MockWebSocketTask: WebSocketTask {
     [@Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void] = []
   private var pendingMessages: [URLSessionWebSocketTask.Message] = []
 
+  let url: URL
+
+  init(url: URL) {
+    self.url = url
+  }
+
   func resume() { didResume = true }
 
   func cancel(

@@ -109,8 +109,11 @@ struct WebSocketClientTests {
     var iter = stream.makeAsyncIterator()
     _ = try await iter.next()
 
-    let task = try #require(await session.task(at: 0))
-    #expect(await task.didCancel)
+    let oldTask = try #require(await session.task(at: 0))
+    #expect(await oldTask.didCancel)
+
+    let newTask = try #require(await session.task(at: 1))
+    #expect(newTask.url.absoluteString == "wss://eventsub.wss.twitch.tv/reconnect")
   }
 
   @Test("Client throws error on disconnect")

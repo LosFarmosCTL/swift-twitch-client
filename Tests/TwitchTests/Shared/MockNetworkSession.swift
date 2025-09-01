@@ -30,7 +30,7 @@ actor MockNetworkSession: NetworkSession {
   }
 
   func webSocketTask(with url: URL) async -> WebSocketTask {
-    let task = MockWebSocketTask()
+    let task = MockWebSocketTask(url: url)
 
     for message in queuedWebSocketMessages {
       await task.simulateIncoming(message)
