@@ -38,9 +38,4 @@ public struct AutomodMessageHoldEvent: Event {
     heldAt = try container.decode(Date.self, forKey: .heldAt)
     reason = try AutomodHoldReason(from: decoder)
   }
-
-  private enum HoldReason: String, Decodable, Sendable {
-    case automod = "automod"
-    case blockedTerm = "blocked_term"
-  }
 }

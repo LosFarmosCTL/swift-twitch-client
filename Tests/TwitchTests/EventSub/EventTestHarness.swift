@@ -14,7 +14,6 @@ struct EventTestHarness {
     self.twitch = TwitchClient(authentication: authentication, network: session)
   }
 
-  typealias Condition = [String: String]
   func testEvent<E>(
     _ subscription: EventSubSubscription<E>,
     with data: String,
