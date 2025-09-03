@@ -24,6 +24,12 @@ enum MockedMessages {
 
   // MARK: - Channel Messages
 
+  // General
+  static let channelUpdate = fromResource("channelUpdate")
+  static let channelFollow = fromResource("channelFollow")
+  static let channelRaid = fromResource("channelRaid")
+
+  // Bits
   static let channelBitsUse = fromResource("channelBitsUse")
   static let channelCheer = fromResource("channelCheer")
 

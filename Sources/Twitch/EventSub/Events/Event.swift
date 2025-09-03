@@ -10,14 +10,14 @@ internal enum EventType: String, Decodable {
 
   // MARK: - Channel
 
+  // General
+  case channelUpdate = "channel.update"
+  case channelFollow = "channel.follow"
+  case channelRaid = "channel.raid"
+
   // Bits
   case channelBitsUse = "channel.bits.use"
   case channelCheer = "channel.cheer"
-
-  case channelFollow = "channel.follow"
-  case chatMessage = "channel.chat.message"
-  case channelUpdate = "channel.update"
-  case chatClear = "channel.chat.clear"
 
   case mock = "mock"
 
@@ -31,14 +31,14 @@ internal enum EventType: String, Decodable {
 
     //// Channel
 
+    // General
+    case .channelUpdate: return ChannelUpdateEvent.self
+    case .channelFollow: return ChannelFollowEvent.self
+    case .channelRaid: return ChannelRaidEvent.self
+
     // Bits
     case .channelBitsUse: return ChannelBitsUseEvent.self
     case .channelCheer: return ChannelCheerEvent.self
-
-    case .channelFollow: return ChannelFollowEvent.self
-    case .chatMessage: return ChatMessageEvent.self
-    case .channelUpdate: return ChannelUpdateEvent.self
-    case .chatClear: return ChatClearEvent.self
 
     case .mock: return MockEvent.self
     }
