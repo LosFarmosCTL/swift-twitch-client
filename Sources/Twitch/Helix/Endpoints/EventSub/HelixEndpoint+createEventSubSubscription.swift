@@ -101,7 +101,7 @@ public struct CreateEventSubResponse: Sendable {
   }
 }
 
-private struct CreateEventSubRequestBody: Encodable, Sendable {
+struct CreateEventSubRequestBody: Codable, Sendable {
   let type: String
   let version: String
   let condition: [String: String]
@@ -109,7 +109,7 @@ private struct CreateEventSubRequestBody: Encodable, Sendable {
   let transport: Transport
 }
 
-private struct Transport: Encodable, Sendable {
+struct Transport: Codable, Sendable {
   let method: String
   let callback: String?
   let secret: String?
