@@ -33,6 +33,9 @@ enum MockedMessages {
   static let channelBitsUse = fromResource("channelBitsUse")
   static let channelCheer = fromResource("channelCheer")
 
+  // Ads
+  static let channelAdBreakBegin = fromResource("channelAdBreakBegin")
+
   static private func fromResource(_ name: String) -> String {
     String(
       data: Bundle.module.url(forResource: name, withExtension: "json")!.data,

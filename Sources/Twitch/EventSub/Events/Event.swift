@@ -19,6 +19,9 @@ internal enum EventType: String, Decodable {
   case channelBitsUse = "channel.bits.use"
   case channelCheer = "channel.cheer"
 
+  // Ads
+  case channelAdBreakBegin = "channel.ad_break.begin"
+
   case mock = "mock"
 
   var event: Event.Type {
@@ -39,6 +42,9 @@ internal enum EventType: String, Decodable {
     // Bits
     case .channelBitsUse: return ChannelBitsUseEvent.self
     case .channelCheer: return ChannelCheerEvent.self
+
+    // Ads
+    case .channelAdBreakBegin: return ChannelAdBreakBeginEvent.self
 
     case .mock: return MockEvent.self
     }
