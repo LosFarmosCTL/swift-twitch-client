@@ -37,6 +37,12 @@ internal enum EventType: String, Decodable {
   case channelSharedChatSessionUpdate = "channel.shared_chat.update"
   case channelSharedChatSessionEnd = "channel.shared_chat.end"
 
+  // Subscriptions
+  case channelSubscribe = "channel.subscribe"
+  case channelSubscriptionEnd = "channel.subscription.end"
+  case channelSubscriptionGift = "channel.subscription.gift"
+  case channelSubscriptionMessage = "channel.subscription.message"
+
   // MARK: - Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
@@ -81,6 +87,12 @@ internal enum EventType: String, Decodable {
     case .channelSharedChatSessionBegin: return ChannelSharedChatSessionBeginEvent.self
     case .channelSharedChatSessionUpdate: return ChannelSharedChatSessionUpdateEvent.self
     case .channelSharedChatSessionEnd: return ChannelSharedChatSessionEndEvent.self
+
+    // Subscriptions
+    case .channelSubscribe: return ChannelSubscribeEvent.self
+    case .channelSubscriptionEnd: return ChannelSubscriptionEndEvent.self
+    case .channelSubscriptionGift: return ChannelSubscriptionGiftEvent.self
+    case .channelSubscriptionMessage: return ChannelSubscriptionMessageEvent.self
 
     //// Charity
 
