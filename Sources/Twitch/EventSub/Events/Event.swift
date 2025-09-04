@@ -32,6 +32,12 @@ internal enum EventType: String, Decodable {
   case channelChatUserMessageHold = "channel.chat.user_message_hold"
   case channelChatUserMessageUpdate = "channel.chat.user_message_update"
 
+  // Charity
+  case charityDonation = "channel.charity_campaign.donate"
+  case charityCampaignStart = "channel.charity_campaign.start"
+  case charityCampaignProgress = "channel.charity_campaign.progress"
+  case charityCampaignStop = "channel.charity_campaign.stop"
+
   case mock = "mock"
 
   var event: Event.Type {
@@ -65,6 +71,13 @@ internal enum EventType: String, Decodable {
     case .channelChatSettingsUpdate: return ChannelChatSettingsUpdateEvent.self
     case .channelChatUserMessageHold: return ChannelChatUserMessageHoldEvent.self
     case .channelChatUserMessageUpdate: return ChannelChatUserMessageUpdateEvent.self
+
+    //// Charity
+
+    case .charityDonation: return CharityDonationEvent.self
+    case .charityCampaignStart: return CharityCampaignStartEvent.self
+    case .charityCampaignProgress: return CharityCampaignProgressEvent.self
+    case .charityCampaignStop: return CharityCampaignStopEvent.self
 
     case .mock: return MockEvent.self
     }

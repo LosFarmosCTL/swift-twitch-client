@@ -51,6 +51,13 @@ enum MockedMessages {
   static let channelChatUserMessageUpdate = fromResource(
     "channelChatUserMessageUpdate")
 
+  // MARK: - Charity Messages
+
+  static let charityDonation = fromResource("charityDonation")
+  static let charityCampaignStart = fromResource("charityCampaignStart")
+  static let charityCampaignProgress = fromResource("charityCampaignProgress")
+  static let charityCampaignStop = fromResource("charityCampaignStop")
+
   static private func fromResource(_ name: String) -> String {
     String(
       data: Bundle.module.url(forResource: name, withExtension: "json")!.data,
