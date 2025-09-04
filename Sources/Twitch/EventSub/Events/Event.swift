@@ -22,6 +22,16 @@ internal enum EventType: String, Decodable {
   // Ads
   case channelAdBreakBegin = "channel.ad_break.begin"
 
+  // Chat
+  case channelChatClear = "channel.chat.clear"
+  case channelChatClearUserMessages = "channel.chat.clear_user_messages"
+  case channelChatMessage = "channel.chat.message"
+  case channelChatMessageDelete = "channel.chat.message_delete"
+  case channelChatNotification = "channel.chat.notification"
+  case channelChatSettingsUpdate = "channel.chat_settings.update"
+  case channelChatUserMessageHold = "channel.chat.user_message_hold"
+  case channelChatUserMessageUpdate = "channel.chat.user_message_update"
+
   case mock = "mock"
 
   var event: Event.Type {
@@ -45,6 +55,16 @@ internal enum EventType: String, Decodable {
 
     // Ads
     case .channelAdBreakBegin: return ChannelAdBreakBeginEvent.self
+
+    // Chat
+    case .channelChatClear: return ChannelChatClearEvent.self
+    case .channelChatClearUserMessages: return ChannelChatClearUserMessagesEvent.self
+    case .channelChatMessage: return ChannelChatMessageEvent.self
+    case .channelChatMessageDelete: return ChannelChatMessageDeleteEvent.self
+    case .channelChatNotification: return ChannelChatNotificationEvent.self
+    case .channelChatSettingsUpdate: return ChannelChatSettingsUpdateEvent.self
+    case .channelChatUserMessageHold: return ChannelChatUserMessageHoldEvent.self
+    case .channelChatUserMessageUpdate: return ChannelChatUserMessageUpdateEvent.self
 
     case .mock: return MockEvent.self
     }

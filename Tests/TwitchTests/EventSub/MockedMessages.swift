@@ -36,6 +36,21 @@ enum MockedMessages {
   // Ads
   static let channelAdBreakBegin = fromResource("channelAdBreakBegin")
 
+  // Chat
+  static let channelChatClear = fromResource("channelChatClear")
+  static let channelChatClearUserMessages = fromResource(
+    "channelChatClearUserMessages")
+  static let channelChatMessage = fromResource("channelChatMessage")
+  static let channelChatMessageDelete = fromResource("channelChatMessageDelete")
+  static let channelChatNotification = fromResource("channelChatNotification")
+  static let channelChatNotificationSharedChat = fromResource(
+    "channelChatNotificationSharedChat")
+  static let channelChatSettingsUpdate = fromResource("channelChatSettingsUpdate")
+  static let channelChatUserMessageHold = fromResource(
+    "channelChatUserMessageHold")
+  static let channelChatUserMessageUpdate = fromResource(
+    "channelChatUserMessageUpdate")
+
   static private func fromResource(_ name: String) -> String {
     String(
       data: Bundle.module.url(forResource: name, withExtension: "json")!.data,
