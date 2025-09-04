@@ -5,6 +5,7 @@ disabled_rules:
   - todo
   - large_tuple
   - nesting
+  - file_length
 
 excluded:
   - .build
