@@ -51,6 +51,14 @@ enum MockedMessages {
   static let channelChatUserMessageUpdate = fromResource(
     "channelChatUserMessageUpdate")
 
+  // Shared Chat
+  static let channelSharedChatSessionBegin = fromResource(
+    "channelSharedChatSessionBegin")
+  static let channelSharedChatSessionUpdate = fromResource(
+    "channelSharedChatSessionUpdate")
+  static let channelSharedChatSessionEnd = fromResource(
+    "channelSharedChatSessionEnd")
+
   // MARK: - Charity Messages
 
   static let charityDonation = fromResource("charityDonation")
