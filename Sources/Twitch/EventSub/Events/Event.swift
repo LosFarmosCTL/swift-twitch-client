@@ -43,6 +43,12 @@ internal enum EventType: String, Decodable {
   case channelSubscriptionGift = "channel.subscription.gift"
   case channelSubscriptionMessage = "channel.subscription.message"
 
+  // Guest Star
+  case channelGuestStarSessionBegin = "channel.guest_star_session.begin"
+  case channelGuestStarSessionEnd = "channel.guest_star_session.end"
+  case channelGuestStarGuestUpdate = "channel.guest_star_guest.update"
+  case channelGuestStarSettingsUpdate = "channel.guest_star_settings.update"
+
   // MARK: - Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
@@ -93,6 +99,12 @@ internal enum EventType: String, Decodable {
     case .channelSubscriptionEnd: return ChannelSubscriptionEndEvent.self
     case .channelSubscriptionGift: return ChannelSubscriptionGiftEvent.self
     case .channelSubscriptionMessage: return ChannelSubscriptionMessageEvent.self
+
+    // Guest Star
+    case .channelGuestStarSessionBegin: return ChannelGuestStarSessionBeginEvent.self
+    case .channelGuestStarSessionEnd: return ChannelGuestStarSessionEndEvent.self
+    case .channelGuestStarGuestUpdate: return ChannelGuestStarGuestUpdateEvent.self
+    case .channelGuestStarSettingsUpdate: return ChannelGuestStarSettingsUpdateEvent.self
 
     //// Charity
 

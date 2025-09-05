@@ -65,6 +65,16 @@ enum MockedMessages {
   static let channelSubscriptionGift = fromResource("channelSubscriptionGift")
   static let channelSubscriptionMessage = fromResource("channelSubscriptionMessage")
 
+  // Guest Star
+  static let channelGuestStarSessionBegin = fromResource(
+    "channelGuestStarSessionBegin")
+  static let channelGuestStarSessionEnd = fromResource(
+    "channelGuestStarSessionEnd")
+  static let channelGuestStarGuestUpdate = fromResource(
+    "channelGuestStarGuestUpdate")
+  static let channelGuestStarSettingsUpdate = fromResource(
+    "channelGuestStarSettingsUpdate")
+
   // MARK: - Charity Messages
 
   static let charityDonation = fromResource("charityDonation")
