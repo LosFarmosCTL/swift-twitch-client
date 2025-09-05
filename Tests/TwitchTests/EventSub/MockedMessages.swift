@@ -38,26 +38,21 @@ enum MockedMessages {
 
   // Chat
   static let channelChatClear = fromResource("channelChatClear")
-  static let channelChatClearUserMessages = fromResource(
-    "channelChatClearUserMessages")
+  static let channelChatClearUserMessages = fromResource("channelChatClearUserMessages")
   static let channelChatMessage = fromResource("channelChatMessage")
   static let channelChatMessageDelete = fromResource("channelChatMessageDelete")
   static let channelChatNotification = fromResource("channelChatNotification")
   static let channelChatNotificationSharedChat = fromResource(
     "channelChatNotificationSharedChat")
   static let channelChatSettingsUpdate = fromResource("channelChatSettingsUpdate")
-  static let channelChatUserMessageHold = fromResource(
-    "channelChatUserMessageHold")
-  static let channelChatUserMessageUpdate = fromResource(
-    "channelChatUserMessageUpdate")
+  static let channelChatUserMessageHold = fromResource("channelChatUserMessageHold")
+  static let channelChatUserMessageUpdate = fromResource("channelChatUserMessageUpdate")
 
   // Shared Chat
-  static let channelSharedChatSessionBegin = fromResource(
-    "channelSharedChatSessionBegin")
+  static let channelSharedChatSessionBegin = fromResource("channelSharedChatSessionBegin")
   static let channelSharedChatSessionUpdate = fromResource(
     "channelSharedChatSessionUpdate")
-  static let channelSharedChatSessionEnd = fromResource(
-    "channelSharedChatSessionEnd")
+  static let channelSharedChatSessionEnd = fromResource("channelSharedChatSessionEnd")
 
   // Subscriptions
   static let channelSubscribe = fromResource("channelSubscribe")
@@ -66,14 +61,15 @@ enum MockedMessages {
   static let channelSubscriptionMessage = fromResource("channelSubscriptionMessage")
 
   // Guest Star
-  static let channelGuestStarSessionBegin = fromResource(
-    "channelGuestStarSessionBegin")
-  static let channelGuestStarSessionEnd = fromResource(
-    "channelGuestStarSessionEnd")
-  static let channelGuestStarGuestUpdate = fromResource(
-    "channelGuestStarGuestUpdate")
+  static let channelGuestStarSessionBegin = fromResource("channelGuestStarSessionBegin")
+  static let channelGuestStarSessionEnd = fromResource("channelGuestStarSessionEnd")
+  static let channelGuestStarGuestUpdate = fromResource("channelGuestStarGuestUpdate")
   static let channelGuestStarSettingsUpdate = fromResource(
     "channelGuestStarSettingsUpdate")
+
+  // Shoutouts
+  static let channelShoutoutCreate = fromResource("channelShoutoutCreate")
+  static let channelShoutoutReceive = fromResource("channelShoutoutReceive")
 
   // MARK: - Charity Messages
 
