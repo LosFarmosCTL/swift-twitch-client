@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "message_id": "Lr70KAICVBHykvCd1o8wsM3KJ0R8ea8aJU1aNWYk4DU=",
+    "message_type": "notification",
+    "message_timestamp": "2025-08-30T01:10:13.390973799Z",
+    "subscription_type": "channel.hype_train.end",
+    "subscription_version": "2"
+  },
+  "payload": {
+    "subscription": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "type": "channel.hype_train.end",
+      "version": "2",
+      "status": "enabled",
+      "cost": 0,
+      "condition": {
+        "broadcaster_user_id": "1337"
+      },
+      "transport": {
+        "method": "webhook",
+        "callback": "https://example.com/webhooks/callback"
+      },
+      "created_at": "2019-11-16T10:11:12.634234626Z"
+    },
+    "event": {
+      "id": "1b0AsbInCHZW2SQFQkCzqN07Ib2",
+      "broadcaster_user_id": "1337",
+      "broadcaster_user_login": "cool_user",
+      "broadcaster_user_name": "Cool_User",
+      "total": 137,
+      "top_contributions": [
+        {
+          "user_id": "123",
+          "user_login": "pogchamp",
+          "user_name": "PogChamp",
+          "type": "bits",
+          "total": 50
+        }
+      ],
+      "shared_train_participants": null,
+      "level": 1,
+      "started_at": "2020-07-15T17:16:03.17106713Z",
+      "ended_at": "2020-07-15T17:16:11.17106713Z",
+      "cooldown_ends_at": "2020-07-16T17:16:11.17106713Z",
+      "is_shared_train": false,
+      "type": "regular"
+    }
+  }
+}

@@ -85,6 +85,16 @@ internal enum EventType: String, Decodable {
   case charityCampaignProgress = "channel.charity_campaign.progress"
   case charityCampaignStop = "channel.charity_campaign.stop"
 
+  // Goals
+  case channelGoalBegin = "channel.goal.begin"
+  case channelGoalProgress = "channel.goal.progress"
+  case channelGoalEnd = "channel.goal.end"
+
+  // Hype Train
+  case channelHypeTrainBegin = "channel.hype_train.begin"
+  case channelHypeTrainProgress = "channel.hype_train.progress"
+  case channelHypeTrainEnd = "channel.hype_train.end"
+
   // MARK: - Stream
   case streamOnline = "stream.online"
   case streamOffline = "stream.offline"
@@ -183,6 +193,16 @@ internal enum EventType: String, Decodable {
     case .charityCampaignStart: return CharityCampaignStartEvent.self
     case .charityCampaignProgress: return CharityCampaignProgressEvent.self
     case .charityCampaignStop: return CharityCampaignStopEvent.self
+
+    // Goals
+    case .channelGoalBegin: return ChannelGoalBeginEvent.self
+    case .channelGoalProgress: return ChannelGoalProgressEvent.self
+    case .channelGoalEnd: return ChannelGoalEndEvent.self
+
+    // Hype Train
+    case .channelHypeTrainBegin: return ChannelHypeTrainBeginEvent.self
+    case .channelHypeTrainProgress: return ChannelHypeTrainProgressEvent.self
+    case .channelHypeTrainEnd: return ChannelHypeTrainEndEvent.self
 
     //// Stream
 

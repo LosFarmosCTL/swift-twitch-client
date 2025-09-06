@@ -105,6 +105,16 @@ enum MockedMessages {
   static let charityCampaignProgress = fromResource("charityCampaignProgress")
   static let charityCampaignStop = fromResource("charityCampaignStop")
 
+  // Goals
+  static let channelGoalBegin = fromResource("channelGoalBegin")
+  static let channelGoalProgress = fromResource("channelGoalProgress")
+  static let channelGoalEnd = fromResource("channelGoalEnd")
+
+  // Hype Train
+  static let channelHypeTrainBegin = fromResource("channelHypeTrainBegin")
+  static let channelHypeTrainProgress = fromResource("channelHypeTrainProgress")
+  static let channelHypeTrainEnd = fromResource("channelHypeTrainEnd")
+
   // MARK: - Stream Messages
 
   static let streamOnline = fromResource("streamOnline")
