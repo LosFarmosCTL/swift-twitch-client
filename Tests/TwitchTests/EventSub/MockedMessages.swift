@@ -71,6 +71,19 @@ enum MockedMessages {
   static let channelShoutoutCreate = fromResource("channelShoutoutCreate")
   static let channelShoutoutReceive = fromResource("channelShoutoutReceive")
 
+  // Channel Points
+  static let channelPointsCustomRewardAdd = fromResource("channelPointsCustomRewardAdd")
+  static let channelPointsCustomRewardUpdate = fromResource(
+    "channelPointsCustomRewardUpdate")
+  static let channelPointsCustomRewardRemove = fromResource(
+    "channelPointsCustomRewardRemove")
+  static let channelPointsCustomRewardRedemptionAdd = fromResource(
+    "channelPointsCustomRewardRedemptionAdd")
+  static let channelPointsCustomRewardRedemptionUpdate = fromResource(
+    "channelPointsCustomRewardRedemptionUpdate")
+  static let channelPointsAutomaticRewardRedemptionAdd = fromResource(
+    "channelPointsAutomaticRewardRedemptionAdd")
+
   // MARK: - Charity Messages
 
   static let charityDonation = fromResource("charityDonation")

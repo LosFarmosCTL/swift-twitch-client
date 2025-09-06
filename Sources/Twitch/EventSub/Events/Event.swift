@@ -53,6 +53,17 @@ internal enum EventType: String, Decodable {
   case channelShoutoutCreate = "channel.shoutout.create"
   case channelShoutoutReceive = "channel.shoutout.receive"
 
+  // Channel Points
+  case channelPointsCustomRewardAdd = "channel.channel_points_custom_reward.add"
+  case channelPointsCustomRewardUpdate = "channel.channel_points_custom_reward.update"
+  case channelPointsCustomRewardRemove = "channel.channel_points_custom_reward.remove"
+  case channelPointsCustomRewardRedemptionAdd =
+    "channel.channel_points_custom_reward_redemption.add"
+  case channelPointsCustomRewardRedemptionUpdate =
+    "channel.channel_points_custom_reward_redemption.update"
+  case channelPointsAutomaticRewardRedemptionAdd =
+    "channel.channel_points_automatic_reward_redemption.add"
+
   // MARK: - Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
@@ -113,6 +124,19 @@ internal enum EventType: String, Decodable {
     // Shoutouts
     case .channelShoutoutCreate: return ChannelShoutoutCreateEvent.self
     case .channelShoutoutReceive: return ChannelShoutoutReceiveEvent.self
+
+    // Channel Points
+    case .channelPointsCustomRewardAdd: return ChannelPointsCustomRewardAddEvent.self
+    case .channelPointsCustomRewardUpdate:
+      return ChannelPointsCustomRewardUpdateEvent.self
+    case .channelPointsCustomRewardRemove:
+      return ChannelPointsCustomRewardRemoveEvent.self
+    case .channelPointsCustomRewardRedemptionAdd:
+      return ChannelPointsCustomRewardRedemptionAddEvent.self
+    case .channelPointsCustomRewardRedemptionUpdate:
+      return ChannelPointsCustomRewardRedemptionUpdateEvent.self
+    case .channelPointsAutomaticRewardRedemptionAdd:
+      return ChannelPointsAutomaticRewardRedemptionAddEvent.self
 
     //// Charity
 
