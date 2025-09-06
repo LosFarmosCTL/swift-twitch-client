@@ -106,6 +106,11 @@ enum MockedMessages {
   static let charityCampaignProgress = fromResource("charityCampaignProgress")
   static let charityCampaignStop = fromResource("charityCampaignStop")
 
+  // MARK: - Stream Messages
+
+  static let streamOnline = fromResource("streamOnline")
+  static let streamOffline = fromResource("streamOffline")
+
   // MARK: - User Messages
 
   static let userUpdate = fromResource("userUpdate")

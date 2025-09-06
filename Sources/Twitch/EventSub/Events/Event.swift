@@ -85,6 +85,10 @@ internal enum EventType: String, Decodable {
   case charityCampaignProgress = "channel.charity_campaign.progress"
   case charityCampaignStop = "channel.charity_campaign.stop"
 
+  // MARK: - Stream
+  case streamOnline = "stream.online"
+  case streamOffline = "stream.offline"
+
   // MARK: - User
   case userUpdate = "user.update"
 
@@ -180,6 +184,11 @@ internal enum EventType: String, Decodable {
     case .charityCampaignStart: return CharityCampaignStartEvent.self
     case .charityCampaignProgress: return CharityCampaignProgressEvent.self
     case .charityCampaignStop: return CharityCampaignStopEvent.self
+
+    //// Stream
+
+    case .streamOnline: return StreamOnlineEvent.self
+    case .streamOffline: return StreamOfflineEvent.self
 
     //// User
 
