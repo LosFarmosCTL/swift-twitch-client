@@ -99,8 +99,7 @@ enum MockedMessages {
   static let channelPredictionLock = fromResource("channelPredictionLock")
   static let channelPredictionEnd = fromResource("channelPredictionEnd")
 
-  // MARK: - Charity Messages
-
+  // Charity
   static let charityDonation = fromResource("charityDonation")
   static let charityCampaignStart = fromResource("charityCampaignStart")
   static let charityCampaignProgress = fromResource("charityCampaignProgress")

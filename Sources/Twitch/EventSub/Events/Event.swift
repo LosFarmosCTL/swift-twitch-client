@@ -79,7 +79,7 @@ internal enum EventType: String, Decodable {
   case channelPredictionLock = "channel.prediction.lock"
   case channelPredictionEnd = "channel.prediction.end"
 
-  // MARK: - Charity
+  // Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
   case charityCampaignProgress = "channel.charity_campaign.progress"
@@ -178,8 +178,7 @@ internal enum EventType: String, Decodable {
     case .channelPredictionLock: return ChannelPredictionLockEvent.self
     case .channelPredictionEnd: return ChannelPredictionEndEvent.self
 
-    //// Charity
-
+    // Charity
     case .charityDonation: return CharityDonationEvent.self
     case .charityCampaignStart: return CharityCampaignStartEvent.self
     case .charityCampaignProgress: return CharityCampaignProgressEvent.self
