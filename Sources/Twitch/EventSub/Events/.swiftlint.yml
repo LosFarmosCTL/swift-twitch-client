@@ -1,0 +1,12 @@
+disabled_rules:
+  - nesting
+  - file_length
+
+type_name:
+  max_length:
+    warning: 50
+    error: 60
+identifier_name:
+  max_length:
+    warning: 50
+    error: 60

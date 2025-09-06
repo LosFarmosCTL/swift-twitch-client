@@ -4,8 +4,6 @@ disabled_rules:
   - closure_parameter_position
   - todo
   - large_tuple
-  - nesting
-  - file_length
 
 excluded:
   - .build
