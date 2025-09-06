@@ -48,6 +48,27 @@ enum MockedMessages {
   static let channelChatUserMessageHold = fromResource("channelChatUserMessageHold")
   static let channelChatUserMessageUpdate = fromResource("channelChatUserMessageUpdate")
 
+  // Moderation
+  static let channelModerateIssueWarning = fromResource("channelModerateIssueWarning")
+  static let channelModerateTimeoutUser = fromResource("channelModerateTimeoutUser")
+  static let channelModerateTimeoutUserSharedChat = fromResource(
+    "channelModerateTimeoutUserSharedChat")
+  static let channelModerateEmoteOnlyMode = fromResource("channelModerateEmoteOnlyMode")
+  static let channelModerateAddModerator = fromResource("channelModerateAddModerator")
+
+  static let channelBan = fromResource("channelBan")
+  static let channelUnban = fromResource("channelUnban")
+  static let channelModeratorAdd = fromResource("channelModeratorAdd")
+  static let channelModeratorRemove = fromResource("channelModeratorRemove")
+  static let channelShieldModeBegin = fromResource("channelShieldModeBegin")
+  static let channelShieldModeEnd = fromResource("channelShieldModeEnd")
+  static let channelSuspiciousUserMessage = fromResource("channelSuspiciousUserMessage")
+  static let channelSuspiciousUserUpdate = fromResource("channelSuspiciousUserUpdate")
+  static let channelUnbanRequestCreate = fromResource("channelUnbanRequestCreate")
+  static let channelUnbanRequestResolve = fromResource("channelUnbanRequestResolve")
+  static let channelWarningAcknowledge = fromResource("channelWarningAcknowledge")
+  static let channelWarningSend = fromResource("channelWarningSend")
+
   // Shared Chat
   static let channelSharedChatSessionBegin = fromResource("channelSharedChatSessionBegin")
   static let channelSharedChatSessionUpdate = fromResource(

@@ -32,6 +32,21 @@ internal enum EventType: String, Decodable {
   case channelChatUserMessageHold = "channel.chat.user_message_hold"
   case channelChatUserMessageUpdate = "channel.chat.user_message_update"
 
+  // Moderation
+  case channelModerate = "channel.moderate"
+  case channelBan = "channel.ban"
+  case channelUnban = "channel.unban"
+  case channelModeratorAdd = "channel.moderator.add"
+  case channelModeratorRemove = "channel.moderator.remove"
+  case channelShieldModeBegin = "channel.shield_mode.begin"
+  case channelShieldModeEnd = "channel.shield_mode.end"
+  case channelSuspiciousUserMessage = "channel.suspicious_user.message"
+  case channelSuspiciousUserUpdate = "channel.suspicious_user.update"
+  case channelUnbanRequestCreate = "channel.unban_request.create"
+  case channelUnbanRequestResolve = "channel.unban_request.resolve"
+  case channelWarningAcknowledge = "channel.warning.acknowledge"
+  case channelWarningSend = "channel.warning.send"
+
   // Shared Chat
   case channelSharedChatSessionBegin = "channel.shared_chat.begin"
   case channelSharedChatSessionUpdate = "channel.shared_chat.update"
@@ -138,6 +153,21 @@ internal enum EventType: String, Decodable {
     case .channelChatSettingsUpdate: return ChannelChatSettingsUpdateEvent.self
     case .channelChatUserMessageHold: return ChannelChatUserMessageHoldEvent.self
     case .channelChatUserMessageUpdate: return ChannelChatUserMessageUpdateEvent.self
+
+    // Moderation
+    case .channelModerate: return ChannelModerateEvent.self
+    case .channelBan: return ChannelBanEvent.self
+    case .channelUnban: return ChannelUnbanEvent.self
+    case .channelModeratorAdd: return ChannelModeratorAddEvent.self
+    case .channelModeratorRemove: return ChannelModeratorRemoveEvent.self
+    case .channelShieldModeBegin: return ChannelShieldModeBeginEvent.self
+    case .channelShieldModeEnd: return ChannelShieldModeEndEvent.self
+    case .channelSuspiciousUserMessage: return ChannelSuspiciousUserMessageEvent.self
+    case .channelSuspiciousUserUpdate: return ChannelSuspiciousUserUpdateEvent.self
+    case .channelUnbanRequestCreate: return ChannelUnbanRequestCreateEvent.self
+    case .channelUnbanRequestResolve: return ChannelUnbanRequestResolveEvent.self
+    case .channelWarningAcknowledge: return ChannelWarningAcknowledgeEvent.self
+    case .channelWarningSend: return ChannelWarningSendEvent.self
 
     // Shared Chat
     case .channelSharedChatSessionBegin: return ChannelSharedChatSessionBeginEvent.self
