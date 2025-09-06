@@ -88,6 +88,17 @@ enum MockedMessages {
   static let channelVIPAdd = fromResource("channelVIPAdd")
   static let channelVIPRemove = fromResource("channelVIPRemove")
 
+  // Polls
+  static let channelPollBegin = fromResource("channelPollBegin")
+  static let channelPollProgress = fromResource("channelPollProgress")
+  static let channelPollEnd = fromResource("channelPollEnd")
+
+  // Predictions
+  static let channelPredictionBegin = fromResource("channelPredictionBegin")
+  static let channelPredictionProgress = fromResource("channelPredictionProgress")
+  static let channelPredictionLock = fromResource("channelPredictionLock")
+  static let channelPredictionEnd = fromResource("channelPredictionEnd")
+
   // MARK: - Charity Messages
 
   static let charityDonation = fromResource("charityDonation")

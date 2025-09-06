@@ -68,6 +68,17 @@ internal enum EventType: String, Decodable {
   case channelVIPAdd = "channel.vip.add"
   case channelVIPRemove = "channel.vip.remove"
 
+  // Polls
+  case channelPollBegin = "channel.poll.begin"
+  case channelPollProgress = "channel.poll.progress"
+  case channelPollEnd = "channel.poll.end"
+
+  // Predictions
+  case channelPredictionBegin = "channel.prediction.begin"
+  case channelPredictionProgress = "channel.prediction.progress"
+  case channelPredictionLock = "channel.prediction.lock"
+  case channelPredictionEnd = "channel.prediction.end"
+
   // MARK: - Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
@@ -145,6 +156,17 @@ internal enum EventType: String, Decodable {
     // VIPs
     case .channelVIPAdd: return ChannelVIPAddEvent.self
     case .channelVIPRemove: return ChannelVIPRemoveEvent.self
+
+    // Polls
+    case .channelPollBegin: return ChannelPollBeginEvent.self
+    case .channelPollProgress: return ChannelPollProgressEvent.self
+    case .channelPollEnd: return ChannelPollEndEvent.self
+
+    // Predictions
+    case .channelPredictionBegin: return ChannelPredictionBeginEvent.self
+    case .channelPredictionProgress: return ChannelPredictionProgressEvent.self
+    case .channelPredictionLock: return ChannelPredictionLockEvent.self
+    case .channelPredictionEnd: return ChannelPredictionEndEvent.self
 
     //// Charity
 
