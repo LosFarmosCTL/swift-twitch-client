@@ -17,10 +17,10 @@ actor MockNetworkSession: NetworkSession {
   var queuedWebSocketErrors: [Error] = []
 
   private var stubs: [Key: (Data, HTTPURLResponse)] = [:]
-  private var onRequest: (@Sendable (URLRequest) -> Void)?
+  private var onRequest: (@Sendable (URLRequest) async -> Void)?
 
   func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-    onRequest?(request)
+    await onRequest?(request)
 
     guard let url = request.url else { throw URLError(.badURL) }
     let method = request.httpMethod ?? "GET"
@@ -98,7 +98,7 @@ actor MockNetworkSession: NetworkSession {
     webSocketTasks.last
   }
 
-  func onRequest(_ handler: @escaping @Sendable (URLRequest) -> Void) {
+  func onRequest(_ handler: @escaping @Sendable (URLRequest) async -> Void) {
     onRequest = handler
   }
 

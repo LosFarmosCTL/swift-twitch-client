@@ -19,17 +19,35 @@ struct WebSocketClientTests {
       authentication: .init(oAuth: "", clientID: "", userID: "", userLogin: ""),
       network: session)
 
+    let subscriptionMessage = MockedMessages.mockEventSubSubscription
+      .replacingOccurrences(of: "%type%", with: "mock")
+      .replacingOccurrences(of: "%version%", with: "1")
+      .data(using: .utf8)!
+
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
     await session.stub(
       url: url, method: "POST",
       status: 200, headers: ["Content-Type": "application/json"],
-      body: MockedMessages.mockEventSubSubscription)
+      body: subscriptionMessage)
   }
 
   @Test("Client creates WebSocket task and EventSub subscription")
   func testEventSubSetup() async throws {
     try await confirmation("Should create subscription", expectedCount: 1) { confirm in
-      await session.onRequest { _ in
+      await session.onRequest { request in
+        let body = try? await twitch.decoder.decode(
+          CreateEventSubRequestBody.self, from: request.httpBody ?? Data())
+
+        #expect(body?.type == "mock")
+        #expect(body?.version == "1")
+
+        #expect(body?.condition.count == 0)
+        #expect(body?.transport.method == "websocket")
+        #expect(body?.transport.sessionID == "111111111111111111111111111111111111")
+        #expect(body?.transport.callback == nil)
+        #expect(body?.transport.secret == nil)
+        #expect(body?.transport.conduitID == nil)
+
         confirm()
       }
 

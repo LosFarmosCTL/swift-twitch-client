@@ -8,10 +8,10 @@
   },
   "payload": {
     "subscription": {
-      "id": "45ddd5d7-0d5d-4af3-9a07-624fca441fd1",
+      "id": "11111111-1111-1111-1111-111111111111",
       "status": "enabled",
       "type": "mock",
-      "version": "2",
+      "version": "1",
       "condition": {},
       "transport": {
         "method": "websocket",

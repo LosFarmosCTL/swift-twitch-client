@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "message_id": "Lr70KAICVBHykvCd1o8wsM3KJ0R8ea8aJU1aNWYk4DU=",
+    "message_type": "notification",
+    "message_timestamp": "2025-08-30T01:10:13.390973799Z",
+    "subscription_type": "channel.shared_chat.begin",
+    "subscription_version": "1"
+  },
+  "payload": {
+    "subscription": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "status": "enabled",
+      "type": "channel.shared_chat.begin",
+      "version": "1",
+      "condition": {
+        "broadcaster_user_id": "1971641"
+      },
+      "transport": {
+        "method": "websocket",
+        "session_id": "AgoQOtgGkFvXRlSkij343CndhIGY2VsbC1h"
+      },
+      "created_at": "2023-10-06T18:04:38.807682738Z",
+      "cost": 0
+    },
+    "event": {
+      "session_id": "2b64a92a-dbb8-424e-b1c3-304423ba1b6f",
+      "broadcaster_user_id": "1971641",
+      "broadcaster_user_login": "streamer",
+      "broadcaster_user_name": "streamer",
+      "host_broadcaster_user_id": "1971641",
+      "host_broadcaster_user_login": "streamer",
+      "host_broadcaster_user_name": "streamer",
+      "participants": [
+        {
+          "broadcaster_user_id": "1971641",
+          "broadcaster_user_name": "streamer",
+          "broadcaster_user_login": "streamer"
+        },
+        {
+          "broadcaster_user_id": "112233",
+          "broadcaster_user_name": "streamer33",
+          "broadcaster_user_login": "streamer33"
+        }
+      ]
+    }
+  }
+}

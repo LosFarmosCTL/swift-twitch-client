@@ -6,7 +6,7 @@
   },
   "payload": {
     "session": {
-      "id": "AgoQ_54xDzTdSKqDTS4mIXTW0RIGY2VsbC1j",
+      "id": "111111111111111111111111111111111111",
       "status": "reconnecting",
       "keepalive_timeout_seconds": null,
       "reconnect_url": "wss://eventsub.wss.twitch.tv/reconnect",
