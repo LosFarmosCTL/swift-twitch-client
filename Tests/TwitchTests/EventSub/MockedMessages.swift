@@ -84,6 +84,10 @@ enum MockedMessages {
   static let channelPointsAutomaticRewardRedemptionAdd = fromResource(
     "channelPointsAutomaticRewardRedemptionAdd")
 
+  // VIPs
+  static let channelVIPAdd = fromResource("channelVIPAdd")
+  static let channelVIPRemove = fromResource("channelVIPRemove")
+
   // MARK: - Charity Messages
 
   static let charityDonation = fromResource("charityDonation")

@@ -64,6 +64,10 @@ internal enum EventType: String, Decodable {
   case channelPointsAutomaticRewardRedemptionAdd =
     "channel.channel_points_automatic_reward_redemption.add"
 
+  // VIPs
+  case channelVIPAdd = "channel.vip.add"
+  case channelVIPRemove = "channel.vip.remove"
+
   // MARK: - Charity
   case charityDonation = "channel.charity_campaign.donate"
   case charityCampaignStart = "channel.charity_campaign.start"
@@ -137,6 +141,10 @@ internal enum EventType: String, Decodable {
       return ChannelPointsCustomRewardRedemptionUpdateEvent.self
     case .channelPointsAutomaticRewardRedemptionAdd:
       return ChannelPointsAutomaticRewardRedemptionAddEvent.self
+
+    // VIPs
+    case .channelVIPAdd: return ChannelVIPAddEvent.self
+    case .channelVIPRemove: return ChannelVIPRemoveEvent.self
 
     //// Charity
 
