@@ -106,6 +106,14 @@ enum MockedMessages {
   static let charityCampaignProgress = fromResource("charityCampaignProgress")
   static let charityCampaignStop = fromResource("charityCampaignStop")
 
+  // MARK: - User Messages
+
+  static let userUpdate = fromResource("userUpdate")
+
+  // MARK: - Whisper Messages
+
+  static let whisperReceived = fromResource("whisperReceived")
+
   static private func fromResource(_ name: String) -> String {
     String(
       data: Bundle.module.url(forResource: name, withExtension: "json")!.data,

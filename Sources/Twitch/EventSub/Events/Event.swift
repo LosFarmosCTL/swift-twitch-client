@@ -85,6 +85,12 @@ internal enum EventType: String, Decodable {
   case charityCampaignProgress = "channel.charity_campaign.progress"
   case charityCampaignStop = "channel.charity_campaign.stop"
 
+  // MARK: - User
+  case userUpdate = "user.update"
+
+  // MARK: - Whisper
+  case whisperReceived = "user.whisper.message"
+
   case mock = "mock"
 
   var event: Event.Type {
@@ -174,6 +180,14 @@ internal enum EventType: String, Decodable {
     case .charityCampaignStart: return CharityCampaignStartEvent.self
     case .charityCampaignProgress: return CharityCampaignProgressEvent.self
     case .charityCampaignStop: return CharityCampaignStopEvent.self
+
+    //// User
+
+    case .userUpdate: return UserUpdateEvent.self
+
+    //// Whisper
+
+    case .whisperReceived: return WhisperReceivedEvent.self
 
     case .mock: return MockEvent.self
     }
