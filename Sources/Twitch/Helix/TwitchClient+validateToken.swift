@@ -28,7 +28,7 @@ public struct ValidatedToken: Decodable, Sendable {
   public let login: String
   public let userID: String
   public let scopes: [String]
-  public let expiresIn: Int
+  public let expiresIn: Int?
 
   enum CodingKeys: String, CodingKey {
     case clientID = "clientId"
