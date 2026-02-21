@@ -71,6 +71,7 @@ public struct CreateEventSubResponse: Sendable {
     public let condition: [String: String]
     public let createdAt: Date
     public let transport: TransportResponse
+    public let cost: Int
   }
 
   public struct TransportResponse: Decodable, Sendable {
