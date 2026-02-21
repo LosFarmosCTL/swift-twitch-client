@@ -37,6 +37,11 @@ final class ChannelsTests: XCTestCase {
 
     XCTAssertEqual(channels.count, 1)
     XCTAssert(channels.contains(where: { $0.id == "141981764" }))
+
+    let channel = channels.first!
+    XCTAssertEqual(
+      channel.contentClassificationLabels, [.drugsIntoxication, .sexualThemes])
+    XCTAssertFalse(channel.isBrandedContent)
   }
 
   func testGetChannelEditors() async throws {

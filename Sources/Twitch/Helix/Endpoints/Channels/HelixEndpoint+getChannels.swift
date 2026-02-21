@@ -24,6 +24,8 @@ public struct Broadcaster: Decodable, Sendable {
   public let title: String
   public let delay: Int
   public let tags: [String]
+  public let contentClassificationLabels: [Label]
+  public let isBrandedContent: Bool
 
   enum CodingKeys: String, CodingKey {
     case id = "broadcasterId"
@@ -32,5 +34,7 @@ public struct Broadcaster: Decodable, Sendable {
     case language = "broadcasterLanguage"
     case gameID = "gameId"
     case gameName, title, delay, tags
+    case contentClassificationLabels
+    case isBrandedContent
   }
 }
