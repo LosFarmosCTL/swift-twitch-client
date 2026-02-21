@@ -37,12 +37,13 @@ where
   }
 }
 
-public enum Label: String, Encodable, Sendable {
+public enum Label: String, Codable, Sendable {
   case drugsIntoxication = "DrugsIntoxication"
   case sexualThemes = "SexualThemes"
   case violentGraphic = "ViolentGraphic"
   case gambling = "Gambling"
   case profanityVulgarity = "ProfanityVulgarity"
+  case debatedSocialIssuesAndPolitics = "DebatedSocialIssuesAndPolitics"
 }
 
 internal struct UpdateChannelRequestBody: Encodable, Sendable {
