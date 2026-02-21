@@ -19,7 +19,7 @@ where
       },
       makeResponse: {
         guard let total = $0.total else {
-          throw HelixError.missingDataInResponse
+          throw HelixError.missingDataInResponse(responseData: $0.rawData)
         }
 
         return FollowsResponse(

@@ -18,7 +18,7 @@ where
       }, body: { _ in body },
       makeResponse: {
         guard let settings = $0.data.first else {
-          throw HelixError.noDataInResponse
+          throw HelixError.noDataInResponse(responseData: $0.rawData)
         }
 
         return settings

@@ -23,7 +23,7 @@ where
       },
       makeResponse: {
         guard let total = $0.total, let points = $0.points else {
-          throw HelixError.missingDataInResponse
+          throw HelixError.missingDataInResponse(responseData: $0.rawData)
         }
 
         return SubscribersResponse(

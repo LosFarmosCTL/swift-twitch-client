@@ -18,7 +18,7 @@ where
       }, body: { _ in ["is_active": isActive] },
       makeResponse: {
         guard let status = $0.data.first else {
-          throw HelixError.noDataInResponse
+          throw HelixError.noDataInResponse(responseData: $0.rawData)
         }
         return status
       })

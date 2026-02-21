@@ -18,14 +18,14 @@ where
       },
       makeResponse: {
         guard let subscription = $0.data.first else {
-          throw HelixError.noDataInResponse
+          throw HelixError.noDataInResponse(responseData: $0.rawData)
         }
 
         guard let total = $0.total,
           let totalCost = $0.totalCost,
           let maxTotalCost = $0.maxTotalCost
         else {
-          throw HelixError.missingDataInResponse
+          throw HelixError.missingDataInResponse(responseData: $0.rawData)
         }
 
         return CreateEventSubResponse(
