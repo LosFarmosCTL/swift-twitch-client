@@ -153,10 +153,10 @@ public struct ChannelModerateEvent: Event {
           try container.decode(AutomodTerm.self, forKey: .automodTerms))
       case .approveUnbanRequest:
         self = .approveUnbanRequest(
-          try container.decode(UnbanRequest.self, forKey: .automodTerms))
+          try container.decode(UnbanRequest.self, forKey: .unbanRequest))
       case .denyUnbanRequest:
         self = .denyUnbanRequest(
-          try container.decode(UnbanRequest.self, forKey: .automodTerms))
+          try container.decode(UnbanRequest.self, forKey: .unbanRequest))
       case .sharedChatBan:
         self = .sharedChatBan(try container.decode(Ban.self, forKey: .sharedChatBan))
       case .sharedChatTimeout:

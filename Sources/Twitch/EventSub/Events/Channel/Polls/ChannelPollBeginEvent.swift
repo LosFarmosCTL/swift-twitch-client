@@ -41,7 +41,12 @@ public struct ChannelPollBeginEvent: Event {
 
     let channelPointsVoting = try container.decodeIfPresent(
       ChannelPointsVoting.self, forKey: .channelPointsVoting)
-    self.channelPointsVoting = channelPointsVoting?.amountPerVote
+    self.channelPointsVoting =
+      if let channelPointsVoting, channelPointsVoting.isEnabled {
+        channelPointsVoting.amountPerVote
+      } else {
+        nil
+      }
   }
 
   public struct PollChoice: Decodable, Sendable {

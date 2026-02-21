@@ -25,6 +25,6 @@ public struct ChannelChatUserMessageUpdateEvent: Event {
   }
 
   public enum Status: String, Decodable, Sendable {
-    case approved, denied, expired
+    case approved, denied, invalid
   }
 }

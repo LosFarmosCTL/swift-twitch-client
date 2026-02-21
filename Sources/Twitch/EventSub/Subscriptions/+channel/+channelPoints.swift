@@ -75,7 +75,7 @@ where EventNotification == ChannelPointsCustomRewardRedemptionUpdateEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsAutomaticRewardRedemptionAddEvent {
   public static func channelPointsAutomaticRewardRedemptionAdd(
-    broadcasterID: UserID, version: String = "1"
+    broadcasterID: UserID, version: String = "2"
   ) -> Self {
     .init(
       type: EventType.channelPointsAutomaticRewardRedemptionAdd.rawValue,

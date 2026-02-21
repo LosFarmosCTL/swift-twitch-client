@@ -1,3 +1,5 @@
+import Foundation
+
 public struct ChannelShieldModeEndEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -7,7 +9,7 @@ public struct ChannelShieldModeEndEvent: Event {
   public let moderatorLogin: String
   public let moderatorName: String
 
-  public let endedAt: String
+  public let endedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

@@ -17,7 +17,7 @@ public struct ChannelGuestStarGuestUpdateEvent: Event {
 
   public let sessionID: String
   public let slotID: String?
-  public let state: State
+  public let state: State?
 
   public let hostVideoEnabled: Bool?
   public let hostAudioEnabled: Bool?

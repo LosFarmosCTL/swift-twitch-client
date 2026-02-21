@@ -10,7 +10,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
   public let lowTrustStatus: LowTrustStatus
   public let sharedBanChannelIDs: [String]
   public let types: [SuspiciousUserType]
-  public let banEvasionEvaluation: String
+  public let banEvasionEvaluation: BanEvasionEvaluation
 
   public let message: Message
 
@@ -35,7 +35,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
   public enum SuspiciousUserType: String, Codable, Sendable {
     case manuallyAdded = "manually_added"
     case banEvader = "ban_evader"
-    case bannedInSharedChnnel = "banned_in_shared_channel"
+    case bannedInSharedChannel = "banned_in_shared_channel"
   }
 
   public enum BanEvasionEvaluation: String, Codable, Sendable {

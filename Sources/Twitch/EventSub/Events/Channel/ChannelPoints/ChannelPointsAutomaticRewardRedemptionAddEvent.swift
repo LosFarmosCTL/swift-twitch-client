@@ -1,18 +1,18 @@
 import Foundation
 
 public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
-  let broadcasterID: String
-  let broadcasterLogin: String
-  let broadcasterName: String
+  public let broadcasterID: String
+  public let broadcasterLogin: String
+  public let broadcasterName: String
 
-  let userID: String
-  let userLogin: String
-  let userName: String
+  public let userID: String
+  public let userLogin: String
+  public let userName: String
 
-  let id: String
-  let reward: Reward
-  let message: Message
-  let redeemedAt: Date
+  public let id: String
+  public let reward: Reward
+  public let message: Message
+  public let redeemedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
@@ -26,13 +26,12 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   }
 
   public struct Reward: Decodable, Sendable {
-    let type: RewardType
-    let channelPoints: Int
-    let emote: Emote?
+    public let type: RewardType
+    public let channelPoints: Int
+    public let emote: Emote?
 
     public struct Emote: Decodable, Sendable {
-      let id: Int
-      let name: String
+      public let id: String
     }
 
     public enum RewardType: String, Decodable, Sendable {
@@ -45,11 +44,36 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   }
 
   public struct Message: Decodable, Sendable {
-    let text: String
-    let emote: Emote?
+    public let text: String
+    public let fragments: [Fragment]
 
-    public struct Emote: Decodable, Sendable {
-      let id: String
+    public struct Fragment: Decodable, Sendable {
+      public let type: FragmentType
+      public let text: String
+      public let emote: Emote?
+
+      enum CodingKeys: String, CodingKey {
+        case type
+        case text
+        case emote
+      }
+
+      public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        text = try container.decode(String.self, forKey: .text)
+        emote = try container.decodeIfPresent(Emote.self, forKey: .emote)
+        type = try container.decode(FragmentType.self, forKey: .type)
+      }
+
+      public enum FragmentType: String, Decodable, Sendable {
+        case text
+        case emote
+      }
+
+      public struct Emote: Decodable, Sendable {
+        public let id: String
+      }
     }
   }
 }

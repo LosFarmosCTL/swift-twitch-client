@@ -144,7 +144,7 @@ public struct ChannelChatNotificationEvent: Event {
         self = .sub(try container.decode(SubNotice.self, forKey: .sub))
       case "resub":
         self = .resub(try container.decode(ResubNotice.self, forKey: .resub))
-      case "subgift":
+      case "sub_gift":
         self = .subGift(try container.decode(SubGiftNotice.self, forKey: .subGift))
       case "community_sub_gift":
         self = .communitySubGift(

@@ -81,10 +81,20 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
     let globalCooldown = try container.decodeIfPresent(
       GlobalCooldown.self, forKey: .globalCooldown)
 
-    self.maxPerStream = maxPerStream?.value
-    self.maxPerUserPerStream = maxPerUserPerStream?.value
+    self.maxPerStream =
+      if let maxPerStream, maxPerStream.isEnabled { maxPerStream.value } else { nil }
+    self.maxPerUserPerStream =
+      if let maxPerUserPerStream, maxPerUserPerStream.isEnabled {
+        maxPerUserPerStream.value
+      } else {
+        nil
+      }
     self.globalCooldown =
-      if let globalCooldown { .seconds(globalCooldown.seconds) } else { nil }
+      if let globalCooldown, globalCooldown.isEnabled {
+        .seconds(globalCooldown.seconds)
+      } else {
+        nil
+      }
   }
 
   struct MaxPerStream: Decodable, Sendable {

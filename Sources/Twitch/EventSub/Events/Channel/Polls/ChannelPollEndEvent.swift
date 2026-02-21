@@ -43,7 +43,12 @@ public struct ChannelPollEndEvent: Event {
     let channelPointsVoting = try container.decodeIfPresent(
       ChannelPollBeginEvent.ChannelPointsVoting.self,
       forKey: .channelPointsVoting)
-    self.channelPointsVoting = channelPointsVoting?.amountPerVote
+    self.channelPointsVoting =
+      if let channelPointsVoting, channelPointsVoting.isEnabled {
+        channelPointsVoting.amountPerVote
+      } else {
+        nil
+      }
 
   }
 

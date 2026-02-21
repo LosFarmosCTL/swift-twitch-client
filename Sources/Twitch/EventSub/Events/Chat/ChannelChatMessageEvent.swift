@@ -15,7 +15,7 @@ public struct ChannelChatMessageEvent: Event {
   public let badges: [Badge]
   public let reply: Reply?
 
-  public let cheer: String?
+  public let cheer: Cheer?
 
   public let channelPointsCustomRewardID: String?
 
@@ -95,6 +95,10 @@ public struct ChannelChatMessageEvent: Event {
       case threadUserLogin = "threadUserLogin"
       case threadUserName = "threadUserName"
     }
+  }
+
+  public struct Cheer: Decodable, Sendable {
+    public let bits: Int
   }
 
   public struct Message: Decodable, Sendable {
