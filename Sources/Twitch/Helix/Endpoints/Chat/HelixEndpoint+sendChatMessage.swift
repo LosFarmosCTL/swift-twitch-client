@@ -7,7 +7,8 @@ where
 {
   public static func sendChatMessage(
     in channel: UserID, message: String,
-    replyParentMessageID: String? = nil
+    replyParentMessageID: String? = nil,
+    forSourceOnly: Bool? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "chat/messages",
@@ -16,7 +17,8 @@ where
           broadcasterID: channel,
           senderID: auth.userID,
           message: message,
-          replyParentMessageID: replyParentMessageID)
+          replyParentMessageID: replyParentMessageID,
+          forSourceOnly: forSourceOnly)
       },
       makeResponse: {
         guard let messageResponse = $0.data.first else {
@@ -54,11 +56,14 @@ internal struct SendChatMessageRequestBody: Encodable, Sendable {
 
   let replyParentMessageID: String?
 
+  let forSourceOnly: Bool?
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case senderID = "senderId"
     case message
 
     case replyParentMessageID = "replyParentMessageId"
+    case forSourceOnly
   }
 }
