@@ -22,7 +22,7 @@ where
       },
       makeResponse: {
         guard let messageResponse = $0.data.first else {
-          throw HelixError.noDataInResponse
+          throw HelixError.noDataInResponse(responseData: $0.rawData)
         }
 
         return messageResponse

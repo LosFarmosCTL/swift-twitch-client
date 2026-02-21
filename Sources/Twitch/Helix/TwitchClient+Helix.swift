@@ -139,12 +139,12 @@ extension TwitchClient {
   }
 
   private func decode<R>(_ data: Data) throws -> HelixResponse<R> {
-    let response = try? self.decoder.decode(HelixResponse<R>.self, from: data)
+    let decoded = try? self.decoder.decode(HelixResponsePayload<R>.self, from: data)
 
-    guard let response else {
+    guard let decoded else {
       throw HelixError.parsingResponseFailed(responseData: data)
     }
 
-    return response
+    return HelixResponse(payload: decoded, rawData: data)
   }
 }

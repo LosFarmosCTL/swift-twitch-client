@@ -13,7 +13,7 @@ where
       },
       makeResponse: { result in
         guard let response = result.data.first else {
-          throw HelixError.noDataInResponse
+          throw HelixError.noDataInResponse(responseData: result.rawData)
         }
 
         return response

@@ -10,7 +10,7 @@ where
       method: "GET", path: "chat/emotes/global",
       makeResponse: {
         guard let template = $0.template else {
-          throw HelixError.missingDataInResponse
+          throw HelixError.missingDataInResponse(responseData: $0.rawData)
         }
 
         return GlobalEmotes(emotes: $0.data, template: template)

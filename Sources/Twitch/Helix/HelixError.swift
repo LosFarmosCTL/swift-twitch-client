@@ -7,8 +7,8 @@ public enum HelixError: Error {
   case parsingResponseFailed(responseData: Data)
   case parsingErrorFailed(status: Int, responseData: Data)
 
-  case noDataInResponse
-  case missingDataInResponse
+  case noDataInResponse(responseData: Data)
+  case missingDataInResponse(responseData: Data)
 
   case nonEmptyResponse(responseData: Data)
 }
