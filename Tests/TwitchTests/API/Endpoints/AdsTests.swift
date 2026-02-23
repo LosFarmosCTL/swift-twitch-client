@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class AdsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -30,7 +30,7 @@ final class AdsTests: XCTestCase {
       data: [.get: MockedData.getAdScheduleJSON]
     ).register()
 
-    let ads = try await helix.getAdSchedule()
+    let ads = try await twitch.helix(endpoint: .getAdSchedule())
 
     XCTAssertEqual(ads.count, 1)
 
@@ -46,7 +46,9 @@ final class AdsTests: XCTestCase {
       data: [.post: MockedData.startCommercialJSON]
     ).register()
 
-    let commercial = try await helix.startCommercial(length: 60)
+    let commercial = try await twitch.helix(
+      endpoint: .startCommercial(length: 60)
+    )
 
     XCTAssertEqual(commercial.length, 60)
     XCTAssertEqual(commercial.message, "")
@@ -63,11 +65,10 @@ final class AdsTests: XCTestCase {
       data: [.post: MockedData.snoozeNextAdJSON]
     ).register()
 
-    let snoozeResult = try await helix.snoozeNextAd()
+    let snoozeResult = try await twitch.helix(endpoint: .snoozeNextAd())
 
-    XCTAssertEqual(snoozeResult.count, 1)
-    XCTAssertEqual(snoozeResult.first?.snoozeCount, 1)
+    XCTAssertEqual(snoozeResult.snoozeCount, 1)
     XCTAssertEqual(
-      snoozeResult.first?.snoozeRefreshAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
+      snoozeResult.snoozeRefreshAt.formatted(.iso8601), "2023-08-01T23:08:18Z")
   }
 }

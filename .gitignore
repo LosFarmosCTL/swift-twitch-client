@@ -1,9 +1,21 @@
 .DS_Store
-/.build
-/Packages
-/*.xcodeproj
+
+# Editor/IDE
+.vscode/
+.idea/
+*.xcodeproj
+*.xcworkspace
 xcuserdata/
-DerivedData/
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
-default.profraw
-/.vscode
+*.xcuserstate
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# SourceKit-LSP
+.index-build/
+
+# Test coverage
+*.profraw
+*.profdata
+>>>>>>> Stashed changes

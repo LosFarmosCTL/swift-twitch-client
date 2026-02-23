@@ -11,16 +11,16 @@ import XCTest
 // swiftlint:disable file_length
 // swiftlint:disable:next type_body_length
 final class ModerationTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -31,17 +31,19 @@ final class ModerationTests: XCTestCase {
 
     Mock(
       url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.checkAutomodStatusJSON]
+      data: [.post: MockedData.checkAutomodStatusJSON]
     ).register()
 
-    let result = try await helix.checkAutomodStatus(
-      messages: ("123", "This is a test message."),
-      ("393", "This is another test message."))
+    let result = try await twitch.helix(
+      endpoint: .checkAutomodStatus(
+        messages: ("123", "This is a test message."),
+        ("393", "This is another test message."))
+    )
 
     XCTAssertEqual(result.count, 2)
-    XCTAssertEqual(result[0].msgId, "123")
+    XCTAssertEqual(result[0].messageID, "123")
     XCTAssertEqual(result[0].isPermitted, true)
-    XCTAssertEqual(result[1].msgId, "393")
+    XCTAssertEqual(result[1].messageID, "393")
     XCTAssertEqual(result[1].isPermitted, false)
   }
 
@@ -55,7 +57,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.approveAutomodMessage(withID: "123")
+    try await twitch.helix(endpoint: .approveAutomodMessage(messageID: "123"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -70,7 +72,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.denyAutomodMessage(withID: "123")
+    try await twitch.helix(endpoint: .denyAutomodMessage(messageID: "123"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -86,7 +88,7 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getAutomodSettingsJSON]
     ).register()
 
-    let result = try await helix.getAutomodSettings(broadcasterId: "5678")
+    let result = try await twitch.helix(endpoint: .getAutomodSettings(of: "5678"))
 
     XCTAssertEqual(result.broadcasterID, "5678")
     XCTAssertEqual(result.moderatorID, "1234")
@@ -106,7 +108,8 @@ final class ModerationTests: XCTestCase {
       data: [.put: MockedData.updateAutomodSettingsJSON]
     ).register()
 
-    let result = try await helix.updateAutomodSettings(forChannel: "5678", overall: 3)
+    let result = try await twitch.helix(
+      endpoint: .updateAutomodSettings(of: "5678", overall: 3))
 
     XCTAssertEqual(result.broadcasterID, "5678")
     XCTAssertEqual(result.moderatorID, "1234")
@@ -131,12 +134,12 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getBannedUsersJSON]
     ).register()
 
-    let (users, cursor) = try await helix.getBannedUsers()
+    let (bans, cursor) = try await twitch.helix(endpoint: .getBannedUsers())
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI")
 
-    XCTAssertEqual(users.count, 2)
-    XCTAssertEqual(users.first?.userId, "423374343")
+    XCTAssertEqual(bans.count, 2)
+    XCTAssertEqual(bans.first?.userID, "423374343")
   }
 
   func testBanUser() async throws {
@@ -149,7 +152,7 @@ final class ModerationTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.post: MockedData.banUserJSON]
     ).register()
 
-    let ban = try await helix.banUser(withID: "9876", inChannel: "5678")
+    let ban = try await twitch.helix(endpoint: .banUser("9876", in: "5678"))
 
     XCTAssertEqual(ban.broadcasterID, "5678")
     XCTAssertEqual(ban.moderatorID, "1234")
@@ -170,7 +173,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.unbanUser(withID: "9876", inChannel: "5678")
+    try await twitch.helix(endpoint: .unbanUser("9876", in: "5678"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -186,7 +189,8 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getBlockedTermsJSON]
     ).register()
 
-    let (terms, cursor) = try await helix.getBlockedTerms(inChannel: "5678")
+    let (terms, cursor) = try await twitch.helix(
+      endpoint: .getBlockedTerms(in: "5678"))
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 
@@ -206,8 +210,8 @@ final class ModerationTests: XCTestCase {
       data: [.post: MockedData.getBlockedTermsJSON]
     ).register()
 
-    let term = try await helix.addBlockedTerm(
-      inChannel: "5678", text: "A phrase I'm not fond of")
+    let term = try await twitch.helix(
+      endpoint: .addBlockedTerm(in: "5678", text: "A phrase I'm not fond of"))
 
     XCTAssertEqual(term.broadcasterID, "5678")
     XCTAssertEqual(term.moderatorID, "1234")
@@ -228,7 +232,8 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.removeBlockedTerm(inChannel: "5678", termId: "9876")
+    try await twitch.helix(
+      endpoint: .removeBlockedTerm(in: "5678", termID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -246,7 +251,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.deleteChatMessage(inChannel: "5678", withID: "9876")
+    try await twitch.helix(endpoint: .deleteChatMessage(in: "5678", messageID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -259,7 +264,7 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getModeratedChannelsJSON]
     ).register()
 
-    let (channels, cursor) = try await helix.getModeratedChannels()
+    let (channels, cursor) = try await twitch.helix(endpoint: .getModeratedChannels())
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6")
 
@@ -277,12 +282,12 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getModeratorsJSON]
     ).register()
 
-    let (moderators, cursor) = try await helix.getModerators()
+    let (mods, cursor) = try await twitch.helix(endpoint: .getModerators())
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 
-    XCTAssertEqual(moderators.count, 1)
-    XCTAssertEqual(moderators.first?.id, "424596340")
+    XCTAssertEqual(mods.count, 1)
+    XCTAssertEqual(mods.first?.id, "424596340")
   }
 
   func testAddChannelModerator() async throws {
@@ -298,7 +303,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.addChannelModerator(userID: "9876")
+    try await twitch.helix(endpoint: .addChannelModerator(userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -316,7 +321,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.removeChannelModerator(userID: "9876")
+    try await twitch.helix(endpoint: .removeChannelModerator(userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -329,7 +334,7 @@ final class ModerationTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getVIPsJSON]
     ).register()
 
-    let (vips, cursor) = try await helix.getVIPs()
+    let (vips, cursor) = try await twitch.helix(endpoint: .getVIPs())
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
@@ -349,7 +354,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.addChannelVIP(userID: "9876")
+    try await twitch.helix(endpoint: .addChannelVIP(userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -366,7 +371,7 @@ final class ModerationTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.removeChannelVIP(userID: "9876")
+    try await twitch.helix(endpoint: .removeChannelVIP(userID: "9876"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -382,7 +387,7 @@ final class ModerationTests: XCTestCase {
       data: [.get: MockedData.getShieldModeStatusJSON]
     ).register()
 
-    let result = try await helix.getShieldModeStatus(forChannel: "5678")
+    let result = try await twitch.helix(endpoint: .getShieldModeStatus(of: "5678"))
 
     XCTAssertEqual(result.isActive, true)
     XCTAssertEqual(result.moderatorID, "1234")
@@ -399,7 +404,8 @@ final class ModerationTests: XCTestCase {
       data: [.put: MockedData.getShieldModeStatusJSON]
     ).register()
 
-    let result = try await helix.updateShieldModeStatus(inChannel: "5678", isActive: true)
+    let result = try await twitch.helix(
+      endpoint: .updateShieldModeStatus(of: "5678", isActive: true))
 
     XCTAssertEqual(result.isActive, true)
     XCTAssertEqual(result.moderatorID, "1234")

@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class UsersTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -29,7 +29,7 @@ final class UsersTests: XCTestCase {
       url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
     ).register()
 
-    let users = try await helix.getUsers(userIDs: ["141981764"])
+    let users = try await twitch.helix(endpoint: .getUsers(ids: ["141981764"]))
 
     XCTAssertEqual(users.count, 1)
 
@@ -46,7 +46,8 @@ final class UsersTests: XCTestCase {
       data: [.put: MockedData.updateUserJSON]
     ).register()
 
-    let user = try await helix.updateUser(description: "Hello world!")
+    let user = try await twitch.helix(
+      endpoint: .updateUser(description: "Hello world!"))
 
     XCTAssertEqual(user.description, "Hello world!")
     XCTAssertNotNil(user.email)
@@ -61,12 +62,10 @@ final class UsersTests: XCTestCase {
       data: [.get: MockedData.getUserBlocklistJSON]
     ).register()
 
-    let (blocks, cursor) = try await helix.getUserBlocklist(limit: 2)
-
-    XCTAssertNil(cursor)
+    let blocks = try await twitch.helix(endpoint: .getBlocklist(limit: 2))
 
     XCTAssertEqual(blocks.count, 2)
-    XCTAssert(blocks.contains(where: { $0.userId == "135093069" }))
+    XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))
   }
 
   func testBlockUser() async throws {
@@ -80,7 +79,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.blockUser(withID: "1234", reason: .spam)
+    try await twitch.helix(endpoint: .block("1234", reason: .spam))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
@@ -95,7 +94,7 @@ final class UsersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.unblockUser(withID: "1234")
+    try await twitch.helix(endpoint: .unblock("1234"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

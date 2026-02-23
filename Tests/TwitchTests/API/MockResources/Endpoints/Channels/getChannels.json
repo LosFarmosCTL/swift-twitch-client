@@ -11,7 +11,12 @@
       "delay": 0,
       "tags": [
         "DevsInTheKnow"
-      ]
+      ],
+      "content_classification_labels": [
+        "DrugsIntoxication",
+        "SexualThemes"
+      ],
+      "is_branded_content": false
     }
   ]
 }

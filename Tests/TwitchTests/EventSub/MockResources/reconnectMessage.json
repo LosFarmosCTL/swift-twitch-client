@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "message_id": "84c1e79a-2a4b-4c13-ba0b-4312293e9308",
+    "message_type": "session_reconnect",
+    "message_timestamp": "2022-11-18T09:10:11.634234626Z"
+  },
+  "payload": {
+    "session": {
+      "id": "111111111111111111111111111111111111",
+      "status": "reconnecting",
+      "keepalive_timeout_seconds": null,
+      "reconnect_url": "wss://eventsub.wss.twitch.tv/reconnect",
+      "connected_at": "2022-11-16T10:11:12.634234626Z"
+    }
+  }
+}

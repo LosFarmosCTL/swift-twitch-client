@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class WhispersTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -33,7 +33,7 @@ final class WhispersTests: XCTestCase {
     let completionExpectation = expectationForCompletingMock(&mock)
     mock.register()
 
-    try await helix.sendWhisper(to: "4321", message: "Hello, world!")
+    try await twitch.helix(endpoint: .sendWhisper(to: "4321", message: "Hello, world!"))
 
     await fulfillment(of: [completionExpectation], timeout: 2.0)
   }

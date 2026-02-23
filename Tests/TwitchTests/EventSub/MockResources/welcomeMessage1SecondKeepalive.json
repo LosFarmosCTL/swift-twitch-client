@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "message_id": "bf92492a-5520-469a-89a4-104fe2e8cc54",
+    "message_type": "session_welcome",
+    "message_timestamp": "2025-08-29T23:29:03.632793554Z"
+  },
+  "payload": {
+    "session": {
+      "id": "111111111111111111111111111111111111",
+      "status": "connected",
+      "connected_at": "2025-08-29T23:29:03.628242443Z",
+      "keepalive_timeout_seconds": 1,
+      "reconnect_url": null,
+      "recovery_url": null
+    }
+  }
+}

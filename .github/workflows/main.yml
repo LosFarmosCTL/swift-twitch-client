@@ -14,28 +14,91 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            swift-version: 5.9
-          - os: macos-14
-            swift-version: 5.9
+            swift-version: "6.2"
+          - os: macos-15
+            swift-version: "6.2"
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Swift ${{ matrix.swift-version }}
-        uses: slashmo/install-swift@v0.4.0
+      - uses: actions/checkout@v4
+
+      - name: Cache Swift build
+        uses: actions/cache@v4
         with:
-          version: ${{ matrix.swift-version }}
+          path: .build
+          key: build-${{ runner.os }}-${{ matrix.swift-version }}-${{ hashFiles('Package.resolved') }}
+          restore-keys: |
+            build-${{ runner.os }}-${{ matrix.swift-version }}-
+
+      - name: Install Swiftly & Swift ${{ matrix.swift-version }}
+        run: |
+          if swift --version 2>/dev/null | grep -q "${{ matrix.swift-version }}"; then
+            echo "Swift ${{ matrix.swift-version }} already installed, skipping installation."
+          else
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              echo "Disabling man-db on Linux..."
+              sudo apt-get remove -y man-db || true
+              sudo apt-get update
+
+              echo "Installing Swiftly on Linux..."
+              curl -L https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz > swiftly.tar.gz
+              tar zxf swiftly.tar.gz
+              ./swiftly init --verbose --assume-yes --skip-install
+              source "/home/runner/.local/share/swiftly/env.sh"
+            elif [[ "$RUNNER_OS" == "macOS" ]]; then
+              echo "Installing Swiftly on macOS..."
+              brew install swiftly
+              swiftly init --verbose --assume-yes --skip-install || true
+              source "$HOME/.swiftly/env.sh"
+            fi
+
+            echo "Installing Swift ${{ matrix.swift-version }}..."
+            swiftly install ${{ matrix.swift-version }} --post-install-file=post-install.sh
+
+            if [[ -f post-install.sh ]]; then
+              echo "Running post-install.sh..."
+
+              # alias apt-get to automatically run with sudo
+              bash -c '
+                shopt -s expand_aliases
+                alias apt-get="sudo apt-get"
+                source post-install.sh
+              '
+            fi
+          fi
+
       - name: Build
-        run: swift build -v
+        run: |
+          if swift --version 2>/dev/null | grep -q "${{ matrix.swift-version }}"; then
+            swift build -v
+          else
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              source /home/runner/.local/share/swiftly/env.sh
+            else
+              source "$HOME/.swiftly/env.sh"
+            fi
+            swiftly use ${{ matrix.swift-version }}
+            swift build -v
+          fi
       - name: Test
-        run: swift test
+        run: |
+          if swift --version 2>/dev/null | grep -q "${{ matrix.swift-version }}"; then
+            swift test
+          else
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              source /home/runner/.local/share/swiftly/env.sh
+            else
+              source "$HOME/.swiftly/env.sh"
+            fi
+            swiftly use ${{ matrix.swift-version }}
+            swift test
+          fi
 
   lint:
     name: Lint
-    
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
         with:
@@ -43,11 +106,10 @@ jobs:
 
   format:
     name: Check formatting
-  
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install apple/swift-format
         run: brew install swift-format
       - name: Check formatting

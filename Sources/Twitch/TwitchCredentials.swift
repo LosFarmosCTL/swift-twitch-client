@@ -1,34 +1,24 @@
-private let oAuthPrefix = "oauth:"
+public struct TwitchCredentials: Sendable {
+  public let oAuth: String
+  public let clientID: String
 
-public struct TwitchCredentials {
-  internal let oAuth: String
-  internal let clientID: String?
-  internal let userId: String?
+  public let userID: String
+  public let userLogin: String
 
-  public init(oAuth: String, clientID: String? = nil, userId: String? = nil) {
-    // assure that the stored token always starts with "oauth:"
-    if !oAuth.starts(with: oAuthPrefix) {
-      self.oAuth = oAuthPrefix + oAuth
-    } else {
-      self.oAuth = oAuth
-    }
-
+  public init(oAuth: String, clientID: String, userID: String, userLogin: String) {
+    self.oAuth = String(oAuth.trimmingPrefix("oauth:"))
     self.clientID = clientID
-    self.userId = userId
+
+    self.userID = userID
+    self.userLogin = userLogin.lowercased()
   }
 
-  private var cleanOAuth: String { return String(oAuth.dropFirst(oAuthPrefix.count)) }
-
-  internal func httpHeaders() throws -> [String: String] {
-    guard let clientID = self.clientID else { throw CredentialError.missingClientID }
-
+  internal func httpHeaders() -> [String: String] {
     var headers: [String: String] = [:]
 
     headers.updateValue(clientID, forKey: "Client-Id")
-    headers.updateValue("Bearer \(self.cleanOAuth)", forKey: "Authorization")
+    headers.updateValue("Bearer \(self.oAuth)", forKey: "Authorization")
 
     return headers
   }
 }
-
-public enum CredentialError: Error { case missingClientID }

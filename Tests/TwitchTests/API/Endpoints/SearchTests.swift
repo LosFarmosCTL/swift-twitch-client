@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class SearchTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -30,7 +30,8 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchCategoriesJSON]
     ).register()
 
-    let (categories, cursor) = try await helix.searchCategories(for: "fort")
+    let (categories, cursor) = try await twitch.helix(
+      endpoint: .searchCategories(for: "fort"))
 
     XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN")
 
@@ -46,7 +47,8 @@ final class SearchTests: XCTestCase {
       data: [.get: MockedData.searchChannelsJSON]
     ).register()
 
-    let (channels, cursor) = try await helix.searchChannels(for: "loser")
+    let (channels, cursor) = try await twitch.helix(
+      endpoint: .searchChannels(for: "loser"))
 
     XCTAssertNil(cursor)
 

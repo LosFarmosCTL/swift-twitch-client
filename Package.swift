@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.2
 
 import PackageDescription
 
@@ -20,8 +20,15 @@ let package = Package(
         .product(
           name: "WebSocketKit", package: "websocket-kit",
           condition: .when(platforms: [.linux])),
-      ]),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
+      ],
+    ),
     .testTarget(
       name: "TwitchTests", dependencies: ["Twitch", "Mocker"],
-      resources: [.process("API/MockResources")]),
+      resources: [
+        .process("API/MockResources"),
+        .process("EventSub/MockResources"),
+      ]),
   ])

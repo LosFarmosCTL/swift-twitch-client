@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "message_id": "Lr70KAICVBHykvCd1o8wsM3KJ0R8ea8aJU1aNWYk4DU=",
+    "message_type": "notification",
+    "message_timestamp": "2025-08-30T01:10:13.390973799Z",
+    "subscription_type": "channel.chat.notification",
+    "subscription_version": "1"
+  },
+  "payload": {
+    "subscription": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "status": "enabled",
+      "type": "channel.chat.notification",
+      "version": "1",
+      "condition": {
+        "broadcaster_user_id": "1971641",
+        "user_id": "2914196"
+      },
+      "transport": {
+        "method": "websocket",
+        "session_id": "AgoQOtgGkFvXRlSkij343CndhIGY2VsbC1h"
+      },
+      "created_at": "2023-10-06T18:04:38.807682738Z",
+      "cost": 0
+    },
+    "event": {
+      "broadcaster_user_id": "1971641",
+      "broadcaster_user_login": "streamer",
+      "broadcaster_user_name": "streamer",
+      "chatter_user_id": "49912639",
+      "chatter_user_login": "viewer23",
+      "chatter_user_name": "viewer23",
+      "chatter_is_anonymous": false,
+      "color": "",
+      "badges": [],
+      "system_message": "viewer23 subscribed at Tier 1. They've subscribed for 10 months!",
+      "message_id": "d62235c8-47ff-a4f4--84e8-5a29a65a9c03",
+      "message": {
+        "text": "",
+        "fragments": []
+      },
+      "notice_type": "resub",
+      "sub": null,
+      "resub": {
+        "cumulative_months": 10,
+        "duration_months": 1,
+        "streak_months": null,
+        "sub_tier": "1000",
+        "is_prime": false,
+        "is_gift": false,
+        "gifter_is_anonymous": null,
+        "gifter_user_id": null,
+        "gifter_user_name": null,
+        "gifter_user_login": null
+      },
+      "sub_gift": null,
+      "community_sub_gift": null,
+      "gift_paid_upgrade": null,
+      "prime_paid_upgrade": null,
+      "pay_it_forward": null,
+      "raid": null,
+      "unraid": null,
+      "announcement": null,
+      "bits_badge_tier": null,
+      "charity_donation": null,
+      "shared_chat_sub": null,
+      "shared_chat_resub": null,
+      "shared_chat_sub_gift": null,
+      "shared_chat_community_sub_gift": null,
+      "shared_chat_gift_paid_upgrade": null,
+      "shared_chat_prime_paid_upgrade": null,
+      "shared_chat_pay_it_forward": null,
+      "shared_chat_raid": null,
+      "shared_chat_announcement": null,
+      "source_broadcaster_user_id": null,
+      "source_broadcaster_user_login": null,
+      "source_broadcaster_user_name": null,
+      "source_message_id": null,
+      "source_badges": null
+    }
+  }
+}

@@ -7,10 +7,8 @@
       enforceOrder: Bool = false
     ) async {
       return await withCheckedContinuation { continuation in
-        Thread.detachNewThread { [self] in
-          wait(for: expectations, timeout: timeout, enforceOrder: enforceOrder)
-          continuation.resume()
-        }
+        self.wait(for: expectations, timeout: timeout, enforceOrder: enforceOrder)
+        continuation.resume()
       }
     }
   }

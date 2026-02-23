@@ -9,16 +9,16 @@ import XCTest
 #endif
 
 final class SubscriptionsTests: XCTestCase {
-  private var helix: Helix!
+  private var twitch: TwitchClient!
 
   override func setUpWithError() throws {
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = [MockingURLProtocol.self]
     let urlSession = URLSession(configuration: configuration)
 
-    helix = try Helix(
+    twitch = TwitchClient(
       authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userId: "1234"),
+        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
       urlSession: urlSession)
   }
 
@@ -31,13 +31,13 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.getBroadcasterSubscriptionsJSON]
     ).register()
 
-    let ((total, points), subscribers, cursor) =
-      try await helix.getBroadcasterSubscribers(limit: 2)
+    let result = try await twitch.helix(endpoint: .getSubscribers(limit: 2))
+    let subscribers = result.subscribers
 
-    XCTAssertEqual(total, 13)
-    XCTAssertEqual(points, 13)
+    XCTAssertEqual(result.total, 13)
+    XCTAssertEqual(result.points, 13)
 
-    XCTAssertEqual(cursor, "jnksdfyg7is8do7fv7yuwbisudg")
+    XCTAssertEqual(result.cursor, "jnksdfyg7is8do7fv7yuwbisudg")
 
     XCTAssertEqual(subscribers.count, 2)
     XCTAssertNotNil(subscribers.first?.gifter)
@@ -57,9 +57,9 @@ final class SubscriptionsTests: XCTestCase {
       data: [.get: MockedData.checkUserSubscriptionJSON]
     ).register()
 
-    let subscription = try await helix.checkUserSubscription(to: "1234")
+    let subscription = try await twitch.helix(endpoint: .checkSubscription(to: "1234"))
 
-    XCTAssertEqual(subscription?.broadcasterId, "141981764")
+    XCTAssertEqual(subscription?.broadcasterID, "141981764")
     XCTAssertEqual(subscription?.gifter?.id, "12826")
   }
 }

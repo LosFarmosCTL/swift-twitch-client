@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "message_id": "Lr70KAICVBHykvCd1o8wsM3KJ0R8ea8aJU1aNWYk4DU=",
+    "message_type": "notification",
+    "message_timestamp": "2025-08-30T01:10:13.390973799Z",
+    "subscription_type": "channel.channel_points_custom_reward_redemption.update",
+    "subscription_version": "1"
+  },
+  "payload": {
+    "subscription": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "type": "channel.channel_points_custom_reward_redemption.update",
+      "version": "1",
+      "status": "enabled",
+      "cost": 0,
+      "condition": {
+        "broadcaster_user_id": "1337",
+        "reward_id": "92af127c-7326-4483-a52b-b0da0be61c01"
+      },
+      "transport": {
+        "method": "webhook",
+        "callback": "https://example.com/webhooks/callback"
+      },
+      "created_at": "2019-11-16T10:11:12.634234626Z"
+    },
+    "event": {
+      "id": "17fa2df1-ad76-4804-bfa5-a40ef63efe63",
+      "broadcaster_user_id": "1337",
+      "broadcaster_user_login": "cool_user",
+      "broadcaster_user_name": "Cool_User",
+      "user_id": "9001",
+      "user_login": "cooler_user",
+      "user_name": "Cooler_User",
+      "user_input": "pogchamp",
+      "status": "fulfilled",
+      "reward": {
+        "id": "92af127c-7326-4483-a52b-b0da0be61c01",
+        "title": "title",
+        "cost": 100,
+        "prompt": "reward prompt"
+      },
+      "redeemed_at": "2020-07-15T17:16:03.17106713Z"
+    }
+  }
+}

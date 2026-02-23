@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "status": "enabled",
+      "type": "%type%",
+      "version": "%version%",
+      "condition": {},
+      "created_at": "2025-08-30T00:36:38.667761911Z",
+      "transport": {
+        "method": "websocket",
+        "session_id": "111111111111111111111111111111111111",
+        "connected_at": "2025-08-30T00:36:38Z"
+      },
+      "cost": 0
+    }
+  ],
+  "total": 1,
+  "max_total_cost": 10,
+  "total_cost": 0
+}
