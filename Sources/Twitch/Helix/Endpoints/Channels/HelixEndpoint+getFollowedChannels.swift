@@ -35,7 +35,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == Follow?, HelixResponseType == Follow
 {
-  public static func checkFollow(to channelID: UserID) -> Self {
+  public static func checkFollow(to channelID: String) -> Self {
     return .init(
       method: "GET", path: "channels/followed",
       queryItems: { auth in
@@ -50,7 +50,7 @@ public struct FollowsResponse: Sendable {
 
   public let follows: [Follow]
 
-  public let cursor: PaginationCursor?
+  public let cursor: String?
 }
 
 public struct Follow: Decodable, Sendable {

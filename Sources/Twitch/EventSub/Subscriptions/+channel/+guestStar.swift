@@ -1,7 +1,7 @@
 extension EventSubSubscription
 where EventNotification == ChannelGuestStarSessionBeginEvent {
   public static func channelGuestStarSessionBegin(
-    broadcasterID: UserID, moderatorID: UserID, version: String = "beta"
+    broadcasterID: String, moderatorID: String, version: String = "beta"
   ) -> Self {
     .init(
       type: EventType.channelGuestStarSessionBegin.rawValue, version: version,
@@ -15,7 +15,7 @@ where EventNotification == ChannelGuestStarSessionBeginEvent {
 extension EventSubSubscription
 where EventNotification == ChannelGuestStarSessionEndEvent {
   public static func channelGuestStarSessionEnd(
-    broadcasterID: UserID, moderatorID: UserID, version: String = "beta"
+    broadcasterID: String, moderatorID: String, version: String = "beta"
   ) -> Self {
     .init(
       type: EventType.channelGuestStarSessionEnd.rawValue, version: version,
@@ -29,7 +29,7 @@ where EventNotification == ChannelGuestStarSessionEndEvent {
 extension EventSubSubscription
 where EventNotification == ChannelGuestStarGuestUpdateEvent {
   public static func channelGuestStarGuestUpdate(
-    broadcasterID: UserID, moderatorID: UserID, version: String = "beta"
+    broadcasterID: String, moderatorID: String, version: String = "beta"
   ) -> Self {
     .init(
       type: EventType.channelGuestStarGuestUpdate.rawValue, version: version,
@@ -43,7 +43,7 @@ where EventNotification == ChannelGuestStarGuestUpdateEvent {
 extension EventSubSubscription
 where EventNotification == ChannelGuestStarSettingsUpdateEvent {
   public static func channelGuestStarSettingsUpdate(
-    broadcasterID: UserID, moderatorID: UserID, version: String = "beta"
+    broadcasterID: String, moderatorID: String, version: String = "beta"
   ) -> Self {
     .init(
       type: EventType.channelGuestStarSettingsUpdate.rawValue, version: version,

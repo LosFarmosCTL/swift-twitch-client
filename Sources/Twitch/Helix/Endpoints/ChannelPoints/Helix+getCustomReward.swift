@@ -6,7 +6,7 @@ where
   ResponseType == [CustomReward], HelixResponseType == CustomReward
 {
   public static func getCustomRewards(
-    for broadcasterID: UserID? = nil,
+    for broadcasterID: String? = nil,
     ids: [String] = [],
     onlyManageable: Bool? = nil
   ) -> Self {

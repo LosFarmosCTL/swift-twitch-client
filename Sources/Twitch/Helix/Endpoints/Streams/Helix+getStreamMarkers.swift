@@ -3,11 +3,11 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([StreamMarkersByUser], PaginationCursor?),
+  ResponseType == ([StreamMarkersByUser], String?),
   HelixResponseType == StreamMarkersByUser
 {
   public static func getStreamMarkers(
-    userID: UserID? = nil,
+    userID: String? = nil,
     videoID: String? = nil,
     limit: Int? = nil,
     before endCursor: String? = nil,

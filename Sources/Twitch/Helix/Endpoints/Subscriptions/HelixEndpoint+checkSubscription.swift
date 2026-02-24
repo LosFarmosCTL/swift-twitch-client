@@ -6,7 +6,7 @@ where
   ResponseType == Subscription?,
   HelixResponseType == Subscription
 {
-  public static func checkSubscription(to channel: UserID) -> Self {
+  public static func checkSubscription(to channel: String) -> Self {
     return .init(
       method: "GET", path: "subscriptions/user",
       queryItems: { auth in

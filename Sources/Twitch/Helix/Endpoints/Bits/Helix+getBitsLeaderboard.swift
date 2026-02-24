@@ -9,7 +9,7 @@ where
     count: Int? = nil,
     period: BitsLeaderboardPeriod? = nil,
     startedAt: Date? = nil,
-    userID: UserID? = nil
+    userID: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "bits/leaderboard",

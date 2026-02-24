@@ -12,8 +12,8 @@ where
     isVideoEnabled: Bool? = nil,
     isLive: Bool? = nil,
     volume: Int? = nil,
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "PATCH", path: "guest_star/slot_settings",

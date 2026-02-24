@@ -7,7 +7,7 @@ where
   HelixResponseType == EmptyResponse
 {
   public static func getChanneliCalendar(
-    broadcasterID: UserID
+    broadcasterID: String
   ) -> Self {
     return .init(
       method: "GET", path: "schedule/icalendar",

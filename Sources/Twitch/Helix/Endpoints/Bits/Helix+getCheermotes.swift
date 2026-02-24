@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [Cheermote], HelixResponseType == Cheermote
 {
-  public static func getCheermotes(broadcasterID: UserID? = nil) -> Self {
+  public static func getCheermotes(broadcasterID: String? = nil) -> Self {
     return .init(
       method: "GET", path: "bits/cheermotes",
       queryItems: { _ in

@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == UserActiveExtensions, HelixResponseType == UserActiveExtensions
 {
-  public static func getUserActiveExtensions(userID: UserID? = nil) -> Self {
+  public static func getUserActiveExtensions(userID: String? = nil) -> Self {
     return .init(
       method: "GET", path: "users/extensions",
       queryItems: { auth in

@@ -6,7 +6,7 @@ where
   ResponseType == [UserColor],
   HelixResponseType == UserColor
 {
-  public static func getUserColors(of users: [UserID]) -> Self {
+  public static func getUserColors(of users: [String]) -> Self {
     return .init(
       method: "GET", path: "chat/color",
       queryItems: { _ in

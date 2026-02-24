@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func block(
-    _ user: UserID, sourceContext: SourceContext? = nil, reason: Reason? = nil
+    _ user: String, sourceContext: SourceContext? = nil, reason: Reason? = nil
   ) -> Self {
     return .init(
       method: "PUT", path: "users/blocks",

@@ -6,7 +6,7 @@ where
   ResponseType == BlockedTerm, HelixResponseType == BlockedTerm
 {
   public static func addBlockedTerm(
-    in channel: UserID, text: String
+    in channel: String, text: String
   ) -> Self {
     return .init(
       method: "POST", path: "moderation/blocked_terms",

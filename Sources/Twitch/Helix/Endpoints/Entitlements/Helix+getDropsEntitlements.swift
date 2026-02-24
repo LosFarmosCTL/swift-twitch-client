@@ -3,16 +3,16 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([DropsEntitlement], PaginationCursor?),
+  ResponseType == ([DropsEntitlement], String?),
   HelixResponseType == DropsEntitlement
 {
   public static func getDropsEntitlements(
     ids: [String] = [],
-    userID: UserID? = nil,
+    userID: String? = nil,
     gameID: String? = nil,
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil,
     limit: Int? = nil,
-    after cursor: PaginationCursor? = nil
+    after cursor: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "entitlements/drops",

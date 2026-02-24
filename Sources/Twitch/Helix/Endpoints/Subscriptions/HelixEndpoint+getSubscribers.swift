@@ -41,7 +41,7 @@ public struct SubscribersResponse: Sendable {
   public let total: Int
   public let points: Int
 
-  public let cursor: PaginationCursor?
+  public let cursor: String?
 }
 
 public struct Subscriber: Decodable, Sendable {

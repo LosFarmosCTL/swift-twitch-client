@@ -8,7 +8,7 @@ where
   public static func sendExtensionPubSubMessage(
     target: [ExtensionPubSubMessageTarget],
     message: String,
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     isGlobalBroadcast: Bool? = nil
   ) -> Self {
     .init(
@@ -26,7 +26,7 @@ where
 public enum ExtensionPubSubMessageTarget: Sendable {
   case broadcast
   case global
-  case whisper(UserID)
+  case whisper(String)
 }
 
 extension ExtensionPubSubMessageTarget: Encodable {

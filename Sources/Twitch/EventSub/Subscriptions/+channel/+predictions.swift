@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == ChannelPredictionBeginEvent {
-  public static func channelPredictionBegin(broadcasterID: UserID, version: String = "1")
+  public static func channelPredictionBegin(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(
@@ -12,7 +12,7 @@ extension EventSubSubscription where EventNotification == ChannelPredictionBegin
 
 extension EventSubSubscription where EventNotification == ChannelPredictionProgressEvent {
   public static func channelPredictionProgress(
-    broadcasterID: UserID, version: String = "1"
+    broadcasterID: String, version: String = "1"
   ) -> Self {
     .init(
       type: EventType.channelPredictionProgress.rawValue, version: version,
@@ -23,7 +23,7 @@ extension EventSubSubscription where EventNotification == ChannelPredictionProgr
 }
 
 extension EventSubSubscription where EventNotification == ChannelPredictionLockEvent {
-  public static func channelPredictionLock(broadcasterID: UserID, version: String = "1")
+  public static func channelPredictionLock(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(
@@ -35,7 +35,7 @@ extension EventSubSubscription where EventNotification == ChannelPredictionLockE
 }
 
 extension EventSubSubscription where EventNotification == ChannelPredictionEndEvent {
-  public static func channelPredictionEnd(broadcasterID: UserID, version: String = "1")
+  public static func channelPredictionEnd(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(

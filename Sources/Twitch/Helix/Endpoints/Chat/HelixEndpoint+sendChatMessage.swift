@@ -6,7 +6,7 @@ where
   ResponseType == ChatMessageResponse, HelixResponseType == ChatMessageResponse
 {
   public static func sendChatMessage(
-    in channel: UserID, message: String,
+    in channel: String, message: String,
     replyParentMessageID: String? = nil,
     forSourceOnly: Bool? = nil
   ) -> Self {

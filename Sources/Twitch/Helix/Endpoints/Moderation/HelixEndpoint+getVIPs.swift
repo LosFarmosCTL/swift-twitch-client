@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([VIP], PaginationCursor?), HelixResponseType == VIP
+  ResponseType == ([VIP], String?), HelixResponseType == VIP
 {
   public static func getVIPs(
     filterUserIDs: [String] = [],

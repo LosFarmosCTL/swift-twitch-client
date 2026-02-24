@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == PendingRaid, HelixResponseType == PendingRaid
 {
-  public static func startRaid(to channel: UserID) -> Self {
+  public static func startRaid(to channel: String) -> Self {
     .init(
       method: "POST", path: "raids",
       queryItems: { auth in

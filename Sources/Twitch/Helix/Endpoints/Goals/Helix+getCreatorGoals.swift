@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [CreatorGoal], HelixResponseType == CreatorGoal
 {
-  public static func getCreatorGoals(broadcasterID: UserID? = nil) -> Self {
+  public static func getCreatorGoals(broadcasterID: String? = nil) -> Self {
     return .init(
       method: "GET", path: "goals",
       queryItems: { auth in

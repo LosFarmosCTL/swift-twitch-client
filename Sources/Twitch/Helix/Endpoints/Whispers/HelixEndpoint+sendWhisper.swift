@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func sendWhisper(
-    to receiver: UserID, message: String
+    to receiver: String, message: String
   ) -> Self {
     return .init(
       method: "POST", path: "whispers",

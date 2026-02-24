@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == ChannelPollBeginEvent {
-  public static func channelPollBegin(broadcasterID: UserID, version: String = "1")
+  public static func channelPollBegin(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(
@@ -11,7 +11,7 @@ extension EventSubSubscription where EventNotification == ChannelPollBeginEvent 
 }
 
 extension EventSubSubscription where EventNotification == ChannelPollProgressEvent {
-  public static func channelPollProgress(broadcasterID: UserID, version: String = "1")
+  public static func channelPollProgress(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(
@@ -23,7 +23,7 @@ extension EventSubSubscription where EventNotification == ChannelPollProgressEve
 }
 
 extension EventSubSubscription where EventNotification == ChannelPollEndEvent {
-  public static func channelPollEnd(broadcasterID: UserID, version: String = "1") -> Self
+  public static func channelPollEnd(broadcasterID: String, version: String = "1") -> Self
   {
     .init(
       type: EventType.channelPollEnd.rawValue, version: version,

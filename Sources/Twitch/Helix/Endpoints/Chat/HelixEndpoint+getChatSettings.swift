@@ -6,7 +6,7 @@ where
   ResponseType == ChatSettings, HelixResponseType == ChatSettings
 {
   public static func getChatSettings(
-    of channel: UserID, moderatorID: String? = nil
+    of channel: String, moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "chat/settings",

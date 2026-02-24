@@ -3,11 +3,11 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Clip], PaginationCursor?), HelixResponseType == Clip
+  ResponseType == ([Clip], String?), HelixResponseType == Clip
 {
   public static func getClips(
     ids: [String] = [],
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     gameID: String? = nil,
     startedAt: Date? = nil,
     endedAt: Date? = nil,

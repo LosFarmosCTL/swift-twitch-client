@@ -1,6 +1,6 @@
 extension EventSubSubscription where EventNotification == ChannelRaidEvent {
   public static func channelRaid(
-    fromBroadcasterID: UserID, version: String = "1"
+    fromBroadcasterID: String, version: String = "1"
   ) -> Self {
     .init(
       type: EventType.channelRaid.rawValue, version: version,
@@ -10,7 +10,7 @@ extension EventSubSubscription where EventNotification == ChannelRaidEvent {
   }
 
   public static func channelRaid(
-    toBroadcasterID: UserID, version: String = "1"
+    toBroadcasterID: String, version: String = "1"
   ) -> Self {
     .init(
       type: EventType.channelRaid.rawValue, version: version,

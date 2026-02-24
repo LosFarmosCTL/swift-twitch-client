@@ -107,6 +107,3 @@ public enum HelixEndpointResponseTypes {
   public enum Normal: HelixEndpointResponseType {}
   public enum Raw: HelixEndpointResponseType {}
 }
-
-public typealias UserID = String
-public typealias PaginationCursor = String

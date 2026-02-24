@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == StreamOnlineEvent {
-  public static func streamOnline(broadcasterID: UserID, version: String = "1") -> Self {
+  public static func streamOnline(broadcasterID: String, version: String = "1") -> Self {
     .init(
       type: EventType.streamOnline.rawValue, version: version,
       condition: [
@@ -9,7 +9,7 @@ extension EventSubSubscription where EventNotification == StreamOnlineEvent {
 }
 
 extension EventSubSubscription where EventNotification == StreamOfflineEvent {
-  public static func streamOffline(broadcasterID: UserID, version: String = "1") -> Self {
+  public static func streamOffline(broadcasterID: String, version: String = "1") -> Self {
     .init(
       type: EventType.streamOffline.rawValue, version: version,
       condition: [

@@ -3,12 +3,12 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([CharityDonation], PaginationCursor?),
+  ResponseType == ([CharityDonation], String?),
   HelixResponseType == CharityDonation
 {
   public static func getCharityCampaignDonations(
     limit: Int? = nil,
-    after cursor: PaginationCursor? = nil
+    after cursor: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "charity/donations",

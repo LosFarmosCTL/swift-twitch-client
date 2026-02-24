@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
 {
-  public static func getAutomodSettings(of channel: UserID) -> Self {
+  public static func getAutomodSettings(of channel: String) -> Self {
     return .init(
       method: "GET", path: "moderation/automod/settings",
       queryItems: { auth in

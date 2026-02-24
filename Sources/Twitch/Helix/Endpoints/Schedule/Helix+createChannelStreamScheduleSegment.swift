@@ -13,7 +13,7 @@ where
     isRecurring: Bool? = nil,
     categoryID: String? = nil,
     title: String? = nil,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "schedule/segment",

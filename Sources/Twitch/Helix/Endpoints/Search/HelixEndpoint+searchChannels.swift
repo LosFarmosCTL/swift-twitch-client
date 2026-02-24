@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Channel], PaginationCursor?), HelixResponseType == Channel
+  ResponseType == ([Channel], String?), HelixResponseType == Channel
 {
   public static func searchChannels(
     for searchQuery: String,

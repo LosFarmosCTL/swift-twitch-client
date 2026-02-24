@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Moderator], PaginationCursor?), HelixResponseType == Moderator
+  ResponseType == ([Moderator], String?), HelixResponseType == Moderator
 {
   public static func getModerators(
     filterUserIDs: [String] = [],

@@ -1,7 +1,7 @@
 extension EventSubSubscription
 where EventNotification == ChannelPointsCustomRewardAddEvent {
   public static func channelPointsCustomRewardAdd(
-    broadcasterID: UserID, version: String = "1"
+    broadcasterID: String, version: String = "1"
   ) -> Self {
     .init(
       type: EventType.channelPointsCustomRewardAdd.rawValue, version: version,
@@ -14,7 +14,7 @@ where EventNotification == ChannelPointsCustomRewardAddEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsCustomRewardUpdateEvent {
   public static func channelPointsCustomRewardUpdate(
-    broadcasterID: UserID, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil, version: String = "1"
   ) -> Self {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
@@ -29,7 +29,7 @@ where EventNotification == ChannelPointsCustomRewardUpdateEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsCustomRewardRemoveEvent {
   public static func channelPointsCustomRewardRemove(
-    broadcasterID: UserID, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil, version: String = "1"
   ) -> Self {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
@@ -44,7 +44,7 @@ where EventNotification == ChannelPointsCustomRewardRemoveEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsCustomRewardRedemptionAddEvent {
   public static func channelPointsCustomRewardRedemptionAdd(
-    broadcasterID: UserID, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil, version: String = "1"
   ) -> Self {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
@@ -59,7 +59,7 @@ where EventNotification == ChannelPointsCustomRewardRedemptionAddEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsCustomRewardRedemptionUpdateEvent {
   public static func channelPointsCustomRewardRedemptionUpdate(
-    broadcasterID: UserID, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil, version: String = "1"
   ) -> Self {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
@@ -75,7 +75,7 @@ where EventNotification == ChannelPointsCustomRewardRedemptionUpdateEvent {
 extension EventSubSubscription
 where EventNotification == ChannelPointsAutomaticRewardRedemptionAddEvent {
   public static func channelPointsAutomaticRewardRedemptionAdd(
-    broadcasterID: UserID, version: String = "2"
+    broadcasterID: String, version: String = "2"
   ) -> Self {
     .init(
       type: EventType.channelPointsAutomaticRewardRedemptionAdd.rawValue,

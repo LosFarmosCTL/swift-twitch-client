@@ -6,7 +6,7 @@ where
   ResponseType == FollowerResponse, HelixResponseType == Follower
 {
   public static func getChannelFollowers(
-    of channel: UserID? = nil, limit: Int? = nil, after cursor: String? = nil
+    of channel: String? = nil, limit: Int? = nil, after cursor: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "channels/followers",
@@ -35,7 +35,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == Follower?, HelixResponseType == Follower
 {
-  public static func checkFollower(_ user: UserID, follows channelID: String? = nil)
+  public static func checkFollower(_ user: String, follows channelID: String? = nil)
     -> Self
   {
     return .init(
@@ -51,7 +51,7 @@ public struct FollowerResponse: Sendable {
 
   public let followers: [Follower]
 
-  public let cursor: PaginationCursor?
+  public let cursor: String?
 }
 
 public struct Follower: Decodable, Sendable {

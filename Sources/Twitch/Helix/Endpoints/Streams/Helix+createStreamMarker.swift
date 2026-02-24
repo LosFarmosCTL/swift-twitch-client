@@ -7,7 +7,7 @@ where
   HelixResponseType == StreamMarker
 {
   public static func createStreamMarker(
-    for userID: UserID? = nil,
+    for userID: String? = nil,
     description: String? = nil
   ) -> Self {
     return .init(

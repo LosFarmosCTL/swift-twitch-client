@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [Team], HelixResponseType == Team
 {
-  public static func getChannelTeams(for broadcasterID: UserID? = nil) -> Self {
+  public static func getChannelTeams(for broadcasterID: String? = nil) -> Self {
     return .init(
       method: "GET", path: "teams/channel",
       queryItems: { auth in

@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == ChannelHypeTrainBeginEvent {
-  public static func channelHypeTrainBegin(broadcasterID: UserID, version: String = "2")
+  public static func channelHypeTrainBegin(broadcasterID: String, version: String = "2")
     -> Self
   {
     .init(
@@ -12,7 +12,7 @@ extension EventSubSubscription where EventNotification == ChannelHypeTrainBeginE
 
 extension EventSubSubscription where EventNotification == ChannelHypeTrainProgressEvent {
   public static func channelHypeTrainProgress(
-    broadcasterID: UserID, version: String = "2"
+    broadcasterID: String, version: String = "2"
   ) -> Self {
     .init(
       type: EventType.channelHypeTrainProgress.rawValue, version: version,
@@ -23,7 +23,7 @@ extension EventSubSubscription where EventNotification == ChannelHypeTrainProgre
 }
 
 extension EventSubSubscription where EventNotification == ChannelHypeTrainEndEvent {
-  public static func channelHypeTrainEnd(broadcasterID: UserID, version: String = "2")
+  public static func channelHypeTrainEnd(broadcasterID: String, version: String = "2")
     -> Self
   {
     .init(

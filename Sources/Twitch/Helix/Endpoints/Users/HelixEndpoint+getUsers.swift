@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [User], HelixResponseType == User
 {
-  public static func getUsers(ids: [UserID] = [], names: [String] = []) -> Self {
+  public static func getUsers(ids: [String] = [], names: [String] = []) -> Self {
     let idQueryItems = ids.map { ("id", $0) }
     let loginQueryItems = names.map { ("login", $0) }
 

@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Poll], PaginationCursor?),
+  ResponseType == ([Poll], String?),
   HelixResponseType == Poll
 {
   public static func getPolls(

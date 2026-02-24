@@ -7,7 +7,7 @@ where
 {
   public static func deleteCustomReward(
     _ rewardID: String,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "DELETE", path: "channel_points/custom_rewards",

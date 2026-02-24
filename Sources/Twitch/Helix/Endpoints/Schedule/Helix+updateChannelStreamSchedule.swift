@@ -10,7 +10,7 @@ where
     vacationStartTime: Date? = nil,
     vacationEndTime: Date? = nil,
     timezone: String? = nil,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "PATCH", path: "schedule/settings",

@@ -7,10 +7,10 @@ where
 {
   public static func assignGuestStarSlot(
     sessionID: String,
-    guestID: UserID,
+    guestID: String,
     slotID: String,
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "guest_star/slot",

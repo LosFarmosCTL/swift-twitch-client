@@ -6,7 +6,7 @@ where
   ResponseType == ClipCreation, HelixResponseType == ClipCreation
 {
   public static func createClip(
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     title: String? = nil,
     duration: Double? = nil
   ) -> Self {

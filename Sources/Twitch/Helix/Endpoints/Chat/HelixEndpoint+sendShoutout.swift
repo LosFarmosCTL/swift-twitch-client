@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func sendShoutout(
-    from sendingUser: UserID, to receivingUser: UserID
+    from sendingUser: String, to receivingUser: String
   ) -> Self {
     return .init(
       method: "POST", path: "chat/shoutouts",

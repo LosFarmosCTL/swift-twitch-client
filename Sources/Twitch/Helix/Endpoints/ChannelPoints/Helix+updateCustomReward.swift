@@ -7,7 +7,7 @@ where
 {
   public static func updateCustomReward(
     _ rewardID: String,
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     title: String? = nil,
     prompt: String? = nil,
     cost: Int? = nil,

@@ -7,11 +7,11 @@ where
 {
   public static func deleteGuestStarSlot(
     sessionID: String,
-    guestID: UserID,
+    guestID: String,
     slotID: String,
     shouldReinviteGuest: Bool? = nil,
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "DELETE", path: "guest_star/slot",

@@ -6,7 +6,7 @@ where
   ResponseType == Ban, HelixResponseType == Ban
 {
   public static func banUser(
-    _ user: UserID, in channel: UserID,
+    _ user: String, in channel: String,
     for duration: Duration? = nil, reason: String? = nil
   ) -> Self {
     return .init(

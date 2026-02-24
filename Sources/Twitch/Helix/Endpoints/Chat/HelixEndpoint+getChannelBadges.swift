@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [BadgeSet], HelixResponseType == BadgeSet
 {
-  public static func getChannelBadges(of channel: UserID) -> Self {
+  public static func getChannelBadges(of channel: String) -> Self {
     return .init(
       method: "GET", path: "chat/badges",
       queryItems: { _ in [("broadcaster_id", channel)] },

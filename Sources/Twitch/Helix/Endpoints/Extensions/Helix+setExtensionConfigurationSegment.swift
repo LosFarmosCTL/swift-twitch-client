@@ -8,7 +8,7 @@ where
   public static func setExtensionConfigurationSegment(
     extensionID: String,
     segment: ExtensionConfigurationSegmentType,
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     content: String? = nil,
     version: String? = nil
   ) -> Self {

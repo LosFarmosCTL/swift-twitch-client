@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func removeBlockedTerm(
-    in channel: UserID, termID: String
+    in channel: String, termID: String
   ) -> Self {
     return .init(
       method: "DELETE", path: "moderation/blocked_terms",

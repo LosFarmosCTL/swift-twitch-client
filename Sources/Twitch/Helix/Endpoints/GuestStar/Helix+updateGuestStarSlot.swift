@@ -9,8 +9,8 @@ where
     sessionID: String,
     sourceSlotID: String,
     destinationSlotID: String? = nil,
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "PATCH", path: "guest_star/slot",

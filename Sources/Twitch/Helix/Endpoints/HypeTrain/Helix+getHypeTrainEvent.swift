@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == HypeTrainStatus, HelixResponseType == HypeTrainStatus
 {
-  public static func getHypeTrainStatus(for broadcasterID: UserID? = nil) -> Self {
+  public static func getHypeTrainStatus(for broadcasterID: String? = nil) -> Self {
     return .init(
       method: "GET", path: "hypetrain/status",
       queryItems: { auth in

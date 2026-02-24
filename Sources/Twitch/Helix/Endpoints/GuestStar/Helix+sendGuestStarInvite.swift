@@ -7,9 +7,9 @@ where
 {
   public static func sendGuestStarInvite(
     sessionID: String,
-    guestID: UserID,
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil
+    guestID: String,
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "guest_star/invites",

@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func sendAnnouncement(
-    in channel: UserID, message: String, color: AnnouncementColor? = nil
+    in channel: String, message: String, color: AnnouncementColor? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "chat/announcements",

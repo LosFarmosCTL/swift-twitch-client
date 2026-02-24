@@ -19,7 +19,7 @@ where
     isGlobalCooldownEnabled: Bool? = nil,
     globalCooldownSeconds: Int? = nil,
     shouldRedemptionsSkipRequestQueue: Bool? = nil,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "POST", path: "channel_points/custom_rewards",

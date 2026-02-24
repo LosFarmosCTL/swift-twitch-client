@@ -3,13 +3,13 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ExtensionPrediction], PaginationCursor?),
+  ResponseType == ([ExtensionPrediction], String?),
   HelixResponseType == ExtensionPrediction
 {
   public static func getExtensionPredictions(
     extensionID: String,
     limit: Int? = nil,
-    after cursor: PaginationCursor? = nil
+    after cursor: String? = nil
   ) -> Self {
     return .init(
       method: "GET", path: "extensions/predictions",

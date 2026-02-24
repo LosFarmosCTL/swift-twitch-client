@@ -6,7 +6,7 @@ where
   ResponseType == ShieldModeStatus, HelixResponseType == ShieldModeStatus
 {
   public static func updateShieldModeStatus(
-    of channel: UserID, isActive: Bool
+    of channel: String, isActive: Bool
   ) -> Self {
     return .init(
       method: "PUT", path: "moderation/shield_mode",

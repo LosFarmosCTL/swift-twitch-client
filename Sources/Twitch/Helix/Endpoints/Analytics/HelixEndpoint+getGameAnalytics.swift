@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([GameReport], PaginationCursor?), HelixResponseType == GameReport
+  ResponseType == ([GameReport], String?), HelixResponseType == GameReport
 {
   public static func getGameAnalytics(
     gameID: String? = nil, type: String? = nil, range: DateInterval? = nil,

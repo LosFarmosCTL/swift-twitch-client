@@ -9,7 +9,7 @@ where
   public static func getExtensionConfigurationSegment(
     extensionID: String,
     segments: [ExtensionConfigurationSegmentType],
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     let segmentItems = segments.map { ("segment", $0.rawValue) }
 

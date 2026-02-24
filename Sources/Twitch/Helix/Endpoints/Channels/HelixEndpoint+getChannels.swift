@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == [Broadcaster], HelixResponseType == Broadcaster
 {
-  public static func getChannels(_ channels: [UserID]) -> Self {
+  public static func getChannels(_ channels: [String]) -> Self {
     return .init(
       method: "GET", path: "channels",
       queryItems: { _ in

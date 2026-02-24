@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([BannedUser], PaginationCursor?), HelixResponseType == BannedUser
+  ResponseType == ([BannedUser], String?), HelixResponseType == BannedUser
 {
   public static func getBannedUsers(
     filterUserIDs: [String] = [],

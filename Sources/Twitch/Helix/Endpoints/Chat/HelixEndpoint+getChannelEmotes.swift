@@ -5,7 +5,7 @@ where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
   ResponseType == ChannelEmotes, HelixResponseType == ChannelEmote
 {
-  public static func getChannelEmotes(of channel: UserID) -> Self {
+  public static func getChannelEmotes(of channel: String) -> Self {
     return .init(
       method: "GET", path: "chat/emotes",
       queryItems: { _ in [("broadcaster_id", channel)] },

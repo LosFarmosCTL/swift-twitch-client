@@ -7,7 +7,7 @@ where
 {
   public static func deleteChannelStreamScheduleSegment(
     segmentID: String,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "DELETE", path: "schedule/segment",

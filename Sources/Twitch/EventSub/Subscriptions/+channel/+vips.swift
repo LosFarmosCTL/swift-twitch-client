@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == ChannelVIPAddEvent {
-  public static func channelVIPAdd(broadcasterID: UserID, version: String = "1") -> Self {
+  public static func channelVIPAdd(broadcasterID: String, version: String = "1") -> Self {
     .init(
       type: EventType.channelVIPAdd.rawValue, version: version,
       condition: [
@@ -9,7 +9,7 @@ extension EventSubSubscription where EventNotification == ChannelVIPAddEvent {
 }
 
 extension EventSubSubscription where EventNotification == ChannelVIPRemoveEvent {
-  public static func channelVIPRemove(broadcasterID: UserID, version: String = "1")
+  public static func channelVIPRemove(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(

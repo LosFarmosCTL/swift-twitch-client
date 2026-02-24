@@ -7,8 +7,8 @@ where
   HelixResponseType == GuestStarInvite
 {
   public static func getGuestStarInvites(
-    broadcasterID: UserID? = nil,
-    moderatorID: UserID? = nil,
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil,
     sessionID: String
   ) -> Self {
     return .init(

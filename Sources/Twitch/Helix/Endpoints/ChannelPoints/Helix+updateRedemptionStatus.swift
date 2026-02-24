@@ -9,7 +9,7 @@ where
     _ redemptionIDs: [String],
     rewardID: String,
     status: CustomRewardRedemptionStatus,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "PATCH", path: "channel_points/custom_rewards/redemptions",

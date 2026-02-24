@@ -3,13 +3,13 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ConduitShard], PaginationCursor?),
+  ResponseType == ([ConduitShard], String?),
   HelixResponseType == ConduitShard
 {
   public static func getConduitShards(
     conduitID: String,
     status: ConduitShardStatus? = nil,
-    after cursor: PaginationCursor? = nil
+    after cursor: String? = nil
   ) -> Self {
     .init(
       method: "GET", path: "eventsub/conduits/shards",

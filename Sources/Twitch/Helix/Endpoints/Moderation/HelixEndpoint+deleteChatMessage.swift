@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func deleteChatMessage(
-    in channel: UserID, messageID: String
+    in channel: String, messageID: String
   ) -> Self {
     return .init(
       method: "DELETE", path: "moderation/chat",

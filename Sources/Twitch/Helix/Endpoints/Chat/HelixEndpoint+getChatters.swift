@@ -6,7 +6,7 @@ where
   ResponseType == Chatters, HelixResponseType == Chatter
 {
   public static func getChatters(
-    in channel: UserID,
+    in channel: String,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> Self {
@@ -38,7 +38,7 @@ public struct Chatters: Sendable {
 
   public let chatters: [Chatter]
 
-  public let cursor: PaginationCursor?
+  public let cursor: String?
 }
 
 public struct Chatter: Decodable, Sendable {

@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func unbanUser(
-    _ user: UserID, in channel: UserID
+    _ user: String, in channel: String
   ) -> Self {
     return .init(
       method: "DELETE", path: "moderation/bans",

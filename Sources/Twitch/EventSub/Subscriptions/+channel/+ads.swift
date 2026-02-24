@@ -1,5 +1,5 @@
 extension EventSubSubscription where EventNotification == ChannelAdBreakBeginEvent {
-  public static func channelAdBreakBegin(broadcasterID: UserID, version: String = "1")
+  public static func channelAdBreakBegin(broadcasterID: String, version: String = "1")
     -> Self
   {
     .init(

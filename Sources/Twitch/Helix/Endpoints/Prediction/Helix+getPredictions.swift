@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Prediction], PaginationCursor?),
+  ResponseType == ([Prediction], String?),
   HelixResponseType == Prediction
 {
   public static func getPredictions(

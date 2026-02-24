@@ -6,7 +6,7 @@ where
   ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
 {
   private static func updateAutomodSettings(
-    of channel: UserID, body: Encodable
+    of channel: String, body: Encodable
   ) -> Self {
     return .init(
       method: "PUT", path: "moderation/automod/settings",
@@ -26,12 +26,12 @@ where
   }
 
   public static func updateAutomodSettings(
-    of channel: UserID, settings: AutomodConfiguration
+    of channel: String, settings: AutomodConfiguration
   ) -> Self {
     self.updateAutomodSettings(of: channel, body: settings)
   }
 
-  public static func updateAutomodSettings(of channel: UserID, overall level: Int) -> Self
+  public static func updateAutomodSettings(of channel: String, overall level: Int) -> Self
   {
     self.updateAutomodSettings(of: channel, body: ["overall_level": level])
   }

@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Stream], PaginationCursor?),
+  ResponseType == ([Stream], String?),
   HelixResponseType == Stream
 {
   public static func getFollowedStreams(

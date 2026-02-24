@@ -3,10 +3,10 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([BlockedTerm], PaginationCursor?), HelixResponseType == BlockedTerm
+  ResponseType == ([BlockedTerm], String?), HelixResponseType == BlockedTerm
 {
   public static func getBlockedTerms(
-    in channel: UserID,
+    in channel: String,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> Self {

@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ModeratedChannel], PaginationCursor?),
+  ResponseType == ([ModeratedChannel], String?),
   HelixResponseType == ModeratedChannel
 {
   public static func getModeratedChannels(

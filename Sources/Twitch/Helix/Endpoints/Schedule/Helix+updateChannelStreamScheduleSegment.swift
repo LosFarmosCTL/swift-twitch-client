@@ -14,7 +14,7 @@ where
     title: String? = nil,
     isCanceled: Bool? = nil,
     timezone: String? = nil,
-    broadcasterID: UserID? = nil
+    broadcasterID: String? = nil
   ) -> Self {
     return .init(
       method: "PATCH", path: "schedule/segment",

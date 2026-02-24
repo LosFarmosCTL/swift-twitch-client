@@ -1,7 +1,7 @@
 extension EventSubSubscription where EventNotification == ChannelFollowEvent {
   public static func channelFollow(
-    broadcasterID: UserID,
-    moderatorID: UserID,
+    broadcasterID: String,
+    moderatorID: String,
     version: String = "2"
   ) -> Self {
     .init(

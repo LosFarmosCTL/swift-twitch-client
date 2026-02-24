@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Category], PaginationCursor?),
+  ResponseType == ([Category], String?),
   HelixResponseType == Category
 {
   public static func searchCategories(

@@ -6,7 +6,7 @@ where
   ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
 {
   public static func sendExtensionChatMessage(
-    in channel: UserID,
+    in channel: String,
     text: String,
     extensionID: String,
     extensionVersion: String

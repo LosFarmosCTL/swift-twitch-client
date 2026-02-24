@@ -3,12 +3,12 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([CustomRewardRedemption], PaginationCursor?),
+  ResponseType == ([CustomRewardRedemption], String?),
   HelixResponseType == CustomRewardRedemption
 {
   public static func getCustomRewardRedemptions(
     rewardID: String,
-    broadcasterID: UserID? = nil,
+    broadcasterID: String? = nil,
     status: CustomRewardRedemptionStatus? = nil,
     ids: [String] = [],
     sort: CustomRewardRedemptionSort? = nil,

@@ -3,7 +3,7 @@ import Foundation
 extension HelixEndpoint
 where
   EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Game], PaginationCursor?),
+  ResponseType == ([Game], String?),
   HelixResponseType == Game
 {
   public static func getTopGames(
