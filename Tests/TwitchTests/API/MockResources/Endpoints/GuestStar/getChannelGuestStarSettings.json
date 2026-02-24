@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "is_moderator_send_live_enabled": true,
+      "slot_count": 4,
+      "is_browser_source_audio_enabled": true,
+      "group_layout": "TILED_LAYOUT",
+      "browser_source_token": "eihq8rew7q3hgierufhi3q"
+    }
+  ]
+}

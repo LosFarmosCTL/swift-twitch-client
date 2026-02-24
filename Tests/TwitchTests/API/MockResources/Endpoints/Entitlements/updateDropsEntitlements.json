@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "status": "SUCCESS",
+      "ids": [
+        "fb78259e-fb81-4d1b-8333-34a06ffc24c0",
+        "862750a5-265e-4ab6-9f0a-c64df3d54dd0"
+      ]
+    },
+    {
+      "status": "UNAUTHORIZED",
+      "ids": [
+        "d8879baa-3966-4d10-8856-15fdd62cce02"
+      ]
+    },
+    {
+      "status": "UPDATE_FAILED",
+      "ids": [
+        "9a290126-7e3b-4f66-a9ae-551537893b65"
+      ]
+    }
+  ]
+}

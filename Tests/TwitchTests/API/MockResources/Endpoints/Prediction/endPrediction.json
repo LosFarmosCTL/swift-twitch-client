@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "id": "bc637af0-7766-4525-9308-4112f4cbf178",
+      "broadcaster_id": "141981764",
+      "broadcaster_name": "TwitchDev",
+      "broadcaster_login": "twitchdev",
+      "title": "Will we win all the games?",
+      "winning_outcome_id": "73085848-a94d-4040-9d21-2cb7a89374b7",
+      "outcomes": [
+        {
+          "id": "73085848-a94d-4040-9d21-2cb7a89374b7",
+          "title": "yes",
+          "users": 0,
+          "channel_points": 0,
+          "top_predictors": null,
+          "color": "BLUE"
+        },
+        {
+          "id": "86010b2e-9764-4136-9359-fd1c9c5a8033",
+          "title": "no",
+          "users": 0,
+          "channel_points": 0,
+          "top_predictors": null,
+          "color": "PINK"
+        }
+      ],
+      "prediction_window": 120,
+      "status": "RESOLVED",
+      "created_at": "2021-04-28T21:48:19.480371331Z",
+      "ended_at": "2021-04-28T21:54:24.026833954Z",
+      "locked_at": "2021-04-28T21:48:34.636685705Z"
+    }
+  ]
+}

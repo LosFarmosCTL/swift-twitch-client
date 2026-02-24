@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "sku": "1010",
+      "cost": {
+        "amount": 990,
+        "type": "bits"
+      },
+      "in_development": true,
+      "display_name": "Rusty Crate 2",
+      "expiration": "2021-05-18T09:10:13.397Z",
+      "is_broadcast": true
+    }
+  ]
+}

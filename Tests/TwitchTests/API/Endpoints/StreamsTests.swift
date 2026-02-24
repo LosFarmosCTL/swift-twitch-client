@@ -55,4 +55,65 @@ final class StreamsTests: XCTestCase {
     XCTAssertEqual(streams.count, 1)
     XCTAssert(streams.contains(where: { $0.id == "42170724654" }))
   }
+
+  func testGetStreamKey() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/streams/key?broadcaster_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getStreamKeyJSON]
+    ).register()
+
+    let key = try await twitch.helix(endpoint: .getStreamKey())
+
+    XCTAssertEqual(key, "live_44322889_a34ub37c8ajv98a0")
+  }
+
+  func testCreateStreamMarker() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/streams/markers")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.post: MockedData.createStreamMarkerJSON]
+    ).register()
+
+    let marker = try await twitch.helix(
+      endpoint: .createStreamMarker(description: "hello, this is a marker!"))
+
+    XCTAssertEqual(marker.id, "123")
+    XCTAssertEqual(marker.positionSeconds, 244)
+    XCTAssertEqual(marker.description, "hello, this is a marker!")
+    XCTAssertEqual(marker.createdAt.formatted(.iso8601), "2018-08-20T20:10:03Z")
+  }
+
+  func testGetStreamMarkers() async throws {
+    let url = URL(
+      string: "https://api.twitch.tv/helix/streams/markers?user_id=1234&first=1")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getStreamMarkersJSON]
+    ).register()
+
+    let (markers, cursor) = try await twitch.helix(
+      endpoint: .getStreamMarkers(userID: "1234", limit: 1))
+
+    XCTAssertEqual(
+      cursor, "eyJiIjpudWxsLCJhIjoiMjk1MjA0Mzk3OjI1Mzpib29rbWFyazoxMDZiOGQ1Y")
+
+    XCTAssertEqual(markers.count, 1)
+    XCTAssertEqual(markers.first?.userID, "1234")
+    XCTAssertEqual(markers.first?.userLogin, "user")
+
+    let video = try XCTUnwrap(markers.first?.videos.first)
+    XCTAssertEqual(video.videoID, "456")
+
+    let marker = try XCTUnwrap(video.markers.first)
+    XCTAssertEqual(marker.id, "106b8d6243a4f883d25ad75e6cdffdc4")
+    XCTAssertEqual(marker.positionSeconds, 244)
+    XCTAssertEqual(marker.description, "hello, this is a marker!")
+    XCTAssertEqual(
+      marker.url,
+      "https://twitch.tv/user/manager/highlighter/456?t=0h4m06s")
+  }
 }

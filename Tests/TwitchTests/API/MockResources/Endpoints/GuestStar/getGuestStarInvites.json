@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "user_id": "144601104",
+      "invited_at": "2023-01-02T04:16:53.325Z",
+      "status": "INVITED",
+      "is_audio_enabled": false,
+      "is_video_enabled": true,
+      "is_audio_available": true,
+      "is_video_available": true
+    }
+  ]
+}

@@ -16,6 +16,7 @@ public struct HelixEndpoint<
   private let makeQueryItems: (TwitchCredentials) -> [(String, String?)]
   private let makeBody: (TwitchCredentials) -> Encodable?
   private let makeResponse: (HelixResponse<HelixResponseType>) throws -> ResponseType
+  private let makeRawResponse: (Data) throws -> ResponseType
 
   internal init(
     method: String, path: String,
@@ -29,6 +30,22 @@ public struct HelixEndpoint<
     self.makeQueryItems = queryItems
     self.makeBody = body
     self.makeResponse = makeResponse
+    self.makeRawResponse = { _ in fatalError() }
+  }
+
+  internal init(
+    method: String, path: String,
+    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
+    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil },
+    makeRawResponse: @escaping (Data) throws -> ResponseType
+  ) {
+    self.method = method
+    self.path = path
+
+    self.makeQueryItems = queryItems
+    self.makeBody = body
+    self.makeResponse = { _ in fatalError() }
+    self.makeRawResponse = makeRawResponse
   }
 
   internal func makeRequest(
@@ -65,6 +82,10 @@ public struct HelixEndpoint<
   {
     try makeResponse(response)
   }
+
+  internal func makeResponse(from data: Data) throws -> ResponseType {
+    try makeRawResponse(data)
+  }
 }
 
 extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
@@ -84,6 +105,7 @@ public protocol HelixEndpointResponseType {}
 public enum HelixEndpointResponseTypes {
   public enum Void: HelixEndpointResponseType {}
   public enum Normal: HelixEndpointResponseType {}
+  public enum Raw: HelixEndpointResponseType {}
 }
 
 public typealias UserID = String

@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "id": "2KFRQbFtpmfyD3IevNRnCzOPRJI",
+      "guests": [
+        {
+          "slot_id": "0",
+          "user_id": "9321049",
+          "user_display_name": "Cool_User",
+          "user_login": "cool_user",
+          "is_live": true,
+          "volume": 100,
+          "assigned_at": "2023-01-02T04:16:53.325Z",
+          "audio_settings": {
+            "is_available": true,
+            "is_host_enabled": true,
+            "is_guest_enabled": true
+          },
+          "video_settings": {
+            "is_available": true,
+            "is_host_enabled": true,
+            "is_guest_enabled": true
+          }
+        }
+      ]
+    }
+  ]
+}

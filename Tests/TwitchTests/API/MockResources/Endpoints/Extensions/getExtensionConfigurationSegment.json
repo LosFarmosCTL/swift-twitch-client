@@ -1,0 +1,9 @@
+{
+  "data": [
+    {
+      "segment": "global",
+      "content": "hello config!",
+      "version": "0.0.1"
+    }
+  ]
+}
