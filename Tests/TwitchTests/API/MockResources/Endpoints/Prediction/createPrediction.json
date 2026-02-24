@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "id": "bc637af0-7766-4525-9308-4112f4cbf178",
+      "broadcaster_id": "141981764",
+      "broadcaster_name": "TwitchDev",
+      "broadcaster_login": "twitchdev",
+      "title": "Any leeks in the stream?",
+      "winning_outcome_id": null,
+      "outcomes": [
+        {
+          "id": "73085848-a94d-4040-9d21-2cb7a89374b7",
+          "title": "Yes, give it time.",
+          "users": 0,
+          "channel_points": 0,
+          "top_predictors": null,
+          "color": "BLUE"
+        },
+        {
+          "id": "906b70ba-1f12-47ea-9e95-e5f93d20e9cc",
+          "title": "Definitely not.",
+          "users": 0,
+          "channel_points": 0,
+          "top_predictors": null,
+          "color": "PINK"
+        }
+      ],
+      "prediction_window": 120,
+      "status": "ACTIVE",
+      "created_at": "2021-04-28T17:11:22.595914172Z",
+      "ended_at": null,
+      "locked_at": null
+    }
+  ]
+}

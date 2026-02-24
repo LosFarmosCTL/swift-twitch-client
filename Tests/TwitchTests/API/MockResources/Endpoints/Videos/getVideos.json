@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "id": "987654321",
+      "stream_id": "111222333",
+      "user_id": "56789",
+      "user_login": "zzzztopper",
+      "user_name": "zzzzTopper",
+      "title": "The incredible artistry that is me.",
+      "description": "",
+      "created_at": "2022-07-08T16:58:46Z",
+      "published_at": "2022-07-08T16:58:46Z",
+      "url": "https://www.twitch.tv/videos/987654321",
+      "thumbnail_url": "https://static-cdn.jtvnw.net/cf_vods/dgeft87wbj63p/ce4ddf3095472cde00cd_zzzztopper_45725106652_1657299521//thumb/thumb0-%{width}x%{height}.jpg",
+      "viewable": "public",
+      "view_count": 395246,
+      "language": "en",
+      "type": "archive",
+      "duration": "6h26m14s",
+      "muted_segments": null
+    }
+  ],
+  "pagination": {}
+}

@@ -68,6 +68,67 @@ final class UsersTests: XCTestCase {
     XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))
   }
 
+  func testGetUserExtensions() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/users/extensions/list")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getUserExtensionsJSON]
+    ).register()
+
+    let extensions = try await twitch.helix(endpoint: .getUserExtensions())
+
+    XCTAssertEqual(extensions.count, 5)
+    XCTAssert(extensions.contains(where: { $0.id == "wi08ebtatdc7oj83wtl9uxwz807l8b" }))
+    XCTAssert(extensions.contains(where: { $0.types.contains(.panel) }))
+  }
+
+  func testGetUserActiveExtensions() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/users/extensions?user_id=1234")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.get: MockedData.getUserActiveExtensionsJSON]
+    ).register()
+
+    let activeExtensions = try await twitch.helix(
+      endpoint: .getUserActiveExtensions())
+
+    XCTAssertEqual(activeExtensions.panel?["1"]?.name, "TopClip")
+    XCTAssertEqual(activeExtensions.overlay?["1"]?.id, "zfh2irvx2jb4s60f02jq0ajm8vwgka")
+    XCTAssertEqual(activeExtensions.component?["1"]?.x, 0)
+    XCTAssertEqual(activeExtensions.component?["2"]?.isActive, false)
+  }
+
+  func testUpdateUserExtensions() async throws {
+    let url = URL(string: "https://api.twitch.tv/helix/users/extensions")!
+
+    Mock(
+      url: url, contentType: .json, statusCode: 200,
+      data: [.put: MockedData.updateUserExtensionsJSON]
+    ).register()
+
+    let userExtensions = try await twitch.helix(
+      endpoint: .updateUserExtensions(
+        panel: [
+          "1": ExtensionSlotUpdate(
+            isActive: true, id: "rh6jq1q334hqc2rr1qlzqbvwlfl3x0", version: "1.1.0")
+        ],
+        overlay: [
+          "1": ExtensionSlotUpdate(
+            isActive: true, id: "zfh2irvx2jb4s60f02jq0ajm8vwgka", version: "1.0.19")
+        ],
+        component: [
+          "1": ExtensionSlotUpdate(
+            isActive: true, id: "lqnf3zxk0rv0g7gq92mtmnirjz2cjj", version: "0.0.1",
+            x: 0, y: 0),
+          "2": ExtensionSlotUpdate(isActive: false),
+        ]))
+
+    XCTAssertEqual(userExtensions.panel?["1"]?.version, "1.1.0")
+    XCTAssertEqual(userExtensions.component?["1"]?.y, 0)
+  }
+
   func testBlockUser() async throws {
     let url = URL(
       string: "https://api.twitch.tv/helix/users/blocks?target_user_id=1234&reason=spam")!

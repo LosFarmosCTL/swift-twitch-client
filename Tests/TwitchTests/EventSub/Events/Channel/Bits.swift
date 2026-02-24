@@ -4,7 +4,7 @@ import Testing
 @testable import Twitch
 
 @Suite("EventSub Channel Bits Events")
-struct BitsTests {
+struct EventSubBitsTests {
   let harness = EventTestHarness()
 
   @Test("Should decode channelBitsUse event")
