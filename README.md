@@ -79,7 +79,38 @@ irc.publisher().sink(
 ### EventSub
 
 ```swift
+let twitch = TwitchClient(with: credentials)
 
-// WIP
+// Using callbacks
+
+try await twitch.eventListener(on: .streamOnline(broadcasterID: "1234")) { result in
+  switch result {
+  case .success(let event): print(event)
+  case .failure(let error): print(error)
+  }
+}
+
+// Using AsyncStream
+
+let stream = try await twitch.eventStream(for: .channelFollow(
+  broadcasterID: "1234",
+  moderatorID: "5678"
+))
+
+for try await event in stream {
+  print(event)
+}
+
+// Using Combine
+
+let publisher = try await twitch.eventPublisher(for: .userUpdate(userID: "1234"))
+
+publisher.sink(
+  receiveCompletion: { error in
+    // handle error
+  },
+  receiveValue: { event in
+    // handle event
+  })
 
 ```
