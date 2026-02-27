@@ -14,7 +14,7 @@ __This is the *current* idea for how the usage might look in the end (not at all
 ### Helix
 
 ```swift
-let twitch = TwitchClient(with: credentials)
+let twitch = TwitchClient(authentication: credentials)
 
 // Completion Handlers
 
@@ -37,7 +37,7 @@ twitch.helixPublisher(for: .doSomething(param1: "forsen")).sink(
 ### Chat (IRC)
 
 ```swift
-let twitch = TwitchClient(with: credentials)
+let twitch = TwitchClient(authentication: credentials)
 
 let irc = try await twitch.ircClient(.authenticated)
 
@@ -79,14 +79,15 @@ irc.publisher().sink(
 ### EventSub
 
 ```swift
-let twitch = TwitchClient(with: credentials)
+let twitch = TwitchClient(authentication: credentials)
 
 // Using callbacks
 
 try await twitch.eventListener(on: .streamOnline(broadcasterID: "1234")) { result in
   switch result {
-  case .success(let event): print(event)
+  case .event(let event): print(event)
   case .failure(let error): print(error)
+  case .finished: break
   }
 }
 

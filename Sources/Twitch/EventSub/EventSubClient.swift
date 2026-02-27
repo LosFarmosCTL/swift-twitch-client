@@ -11,7 +11,7 @@ internal actor EventSubClient {
   private static let eventSubURL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
   private static let maxSubscriptionsPerConnection = 300
 
-  private let credentials: TwitchCredentials
+  private var credentials: TwitchCredentials
   private let network: NetworkSession
   private let decoder: JSONDecoder
 
@@ -21,6 +21,8 @@ internal actor EventSubClient {
 
   private var pendingEvents = [EventID: [Event]]()
   private var pendingErrors = [EventID: EventSubError]()
+
+  private var isResetting = false
 
   internal init(
     credentials: TwitchCredentials,
@@ -139,5 +141,31 @@ internal actor EventSubClient {
 
     connectionEvents.removeValue(forKey: socketID)
     connections.removeValue(forKey: socketID)
+  }
+
+  internal func reset() async {
+    guard !isResetting else { return }
+    isResetting = true
+
+    for connection in connections.values {
+      await connection.cancel()
+    }
+
+    for handler in eventHandlers.values {
+      handler.finish()
+    }
+
+    connections.removeAll()
+    connectionEvents.removeAll()
+    eventHandlers.removeAll()
+    pendingEvents.removeAll()
+    pendingErrors.removeAll()
+
+    isResetting = false
+  }
+
+  internal func switchCredentials(to credentials: TwitchCredentials) async {
+    await reset()
+    self.credentials = credentials
   }
 }

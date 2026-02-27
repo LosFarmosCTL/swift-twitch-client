@@ -9,53 +9,74 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  public func eventStream<R: Decodable>(for event: EventSubSubscription<R>) async throws
-    -> AsyncThrowingStream<R, any Error>
-  {
-    let (response, socketID) = try await self.subscribe(to: event)
+  public func eventStream<R: Decodable & Sendable>(
+    for event: EventSubSubscription<R>
+  ) async throws -> AsyncThrowingStream<R, any Error> {
+    do {
+      let (response, socketID) = try await self.subscribe(to: event)
 
-    let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
+      let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
 
-    let handler = EventSubContinuationHandler(continuation: continuation)
-    await self.eventSubClient.addHandler(
-      handler, for: response.subscription.id, on: socketID
-    )
+      let handler = EventSubContinuationHandler(continuation: continuation)
+      await self.eventSubClient.addHandler(
+        handler, for: response.subscription.id, on: socketID
+      )
 
-    return stream
+      return stream
+    } catch is CancellationError {
+      let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
+      continuation.finish()
+      return stream
+    }
   }
 
-  public func eventListener<R>(
+  public func eventListener<R: Decodable & Sendable>(
     on event: EventSubSubscription<R>,
-    eventHandler: @escaping @Sendable (Result<R, EventSubError>) -> Void
+    eventHandler: @escaping @Sendable (EventSubResult<R>) -> Void
   ) async throws {
-    let (response, socketID) = try await self.subscribe(to: event)
+    do {
+      let (response, socketID) = try await self.subscribe(to: event)
 
-    let handler = EventSubCallbackHandler(callback: eventHandler)
+      let handler = EventSubCallbackHandler(callback: eventHandler)
 
-    await self.eventSubClient.addHandler(
-      handler, for: response.subscription.id, on: socketID
-    )
+      await self.eventSubClient.addHandler(
+        handler, for: response.subscription.id, on: socketID)
+    } catch is CancellationError {
+      eventHandler(.finished)
+    }
   }
 
   #if canImport(Combine)
-    public func eventPublisher<R>(for event: EventSubSubscription<R>) async throws
-      -> AnyPublisher<R, EventSubError>
-    {
-      let (response, socketID) = try await self.subscribe(to: event)
+    public func eventPublisher<R: Decodable & Sendable>(
+      for event: EventSubSubscription<R>
+    ) async throws -> AnyPublisher<R, EventSubError> {
+      do {
+        let (response, socketID) = try await self.subscribe(to: event)
 
-      let subject = PassthroughSubject<R, EventSubError>()
-      let handler = EventSubSubjectHandler(subject: subject)
+        let subject = PassthroughSubject<R, EventSubError>()
+        let handler = EventSubSubjectHandler(subject: subject)
 
-      Task {
-        await self.eventSubClient.addHandler(
-          handler, for: response.subscription.id, on: socketID)
+        Task {
+          await self.eventSubClient.addHandler(
+            handler, for: response.subscription.id, on: socketID)
+        }
+
+        return subject.eraseToAnyPublisher()
+      } catch is CancellationError {
+        let subject = PassthroughSubject<R, EventSubError>()
+        subject.send(completion: .finished)
+        return subject.eraseToAnyPublisher()
       }
-
-      return subject.eraseToAnyPublisher()
     }
   #endif
 
-  private func subscribe(to event: EventSubSubscription<some Decodable>) async throws
+  public func resetEventSub() async {
+    await self.eventSubClient.reset()
+  }
+
+  private func subscribe(
+    to event: EventSubSubscription<some Decodable & Sendable>
+  ) async throws
     -> (response: CreateEventSubResponse, socketID: String)
   {
     let socketID = try await self.eventSubClient.getFreeWebsocketID()

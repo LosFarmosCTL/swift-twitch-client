@@ -15,6 +15,8 @@ internal actor EventSubConnection {
   private var websocket: WebSocketTask?
   private var socketID: String?
 
+  private var isClosing = false
+
   private var onMessage:
     (@Sendable (Result<EventSubNotification, EventSubConnectionError>) async -> Void)
 
@@ -24,6 +26,14 @@ internal actor EventSubConnection {
   private var receivedMessageIDs = [String]()
 
   internal func cancel() async {
+    isClosing = true
+
+    finishWelcome(
+      .failure(
+        EventSubConnectionError.disconnected(
+          with: CancellationError(),
+          socketID: socketID ?? "")))
+
     await websocket?.cancel(with: .goingAway, reason: nil)
     await keepaliveTimer?.cancel()
   }
@@ -47,6 +57,8 @@ internal actor EventSubConnection {
   }
 
   internal func resume() async throws -> String {
+    isClosing = false
+
     if let socketID = self.socketID { return socketID }
 
     self.websocket = await network.webSocketTask(with: eventSubURL)
@@ -111,6 +123,10 @@ internal actor EventSubConnection {
       // recursively receive the next message
       await self.scheduleReceive()
     case .failure(let error):
+      await keepaliveTimer?.cancel()
+
+      if isClosing { return }
+
       let disconnectedError = EventSubConnectionError.disconnected(
         with: error, socketID: socketID ?? "")
 

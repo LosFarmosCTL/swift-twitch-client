@@ -1,23 +1,26 @@
 internal protocol EventSubHandler {
   func yield(_ event: Event)
+  func finish()
   func finish(throwing error: EventSubError)
 }
 
-internal struct EventSubCallbackHandler<T>: EventSubHandler {
-  var callback: (Result<T, EventSubError>) -> Void
+internal struct EventSubCallbackHandler<T: Sendable>: EventSubHandler {
+  var callback: (EventSubResult<T>) -> Void
 
   func yield(_ event: Event) {
     if let event = event as? T {
-      callback(.success(event))
+      callback(.event(event))
     }
   }
+
+  func finish() { callback(.finished) }
 
   func finish(throwing error: EventSubError) {
     callback(.failure(error))
   }
 }
 
-internal struct EventSubContinuationHandler<T>: EventSubHandler {
+internal struct EventSubContinuationHandler<T: Sendable>: EventSubHandler {
   var continuation: AsyncThrowingStream<T, any Error>.Continuation
 
   func yield(_ event: Event) {
@@ -25,6 +28,8 @@ internal struct EventSubContinuationHandler<T>: EventSubHandler {
       continuation.yield(event)
     }
   }
+
+  func finish() { continuation.finish() }
 
   func finish(throwing error: EventSubError) {
     continuation.finish(throwing: error)
@@ -34,7 +39,7 @@ internal struct EventSubContinuationHandler<T>: EventSubHandler {
 #if canImport(Combine)
   import Combine
 
-  internal struct EventSubSubjectHandler<T>: EventSubHandler {
+  internal struct EventSubSubjectHandler<T: Sendable>: EventSubHandler {
     var subject: PassthroughSubject<T, EventSubError>
 
     func yield(_ event: Event) {
@@ -42,6 +47,8 @@ internal struct EventSubContinuationHandler<T>: EventSubHandler {
         subject.send(event)
       }
     }
+
+    func finish() { subject.send(completion: .finished) }
 
     func finish(throwing error: EventSubError) {
       subject.send(completion: .failure(error))
