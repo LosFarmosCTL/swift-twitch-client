@@ -6,7 +6,7 @@ where
   ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
 {
   private static func updateAutomodSettings(
-    of channel: String, body: Encodable
+    of channel: String, body: Encodable & Sendable
   ) -> Self {
     return .init(
       method: "PUT", path: "moderation/automod/settings",

@@ -5,24 +5,27 @@ import Foundation
 #endif
 
 public struct HelixEndpoint<
-  ResponseType, HelixResponseType: Decodable,
+  ResponseType, HelixResponseType: Sendable & Decodable,
   EndpointResponseType: HelixEndpointResponseType
-> {
+>: Sendable {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 
   private let method: String
   private let path: String
 
-  private let makeQueryItems: (TwitchCredentials) -> [(String, String?)]
-  private let makeBody: (TwitchCredentials) -> Encodable?
-  private let makeResponse: (HelixResponse<HelixResponseType>) throws -> ResponseType
-  private let makeRawResponse: (Data) throws -> ResponseType
+  private let makeQueryItems: @Sendable (TwitchCredentials) -> [(String, String?)]
+  private let makeBody: @Sendable (TwitchCredentials) -> Encodable?
+  private let makeResponse:
+    @Sendable (HelixResponse<HelixResponseType>) throws -> ResponseType
+  private let makeRawResponse: @Sendable (Data) throws -> ResponseType
 
   internal init(
     method: String, path: String,
-    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
-    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil },
-    makeResponse: @escaping (HelixResponse<HelixResponseType>) throws -> ResponseType
+    queryItems: @escaping @Sendable (TwitchCredentials) -> [(String, String?)] = { _ in []
+    },
+    body: @escaping @Sendable (TwitchCredentials) -> Encodable? = { _ in nil },
+    makeResponse:
+      @escaping @Sendable (HelixResponse<HelixResponseType>) throws -> ResponseType
   ) {
     self.method = method
     self.path = path
@@ -35,9 +38,10 @@ public struct HelixEndpoint<
 
   internal init(
     method: String, path: String,
-    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
-    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil },
-    makeRawResponse: @escaping (Data) throws -> ResponseType
+    queryItems: @escaping @Sendable (TwitchCredentials) -> [(String, String?)] = { _ in []
+    },
+    body: @escaping @Sendable (TwitchCredentials) -> Encodable? = { _ in nil },
+    makeRawResponse: @escaping @Sendable (Data) throws -> ResponseType
   ) {
     self.method = method
     self.path = path
@@ -91,8 +95,9 @@ public struct HelixEndpoint<
 extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
   internal init(
     method: String, path: String,
-    queryItems: @escaping (TwitchCredentials) -> [(String, String?)] = { _ in [] },
-    body: @escaping (TwitchCredentials) -> Encodable? = { _ in nil }
+    queryItems: @escaping @Sendable (TwitchCredentials) -> [(String, String?)] = { _ in []
+    },
+    body: @escaping @Sendable (TwitchCredentials) -> Encodable? = { _ in nil }
   ) {
     // makeResponse should never be called on a Void endpoint!
     self.init(

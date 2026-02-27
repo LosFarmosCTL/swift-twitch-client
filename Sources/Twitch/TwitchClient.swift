@@ -8,8 +8,8 @@ public actor TwitchClient {
   internal var authentication: TwitchCredentials
   internal let network: NetworkSession
 
-  internal let encoder = JSONEncoder()
-  internal let decoder = JSONDecoder()
+  internal let encoder: JSONEncoder
+  internal let decoder: JSONDecoder
 
   internal var eventSubClient: EventSubClient
 
@@ -31,11 +31,8 @@ public actor TwitchClient {
     self.authentication = authentication
     self.network = network
 
-    self.encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
-    self.decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
-
-    self.decoder.keyDecodingStrategy = .convertFromSnakeCase
-    self.encoder.keyEncodingStrategy = .convertToSnakeCase
+    self.encoder = Self.makeEncoder()
+    self.decoder = Self.makeDecoder()
 
     self.eventSubClient = EventSubClient(
       credentials: authentication,
@@ -47,4 +44,21 @@ public actor TwitchClient {
     await eventSubClient.switchCredentials(to: credentials)
     authentication = credentials
   }
+
+  internal static func makeEncoder() -> JSONEncoder {
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .iso8601withFractionalSeconds
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+
+    return encoder
+  }
+
+  internal static func makeDecoder() -> JSONDecoder {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601withFractionalSeconds
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+    return decoder
+  }
+
 }

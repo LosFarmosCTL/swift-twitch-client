@@ -107,10 +107,10 @@ extension HelixResponse {
   }
 }
 
-internal struct HelixErrorResponse: Decodable {
+internal struct HelixErrorResponse: Sendable, Decodable {
   let error: String
   let status: Int
   let message: String
 }
 
-public struct EmptyResponse: Decodable {}
+public struct EmptyResponse: Sendable, Decodable {}
