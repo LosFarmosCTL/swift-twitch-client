@@ -187,6 +187,11 @@ public final class MockedData {
   public static let updateConduitShardsJSON: Data = Bundle.module.url(
     forResource: "updateConduitShards", withExtension: "json")!.data
 
+  public static let getEventSubSubscriptionsJSON: Data = Bundle.module.url(
+    forResource: "getEventSubSubscriptions", withExtension: "json")!.data
+  public static let createEventSubSubscriptionJSON: Data = Bundle.module.url(
+    forResource: "createEventSubSubscription", withExtension: "json")!.data
+
   public static let getVideosJSON: Data = Bundle.module.url(
     forResource: "getVideos", withExtension: "json")!.data
   public static let deleteVideosJSON: Data = Bundle.module.url(
