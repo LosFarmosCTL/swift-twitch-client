@@ -35,6 +35,21 @@ public struct ValidatedToken: Decodable, Sendable {
     case userID = "userId"
     case login, scopes, expiresIn
   }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    clientID = try container.decode(String.self, forKey: .clientID)
+    userID = try container.decode(String.self, forKey: .userID)
+    login = try container.decode(String.self, forKey: .login)
+    scopes = try container.decode([String].self, forKey: .scopes)
+
+    let expiresIn = try container.decodeIfPresent(Int.self, forKey: .expiresIn)
+    if expiresIn != 0 {
+      self.expiresIn = expiresIn
+    } else {
+      self.expiresIn = nil
+    }
+  }
 }
 
 public enum ValidationError: Error, Sendable {
