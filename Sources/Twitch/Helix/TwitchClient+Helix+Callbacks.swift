@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 extension TwitchClient {
   public static func helixTask<R: Sendable, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<
