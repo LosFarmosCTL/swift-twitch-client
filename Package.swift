@@ -8,22 +8,18 @@ let package = Package(
   products: [.library(name: "Twitch", targets: ["Twitch"])],
   dependencies: [
     .package(
-      url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.2")),
-    .package(url: "https://github.com/MahdiBM/TwitchIRC", from: "1.5.0"),
-    .package(url: "https://github.com/vapor/websocket-kit", from: "2.14.0"),
+      url: "https://github.com/WeTransfer/Mocker.git",
+      .upToNextMajor(from: "3.0.2")),
+
+    .package(
+      url: "https://github.com/MahdiBM/TwitchIRC",
+      .upToNextMajor(from: "1.6.0")),
   ],
   targets: [
     .target(
       name: "Twitch",
-      dependencies: [
-        "TwitchIRC",
-        .product(
-          name: "WebSocketKit", package: "websocket-kit",
-          condition: .when(platforms: [.linux])),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
-      ],
+      dependencies: ["TwitchIRC"],
+      swiftSettings: [.swiftLanguageMode(.v6)],
     ),
     .testTarget(
       name: "TwitchTests", dependencies: ["Twitch", "Mocker"],
