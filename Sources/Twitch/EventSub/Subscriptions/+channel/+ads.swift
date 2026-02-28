@@ -1,6 +1,6 @@
-extension EventSubSubscription where EventNotification == ChannelAdBreakBeginEvent {
+extension EventSubSubscription {
   public static func channelAdBreakBegin(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelAdBreakBeginEvent>
   {
     .init(
       type: EventType.channelAdBreakBegin.rawValue, version: version,

@@ -1,6 +1,6 @@
-extension EventSubSubscription where EventNotification == ChannelSubscribeEvent {
+extension EventSubSubscription {
   public static func channelSubscribe(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelSubscribeEvent>
   {
     .init(
       type: EventType.channelSubscribe.rawValue, version: version,
@@ -8,11 +8,9 @@ extension EventSubSubscription where EventNotification == ChannelSubscribeEvent 
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelSubscriptionEndEvent {
   public static func channelSubscriptionEnd(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelSubscriptionEndEvent>
   {
     .init(
       type: EventType.channelSubscriptionEnd.rawValue, version: version,
@@ -20,11 +18,9 @@ extension EventSubSubscription where EventNotification == ChannelSubscriptionEnd
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelSubscriptionGiftEvent {
   public static func channelSubscriptionGift(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelSubscriptionGiftEvent>
   {
     .init(
       type: EventType.channelSubscriptionGift.rawValue, version: version,
@@ -32,13 +28,10 @@ extension EventSubSubscription where EventNotification == ChannelSubscriptionGif
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelSubscriptionMessageEvent {
   public static func channelSubscriptionMessage(
     broadcasterID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelSubscriptionMessageEvent> {
     .init(
       type: EventType.channelSubscriptionMessage.rawValue, version: version,
       condition: [

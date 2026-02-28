@@ -1,7 +1,7 @@
-extension EventSubSubscription where EventNotification == ChannelShoutoutCreateEvent {
+extension EventSubSubscription {
   public static func channelShoutoutCreate(
     broadcasterID: String, moderatorID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelShoutoutCreateEvent> {
     .init(
       type: EventType.channelShoutoutCreate.rawValue, version: version,
       condition: [
@@ -9,12 +9,10 @@ extension EventSubSubscription where EventNotification == ChannelShoutoutCreateE
         "moderator_user_id": moderatorID,
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelShoutoutReceiveEvent {
   public static func channelShoutoutReceive(
     broadcasterID: String, moderatorID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelShoutoutReceiveEvent> {
     .init(
       type: EventType.channelShoutoutReceive.rawValue, version: version,
       condition: [

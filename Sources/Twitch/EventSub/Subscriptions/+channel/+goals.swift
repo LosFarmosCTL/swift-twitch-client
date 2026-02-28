@@ -1,6 +1,6 @@
-extension EventSubSubscription where EventNotification == ChannelGoalBeginEvent {
+extension EventSubSubscription {
   public static func channelGoalBegin(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelGoalBeginEvent>
   {
     .init(
       type: EventType.channelGoalBegin.rawValue, version: version,
@@ -8,11 +8,9 @@ extension EventSubSubscription where EventNotification == ChannelGoalBeginEvent 
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelGoalProgressEvent {
   public static func channelGoalProgress(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<ChannelGoalProgressEvent>
   {
     .init(
       type: EventType.channelGoalProgress.rawValue, version: version,
@@ -20,10 +18,9 @@ extension EventSubSubscription where EventNotification == ChannelGoalProgressEve
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelGoalEndEvent {
-  public static func channelGoalEnd(broadcasterID: String, version: String = "1") -> Self
+  public static func channelGoalEnd(broadcasterID: String, version: String = "1")
+    -> EventSubSubscription<ChannelGoalEndEvent>
   {
     .init(
       type: EventType.channelGoalEnd.rawValue, version: version,

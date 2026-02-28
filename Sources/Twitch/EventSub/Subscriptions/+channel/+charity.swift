@@ -1,5 +1,6 @@
-extension EventSubSubscription where EventNotification == CharityDonationEvent {
-  public static func charityDonation(broadcasterID: String, version: String = "1") -> Self
+extension EventSubSubscription {
+  public static func charityDonation(broadcasterID: String, version: String = "1")
+    -> EventSubSubscription<CharityDonationEvent>
   {
     .init(
       type: EventType.charityDonation.rawValue, version: version,
@@ -7,11 +8,9 @@ extension EventSubSubscription where EventNotification == CharityDonationEvent {
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == CharityCampaignStartEvent {
   public static func charityCampaignStart(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<CharityCampaignStartEvent>
   {
     .init(
       type: EventType.charityCampaignStart.rawValue, version: version,
@@ -19,11 +18,9 @@ extension EventSubSubscription where EventNotification == CharityCampaignStartEv
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == CharityCampaignProgressEvent {
   public static func charityCampaignProgress(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<CharityCampaignProgressEvent>
   {
     .init(
       type: EventType.charityCampaignProgress.rawValue, version: version,
@@ -31,11 +28,9 @@ extension EventSubSubscription where EventNotification == CharityCampaignProgres
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == CharityCampaignStopEvent {
   public static func charityCampaignStop(broadcasterID: String, version: String = "1")
-    -> Self
+    -> EventSubSubscription<CharityCampaignStopEvent>
   {
     .init(
       type: EventType.charityCampaignStop.rawValue, version: version,

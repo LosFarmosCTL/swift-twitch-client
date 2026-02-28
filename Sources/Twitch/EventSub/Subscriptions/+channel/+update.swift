@@ -1,5 +1,7 @@
-extension EventSubSubscription where EventNotification == ChannelUpdateEvent {
-  public static func channelUpdate(broadcasterID: String, version: String = "2") -> Self {
+extension EventSubSubscription {
+  public static func channelUpdate(broadcasterID: String, version: String = "2")
+    -> EventSubSubscription<ChannelUpdateEvent>
+  {
     .init(
       type: EventType.channelUpdate.rawValue, version: version,
       condition: [

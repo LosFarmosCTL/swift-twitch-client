@@ -1,34 +1,27 @@
-extension EventSubSubscription
-where EventNotification == ChannelSharedChatSessionBeginEvent {
+extension EventSubSubscription {
   public static func channelSharedChatSessionBegin(
     broadcasterID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelSharedChatSessionBeginEvent> {
     .init(
       type: EventType.channelSharedChatSessionBegin.rawValue, version: version,
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelSharedChatSessionUpdateEvent {
   public static func channelSharedChatSessionUpdate(
     broadcasterID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelSharedChatSessionUpdateEvent> {
     .init(
       type: EventType.channelSharedChatSessionUpdate.rawValue, version: version,
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelSharedChatSessionEndEvent {
   public static func channelSharedChatSessionEnd(
     broadcasterID: String, version: String = "1"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelSharedChatSessionEndEvent> {
     .init(
       type: EventType.channelSharedChatSessionEnd.rawValue, version: version,
       condition: [

@@ -1,8 +1,7 @@
-extension EventSubSubscription
-where EventNotification == ChannelGuestStarSessionBeginEvent {
+extension EventSubSubscription {
   public static func channelGuestStarSessionBegin(
     broadcasterID: String, moderatorID: String, version: String = "beta"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelGuestStarSessionBeginEvent> {
     .init(
       type: EventType.channelGuestStarSessionBegin.rawValue, version: version,
       condition: [
@@ -10,13 +9,10 @@ where EventNotification == ChannelGuestStarSessionBeginEvent {
         "moderator_user_id": moderatorID,
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelGuestStarSessionEndEvent {
   public static func channelGuestStarSessionEnd(
     broadcasterID: String, moderatorID: String, version: String = "beta"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelGuestStarSessionEndEvent> {
     .init(
       type: EventType.channelGuestStarSessionEnd.rawValue, version: version,
       condition: [
@@ -24,13 +20,10 @@ where EventNotification == ChannelGuestStarSessionEndEvent {
         "moderator_user_id": moderatorID,
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelGuestStarGuestUpdateEvent {
   public static func channelGuestStarGuestUpdate(
     broadcasterID: String, moderatorID: String, version: String = "beta"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelGuestStarGuestUpdateEvent> {
     .init(
       type: EventType.channelGuestStarGuestUpdate.rawValue, version: version,
       condition: [
@@ -38,13 +31,10 @@ where EventNotification == ChannelGuestStarGuestUpdateEvent {
         "moderator_user_id": moderatorID,
       ])
   }
-}
 
-extension EventSubSubscription
-where EventNotification == ChannelGuestStarSettingsUpdateEvent {
   public static func channelGuestStarSettingsUpdate(
     broadcasterID: String, moderatorID: String, version: String = "beta"
-  ) -> Self {
+  ) -> EventSubSubscription<ChannelGuestStarSettingsUpdateEvent> {
     .init(
       type: EventType.channelGuestStarSettingsUpdate.rawValue, version: version,
       condition: [

@@ -1,5 +1,7 @@
-extension EventSubSubscription where EventNotification == WhisperReceivedEvent {
-  public static func whisperReceived(userID: String, version: String = "1") -> Self {
+extension EventSubSubscription {
+  public static func whisperReceived(userID: String, version: String = "1")
+    -> EventSubSubscription<WhisperReceivedEvent>
+  {
     .init(
       type: EventType.whisperReceived.rawValue, version: version,
       condition: [

@@ -1,5 +1,6 @@
-extension EventSubSubscription where EventNotification == ChannelBitsUseEvent {
-  public static func channelBitsUse(broadcasterID: String, version: String = "1") -> Self
+extension EventSubSubscription {
+  public static func channelBitsUse(broadcasterID: String, version: String = "1")
+    -> EventSubSubscription<ChannelBitsUseEvent>
   {
     .init(
       type: EventType.channelBitsUse.rawValue, version: version,
@@ -7,10 +8,10 @@ extension EventSubSubscription where EventNotification == ChannelBitsUseEvent {
         "broadcaster_user_id": broadcasterID
       ])
   }
-}
 
-extension EventSubSubscription where EventNotification == ChannelCheerEvent {
-  public static func channelCheer(broadcasterID: String, version: String = "1") -> Self {
+  public static func channelCheer(broadcasterID: String, version: String = "1")
+    -> EventSubSubscription<ChannelCheerEvent>
+  {
     .init(
       type: EventType.channelCheer.rawValue, version: version,
       condition: [

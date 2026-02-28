@@ -3,8 +3,8 @@ import Testing
 
 @testable import Twitch
 
-extension EventSubSubscription where EventNotification == MockEvent {
-  public static func mock(version: String = "1") -> Self {
+extension EventSubSubscription {
+  public static func mock(version: String = "1") -> EventSubSubscription<MockEvent> {
     .init(type: EventType.mock.rawValue, version: version, condition: [:])
   }
 }
