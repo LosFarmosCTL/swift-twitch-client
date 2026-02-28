@@ -2,43 +2,83 @@
 
 [![CI](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml/badge.svg)](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml)
 
-Swift native client to access various 3rd party twitch elements like the API and Chat.
-
-> [!CAUTION]
-> The developement of this library is still very much in progress, APIs may be incomplete or change without any notice!
+> [!WARNING]
+> The developement of this library is still in progress and I am not commited to a stable release yet.
 >
-> I do not recommend to use this in any projects until I've finalized the design.
+> While the overall API surface likely won't change, breaking changes are absolutely possible without notice!
+>
+> Documentation is also still a work in progress, while I do think this README should get you started, there are no DocC strings to document the actual code yet. Definitely on the Radar, but I haven't gotten to it so far.
 
-__This is the *current* idea for how the usage might look in the end (not at all final, if I find something that feels better right now I will just change it):__
+Swift native client providing fully type- and threadsafe access to the Twitch API, IRC and EventSub in a convenient way.
+
+## Features
+
+- [x] Works on all Apple platforms, as well as Linux ([with caveats due to libcurl](#linux-support))
+- [x] Compatible with Swift 6s new strict concurrency model
+- [x] Access the full Helix API using async/await or Combine
+- [x] Access IRC chat _and_ EventSub using event listeners, `AsyncStream` or Combine
+- [x] Handles all annoying plumbing for you
+  - [x] Connection pooling for IRC & EventSub
+  - [x] Automatic welcome message and keepalive handling
+  - [x] Automatic reconnection for EventSub
+  - [x] IRC parsing (huge shoutout to [TwitchIRC](https://github.com/MahdiBM/TwitchIRC))
+  - [x] JSON encoding/decoding
+  - [x] Typed request parameters
+  - [x] Typed response models
+  - [x] Typed error models
+  - [x] Typed event models
+- [ ] **Planned**: Support for app access tokens in Helix
+- [ ] **Planned**: Automatic Helix Rate Limit handling
+
+## Installation
+
+Add the following dependency to your `Package.swift`:
+
+```swift
+.package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", branch: "main")
+```
+
+## Usage
+
+### Creating credentials
+
+See the Twitch docs on how to obtain the necessary ClientID and OAuth token, this will depend a lot on what you want to do and where you want to do it, e.g. a mobile chat client can prompt a user to login via a Browser, if you're building a Chatbot you might want to obtain your token via completely different flow - you'll have to decide what works best for you. You can validate a token using the static function `TwitchClient.validateToken` that will return a struct containing the ClientID, user ID, user login, scopes and expiry date of the given token:
+
+```swift
+let token = "<token>"
+
+let validatedToken = try await TwitchClient.validateToken(token: token)
+```
+
+You can then create a `TwitchClient` using the `TwitchCredentials` struct:
+
+```swift
+let credentials = TwitchCredentials(
+  oAuth: token,
+  clientID: validatedToken.clientID,
+  userID: validatedToken.userID,
+  userLogin: validatedToken.userLogin
+)
+
+let twitch = TwitchClient(authentication: credentials)
+```
+
+Using the `TwitchClient` you can now access pretty much the full Twitch API surface:
 
 ### Helix
 
 ```swift
-let twitch = TwitchClient(authentication: credentials)
+// Async/Await
+let result = try await twitch.helix(endpoint: .someEndpoint(param1: "forsen"))
 
 // Completion Handlers
-
-twitch.helixTask(for: .doSomething(param1: "forsen")) { result, error in
+twitch.helixTask(for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])) { result, error in
 }
-
-// Async/Await
-let result = try await twitch.helix(endpoint: .doSomething(param1: "forsen"))
-
-// Combine
-twitch.helixPublisher(for: .doSomething(param1: "forsen")).sink(
-  receiveCompletion: { error in
-
-  },
-  receiveValue: { result in
-
-  })
 ```
 
 ### Chat (IRC)
 
 ```swift
-let twitch = TwitchClient(authentication: credentials)
-
 let irc = try await twitch.ircClient(.authenticated)
 
 try await irc.join(to: "forsen")
@@ -73,23 +113,12 @@ irc.publisher().sink(
   receiveValue: {
     // handle msg
   })
-
 ```
 
 ### EventSub
 
 ```swift
 let twitch = TwitchClient(authentication: credentials)
-
-// Using callbacks
-
-try await twitch.eventListener(on: .streamOnline(broadcasterID: "1234")) { result in
-  switch result {
-  case .event(let event): print(event)
-  case .failure(let error): print(error)
-  case .finished: break
-  }
-}
 
 // Using AsyncStream
 
@@ -100,6 +129,16 @@ let stream = try await twitch.eventStream(for: .channelFollow(
 
 for try await event in stream {
   print(event)
+}
+
+// Using callbacks
+
+try await twitch.eventListener(on: .streamOnline(broadcasterID: "1234")) { result in
+  switch result {
+  case .event(let event): print(event)
+  case .failure(let error): print(error)
+  case .finished: break
+  }
 }
 
 // Using Combine
@@ -113,5 +152,18 @@ publisher.sink(
   receiveValue: { event in
     // handle event
   })
-
 ```
+
+## One-off requests using static methods
+
+You can also use the static methods on `TwitchClient` to make one-off requests to the Twitch API by passing in `TwitchCredentials` to the `helix()` method directly:
+
+```swift
+let result = try await TwitchClient.helix(endpoint: .someEndpoint(param1: "forsen"), authentication: credentials)
+```
+
+## Linux support
+
+This library will compile completely fine on Linux, minus the Combine support of course and normal HTTP requests to Helix will work as expected.
+
+However, `FoundationNetworking` uses libcurl for all networking on Linux and WebSocket support has only been included by default since version `8.11.0`, which is to my knowledge pretty rare to find on server distros. If an older version of libcurl without support is being used, connecting to a websocket will crash with a `fatalError`! For some more information you can see swiftlang/swift-corelibs-foundation#4730
