@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [UserExtension], HelixResponseType == UserExtension
-{
-  public static func getUserExtensions() -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getUserExtensions()
+    -> HelixEndpoint<[UserExtension], UserExtension, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "users/extensions/list",
       makeResponse: { $0.data })
   }

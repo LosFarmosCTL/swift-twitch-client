@@ -1,16 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == GuestStarSession,
-  HelixResponseType == GuestStarSession
-{
+extension HelixEndpoint {
   public static func getGuestStarSession(
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    GuestStarSession, GuestStarSession,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "guest_star/session",
       queryItems: { auth in
         [

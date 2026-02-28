@@ -1,15 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Ban, HelixResponseType == Ban
-{
+extension HelixEndpoint {
   public static func banUser(
-    _ user: String, in channel: String,
-    for duration: Duration? = nil, reason: String? = nil
-  ) -> Self {
-    return .init(
+    _ user: String,
+    in channel: String,
+    for duration: Duration? = nil,
+    reason: String? = nil
+  ) -> HelixEndpoint<Ban, Ban, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "moderation/bans",
       queryItems: { auth in
         [

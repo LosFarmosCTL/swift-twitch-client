@@ -1,15 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func deleteChannelStreamScheduleSegment(
     segmentID: String,
     broadcasterID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "DELETE", path: "schedule/segment",
       queryItems: { auth in
         [

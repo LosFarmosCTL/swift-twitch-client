@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Chatters, HelixResponseType == Chatter
-{
+extension HelixEndpoint {
   public static func getChatters(
     in channel: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<Chatters, Chatter, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "chat/chatters",
       queryItems: { auth in
         [

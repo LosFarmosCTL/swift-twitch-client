@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func deleteGuestStarSlot(
     sessionID: String,
     guestID: String,
@@ -12,8 +8,8 @@ where
     shouldReinviteGuest: Bool? = nil,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "DELETE", path: "guest_star/slot",
       queryItems: { auth in
         [

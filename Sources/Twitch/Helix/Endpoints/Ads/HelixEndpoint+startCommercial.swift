@@ -1,11 +1,9 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Commercial, HelixResponseType == Commercial
-{
-  public static func startCommercial(length: Int) -> Self {
+extension HelixEndpoint {
+  public static func startCommercial(
+    length: Int
+  ) -> HelixEndpoint<Commercial, Commercial, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "channels/commercial",
       body: { auth in

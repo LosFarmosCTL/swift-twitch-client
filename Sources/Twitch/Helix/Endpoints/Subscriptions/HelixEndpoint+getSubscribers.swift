@@ -1,17 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == SubscribersResponse, HelixResponseType == Subscriber
-{
+extension HelixEndpoint {
   public static func getSubscribers(
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<SubscribersResponse, Subscriber, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "subscriptions",
       queryItems: { auth in
         [

@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func sendWhisper(
-    to receiver: String, message: String
-  ) -> Self {
-    return .init(
+    to receiver: String,
+    message: String
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "POST", path: "whispers",
       queryItems: { auth in
         [

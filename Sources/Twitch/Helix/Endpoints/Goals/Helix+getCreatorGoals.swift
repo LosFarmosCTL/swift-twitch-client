@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [CreatorGoal], HelixResponseType == CreatorGoal
-{
-  public static func getCreatorGoals(broadcasterID: String? = nil) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getCreatorGoals(broadcasterID: String? = nil)
+    -> HelixEndpoint<[CreatorGoal], CreatorGoal, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "goals",
       queryItems: { auth in
         [("broadcaster_id", broadcasterID ?? auth.userID)]

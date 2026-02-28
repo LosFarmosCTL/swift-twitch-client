@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
-{
-  public static func getAutomodSettings(of channel: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getAutomodSettings(of channel: String)
+    -> HelixEndpoint<AutomodSettings, AutomodSettings, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "moderation/automod/settings",
       queryItems: { auth in
         [

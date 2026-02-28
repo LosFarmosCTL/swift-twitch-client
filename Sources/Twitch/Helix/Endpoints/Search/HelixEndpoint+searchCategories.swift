@@ -1,15 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Category], String?),
-  HelixResponseType == Category
-{
+extension HelixEndpoint {
   public static func searchCategories(
-    for searchQuery: String, limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    for searchQuery: String,
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<([Category], String?), Category, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "search/categories",
       queryItems: { _ in
         [
@@ -18,9 +15,7 @@ where
           ("first", limit.map(String.init)),
         ]
       },
-      makeResponse: {
-        ($0.data, $0.pagination?.cursor)
-      })
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

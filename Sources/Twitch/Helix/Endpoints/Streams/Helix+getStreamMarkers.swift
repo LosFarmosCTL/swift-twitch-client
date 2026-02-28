@@ -1,19 +1,17 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([StreamMarkersByUser], String?),
-  HelixResponseType == StreamMarkersByUser
-{
+extension HelixEndpoint {
   public static func getStreamMarkers(
     userID: String? = nil,
     videoID: String? = nil,
     limit: Int? = nil,
     before endCursor: String? = nil,
     after startCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([StreamMarkersByUser], String?), StreamMarkersByUser,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "streams/markers",
       queryItems: { auth in
         let resolvedUserID = videoID == nil ? (userID ?? auth.userID) : nil

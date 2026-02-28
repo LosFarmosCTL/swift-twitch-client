@@ -1,20 +1,16 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [ExtensionBitsProduct],
-  HelixResponseType == ExtensionBitsProduct
-{
+extension HelixEndpoint {
   public static func getExtensionBitsProducts(
     includeAll: Bool? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<
+    [ExtensionBitsProduct], ExtensionBitsProduct,
+    HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "bits/extensions",
       queryItems: { _ in
-        [
-          ("should_include_all", includeAll.map(String.init))
-        ]
+        [("should_include_all", includeAll.map(String.init))]
       },
       makeResponse: { $0.data })
   }

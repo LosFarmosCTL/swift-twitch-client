@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func updateGuestStarSlotSettings(
     sessionID: String,
     slotID: String,
@@ -14,8 +10,8 @@ where
     volume: Int? = nil,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "PATCH", path: "guest_star/slot_settings",
       queryItems: { auth in
         [

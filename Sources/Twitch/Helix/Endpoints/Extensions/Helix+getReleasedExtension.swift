@@ -1,14 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Extension, HelixResponseType == Extension
-{
+extension HelixEndpoint {
   public static func getReleasedExtension(
     extensionID: String,
     version: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<Extension, Extension, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "extensions/released",
       queryItems: { _ in

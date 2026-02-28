@@ -1,11 +1,9 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [Conduit], HelixResponseType == Conduit
-{
-  public static func getConduits() -> Self {
+extension HelixEndpoint {
+  public static func getConduits()
+    -> HelixEndpoint<[Conduit], Conduit, HelixEndpointResponseTypes.Normal>
+  {
     .init(
       method: "GET", path: "eventsub/conduits",
       makeResponse: { $0.data })

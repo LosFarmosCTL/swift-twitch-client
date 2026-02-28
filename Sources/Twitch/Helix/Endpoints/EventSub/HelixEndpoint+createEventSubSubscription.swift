@@ -1,14 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == CreateEventSubResponse,
-  HelixResponseType == CreateEventSubResponse.EventSubSubscription
-{
+extension HelixEndpoint {
   public static func createEventSubSubscription(
     using transport: EventSubTransport, type: EventSubSubscription<some Event>
-  ) -> Self {
+  ) -> HelixEndpoint<
+    CreateEventSubResponse,
+    CreateEventSubResponse.EventSubSubscription,
+    HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "POST", path: "eventsub/subscriptions",
       body: { _ in

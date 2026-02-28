@@ -1,11 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Stream], String?),
-  HelixResponseType == Stream
-{
+extension HelixEndpoint {
   public static func getStreams(
     userIDs: [String] = [],
     userLogins: [String] = [],
@@ -15,7 +10,7 @@ where
     limit: Int? = nil,
     before endCursor: String? = nil,
     after startCursor: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<([Stream], String?), Stream, HelixEndpointResponseTypes.Normal> {
     let userIDs = userIDs.compactMap { ("user_id", $0) }
     let userLogins = userLogins.compactMap { ("user_login", $0) }
     let gameIDs = gameIDs.compactMap { ("game_id", $0) }

@@ -1,14 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == AutomodSettings, HelixResponseType == AutomodSettings
-{
+extension HelixEndpoint {
   private static func updateAutomodSettings(
-    of channel: String, body: Encodable & Sendable
-  ) -> Self {
-    return .init(
+    of channel: String,
+    body: Encodable & Sendable
+  ) -> HelixEndpoint<
+    AutomodSettings, AutomodSettings,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "PUT", path: "moderation/automod/settings",
       queryItems: { auth in
         [
@@ -27,11 +27,15 @@ where
 
   public static func updateAutomodSettings(
     of channel: String, settings: AutomodConfiguration
-  ) -> Self {
+  ) -> HelixEndpoint<AutomodSettings, AutomodSettings, HelixEndpointResponseTypes.Normal>
+  {
     self.updateAutomodSettings(of: channel, body: settings)
   }
 
-  public static func updateAutomodSettings(of channel: String, overall level: Int) -> Self
+  public static func updateAutomodSettings(of channel: String, overall level: Int)
+    -> HelixEndpoint<
+      AutomodSettings, AutomodSettings, HelixEndpointResponseTypes.Normal
+    >
   {
     self.updateAutomodSettings(of: channel, body: ["overall_level": level])
   }

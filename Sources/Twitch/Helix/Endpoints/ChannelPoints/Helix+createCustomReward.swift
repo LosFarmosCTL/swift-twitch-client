@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == CustomReward, HelixResponseType == CustomReward
-{
+extension HelixEndpoint {
   public static func createCustomReward(
     title: String,
     cost: Int,
@@ -20,8 +16,8 @@ where
     globalCooldownSeconds: Int? = nil,
     shouldRedemptionsSkipRequestQueue: Bool? = nil,
     broadcasterID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<CustomReward, CustomReward, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "channel_points/custom_rewards",
       queryItems: { auth in
         [("broadcaster_id", broadcasterID ?? auth.userID)]

@@ -1,11 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [User], HelixResponseType == User
-{
-  public static func getUsers(ids: [String] = [], names: [String] = []) -> Self {
+extension HelixEndpoint {
+  public static func getUsers(
+    ids: [String] = [],
+    names: [String] = []
+  ) -> HelixEndpoint<[User], User, HelixEndpointResponseTypes.Normal> {
     let idQueryItems = ids.map { ("id", $0) }
     let loginQueryItems = names.map { ("login", $0) }
 

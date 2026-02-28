@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [BlockedUser], HelixResponseType == BlockedUser
-{
+extension HelixEndpoint {
   public static func getBlocklist(
-    limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<[BlockedUser], BlockedUser, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "users/blocks",
       queryItems: { auth in
         [

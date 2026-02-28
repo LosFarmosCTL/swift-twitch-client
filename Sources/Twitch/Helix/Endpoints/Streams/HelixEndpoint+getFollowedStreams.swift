@@ -1,15 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Stream], String?),
-  HelixResponseType == Stream
-{
+extension HelixEndpoint {
   public static func getFollowedStreams(
-    limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<([Stream], String?), Stream, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "streams/followed",
       queryItems: { auth in
         [

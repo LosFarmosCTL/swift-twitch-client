@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == GlobalEmotes, HelixResponseType == GlobalEmote
-{
-  public static func getGlobalEmotes() -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getGlobalEmotes()
+    -> HelixEndpoint<GlobalEmotes, GlobalEmote, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "chat/emotes/global",
       makeResponse: {
         guard let template = $0.template else {

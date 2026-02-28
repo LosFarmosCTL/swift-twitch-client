@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func sendShoutout(
-    from sendingUser: String, to receivingUser: String
-  ) -> Self {
-    return .init(
+    from sendingUser: String,
+    to receivingUser: String
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "POST", path: "chat/shoutouts",
       queryItems: { auth in
         [

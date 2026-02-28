@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == BlockedTerm, HelixResponseType == BlockedTerm
-{
+extension HelixEndpoint {
   public static func addBlockedTerm(
-    in channel: String, text: String
-  ) -> Self {
-    return .init(
+    in channel: String,
+    text: String
+  ) -> HelixEndpoint<BlockedTerm, BlockedTerm, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "moderation/blocked_terms",
       queryItems: { auth in
         [

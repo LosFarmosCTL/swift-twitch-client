@@ -1,18 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Poll, HelixResponseType == Poll
-{
+extension HelixEndpoint {
   public static func createPoll(
     title: String,
     choices: [String],
     duration: Int,
     channelPointsVotingEnabled: Bool? = nil,
     channelPointsPerVote: Int? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "polls",
       body: { auth in
         CreatePollRequestBody(

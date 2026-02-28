@@ -1,11 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([DropsEntitlement], String?),
-  HelixResponseType == DropsEntitlement
-{
+extension HelixEndpoint {
   public static func getDropsEntitlements(
     ids: [String] = [],
     userID: String? = nil,
@@ -13,8 +8,11 @@ where
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([DropsEntitlement], String?), DropsEntitlement,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "entitlements/drops",
       queryItems: { _ in
         [

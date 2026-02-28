@@ -1,16 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([CharityDonation], String?),
-  HelixResponseType == CharityDonation
-{
+extension HelixEndpoint {
   public static func getCharityCampaignDonations(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([CharityDonation], String?), CharityDonation, HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "charity/donations",
       queryItems: { auth in
         [
@@ -19,9 +16,7 @@ where
           ("after", cursor),
         ]
       },
-      makeResponse: {
-        ($0.data, $0.pagination?.cursor)
-      })
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

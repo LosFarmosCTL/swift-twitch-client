@@ -1,15 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Game], String?),
-  HelixResponseType == Game
-{
+extension HelixEndpoint {
   public static func getTopGames(
-    limit: Int? = nil, after startCursor: String? = nil, before endCursor: String? = nil
-  ) -> Self {
-    return .init(
+    limit: Int? = nil,
+    after startCursor: String? = nil,
+    before endCursor: String? = nil
+  ) -> HelixEndpoint<([Game], String?), Game, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "games/top",
       queryItems: { _ in
         [

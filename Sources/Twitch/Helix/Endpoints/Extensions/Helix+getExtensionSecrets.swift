@@ -1,12 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ExtensionSecretsResponse, HelixResponseType == ExtensionSecretsResponse
-{
-  public static func getExtensionSecrets(extensionID: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getExtensionSecrets(
+    extensionID: String
+  ) -> HelixEndpoint<
+    ExtensionSecretsResponse, ExtensionSecretsResponse,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "extensions/jwt/secrets",
       queryItems: { _ in
         [

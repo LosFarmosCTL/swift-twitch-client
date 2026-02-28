@@ -1,17 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ExtensionPrediction], String?),
-  HelixResponseType == ExtensionPrediction
-{
+extension HelixEndpoint {
   public static func getExtensionPredictions(
     extensionID: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([ExtensionPrediction], String?), ExtensionPrediction,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "extensions/predictions",
       queryItems: { _ in
         [

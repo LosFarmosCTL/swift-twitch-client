@@ -1,11 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [ExtensionBitsProduct],
-  HelixResponseType == ExtensionBitsProduct
-{
+extension HelixEndpoint {
   public static func updateExtensionBitsProduct(
     sku: String,
     cost: ExtensionBitsProductCostRequest,
@@ -13,7 +8,10 @@ where
     inDevelopment: Bool? = nil,
     expiration: Date? = nil,
     isBroadcast: Bool? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<
+    [ExtensionBitsProduct], ExtensionBitsProduct,
+    HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "PUT", path: "bits/extensions",
       body: { _ in

@@ -1,17 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func setExtensionConfigurationSegment(
     extensionID: String,
     segment: ExtensionConfigurationSegmentType,
     broadcasterID: String? = nil,
     content: String? = nil,
     version: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "extensions/configurations",
       body: { _ in

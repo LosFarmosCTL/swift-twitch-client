@@ -1,13 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse,
-  HelixResponseType == EmptyResponse
-{
-  public static func removeChannelModerator(userID: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func removeChannelModerator(userID: String)
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
+    .init(
       method: "DELETE", path: "moderation/moderators",
       queryItems: { auth in
         [

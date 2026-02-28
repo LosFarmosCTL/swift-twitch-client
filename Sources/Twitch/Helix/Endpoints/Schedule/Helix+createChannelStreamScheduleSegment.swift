@@ -1,11 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == StreamSchedule,
-  HelixResponseType == StreamSchedule
-{
+extension HelixEndpoint {
   public static func createChannelStreamScheduleSegment(
     startTime: Date,
     timezone: String,
@@ -14,8 +9,8 @@ where
     categoryID: String? = nil,
     title: String? = nil,
     broadcasterID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<StreamSchedule, StreamSchedule, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "schedule/segment",
       queryItems: { auth in
         [("broadcaster_id", broadcasterID ?? auth.userID)]

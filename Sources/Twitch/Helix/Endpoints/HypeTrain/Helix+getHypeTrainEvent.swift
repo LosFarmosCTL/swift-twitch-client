@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == HypeTrainStatus, HelixResponseType == HypeTrainStatus
-{
-  public static func getHypeTrainStatus(for broadcasterID: String? = nil) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getHypeTrainStatus(for broadcasterID: String? = nil)
+    -> HelixEndpoint<HypeTrainStatus, HypeTrainStatus, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "hypetrain/status",
       queryItems: { auth in
         [("broadcaster_id", broadcasterID ?? auth.userID)]

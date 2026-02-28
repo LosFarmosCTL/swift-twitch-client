@@ -1,13 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [UserColor],
-  HelixResponseType == UserColor
-{
-  public static func getUserColors(of users: [String]) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getUserColors(
+    of users: [String]
+  ) -> HelixEndpoint<[UserColor], UserColor, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "chat/color",
       queryItems: { _ in
         users.map { ("user_id", $0) }

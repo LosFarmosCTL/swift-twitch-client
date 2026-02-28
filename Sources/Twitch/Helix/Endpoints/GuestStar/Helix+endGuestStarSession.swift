@@ -1,13 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == GuestStarSession,
-  HelixResponseType == GuestStarSession
-{
-  public static func endGuestStarSession(sessionID: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func endGuestStarSession(
+    sessionID: String
+  ) -> HelixEndpoint<
+    GuestStarSession, GuestStarSession,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "DELETE", path: "guest_star/session",
       queryItems: { auth in
         [

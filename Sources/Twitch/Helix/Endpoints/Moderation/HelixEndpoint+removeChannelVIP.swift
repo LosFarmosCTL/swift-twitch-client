@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
-  public static func removeChannelVIP(userID: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func removeChannelVIP(userID: String)
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
+    .init(
       method: "DELETE", path: "channels/vips",
       queryItems: { auth in
         [

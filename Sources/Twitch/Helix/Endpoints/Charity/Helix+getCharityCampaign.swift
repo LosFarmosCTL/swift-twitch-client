@@ -1,22 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == CharityCampaign?,
-  HelixResponseType == CharityCampaign
-{
-  public static func getCharityCampaign() -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getCharityCampaign()
+    -> HelixEndpoint<CharityCampaign?, CharityCampaign, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "charity/campaigns",
       queryItems: { auth in
-        [
-          ("broadcaster_id", auth.userID)
-        ]
+        [("broadcaster_id", auth.userID)]
       },
-      makeResponse: {
-        $0.data.first
-      })
+      makeResponse: { $0.data.first })
   }
 }
 

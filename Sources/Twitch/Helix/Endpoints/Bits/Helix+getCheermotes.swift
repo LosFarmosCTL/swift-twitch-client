@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [Cheermote], HelixResponseType == Cheermote
-{
-  public static func getCheermotes(broadcasterID: String? = nil) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getCheermotes(
+    broadcasterID: String? = nil
+  ) -> HelixEndpoint<[Cheermote], Cheermote, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "bits/cheermotes",
       queryItems: { _ in
         [("broadcaster_id", broadcasterID)]

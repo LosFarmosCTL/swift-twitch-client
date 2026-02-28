@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == User, HelixResponseType == User
-{
-  public static func updateUser(description: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func updateUser(description: String)
+    -> HelixEndpoint<User, User, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "PUT", path: "users",
       queryItems: { _ in
         [("description", description)]

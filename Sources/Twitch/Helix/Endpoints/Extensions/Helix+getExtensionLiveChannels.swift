@@ -1,17 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ExtensionLiveChannel], String?),
-  HelixResponseType == ExtensionLiveChannel
-{
+extension HelixEndpoint {
   public static func getExtensionLiveChannels(
     extensionID: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([ExtensionLiveChannel], String?), ExtensionLiveChannel,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "extensions/live",
       queryItems: { _ in
         [

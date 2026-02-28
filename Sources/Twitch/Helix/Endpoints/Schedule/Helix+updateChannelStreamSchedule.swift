@@ -1,18 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func updateChannelStreamSchedule(
     isVacationEnabled: Bool? = nil,
     vacationStartTime: Date? = nil,
     vacationEndTime: Date? = nil,
     timezone: String? = nil,
     broadcasterID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "PATCH", path: "schedule/settings",
       queryItems: { auth in
         [

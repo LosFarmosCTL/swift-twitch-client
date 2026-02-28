@@ -1,11 +1,9 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == PendingRaid, HelixResponseType == PendingRaid
-{
-  public static func startRaid(to channel: String) -> Self {
+extension HelixEndpoint {
+  public static func startRaid(
+    to channel: String
+  ) -> HelixEndpoint<PendingRaid, PendingRaid, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "raids",
       queryItems: { auth in

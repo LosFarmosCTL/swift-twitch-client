@@ -1,11 +1,9 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
-  public static func cancelRaid() -> Self {
+extension HelixEndpoint {
+  public static func cancelRaid()
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
     .init(
       method: "DELETE", path: "raids",
       queryItems: { auth in

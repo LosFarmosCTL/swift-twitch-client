@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func sendExtensionPubSubMessage(
     target: [ExtensionPubSubMessageTarget],
     message: String,
     broadcasterID: String? = nil,
     isGlobalBroadcast: Bool? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "extensions/pubsub",
       body: { _ in

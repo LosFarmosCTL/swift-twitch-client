@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func sendExtensionChatMessage(
     in channel: String,
     text: String,
     extensionID: String,
     extensionVersion: String
-  ) -> Self {
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void, > {
     .init(
       method: "POST", path: "extensions/chat",
       queryItems: { _ in

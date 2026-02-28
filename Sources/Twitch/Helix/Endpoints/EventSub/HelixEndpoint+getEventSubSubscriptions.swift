@@ -1,16 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == GetEventSubSubscriptionsResponse,
-  HelixResponseType == GetEventSubSubscriptionsResponse.EventSubSubscription
-{
+extension HelixEndpoint {
   public static func getEventSubSubscriptions(
     filter: EventSubSubscriptionFilter? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    GetEventSubSubscriptionsResponse,
+    GetEventSubSubscriptionsResponse.EventSubSubscription,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "eventsub/subscriptions",
       queryItems: { _ in
         var items: [(String, String?)] = []

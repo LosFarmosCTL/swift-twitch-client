@@ -1,14 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == FollowerResponse, HelixResponseType == Follower
-{
+extension HelixEndpoint {
   public static func getChannelFollowers(
-    of channel: String? = nil, limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    of channel: String? = nil,
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<FollowerResponse, Follower, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "channels/followers",
       queryItems: { auth in
         [
@@ -28,21 +26,16 @@ where
           cursor: $0.pagination?.cursor)
       })
   }
-}
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Follower?, HelixResponseType == Follower
-{
   public static func checkFollower(_ user: String, follows channelID: String? = nil)
-    -> Self
+    -> HelixEndpoint<Follower?, Follower, HelixEndpointResponseTypes.Normal>
   {
-    return .init(
+    .init(
       method: "GET", path: "channels/followers",
       queryItems: { auth in
         [("user_id", user), ("broadcaster_id", channelID ?? auth.userID)]
-      }, makeResponse: { $0.data.first })
+      },
+      makeResponse: { $0.data.first })
   }
 }
 

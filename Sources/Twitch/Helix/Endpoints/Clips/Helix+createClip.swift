@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ClipCreation, HelixResponseType == ClipCreation
-{
+extension HelixEndpoint {
   public static func createClip(
     broadcasterID: String? = nil,
     title: String? = nil,
     duration: Double? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<ClipCreation, ClipCreation, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "clips",
       queryItems: { auth in
         return [

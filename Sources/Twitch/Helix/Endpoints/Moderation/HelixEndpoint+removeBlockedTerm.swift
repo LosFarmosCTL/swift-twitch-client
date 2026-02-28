@@ -1,14 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func removeBlockedTerm(
     in channel: String, termID: String
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "DELETE", path: "moderation/blocked_terms",
       queryItems: { auth in
         [

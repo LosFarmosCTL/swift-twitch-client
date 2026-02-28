@@ -1,16 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [ExtensionConfigurationSegment],
-  HelixResponseType == ExtensionConfigurationSegment
-{
+extension HelixEndpoint {
   public static func getExtensionConfigurationSegment(
     extensionID: String,
     segments: [ExtensionConfigurationSegmentType],
     broadcasterID: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<
+    [ExtensionConfigurationSegment], ExtensionConfigurationSegment,
+    HelixEndpointResponseTypes.Normal
+  > {
     let segmentItems = segments.map { ("segment", $0.rawValue) }
 
     return .init(

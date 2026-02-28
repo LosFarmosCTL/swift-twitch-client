@@ -1,15 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ExtensionSecretsResponse, HelixResponseType == ExtensionSecretsResponse
-{
+extension HelixEndpoint {
   public static func createExtensionSecret(
     extensionID: String,
     delay: Int? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ExtensionSecretsResponse, ExtensionSecretsResponse,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "POST", path: "extensions/jwt/secrets",
       queryItems: { _ in
         [

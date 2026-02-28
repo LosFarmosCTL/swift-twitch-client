@@ -1,16 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ConduitShard], String?),
-  HelixResponseType == ConduitShard
-{
+extension HelixEndpoint {
   public static func getConduitShards(
     conduitID: String,
     status: ConduitShardStatus? = nil,
     after cursor: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<
+    ([ConduitShard], String?), ConduitShard, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "eventsub/conduits/shards",
       queryItems: { _ in

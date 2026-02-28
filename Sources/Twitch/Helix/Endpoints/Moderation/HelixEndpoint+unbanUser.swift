@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func unbanUser(
-    _ user: String, in channel: String
-  ) -> Self {
-    return .init(
+    _ user: String,
+    in channel: String
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "DELETE", path: "moderation/bans",
       queryItems: { auth in
         [

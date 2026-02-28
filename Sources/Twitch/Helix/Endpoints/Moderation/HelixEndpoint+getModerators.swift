@@ -1,16 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Moderator], String?), HelixResponseType == Moderator
-{
+extension HelixEndpoint {
   public static func getModerators(
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([Moderator], String?), Moderator,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "moderation/moderators",
       queryItems: { auth in
         [

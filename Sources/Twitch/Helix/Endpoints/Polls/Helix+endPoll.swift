@@ -1,12 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Poll, HelixResponseType == Poll
-{
-  public static func endPoll(id: String, status: PollEndStatus) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func endPoll(
+    id: String,
+    status: PollEndStatus
+  ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "PATCH", path: "polls",
       body: { auth in
         EndPollRequestBody(

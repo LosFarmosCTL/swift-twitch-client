@@ -1,16 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == UserActiveExtensions, HelixResponseType == UserActiveExtensions
-{
+extension HelixEndpoint {
   public static func updateUserExtensions(
     panel: [String: ExtensionSlotUpdate]? = nil,
     overlay: [String: ExtensionSlotUpdate]? = nil,
     component: [String: ExtensionSlotUpdate]? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    UserActiveExtensions, UserActiveExtensions,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "PUT", path: "users/extensions",
       body: { _ in
         UpdateUserExtensionsRequestBody(

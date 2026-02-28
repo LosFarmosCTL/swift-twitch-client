@@ -1,17 +1,16 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == UserActiveExtensions, HelixResponseType == UserActiveExtensions
-{
-  public static func getUserActiveExtensions(userID: String? = nil) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getUserActiveExtensions(
+    userID: String? = nil
+  ) -> HelixEndpoint<
+    UserActiveExtensions, UserActiveExtensions,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "users/extensions",
       queryItems: { auth in
-        [
-          ("user_id", userID ?? auth.userID)
-        ]
+        [("user_id", userID ?? auth.userID)]
       },
       makeResponse: {
         guard let activeExtensions = $0.data.first else {

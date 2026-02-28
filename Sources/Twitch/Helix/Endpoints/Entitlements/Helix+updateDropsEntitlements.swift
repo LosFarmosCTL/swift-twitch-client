@@ -1,16 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [DropsEntitlementUpdateResult],
-  HelixResponseType == DropsEntitlementUpdateResult
-{
+extension HelixEndpoint {
   public static func updateDropsEntitlements(
     entitlementIDs: [String] = [],
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    [DropsEntitlementUpdateResult], DropsEntitlementUpdateResult,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "PATCH", path: "entitlements/drops",
       body: { _ in
         UpdateDropsEntitlementsRequestBody(

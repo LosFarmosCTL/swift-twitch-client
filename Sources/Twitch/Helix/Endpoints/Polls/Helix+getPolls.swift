@@ -1,17 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Poll], String?),
-  HelixResponseType == Poll
-{
+extension HelixEndpoint {
   public static func getPolls(
     filterIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<([Poll], String?), Poll, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "polls",
       queryItems: { auth in
         [

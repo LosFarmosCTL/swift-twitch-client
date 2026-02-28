@@ -1,11 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Conduit, HelixResponseType == Conduit
-{
-  public static func updateConduit(id: String, shardCount: Int) -> Self {
+extension HelixEndpoint {
+  public static func updateConduit(
+    id: String,
+    shardCount: Int
+  ) -> HelixEndpoint<Conduit, Conduit, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "eventsub/conduits",
       body: { _ in

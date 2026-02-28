@@ -1,14 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func block(
-    _ user: String, sourceContext: SourceContext? = nil, reason: Reason? = nil
-  ) -> Self {
-    return .init(
+    _ user: String,
+    sourceContext: SourceContext? = nil,
+    reason: Reason? = nil
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "PUT", path: "users/blocks",
       queryItems: { _ in
         [

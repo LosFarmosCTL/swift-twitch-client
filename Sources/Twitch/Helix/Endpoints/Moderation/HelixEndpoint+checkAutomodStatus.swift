@@ -1,20 +1,16 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [AutomodStatus], HelixResponseType == AutomodStatus
-{
+extension HelixEndpoint {
   public static func checkAutomodStatus(messages: (id: String, message: String)...)
-    -> Self
+    -> HelixEndpoint<[AutomodStatus], AutomodStatus, HelixEndpointResponseTypes.Normal>
   {
     return self.checkAutomodStatus(messages: messages)
   }
 
-  public static func checkAutomodStatus(messages: [(id: String, message: String)]) -> Self
+  public static func checkAutomodStatus(messages: [(id: String, message: String)])
+    -> HelixEndpoint<[AutomodStatus], AutomodStatus, HelixEndpointResponseTypes.Normal>
   {
-
-    return .init(
+    .init(
       method: "POST", path: "moderation/enforcements/status",
       queryItems: { auth in
         [("broadcaster_id", auth.userID)]

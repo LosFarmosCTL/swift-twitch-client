@@ -1,16 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([BlockedTerm], String?), HelixResponseType == BlockedTerm
-{
+extension HelixEndpoint {
   public static func getBlockedTerms(
     in channel: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([BlockedTerm], String?), BlockedTerm,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "moderation/blocked_terms",
       queryItems: { auth in
         [

@@ -1,14 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func sendAnnouncement(
-    in channel: String, message: String, color: AnnouncementColor? = nil
-  ) -> Self {
-    return .init(
+    in channel: String,
+    message: String,
+    color: AnnouncementColor? = nil
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+    .init(
       method: "POST", path: "chat/announcements",
       queryItems: { auth in
         [

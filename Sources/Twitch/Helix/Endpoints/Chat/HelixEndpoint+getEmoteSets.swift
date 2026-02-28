@@ -2,14 +2,11 @@ import Foundation
 
 public typealias EmoteSetID = String
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == EmoteSetResponse,
-  HelixResponseType == SetEmote
-{
-  public static func getEmoteSets(_ sets: [EmoteSetID]) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getEmoteSets(
+    _ sets: [EmoteSetID]
+  ) -> HelixEndpoint<EmoteSetResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "chat/emotes/set",
       queryItems: { _ in
         sets.map { ("emote_set_id", $0) }

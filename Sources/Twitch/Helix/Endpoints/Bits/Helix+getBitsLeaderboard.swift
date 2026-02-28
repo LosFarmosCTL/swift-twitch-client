@@ -1,17 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == BitsLeaderboard, HelixResponseType == BitsLeaderboardEntry
-{
+extension HelixEndpoint {
   public static func getBitsLeaderboard(
     count: Int? = nil,
     period: BitsLeaderboardPeriod? = nil,
     startedAt: Date? = nil,
     userID: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    BitsLeaderboard, BitsLeaderboardEntry, HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "bits/leaderboard",
       queryItems: { _ in
         [

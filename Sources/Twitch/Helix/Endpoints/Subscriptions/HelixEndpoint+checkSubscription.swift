@@ -1,13 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Subscription?,
-  HelixResponseType == Subscription
-{
-  public static func checkSubscription(to channel: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func checkSubscription(to channel: String)
+    -> HelixEndpoint<Subscription?, Subscription, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "subscriptions/user",
       queryItems: { auth in
         [

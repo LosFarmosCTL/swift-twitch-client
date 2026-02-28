@@ -1,17 +1,16 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([BannedUser], String?), HelixResponseType == BannedUser
-{
+extension HelixEndpoint {
   public static func getBannedUsers(
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ([BannedUser], String?), BannedUser,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "moderation/banned",
       queryItems: { auth in
         [

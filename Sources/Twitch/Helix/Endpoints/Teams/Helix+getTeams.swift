@@ -1,12 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [Team], HelixResponseType == Team
-{
-  public static func getTeams(name: String? = nil, id: String? = nil) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getTeams(
+    name: String? = nil,
+    id: String? = nil
+  ) -> HelixEndpoint<[Team], Team, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "teams",
       queryItems: { _ in
         [

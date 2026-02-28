@@ -1,13 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == String,
-  HelixResponseType == StreamKey
-{
-  public static func getStreamKey() -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getStreamKey()
+    -> HelixEndpoint<String, StreamKey, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "streams/key",
       queryItems: { auth in
         [

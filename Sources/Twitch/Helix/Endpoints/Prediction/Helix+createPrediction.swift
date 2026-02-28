@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == Prediction, HelixResponseType == Prediction
-{
+extension HelixEndpoint {
   public static func createPrediction(
     title: String,
     outcomes: [String],
     predictionWindow: Int
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<Prediction, Prediction, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "predictions",
       body: { auth in
         CreatePredictionRequestBody(

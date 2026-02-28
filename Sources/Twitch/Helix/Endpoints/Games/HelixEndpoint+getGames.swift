@@ -1,14 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [Game],
-  HelixResponseType == Game
-{
+extension HelixEndpoint {
   public static func getGames(
-    gameIDs: [String] = [], names: [String] = [], igdbIDs: [String] = []
-  ) -> Self {
+    gameIDs: [String] = [],
+    names: [String] = [],
+    igdbIDs: [String] = []
+  ) -> HelixEndpoint<[Game], Game, HelixEndpointResponseTypes.Normal> {
     let idQueryItems = gameIDs.map { ("id", $0) }
     let nameQueryItems = names.map { ("name", $0) }
     let igdbQueryItems = igdbIDs.map { ("igdb_id", $0) }

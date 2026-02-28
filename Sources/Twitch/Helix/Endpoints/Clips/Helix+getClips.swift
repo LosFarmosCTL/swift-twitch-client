@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Clip], String?), HelixResponseType == Clip
-{
+extension HelixEndpoint {
   public static func getClips(
     ids: [String] = [],
     broadcasterID: String? = nil,
@@ -15,8 +11,8 @@ where
     before cursorBefore: String? = nil,
     after cursorAfter: String? = nil,
     isFeatured: Bool? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<([Clip], String?), Clip, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "clips",
       queryItems: { _ in
         [

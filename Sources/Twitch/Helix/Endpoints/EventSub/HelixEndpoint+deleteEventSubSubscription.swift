@@ -1,17 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
-  public static func deleteEventSubSubscription(id: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func deleteEventSubSubscription(id: String) -> HelixEndpoint<
+    EmptyResponse, EmptyResponse,
+    HelixEndpointResponseTypes.Void
+  > {
+    .init(
       method: "DELETE", path: "eventsub/subscriptions",
       queryItems: { _ in
-        [
-          ("id", id)
-        ]
+        [("id", id)]
       })
   }
 }

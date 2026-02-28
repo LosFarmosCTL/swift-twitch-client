@@ -1,15 +1,14 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ModeratedChannel], String?),
-  HelixResponseType == ModeratedChannel
-{
+extension HelixEndpoint {
   public static func getModeratedChannels(
-    limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<
+    ([ModeratedChannel], String?), ModeratedChannel,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "moderation/channels",
       queryItems: { auth in
         [

@@ -1,16 +1,11 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == StreamMarker,
-  HelixResponseType == StreamMarker
-{
+extension HelixEndpoint {
   public static func createStreamMarker(
     for userID: String? = nil,
     description: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<StreamMarker, StreamMarker, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "POST", path: "streams/markers",
       body: { auth in
         CreateStreamMarkerRequestBody(

@@ -1,14 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ShieldModeStatus, HelixResponseType == ShieldModeStatus
-{
-  public static func getShieldModeStatus(
-    of channel: String
-  ) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getShieldModeStatus(of channel: String)
+    -> HelixEndpoint<
+      ShieldModeStatus, ShieldModeStatus,
+      HelixEndpointResponseTypes.Normal
+    >
+  {
+    .init(
       method: "GET", path: "moderation/shield_mode",
       queryItems: { auth in
         [

@@ -1,11 +1,9 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
-  private static func handleAutomodMessage(messageID: String, action: String) -> Self {
+extension HelixEndpoint {
+  private static func handleAutomodMessage(messageID: String, action: String)
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
     .init(
       method: "POST", path: "moderation/automod/message",
       body: { auth in
@@ -14,11 +12,15 @@ where
     )
   }
 
-  public static func approveAutomodMessage(messageID: String) -> Self {
+  public static func approveAutomodMessage(messageID: String)
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
     self.handleAutomodMessage(messageID: messageID, action: "APPROVE")
   }
 
-  public static func denyAutomodMessage(messageID: String) -> Self {
+  public static func denyAutomodMessage(messageID: String)
+    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+  {
     self.handleAutomodMessage(messageID: messageID, action: "DENY")
   }
 }

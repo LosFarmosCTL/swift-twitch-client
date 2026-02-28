@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [BadgeSet], HelixResponseType == BadgeSet
-{
-  public static func getChannelBadges(of channel: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getChannelBadges(
+    of channel: String
+  ) -> HelixEndpoint<[BadgeSet], BadgeSet, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "chat/badges",
       queryItems: { _ in [("broadcaster_id", channel)] },
       makeResponse: { $0.data })

@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Video], String?), HelixResponseType == Video
-{
+extension HelixEndpoint {
   public static func getVideos(
     ids: [String] = [],
     userID: String? = nil,
@@ -16,7 +12,7 @@ where
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<([Video], String?), Video, HelixEndpointResponseTypes.Normal> {
     let idQueryItems = ids.map { ("id", $0) }
 
     return .init(

@@ -1,17 +1,13 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([Channel], String?), HelixResponseType == Channel
-{
+extension HelixEndpoint {
   public static func searchChannels(
     for searchQuery: String,
     liveOnly: Bool? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<([Channel], String?), Channel, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "search/channels",
       queryItems: { _ in
         [
@@ -21,9 +17,7 @@ where
           ("after", cursor),
         ]
       },
-      makeResponse: {
-        ($0.data, $0.pagination?.cursor)
-      })
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

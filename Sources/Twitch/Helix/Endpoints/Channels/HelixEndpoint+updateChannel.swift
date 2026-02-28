@@ -1,10 +1,6 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Void,
-  ResponseType == EmptyResponse, HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func updateChannel(
     gameID: String? = nil,
     broadcasterLanguage: String? = nil,
@@ -13,7 +9,7 @@ where
     tag: [String]? = nil,
     contentClassificationLabels: [Label: Bool]? = nil,
     isBrandedContent: Bool? = nil
-  ) -> Self {
+  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     let contentClassificationLabels =
       contentClassificationLabels?.map { (id, isEnabled) in
         UpdateChannelRequestBody.Label(id: id.rawValue, isEnabled: isEnabled)

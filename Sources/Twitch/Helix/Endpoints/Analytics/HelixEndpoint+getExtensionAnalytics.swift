@@ -1,16 +1,16 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([ExtensionReport], String?),
-  HelixResponseType == ExtensionReport
-{
+extension HelixEndpoint {
   public static func getExtensionAnalytics(
-    extensionID: String? = nil, type: String? = nil, range: DateInterval? = nil,
-    limit: Int? = nil, after cursor: String? = nil
-  ) -> Self {
-    return .init(
+    extensionID: String? = nil,
+    type: String? = nil,
+    range: DateInterval? = nil,
+    limit: Int? = nil,
+    after cursor: String? = nil
+  ) -> HelixEndpoint<
+    ([ExtensionReport], String?), ExtensionReport, HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "GET", path: "analytics/extensions",
       queryItems: { _ in
         [

@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == [Broadcaster], HelixResponseType == Broadcaster
-{
-  public static func getChannels(_ channels: [String]) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getChannels(_ channels: [String])
+    -> HelixEndpoint<[Broadcaster], Broadcaster, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
       method: "GET", path: "channels",
       queryItems: { _ in
         channels.map { ("broadcaster_id", $0) }

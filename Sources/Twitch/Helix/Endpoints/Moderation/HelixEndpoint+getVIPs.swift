@@ -1,16 +1,12 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ([VIP], String?), HelixResponseType == VIP
-{
+extension HelixEndpoint {
   public static func getVIPs(
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<([VIP], String?), VIP, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "channels/vips",
       queryItems: { auth in
         [

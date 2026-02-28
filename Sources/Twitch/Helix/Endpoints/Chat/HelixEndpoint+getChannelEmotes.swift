@@ -1,12 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ChannelEmotes, HelixResponseType == ChannelEmote
-{
-  public static func getChannelEmotes(of channel: String) -> Self {
-    return .init(
+extension HelixEndpoint {
+  public static func getChannelEmotes(
+    of channel: String
+  ) -> HelixEndpoint<ChannelEmotes, ChannelEmote, HelixEndpointResponseTypes.Normal> {
+    .init(
       method: "GET", path: "chat/emotes",
       queryItems: { _ in [("broadcaster_id", channel)] },
       makeResponse: {

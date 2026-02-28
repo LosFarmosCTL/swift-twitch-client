@@ -1,16 +1,15 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == ChatMessageResponse, HelixResponseType == ChatMessageResponse
-{
+extension HelixEndpoint {
   public static func sendChatMessage(
-    in channel: String, message: String,
+    in channel: String,
+    message: String,
     replyParentMessageID: String? = nil,
     forSourceOnly: Bool? = nil
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<
+    ChatMessageResponse, ChatMessageResponse, HelixEndpointResponseTypes.Normal
+  > {
+    .init(
       method: "POST", path: "chat/messages",
       body: { auth in
         SendChatMessageRequestBody(

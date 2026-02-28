@@ -1,15 +1,10 @@
 import Foundation
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Raw,
-  ResponseType == String,
-  HelixResponseType == EmptyResponse
-{
+extension HelixEndpoint {
   public static func getChanneliCalendar(
     broadcasterID: String
-  ) -> Self {
-    return .init(
+  ) -> HelixEndpoint<String, EmptyResponse, HelixEndpointResponseTypes.Raw> {
+    .init(
       method: "GET", path: "schedule/icalendar",
       queryItems: { _ in
         [("broadcaster_id", broadcasterID)]
