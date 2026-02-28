@@ -35,6 +35,8 @@ struct WebSocketClientTests {
   func testEventSubSetup() async throws {
     try await confirmation("Should create subscription", expectedCount: 1) { confirm in
       await session.onRequest { request in
+        guard request.httpMethod == "POST" else { return }
+
         let body = try? await twitch.decoder.decode(
           CreateEventSubRequestBody.self, from: request.httpBody ?? Data())
 
@@ -58,6 +60,33 @@ struct WebSocketClientTests {
     let task = try #require(await session.lastTask())
     #expect(await task.didResume)
     #expect(await task.sentMessages.count == 0)
+  }
+
+  @Test("Client deletes EventSub subscription on stream termination V2")
+  func testEventSubDeleteOnTerminationV2() async throws {
+    let subscriptionID = "11111111-1111-1111-1111-111111111111"
+    var components = URLComponents(
+      string: "https://api.twitch.tv/helix/eventsub/subscriptions")
+    components?.queryItems = [URLQueryItem(name: "id", value: subscriptionID)]
+    let deleteURL = try #require(components?.url)
+    await session.stub(url: deleteURL, method: "DELETE", status: 204)
+
+    try await confirmation("Should delete subscription", expectedCount: 1) { confirm in
+      let deleteSeen = AsyncStream<Void>.makeStream()
+      await session.onRequest { request in
+        guard request.httpMethod == "DELETE" else { return }
+        #expect(request.url == deleteURL)
+        confirm()
+        deleteSeen.continuation.finish()
+      }
+      await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+      let stream = try await twitch.eventStream(for: .mock())
+
+      let consumeTask = Task { for try await _ in stream { break } }
+      consumeTask.cancel()
+
+      _ = await deleteSeen.stream.first { _ in true }
+    }
   }
 
   @Test("Client receives EventSub Event messages")

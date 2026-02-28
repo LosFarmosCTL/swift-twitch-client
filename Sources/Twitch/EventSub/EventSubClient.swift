@@ -52,6 +52,24 @@ internal actor EventSubClient {
     }
   }
 
+  internal func removeHandler(for eventID: String) async {
+    eventHandlers.removeValue(forKey: eventID)
+    pendingEvents.removeValue(forKey: eventID)
+    pendingErrors.removeValue(forKey: eventID)
+
+    if let socketID = connectionEvents.keys.first(where: { $0.contains(eventID) }) {
+      connectionEvents[socketID] = connectionEvents[socketID]?.filter { $0 != eventID }
+
+      // if no more events are subscribed to the socket, close the connection
+      if connectionEvents[socketID]?.isEmpty == true {
+        connectionEvents.removeValue(forKey: socketID)
+        if let connection = connections.removeValue(forKey: socketID) {
+          await connection.cancel()
+        }
+      }
+    }
+  }
+
   internal func getFreeWebsocketID() async throws -> String {
     for (socketID, events) in connectionEvents
     where events.count < Self.maxSubscriptionsPerConnection {

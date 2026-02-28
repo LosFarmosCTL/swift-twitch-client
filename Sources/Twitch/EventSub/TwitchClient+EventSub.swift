@@ -14,13 +14,16 @@ extension TwitchClient {
   ) async throws -> AsyncThrowingStream<R, any Error> {
     do {
       let (response, socketID) = try await self.subscribe(to: event)
+      let subscriptionID = response.subscription.id
 
       let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
 
+      continuation.onTermination = { [weak self] _ in
+        Task { await self?.unsubscribe(from: subscriptionID) }
+      }
+
       let handler = EventSubContinuationHandler(continuation: continuation)
-      await self.eventSubClient.addHandler(
-        handler, for: response.subscription.id, on: socketID
-      )
+      await self.eventSubClient.addHandler(handler, for: subscriptionID, on: socketID)
 
       return stream
     } catch is CancellationError {
@@ -33,16 +36,21 @@ extension TwitchClient {
   public func eventListener<R: Decodable & Sendable>(
     on event: EventSubSubscription<R>,
     eventHandler: @escaping @Sendable (EventSubResult<R>) -> Void
-  ) async throws {
+  ) async throws -> TwitchCancellable {
     do {
       let (response, socketID) = try await self.subscribe(to: event)
+      let subscriptionID = response.subscription.id
 
       let handler = EventSubCallbackHandler(callback: eventHandler)
 
-      await self.eventSubClient.addHandler(
-        handler, for: response.subscription.id, on: socketID)
+      await self.eventSubClient.addHandler(handler, for: subscriptionID, on: socketID)
+
+      return TwitchCancellable { [weak self] in
+        Task { await self?.unsubscribe(from: subscriptionID) }
+      }
     } catch is CancellationError {
       eventHandler(.finished)
+      return TwitchCancellable {}
     }
   }
 
@@ -52,16 +60,20 @@ extension TwitchClient {
     ) async throws -> AnyPublisher<R, EventSubError> {
       do {
         let (response, socketID) = try await self.subscribe(to: event)
+        let subscriptionID = response.subscription.id
 
         let subject = PassthroughSubject<R, EventSubError>()
         let handler = EventSubSubjectHandler(subject: subject)
 
         Task {
-          await self.eventSubClient.addHandler(
-            handler, for: response.subscription.id, on: socketID)
+          await self.eventSubClient.addHandler(handler, for: subscriptionID, on: socketID)
         }
 
-        return subject.eraseToAnyPublisher()
+        return
+          subject.handleEvents(receiveCancel: { @Sendable [weak self] in
+            Task { await self?.unsubscribe(from: subscriptionID) }
+          })
+          .eraseToAnyPublisher()
       } catch is CancellationError {
         let subject = PassthroughSubject<R, EventSubError>()
         subject.send(completion: .finished)
@@ -85,5 +97,16 @@ extension TwitchClient {
       endpoint: .createEventSubSubscription(using: .websocket(id: socketID), type: event))
 
     return (response, socketID)
+  }
+
+  private func unsubscribe(from subscriptionID: String) async {
+    do {
+      try await self.helix(endpoint: .deleteEventSubSubscription(id: subscriptionID))
+    } catch {
+      // ignore network errors on unsubscribe, if a simple HTTP request fails, it's
+      // fair to assume that the websocket connection is already gone anyways
+    }
+
+    await self.eventSubClient.removeHandler(for: subscriptionID)
   }
 }
