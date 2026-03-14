@@ -36,6 +36,10 @@ extension TwitchClient {
     let (data, response): (Data, URLResponse)
     do {
       (data, response) = try await network.data(for: request)
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
+    } catch let error as CancellationError {
+      throw error
     } catch {
       throw HelixError.networkError(wrapped: error)
     }
