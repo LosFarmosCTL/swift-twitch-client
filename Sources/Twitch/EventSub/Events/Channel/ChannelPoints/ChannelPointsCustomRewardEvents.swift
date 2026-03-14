@@ -1,9 +1,11 @@
 import Foundation
+import MemberwiseInit
 
 // events contain identical shape of data
 public typealias ChannelPointsCustomRewardUpdateEvent = ChannelPointsCustomRewardAddEvent
 public typealias ChannelPointsCustomRewardRemoveEvent = ChannelPointsCustomRewardAddEvent
 
+@MemberwiseInit(.public)
 public struct ChannelPointsCustomRewardAddEvent: Event {
   public let id: String
 
@@ -97,21 +99,22 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
       }
   }
 
-  struct MaxPerStream: Decodable, Sendable {
-    public let isEnabled: Bool
-    public let value: Int
+  private struct MaxPerStream: Decodable, Sendable {
+    let isEnabled: Bool
+    let value: Int
   }
 
-  struct MaxPerUserPerStream: Decodable, Sendable {
-    public let isEnabled: Bool
-    public let value: Int
+  private struct MaxPerUserPerStream: Decodable, Sendable {
+    let isEnabled: Bool
+    let value: Int
   }
 
-  struct GlobalCooldown: Decodable, Sendable {
-    public let isEnabled: Bool
-    public let seconds: Int
+  private struct GlobalCooldown: Decodable, Sendable {
+    let isEnabled: Bool
+    let seconds: Int
   }
 
+  @MemberwiseInit(.public)
   public struct RewardImage: Decodable, Sendable {
     public let url1x: String
     public let url2x: String

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getPolls(
@@ -19,6 +20,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Poll: Decodable, Sendable {
   public let id: String
 
@@ -59,6 +61,7 @@ public struct Poll: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct PollChoice: Decodable, Sendable {
   public let id: String
   public let title: String

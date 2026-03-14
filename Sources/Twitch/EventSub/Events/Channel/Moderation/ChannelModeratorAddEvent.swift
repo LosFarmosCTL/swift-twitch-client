@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelModeratorAddEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String

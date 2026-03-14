@@ -1,7 +1,9 @@
 import Foundation
+import MemberwiseInit
 
 public typealias ChannelGoalProgressEvent = ChannelGoalBeginEvent
 
+@MemberwiseInit(.public)
 public struct ChannelGoalBeginEvent: Event {
   public let id: String
 

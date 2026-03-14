@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionAnalytics(
@@ -25,6 +26,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionReport: Decodable, Sendable {
   public let extensionID: String
   public let url: String

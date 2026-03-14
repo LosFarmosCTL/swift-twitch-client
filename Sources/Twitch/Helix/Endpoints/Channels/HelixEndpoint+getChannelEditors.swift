@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelEditors()
@@ -13,6 +14,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Editor: Decodable, Sendable {
   public let userID: String
   public let userName: String

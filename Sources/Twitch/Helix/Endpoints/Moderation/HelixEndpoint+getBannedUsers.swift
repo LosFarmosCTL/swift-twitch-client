@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBannedUsers(
@@ -26,6 +27,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct BannedUser: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

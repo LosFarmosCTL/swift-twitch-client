@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getCharityCampaign()
@@ -13,6 +14,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CharityCampaign: Decodable, Sendable {
   public let id: String
   public let broadcasterID: String
@@ -38,6 +40,7 @@ public struct CharityCampaign: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CharityAmount: Decodable, Sendable {
   public let value: Int
   public let decimalPlaces: Int

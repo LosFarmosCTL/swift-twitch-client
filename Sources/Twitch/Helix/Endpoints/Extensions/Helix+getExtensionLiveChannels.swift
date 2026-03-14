@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionLiveChannels(
@@ -24,6 +25,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionLiveChannel: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterName: String

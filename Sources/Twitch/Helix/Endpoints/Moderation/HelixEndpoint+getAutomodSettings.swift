@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getAutomodSettings(of channel: String)
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct AutomodSettings: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String

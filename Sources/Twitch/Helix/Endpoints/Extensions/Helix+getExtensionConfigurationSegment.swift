@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionConfigurationSegment(
@@ -29,6 +30,7 @@ public enum ExtensionConfigurationSegmentType: String, Codable, Sendable {
   case global
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionConfigurationSegment: Decodable, Sendable {
   public let segment: ExtensionConfigurationSegmentType
   public let broadcasterID: String?

@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 public struct ChannelPredictionEndEvent: Event {
   public let id: String
 

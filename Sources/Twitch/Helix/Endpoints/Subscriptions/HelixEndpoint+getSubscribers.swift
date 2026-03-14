@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getSubscribers(
@@ -40,6 +41,7 @@ public struct SubscribersResponse: Sendable {
   public let cursor: String?
 }
 
+@MemberwiseInit(.public)
 public struct Subscriber: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

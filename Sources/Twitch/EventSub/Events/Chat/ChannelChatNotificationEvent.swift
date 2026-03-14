@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelChatNotificationEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -222,6 +225,7 @@ public struct ChannelChatNotificationEvent: Event {
 
 // MARK: - Normal notice types
 
+@MemberwiseInit(.public)
 public struct SubNotice: Decodable, Sendable {
   public let subTier: SubTier
   public let isPrime: Bool
@@ -238,6 +242,7 @@ public struct SubNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ResubNotice: Decodable, Sendable {
   public let cumulativeMonths: Int
   public let durationMonths: Int
@@ -309,6 +314,7 @@ public struct ResubNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct SubGiftNotice: Decodable, Sendable {
   public let durationMonths: Int
   public let cumulativeTotal: Int?
@@ -332,6 +338,7 @@ public struct SubGiftNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CommunitySubGiftNotice: Decodable, Sendable {
   public let id: String
   public let total: Int
@@ -339,6 +346,7 @@ public struct CommunitySubGiftNotice: Decodable, Sendable {
   public let cumulativeTotal: Int?
 }
 
+@MemberwiseInit(.public)
 public struct GiftPaidUpgradeNotice: Decodable, Sendable {
   public let gifter: Gifter?
 
@@ -370,10 +378,12 @@ public struct GiftPaidUpgradeNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct PrimePaidUpgradeNotice: Decodable, Sendable {
   public let subTier: SubNotice.SubTier
 }
 
+@MemberwiseInit(.public)
 public struct PayItForwardNotice: Decodable, Sendable {
   public let gifter: Gifter?
 
@@ -405,6 +415,7 @@ public struct PayItForwardNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct RaidNotice: Decodable, Sendable {
   public let userID: String
   public let userName: String
@@ -419,14 +430,17 @@ public struct RaidNotice: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct AnnouncementNotice: Decodable, Sendable {
   public let color: String
 }
 
+@MemberwiseInit(.public)
 public struct BitsBadgeTierNotice: Decodable, Sendable {
   public let tier: Int
 }
 
+@MemberwiseInit(.public)
 public struct CharityDonationNotice: Decodable, Sendable {
   public let charityName: String
   public let amount: CharityDonationEvent.CharityAmount

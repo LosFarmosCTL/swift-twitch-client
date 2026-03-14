@@ -1,8 +1,10 @@
 import Foundation
+import MemberwiseInit
 
 public typealias ChannelPointsCustomRewardRedemptionUpdateEvent =
   ChannelPointsCustomRewardRedemptionAddEvent
 
+@MemberwiseInit(.public)
 public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
   public let id: String
 
@@ -33,6 +35,7 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
     case userInput, status, reward, redeemedAt
   }
 
+  @MemberwiseInit(.public)
   public struct Reward: Decodable, Sendable {
     public let id: String
     public let title: String

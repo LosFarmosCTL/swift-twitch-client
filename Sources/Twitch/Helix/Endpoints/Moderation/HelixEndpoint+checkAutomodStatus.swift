@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func checkAutomodStatus(messages: (id: String, message: String)...)
@@ -26,6 +27,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct AutomodStatus: Decodable, Sendable {
   public let messageID: String
   public let isPermitted: Bool

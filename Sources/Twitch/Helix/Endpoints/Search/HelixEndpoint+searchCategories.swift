@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func searchCategories(
@@ -19,6 +20,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Category: Decodable, Sendable {
   public let id: String
   public let name: String

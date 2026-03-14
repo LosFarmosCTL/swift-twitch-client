@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSuspiciousUserUpdateEvent: Event {
   public let broadcasterID: String
   public let broadcasterName: String

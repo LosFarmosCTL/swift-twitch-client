@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelChatClearEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String

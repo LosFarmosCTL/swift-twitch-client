@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func updateDropsEntitlements(
@@ -29,6 +30,7 @@ private struct UpdateDropsEntitlementsRequestBody: Encodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct DropsEntitlementUpdateResult: Decodable, Sendable {
   public let status: DropsEntitlementUpdateStatus
   public let ids: [String]

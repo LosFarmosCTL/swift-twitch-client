@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getHypeTrainStatus(for broadcasterID: String? = nil)
@@ -19,12 +20,14 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct HypeTrainStatus: Decodable, Sendable {
   public let current: HypeTrainCurrent?
   public let allTimeHigh: HypeTrainRecord?
   public let sharedAllTimeHigh: HypeTrainRecord?
 }
 
+@MemberwiseInit(.public)
 public struct HypeTrainCurrent: Decodable, Sendable {
   public let id: String
 
@@ -62,12 +65,14 @@ public struct HypeTrainCurrent: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct HypeTrainRecord: Decodable, Sendable {
   public let level: Int
   public let total: Int
   public let achievedAt: Date
 }
 
+@MemberwiseInit(.public)
 public struct HypeTrainContribution: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
@@ -87,6 +92,7 @@ public struct HypeTrainContribution: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct HypeTrainParticipant: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String

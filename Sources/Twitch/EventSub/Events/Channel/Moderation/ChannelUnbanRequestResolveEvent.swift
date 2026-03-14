@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelUnbanRequestResolveEvent: Event {
   public let id: String
 

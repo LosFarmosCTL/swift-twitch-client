@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func banUser(
@@ -42,6 +43,7 @@ private struct BanUserBody: Encodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Ban: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String

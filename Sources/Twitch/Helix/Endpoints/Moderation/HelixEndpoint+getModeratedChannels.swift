@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getModeratedChannels(
@@ -21,6 +22,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ModeratedChannel: Decodable, Sendable {
   public let id: String
   public let login: String

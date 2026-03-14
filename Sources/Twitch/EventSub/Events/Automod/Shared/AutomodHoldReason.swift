@@ -1,13 +1,17 @@
+import MemberwiseInit
+
 public enum AutomodHoldReason: Sendable {
   case automod(Automod)
   case blockedTerm(BlockedTerm)
 
+  @MemberwiseInit(.public)
   public struct Automod: Decodable, Sendable {
     public let category: String
     public let level: Int
     public let boundaries: [Boundary]
   }
 
+  @MemberwiseInit(.public)
   public struct BlockedTerm: Decodable, Sendable {
     public let terms: [Term]
 
@@ -15,6 +19,7 @@ public enum AutomodHoldReason: Sendable {
       case terms = "termsFound"
     }
 
+    @MemberwiseInit(.public)
     public struct Term: Decodable, Sendable {
       public let termID: String
       public let boundary: Boundary
@@ -32,6 +37,7 @@ public enum AutomodHoldReason: Sendable {
     }
   }
 
+  @MemberwiseInit(.public)
   public struct Boundary: Decodable, Sendable {
     public let startPosition: Int
     public let endPosition: Int

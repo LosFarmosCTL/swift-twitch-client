@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getStreamKey()
@@ -21,6 +22,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct StreamKey: Decodable, Sendable {
   public let streamKey: String
 }

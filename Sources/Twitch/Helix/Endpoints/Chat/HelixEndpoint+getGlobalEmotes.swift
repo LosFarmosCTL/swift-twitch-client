@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getGlobalEmotes()
@@ -23,6 +24,7 @@ public struct GlobalEmotes: Sendable {
   public let template: String
 }
 
+@MemberwiseInit(.public)
 public struct GlobalEmote: Decodable, Sendable {
   public let id: String
   public let name: String

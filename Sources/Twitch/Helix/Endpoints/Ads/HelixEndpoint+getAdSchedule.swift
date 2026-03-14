@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getAdSchedule()
@@ -12,6 +13,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct AdSchedule: Decodable, Sendable {
   public let nextAdAt: Date
   public let lastAdAt: Date

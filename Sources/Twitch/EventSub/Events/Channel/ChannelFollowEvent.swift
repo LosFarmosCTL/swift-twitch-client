@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 public struct ChannelFollowEvent: Event {
   public let userID: String
   public let userLogin: String

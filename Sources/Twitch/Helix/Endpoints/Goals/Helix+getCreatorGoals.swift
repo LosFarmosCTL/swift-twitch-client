@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getCreatorGoals(broadcasterID: String? = nil)
@@ -13,6 +14,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CreatorGoal: Decodable, Sendable {
   public let id: String
   public let broadcasterID: String

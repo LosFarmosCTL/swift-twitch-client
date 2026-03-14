@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getContentClassificationLabels(
@@ -15,6 +16,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ContentClassificationLabel: Decodable, Sendable {
   public let id: String
   public let description: String

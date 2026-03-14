@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getFollowedChannels(
@@ -46,6 +47,7 @@ public struct FollowsResponse: Sendable {
   public let cursor: String?
 }
 
+@MemberwiseInit(.public)
 public struct Follow: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String

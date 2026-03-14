@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func searchChannels(
@@ -21,6 +22,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Channel: Decodable, Sendable {
   public let id: String
   public let login: String
@@ -35,6 +37,8 @@ public struct Channel: Decodable, Sendable {
 
   public let profilePictureURL: String
   public let title: String
+
+  @InitRaw(default: nil, type: Date?.self)
   @NilOnTypeMismatch public var startedAt: Date?
 
   enum CodingKeys: String, CodingKey {

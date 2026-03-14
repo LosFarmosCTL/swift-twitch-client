@@ -14,11 +14,18 @@ let package = Package(
     .package(
       url: "https://github.com/MahdiBM/TwitchIRC",
       .upToNextMajor(from: "1.6.0")),
+
+    .package(
+      url: "https://github.com/gohanlon/swift-memberwise-init-macro",
+      .upToNextMajor(from: "0.5.2")),
   ],
   targets: [
     .target(
       name: "Twitch",
-      dependencies: ["TwitchIRC"],
+      dependencies: [
+        "TwitchIRC",
+        .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro"),
+      ],
       swiftSettings: [.swiftLanguageMode(.v6)],
     ),
     .testTarget(

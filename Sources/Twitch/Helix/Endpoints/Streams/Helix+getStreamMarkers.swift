@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getStreamMarkers(
@@ -28,6 +29,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct StreamMarkersByUser: Decodable, Sendable {
   public let userID: String
   public let userName: String
@@ -42,6 +44,7 @@ public struct StreamMarkersByUser: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct StreamMarkersVideo: Decodable, Sendable {
   public let videoID: String
   public let markers: [StreamMarker]
@@ -51,6 +54,7 @@ public struct StreamMarkersVideo: Decodable, Sendable {
     case markers
   }
 
+  @MemberwiseInit(.public)
   public struct StreamMarker: Decodable, Sendable {
     public let id: String
     public let createdAt: Date

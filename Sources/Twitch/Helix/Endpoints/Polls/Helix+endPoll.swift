@@ -28,7 +28,7 @@ public enum PollEndStatus: String, Encodable, Sendable {
   case archived = "ARCHIVED"
 }
 
-internal struct EndPollRequestBody: Encodable, Sendable {
+private struct EndPollRequestBody: Encodable, Sendable {
   let broadcasterID: String
   let id: String
   let status: PollEndStatus

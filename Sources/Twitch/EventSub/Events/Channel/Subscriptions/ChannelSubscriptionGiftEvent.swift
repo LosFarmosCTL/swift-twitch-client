@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSubscriptionGiftEvent: Event {
   public let gifter: Gifter?
 
@@ -44,6 +47,7 @@ public struct ChannelSubscriptionGiftEvent: Event {
     tier = try container.decode(String.self, forKey: .tier)
   }
 
+  @MemberwiseInit(.public)
   public struct Gifter: Sendable {
     public let userID: String
     public let userLogin: String

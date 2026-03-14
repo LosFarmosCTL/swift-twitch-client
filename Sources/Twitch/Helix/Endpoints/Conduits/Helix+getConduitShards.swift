@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getConduitShards(
@@ -35,12 +36,14 @@ public enum ConduitShardStatus: String, Sendable {
   case websocketFailedToReconnect = "websocket_failed_to_reconnect"
 }
 
+@MemberwiseInit(.public)
 public struct ConduitShard: Decodable, Sendable {
   public let id: String
   public let status: String
   public let transport: ConduitShardTransport
 }
 
+@MemberwiseInit(.public)
 public struct ConduitShardTransport: Decodable, Sendable {
   public let method: String
   public let callback: String?

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func createEventSubSubscription(
@@ -62,6 +63,7 @@ public struct CreateEventSubResponse: Sendable {
   public let totalCost: Int
   public let maxTotalCost: Int
 
+  @MemberwiseInit(.public)
   public struct EventSubSubscription: Decodable, Sendable {
     public let id: String
     public let status: String
@@ -73,6 +75,7 @@ public struct CreateEventSubResponse: Sendable {
     public let cost: Int
   }
 
+  @MemberwiseInit(.public)
   public struct TransportResponse: Decodable, Sendable {
     public let method: String
 

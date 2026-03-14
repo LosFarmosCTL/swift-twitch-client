@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 public struct ChannelShoutoutReceiveEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String

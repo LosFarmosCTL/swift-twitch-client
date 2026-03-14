@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getTeams(
@@ -17,6 +18,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Team: Decodable, Sendable {
   public let id: String
   public let teamName: String
@@ -49,6 +51,7 @@ public struct Team: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct TeamMember: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

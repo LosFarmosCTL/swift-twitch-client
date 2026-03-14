@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct CharityCampaignProgressEvent: Event {
   public let id: String
 

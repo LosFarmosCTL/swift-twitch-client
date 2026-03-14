@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func sendChatMessage(
@@ -29,6 +30,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ChatMessageResponse: Decodable, Sendable {
   public let messageID: String
   public let isSent: Bool
@@ -43,12 +45,12 @@ public struct ChatMessageResponse: Decodable, Sendable {
   }
 
   public struct DropReason: Decodable, Sendable {
-    let code: String
-    let message: String
+    public let code: String
+    public let message: String
   }
 }
 
-internal struct SendChatMessageRequestBody: Encodable, Sendable {
+private struct SendChatMessageRequestBody: Encodable, Sendable {
   let broadcasterID: String
   let senderID: String
   let message: String

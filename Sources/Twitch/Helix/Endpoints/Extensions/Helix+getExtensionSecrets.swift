@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionSecrets(
@@ -24,11 +25,13 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionSecretsResponse: Decodable, Sendable {
   public let formatVersion: Int
   public let secrets: [ExtensionSecret]
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionSecret: Decodable, Sendable {
   public let content: String
   public let activeAt: Date

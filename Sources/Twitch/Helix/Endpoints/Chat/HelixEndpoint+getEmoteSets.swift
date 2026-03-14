@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 public typealias EmoteSetID = String
 
@@ -22,12 +23,14 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct EmoteSetResponse: Decodable, Sendable {
   public let emotes: [SetEmote]
 
   public let template: String
 }
 
+@MemberwiseInit(.public)
 public struct SetEmote: Decodable, Sendable {
   public let id: String
   public let name: String

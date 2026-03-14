@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getPredictions(
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Prediction: Decodable, Sendable {
   public let id: String
 
@@ -66,6 +68,7 @@ public struct Prediction: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct PredictionOutcome: Decodable, Sendable {
   public let id: String
   public let title: String
@@ -79,6 +82,7 @@ public struct PredictionOutcome: Decodable, Sendable {
     case blue = "BLUE"
   }
 
+  @MemberwiseInit(.public)
   public struct TopPredictor: Decodable, Sendable {
     public let userID: String
     public let userLogin: String

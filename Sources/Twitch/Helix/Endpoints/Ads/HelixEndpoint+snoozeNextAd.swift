@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func snoozeNextAd()
@@ -18,6 +19,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct SnoozeResult: Decodable, Sendable {
   public let snoozeCount: Int
   public let snoozeRefreshAt: Date

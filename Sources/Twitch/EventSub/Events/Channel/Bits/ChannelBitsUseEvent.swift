@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelBitsUseEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -37,6 +40,7 @@ public struct ChannelBitsUseEvent: Event {
     type = try BitsUseType(from: decoder)
   }
 
+  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     public let text: String
     public let fragments: [Fragment]
@@ -46,6 +50,7 @@ public struct ChannelBitsUseEvent: Event {
       case fragments
     }
 
+    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       public let text: String
       public let type: FragmentType
@@ -89,6 +94,7 @@ public struct ChannelBitsUseEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
         public let emoteSetID: String
@@ -108,6 +114,7 @@ public struct ChannelBitsUseEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Cheermote: Decodable, Sendable {
         public let prefix: String
         public let bits: Int
@@ -121,6 +128,7 @@ public enum BitsUseType: Sendable {
   case cheer
   case powerUp(PowerUp)
 
+  @MemberwiseInit(.public)
   public struct PowerUp: Decodable, Sendable {
     public let type: String
     public let emote: Emote?

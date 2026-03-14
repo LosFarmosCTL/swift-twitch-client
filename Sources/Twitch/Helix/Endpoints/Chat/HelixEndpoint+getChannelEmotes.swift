@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelEmotes(
@@ -23,6 +24,7 @@ public struct ChannelEmotes: Sendable {
   public let template: String
 }
 
+@MemberwiseInit(.public)
 public struct ChannelEmote: Decodable, Sendable {
   public let id: String
   public let name: String

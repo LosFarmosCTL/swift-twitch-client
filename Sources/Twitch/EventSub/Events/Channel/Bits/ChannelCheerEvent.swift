@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelCheerEvent: Event {
   public let isAnonymous: Bool
 

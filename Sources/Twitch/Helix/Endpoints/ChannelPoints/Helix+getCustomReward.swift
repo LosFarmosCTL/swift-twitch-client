@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getCustomRewards(
@@ -18,6 +19,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CustomReward: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -70,6 +72,7 @@ public struct CustomReward: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CustomRewardImage: Decodable, Sendable {
   public let url1x: String
   public let url2x: String
@@ -82,6 +85,7 @@ public struct CustomRewardImage: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct RewardSetting: Decodable, Sendable {
   public let isEnabled: Bool
   public let maxPerStream: Int?

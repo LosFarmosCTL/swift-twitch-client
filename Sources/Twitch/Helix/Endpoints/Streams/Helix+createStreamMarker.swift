@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func createStreamMarker(
@@ -27,6 +28,7 @@ private struct CreateStreamMarkerRequestBody: Encodable, Sendable {
   let description: String?
 }
 
+@MemberwiseInit(.public)
 public struct StreamMarker: Decodable, Sendable {
   public let id: String
   public let createdAt: Date

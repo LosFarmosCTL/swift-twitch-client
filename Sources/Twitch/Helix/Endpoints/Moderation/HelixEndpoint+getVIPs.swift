@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getVIPs(
@@ -18,6 +19,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct VIP: Decodable, Sendable {
   public let id: String
   public let login: String

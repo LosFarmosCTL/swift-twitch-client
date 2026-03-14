@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBlockedTerms(
@@ -25,6 +26,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct BlockedTerm: Decodable, Sendable {
   public let broadcasterID: String
   public let moderatorID: String

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelBadges(
@@ -11,6 +12,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct BadgeSet: Decodable, Sendable {
   public let setID: String
   public let badges: [Badge]
@@ -21,6 +23,7 @@ public struct BadgeSet: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Badge: Decodable, Sendable {
   public let id: String
   public let images: BadgeImages

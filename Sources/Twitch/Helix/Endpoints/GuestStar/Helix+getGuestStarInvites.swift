@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getGuestStarInvites(
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct GuestStarInvite: Decodable, Sendable {
   public let userID: String
   public let invitedAt: Date

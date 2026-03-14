@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChatters(
@@ -37,6 +38,7 @@ public struct Chatters: Sendable {
   public let cursor: String?
 }
 
+@MemberwiseInit(.public)
 public struct Chatter: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSharedChatSessionBeginEvent: Event {
   public let sessionID: String
 
@@ -25,6 +28,7 @@ public struct ChannelSharedChatSessionBeginEvent: Event {
     case participants
   }
 
+  @MemberwiseInit(.public)
   public struct Participant: Decodable, Sendable {
     public let broadcasterID: String
     public let broadcasterName: String

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChatSettings(
@@ -19,6 +20,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ChatSettings: Decodable, Sendable {
   public let broadcasterID: String
   public let slowModeWaitTime: Int?

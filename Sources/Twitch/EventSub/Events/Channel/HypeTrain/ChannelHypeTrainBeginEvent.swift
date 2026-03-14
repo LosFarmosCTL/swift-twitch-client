@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 public struct ChannelHypeTrainBeginEvent: Event {
   public let id: String
 
@@ -48,6 +50,7 @@ public struct ChannelHypeTrainBeginEvent: Event {
     case goldenKappa = "golden_kappa"
   }
 
+  @MemberwiseInit(.public)
   public struct Broadcaster: Decodable, Sendable {
     public let userID: String
     public let userLogin: String
@@ -60,6 +63,7 @@ public struct ChannelHypeTrainBeginEvent: Event {
     }
   }
 
+  @MemberwiseInit(.public)
   public struct HypeTrainContribution: Decodable, Sendable {
     public let userID: String
     public let userLogin: String

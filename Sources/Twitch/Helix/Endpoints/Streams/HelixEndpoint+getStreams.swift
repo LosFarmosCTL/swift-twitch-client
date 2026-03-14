@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getStreams(
@@ -34,6 +35,7 @@ public enum StreamType: String, Sendable {
   case all
 }
 
+@MemberwiseInit(.public)
 public struct Stream: Decodable, Sendable {
   public let id: String
 

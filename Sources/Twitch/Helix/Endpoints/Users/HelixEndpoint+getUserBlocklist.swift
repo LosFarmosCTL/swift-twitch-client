@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBlocklist(
@@ -20,6 +21,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct BlockedUser: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

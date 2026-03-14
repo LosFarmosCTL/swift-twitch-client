@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getVideos(
@@ -54,6 +55,7 @@ public enum VideoTypeFilter: String, Sendable {
   case upload
 }
 
+@MemberwiseInit(.public)
 public struct Video: Decodable, Sendable {
   public let id: String
   public let streamID: String?
@@ -100,6 +102,7 @@ public enum VideoType: String, Decodable, Sendable {
   case upload
 }
 
+@MemberwiseInit(.public)
 public struct MutedSegment: Decodable, Sendable {
   public let duration: Int
   public let offset: Int

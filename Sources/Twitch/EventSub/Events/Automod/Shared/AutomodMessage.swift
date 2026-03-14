@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct AutomodMessage: Decodable, Sendable {
   public let text: String
   public let fragments: [Fragment]
@@ -7,6 +10,7 @@ public struct AutomodMessage: Decodable, Sendable {
     case fragments
   }
 
+  @MemberwiseInit(.public)
   public struct Fragment: Decodable, Sendable {
     public let type: FragmentType
     public let text: String
@@ -44,6 +48,7 @@ public struct AutomodMessage: Decodable, Sendable {
       case cheermote
     }
 
+    @MemberwiseInit(.public)
     public struct Emote: Decodable, Sendable {
       public let id: String
       public let emoteSetID: String
@@ -54,6 +59,7 @@ public struct AutomodMessage: Decodable, Sendable {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Cheermote: Decodable, Sendable {
       public let prefix: String
       public let bits: Int

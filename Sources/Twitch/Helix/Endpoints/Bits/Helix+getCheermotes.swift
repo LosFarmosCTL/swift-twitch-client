@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getCheermotes(
@@ -13,6 +14,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Cheermote: Decodable, Sendable {
   public let prefix: String
   public let tiers: [CheermoteTier]
@@ -22,6 +24,7 @@ public struct Cheermote: Decodable, Sendable {
   public let isCharitable: Bool
 }
 
+@MemberwiseInit(.public)
 public struct CheermoteTier: Decodable, Sendable {
   public let minBits: Int
   public let id: String
@@ -31,11 +34,13 @@ public struct CheermoteTier: Decodable, Sendable {
   public let showInBitsCard: Bool
 }
 
+@MemberwiseInit(.public)
 public struct CheermoteImages: Decodable, Sendable {
   public let dark: CheermoteImageSet
   public let light: CheermoteImageSet
 }
 
+@MemberwiseInit(.public)
 public struct CheermoteImageSet: Decodable, Sendable {
   public let animated: CheermoteImageScaleSet
   public let staticImages: CheermoteImageScaleSet
@@ -47,6 +52,7 @@ public struct CheermoteImageSet: Decodable, Sendable {
 }
 
 // swiftlint:disable identifier_name
+@MemberwiseInit(.public)
 public struct CheermoteImageScaleSet: Decodable, Sendable {
   public let url1x: String
   public let url1_5x: String

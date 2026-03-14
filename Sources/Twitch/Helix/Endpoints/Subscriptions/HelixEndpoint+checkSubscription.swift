@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func checkSubscription(to channel: String)
@@ -18,6 +19,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Subscription: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -64,6 +66,7 @@ public enum SubTier: String, Decodable, Sendable {
   case tier3 = "3000"
 }
 
+@MemberwiseInit(.public)
 public struct SubGifter: Decodable, Sendable {
   public let id: String
   public let login: String

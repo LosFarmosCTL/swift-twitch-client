@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSubscriptionEndEvent: Event {
   public let userID: String
   public let userLogin: String

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func startRaid(
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct PendingRaid: Decodable, Sendable {
   public let createdAt: Date
   public let isMature: Bool

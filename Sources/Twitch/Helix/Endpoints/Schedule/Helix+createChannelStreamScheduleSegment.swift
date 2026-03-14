@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func createChannelStreamScheduleSegment(
@@ -44,6 +45,7 @@ private struct CreateChannelStreamScheduleSegmentRequestBody: Encodable, Sendabl
   let title: String?
 }
 
+@MemberwiseInit(.public)
 public struct StreamSchedule: Decodable, Sendable {
   public let segments: [StreamScheduleSegment]
   public let broadcasterID: String
@@ -59,6 +61,7 @@ public struct StreamSchedule: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct StreamScheduleSegment: Decodable, Sendable {
   public let id: String
   public let startTime: Date
@@ -69,11 +72,13 @@ public struct StreamScheduleSegment: Decodable, Sendable {
   public let isRecurring: Bool
 }
 
+@MemberwiseInit(.public)
 public struct StreamScheduleCategory: Decodable, Sendable {
   public let id: String
   public let name: String
 }
 
+@MemberwiseInit(.public)
 public struct StreamScheduleVacation: Decodable, Sendable {
   public let startTime: Date
   public let endTime: Date

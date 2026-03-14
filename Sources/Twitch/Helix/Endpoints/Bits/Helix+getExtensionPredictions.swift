@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionPredictions(
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionPrediction: Decodable, Sendable {
   public let id: String
   public let broadcasterID: String
@@ -46,6 +48,7 @@ public struct ExtensionPrediction: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionPredictionOutcome: Decodable, Sendable {
   public let id: String
   public let title: String

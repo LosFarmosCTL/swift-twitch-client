@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func startCommercial(
@@ -29,6 +30,7 @@ private struct StartCommercialRequestBody: Encodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Commercial: Decodable, Sendable {
   public let length: Int
   public let message: String

@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -25,6 +27,7 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
     case id, reward, message, redeemedAt
   }
 
+  @MemberwiseInit(.public)
   public struct Reward: Decodable, Sendable {
     public let type: RewardType
     public let channelPoints: Int
@@ -43,10 +46,12 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
     }
   }
 
+  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     public let text: String
     public let fragments: [Fragment]
 
+    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       public let type: FragmentType
       public let text: String
@@ -71,6 +76,7 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
         case emote
       }
 
+      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
       }

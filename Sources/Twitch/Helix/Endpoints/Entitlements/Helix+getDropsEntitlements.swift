@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getDropsEntitlements(
@@ -27,6 +28,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct DropsEntitlement: Decodable, Sendable {
   public let id: String
   public let benefitID: String

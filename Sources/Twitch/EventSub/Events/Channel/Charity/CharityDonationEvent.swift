@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct CharityDonationEvent: Event {
   public let id: String
   public let campaignID: String
@@ -34,6 +37,7 @@ public struct CharityDonationEvent: Event {
     case amount
   }
 
+  @MemberwiseInit(.public)
   public struct CharityAmount: Decodable, Sendable {
     public let value: Int
     public let decimalPlaces: Int

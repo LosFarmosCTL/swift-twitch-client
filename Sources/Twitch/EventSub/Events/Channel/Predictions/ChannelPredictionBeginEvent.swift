@@ -1,7 +1,9 @@
 import Foundation
+import MemberwiseInit
 
 public typealias ChannelPredictionProgressEvent = ChannelPredictionBeginEvent
 
+@MemberwiseInit(.public)
 public struct ChannelPredictionBeginEvent: Event {
   public let id: String
 
@@ -24,6 +26,7 @@ public struct ChannelPredictionBeginEvent: Event {
     case startedAt, locksAt
   }
 
+  @MemberwiseInit(.public)
   public struct Outcome: Decodable, Sendable {
     public let id: String
     public let title: String
@@ -37,6 +40,7 @@ public struct ChannelPredictionBeginEvent: Event {
       case pink, blue
     }
 
+    @MemberwiseInit(.public)
     public struct TopPredictor: Decodable, Sendable {
       public let userID: String
       public let userLogin: String

@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelGuestStarSettingsUpdateEvent: Event {
   public let broadcasterID: String
   public let broadcasterName: String

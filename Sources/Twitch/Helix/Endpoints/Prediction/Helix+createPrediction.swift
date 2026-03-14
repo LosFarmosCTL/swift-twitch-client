@@ -25,7 +25,7 @@ extension HelixEndpoint {
   }
 }
 
-internal struct CreatePredictionRequestBody: Encodable, Sendable {
+private struct CreatePredictionRequestBody: Encodable, Sendable {
   let broadcasterID: String
   let title: String
   let outcomes: [Outcome]

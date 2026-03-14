@@ -1,7 +1,9 @@
 import Foundation
+import MemberwiseInit
 
 public typealias ChannelPollProgressEvent = ChannelPollBeginEvent
 
+@MemberwiseInit(.public)
 public struct ChannelPollBeginEvent: Event {
   public let id: String
 
@@ -49,6 +51,7 @@ public struct ChannelPollBeginEvent: Event {
       }
   }
 
+  @MemberwiseInit(.public)
   public struct PollChoice: Decodable, Sendable {
     public let id: String
     public let title: String
@@ -57,7 +60,7 @@ public struct ChannelPollBeginEvent: Event {
   }
 
   struct ChannelPointsVoting: Decodable, Sendable {
-    public let isEnabled: Bool
-    public let amountPerVote: Int
+    let isEnabled: Bool
+    let amountPerVote: Int
   }
 }

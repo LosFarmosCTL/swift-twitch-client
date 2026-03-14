@@ -1,5 +1,7 @@
 import Foundation
+import MemberwiseInit
 
+@MemberwiseInit(.public)
 // swiftlint:disable:next type_body_length
 public struct ChannelModerateEvent: Event {
   public let broadcasterID: String
@@ -204,6 +206,7 @@ public struct ChannelModerateEvent: Event {
       case sharedChatDelete = "shared_chat_delete"
     }
 
+    @MemberwiseInit(.public)
     public struct User: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -215,6 +218,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Ban: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -228,6 +232,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Timeout: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -242,6 +247,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Raid: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -255,6 +261,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Delete: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -270,6 +277,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct Warn: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -284,11 +292,13 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    @MemberwiseInit(.public)
     public struct AutomodTerm: Codable, Sendable {
       public let terms: [String]
       public let fromAutomod: Bool
     }
 
+    @MemberwiseInit(.public)
     public struct UnbanRequest: Codable, Sendable {
       public let userID: String
       public let userLogin: String
@@ -303,11 +313,11 @@ public struct ChannelModerateEvent: Event {
     }
 
     private struct FollowerMode: Codable, Sendable {
-      public let followDurationMinutes: Int
+      let followDurationMinutes: Int
     }
 
     private struct SlowMode: Codable, Sendable {
-      public let waitTimeSeconds: Int
+      let waitTimeSeconds: Int
     }
   }
 }

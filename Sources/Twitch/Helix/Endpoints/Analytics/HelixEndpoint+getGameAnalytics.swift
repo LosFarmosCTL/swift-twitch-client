@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getGameAnalytics(
@@ -25,6 +26,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct GameReport: Decodable, Sendable {
   public let gameID: String
   public let url: String

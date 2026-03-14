@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getUserExtensions()
@@ -10,6 +11,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct UserExtension: Decodable, Sendable {
   public let id: String
   public let version: String

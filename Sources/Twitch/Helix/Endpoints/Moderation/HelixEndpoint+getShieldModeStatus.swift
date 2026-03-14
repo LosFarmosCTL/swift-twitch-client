@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getShieldModeStatus(of channel: String)
@@ -25,11 +26,14 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ShieldModeStatus: Decodable, Sendable {
   public let isActive: Bool
   public let moderatorID: String
   public let moderatorName: String
   public let moderatorLogin: String
+
+  @InitRaw(default: nil, type: Date?.self)
   @NilOnTypeMismatch public var lastActivatedAt: Date?
 
   enum CodingKeys: String, CodingKey {

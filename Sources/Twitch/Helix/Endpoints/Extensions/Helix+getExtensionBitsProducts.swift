@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtensionBitsProducts(
@@ -16,6 +17,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionBitsProduct: Decodable, Sendable {
   public let sku: String
   public let cost: ExtensionBitsProductCost
@@ -31,6 +33,7 @@ public struct ExtensionBitsProduct: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ExtensionBitsProductCost: Decodable, Sendable {
   public let amount: Int
   public let type: ExtensionBitsProductCostType

@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getExtension(
@@ -23,6 +24,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct Extension: Decodable, Sendable {
   public let authorName: String
   public let bitsEnabled: Bool
@@ -48,6 +50,7 @@ public struct Extension: Decodable, Sendable {
   public let allowlistedConfigUrls: [String]?
   public let allowlistedPanelUrls: [String]?
 
+  @MemberwiseInit(.public)
   public struct ExtensionViews: Decodable, Sendable {
     public let mobile: ExtensionView?
     public let panel: ExtensionPanelView?
@@ -55,17 +58,20 @@ public struct Extension: Decodable, Sendable {
     public let component: ExtensionComponentView?
   }
 
+  @MemberwiseInit(.public)
   public struct ExtensionView: Decodable, Sendable {
     public let viewerUrl: String
     public let canLinkExternalContent: Bool?
   }
 
+  @MemberwiseInit(.public)
   public struct ExtensionPanelView: Decodable, Sendable {
     public let viewerUrl: String
     public let height: Int
     public let canLinkExternalContent: Bool
   }
 
+  @MemberwiseInit(.public)
   public struct ExtensionComponentView: Decodable, Sendable {
     public let viewerUrl: String
     public let aspectRatioX: Int?

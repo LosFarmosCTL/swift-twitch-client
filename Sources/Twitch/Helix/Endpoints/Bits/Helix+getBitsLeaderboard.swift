@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBitsLeaderboard(
@@ -44,6 +45,7 @@ public struct BitsLeaderboard: Sendable {
   public let endDate: Date?
 }
 
+@MemberwiseInit(.public)
 public struct BitsLeaderboardEntry: Decodable, Sendable {
   public let userID: String
   public let userLogin: String

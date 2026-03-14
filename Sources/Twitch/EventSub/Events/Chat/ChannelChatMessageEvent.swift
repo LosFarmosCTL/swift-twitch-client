@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelChatMessageEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -58,6 +61,7 @@ public struct ChannelChatMessageEvent: Event {
     case powerUpsGigantifiedEmote = "power_ups_gigantified_emote"
   }
 
+  @MemberwiseInit(.public)
   public struct Badge: Decodable, Sendable {
     public let setID: String
     public let id: String
@@ -69,6 +73,7 @@ public struct ChannelChatMessageEvent: Event {
     }
   }
 
+  @MemberwiseInit(.public)
   public struct Reply: Decodable, Sendable {
     public let parentID: String
     public let parentBody: String
@@ -97,10 +102,12 @@ public struct ChannelChatMessageEvent: Event {
     }
   }
 
+  @MemberwiseInit(.public)
   public struct Cheer: Decodable, Sendable {
     public let bits: Int
   }
 
+  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     public let text: String
     public let fragments: [Fragment]
@@ -110,6 +117,7 @@ public struct ChannelChatMessageEvent: Event {
       case fragments
     }
 
+    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       public let type: FragmentType
       public let text: String
@@ -160,6 +168,7 @@ public struct ChannelChatMessageEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
         public let setID: String
@@ -178,12 +187,14 @@ public struct ChannelChatMessageEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Cheermote: Decodable, Sendable {
         public let prefix: String
         public let tier: Int
         public let bits: Int
       }
 
+      @MemberwiseInit(.public)
       public struct Mention: Decodable, Sendable {
         public let userID: String
         public let userLogin: String

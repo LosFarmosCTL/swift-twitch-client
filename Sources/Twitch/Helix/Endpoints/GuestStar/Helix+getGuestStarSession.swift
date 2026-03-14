@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getGuestStarSession(
@@ -26,11 +27,13 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct GuestStarSession: Decodable, Sendable {
   public let id: String
   public let guests: [GuestStarGuest]
 }
 
+@MemberwiseInit(.public)
 public struct GuestStarGuest: Decodable, Sendable {
   public let slotID: String
   public let userID: String
@@ -55,6 +58,7 @@ public struct GuestStarGuest: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct GuestStarMediaSettings: Decodable, Sendable {
   public let isHostEnabled: Bool?
   public let isGuestEnabled: Bool?

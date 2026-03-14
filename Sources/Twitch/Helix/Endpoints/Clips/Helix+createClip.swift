@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func createClip(
@@ -25,6 +26,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct ClipCreation: Decodable, Sendable {
   public let id: String
   public let editURL: String

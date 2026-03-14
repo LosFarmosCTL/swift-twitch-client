@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getCustomRewardRedemptions(
@@ -30,6 +31,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CustomRewardRedemption: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
@@ -60,6 +62,7 @@ public struct CustomRewardRedemption: Decodable, Sendable {
   }
 }
 
+@MemberwiseInit(.public)
 public struct CustomRewardRedemptionReward: Decodable, Sendable {
   public let id: String
   public let title: String

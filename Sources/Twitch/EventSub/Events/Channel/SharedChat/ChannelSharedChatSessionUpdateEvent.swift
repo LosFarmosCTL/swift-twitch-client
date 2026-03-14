@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSharedChatSessionUpdateEvent: Event {
   public let sessionID: String
 

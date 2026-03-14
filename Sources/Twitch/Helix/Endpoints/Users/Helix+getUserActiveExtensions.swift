@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getUserActiveExtensions(
@@ -22,6 +23,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct UserActiveExtensions: Decodable, Sendable {
   public let panel: [String: ExtensionSlot]?
   public let overlay: [String: ExtensionSlot]?
@@ -29,6 +31,7 @@ public struct UserActiveExtensions: Decodable, Sendable {
 }
 
 // swiftlint:disable identifier_name
+@MemberwiseInit(.public)
 public struct ExtensionSlot: Decodable, Sendable {
   public let isActive: Bool
   public let id: String?

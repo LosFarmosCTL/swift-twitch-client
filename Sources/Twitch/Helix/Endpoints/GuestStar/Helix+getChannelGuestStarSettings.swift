@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelGuestStarSettings(
@@ -26,6 +27,7 @@ extension HelixEndpoint {
   }
 }
 
+@MemberwiseInit(.public)
 public struct GuestStarChannelSettings: Decodable, Sendable {
   public let isModeratorSendLiveEnabled: Bool
   public let slotCount: Int

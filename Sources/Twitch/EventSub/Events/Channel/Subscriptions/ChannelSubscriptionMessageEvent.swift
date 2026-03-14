@@ -1,3 +1,7 @@
+import Foundation
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSubscriptionMessageEvent: Event {
   public let userID: String
   public let userLogin: String
@@ -26,10 +30,12 @@ public struct ChannelSubscriptionMessageEvent: Event {
     case message
   }
 
+  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     public let text: String
     public let emotes: [Emote]
 
+    @MemberwiseInit(.public)
     public struct Emote: Decodable, Sendable {
       public let begin: Int
       public let end: Int

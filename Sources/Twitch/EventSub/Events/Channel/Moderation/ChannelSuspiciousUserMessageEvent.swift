@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct ChannelSuspiciousUserMessageEvent: Event {
   public let broadcasterID: String
   public let broadcasterName: String
@@ -42,6 +45,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
     case unknown, possible, likely
   }
 
+  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     public let id: String
     public let text: String
@@ -52,6 +56,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
       case text, fragments
     }
 
+    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       public let text: String
       public let type: FragmentType
@@ -95,6 +100,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
         public let emoteSetID: String
@@ -105,6 +111,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
         }
       }
 
+      @MemberwiseInit(.public)
       public struct Cheermote: Decodable, Sendable {
         public let prefix: String
         public let bits: Int

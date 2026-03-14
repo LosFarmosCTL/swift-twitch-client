@@ -1,3 +1,6 @@
+import MemberwiseInit
+
+@MemberwiseInit(.public)
 public struct WhisperReceivedEvent: Event {
   public let fromUserID: String
   public let fromUserName: String
