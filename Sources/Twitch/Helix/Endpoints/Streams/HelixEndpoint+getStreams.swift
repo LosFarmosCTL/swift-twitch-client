@@ -11,7 +11,10 @@ extension HelixEndpoint {
     limit: Int? = nil,
     before endCursor: String? = nil,
     after startCursor: String? = nil
-  ) -> HelixEndpoint<([Stream], String?), Stream, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (streams: [Stream], paginationCursor: String?),
+    Stream, HelixEndpointResponseTypes.Normal
+  > {
     let userIDs = userIDs.compactMap { ("user_id", $0) }
     let userLogins = userLogins.compactMap { ("user_login", $0) }
     let gameIDs = gameIDs.compactMap { ("game_id", $0) }

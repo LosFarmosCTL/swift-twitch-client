@@ -12,7 +12,10 @@ extension HelixEndpoint {
     before cursorBefore: String? = nil,
     after cursorAfter: String? = nil,
     isFeatured: Bool? = nil
-  ) -> HelixEndpoint<([Clip], String?), Clip, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (clips: [Clip], paginationCursor: String?),
+    Clip, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "clips",
       queryItems: { _ in

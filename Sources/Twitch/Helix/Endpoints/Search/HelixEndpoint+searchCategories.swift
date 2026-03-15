@@ -6,7 +6,10 @@ extension HelixEndpoint {
     for searchQuery: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<([Category], String?), Category, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (categories: [Category], paginationCursor: String?),
+    Category, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "search/categories",
       queryItems: { _ in

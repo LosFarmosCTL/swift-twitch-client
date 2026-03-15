@@ -7,7 +7,10 @@ extension HelixEndpoint {
     liveOnly: Bool? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<([Channel], String?), Channel, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (channels: [Channel], paginationCursor: String?),
+    Channel, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "search/channels",
       queryItems: { _ in

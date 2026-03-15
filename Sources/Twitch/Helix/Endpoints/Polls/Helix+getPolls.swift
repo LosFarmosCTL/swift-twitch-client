@@ -6,7 +6,10 @@ extension HelixEndpoint {
     filterIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
-  ) -> HelixEndpoint<([Poll], String?), Poll, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (polls: [Poll], paginationCursor: String?),
+    Poll, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "polls",
       queryItems: { auth in

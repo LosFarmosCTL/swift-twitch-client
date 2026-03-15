@@ -5,7 +5,10 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) -> HelixEndpoint<([Game], String?), Game, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (games: [Game], paginationCursor: String?),
+    Game, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "games/top",
       queryItems: { _ in

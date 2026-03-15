@@ -6,7 +6,10 @@ extension HelixEndpoint {
     filterUserIDs: [String] = [],
     limit: Int? = nil,
     after startCursor: String? = nil
-  ) -> HelixEndpoint<([VIP], String?), VIP, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (vips: [VIP], paginationCursor: String?),
+    VIP, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "channels/vips",
       queryItems: { auth in

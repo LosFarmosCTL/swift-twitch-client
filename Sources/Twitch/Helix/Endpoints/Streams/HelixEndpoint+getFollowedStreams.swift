@@ -4,7 +4,10 @@ extension HelixEndpoint {
   public static func getFollowedStreams(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<([Stream], String?), Stream, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (streams: [Stream], paginationCursor: String?),
+    Stream, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "streams/followed",
       queryItems: { auth in

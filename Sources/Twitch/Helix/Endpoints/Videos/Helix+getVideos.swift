@@ -13,7 +13,10 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after startCursor: String? = nil,
     before endCursor: String? = nil
-  ) -> HelixEndpoint<([Video], String?), Video, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<
+    (videos: [Video], paginationCursor: String?),
+    Video, HelixEndpointResponseTypes.Normal
+  > {
     let idQueryItems = ids.map { ("id", $0) }
 
     return .init(
