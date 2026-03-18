@@ -38,7 +38,7 @@ public struct Channel: Decodable, Sendable {
   public let isLive: Bool
   public let tags: [String]
 
-  public let profilePictureURL: String
+  public let profileImageURL: String
   public let title: String
 
   @InitRaw(default: nil, type: Date?.self)
@@ -55,7 +55,7 @@ public struct Channel: Decodable, Sendable {
 
     case isLive, tags
 
-    case profilePictureURL = "thumbnailUrl"
+    case profileImageURL = "thumbnailUrl"
     case title, startedAt
   }
 }
