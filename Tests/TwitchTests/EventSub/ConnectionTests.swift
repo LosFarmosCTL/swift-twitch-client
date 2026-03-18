@@ -181,4 +181,28 @@ struct WebSocketClientTests {
     let task = try #require(await session.lastTask())
     #expect(await task.didCancel)
   }
+
+  @Test("Client reuses one websocket for parallel initial subscriptions")
+  func testParallelInitialSubscriptionsReuseOneWebsocket() async throws {
+    await session.simulateIncoming(.string(MockedMessages.welcomeMessage), queue: true)
+
+    _ = try await withThrowingTaskGroup(
+      of: AsyncThrowingStream<MockEvent, any Error>.self
+    ) { group in
+      for _ in 0..<10 {
+        group.addTask {
+          try await twitch.eventStream(for: .mock())
+        }
+      }
+
+      var streams: [AsyncThrowingStream<MockEvent, any Error>] = []
+      for try await stream in group {
+        streams.append(stream)
+      }
+
+      return streams
+    }
+
+    #expect(await session.taskCount() == 1)
+  }
 }

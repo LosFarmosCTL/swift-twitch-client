@@ -94,6 +94,10 @@ actor MockNetworkSession: NetworkSession {
     webSocketTasks.indices.contains(index) ? webSocketTasks[index] : nil
   }
 
+  func taskCount() -> Int {
+    webSocketTasks.count
+  }
+
   func lastTask() -> MockWebSocketTask? {
     webSocketTasks.last
   }

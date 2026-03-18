@@ -93,10 +93,16 @@ extension TwitchClient {
   {
     let socketID = try await self.eventSubClient.getFreeWebsocketID()
 
-    let response = try await self.helix(
-      endpoint: .createEventSubSubscription(using: .websocket(id: socketID), type: event))
+    do {
+      let response = try await self.helix(
+        endpoint: .createEventSubSubscription(
+          using: .websocket(id: socketID), type: event))
 
-    return (response, socketID)
+      return (response, socketID)
+    } catch {
+      await self.eventSubClient.releaseReservation(for: socketID)
+      throw error
+    }
   }
 
   private func unsubscribe(from subscriptionID: String) async {

@@ -22,6 +22,9 @@ internal actor EventSubClient {
   private var pendingEvents = [EventID: [Event]]()
   private var pendingErrors = [EventID: EventSubError]()
 
+  private var reservedSlots = [SocketID: Int]()
+  private var connectionCreationTask: Task<SocketID, Error>?
+
   private var isResetting = false
 
   internal init(
@@ -37,6 +40,8 @@ internal actor EventSubClient {
   internal func addHandler(
     _ handler: EventSubHandler, for eventID: String, on socketID: String
   ) {
+    consumeReservation(for: socketID)
+
     eventHandlers[eventID] = handler
     connectionEvents[socketID, default: []].append(eventID)
 
@@ -57,26 +62,49 @@ internal actor EventSubClient {
     pendingEvents.removeValue(forKey: eventID)
     pendingErrors.removeValue(forKey: eventID)
 
-    if let socketID = connectionEvents.keys.first(where: { $0.contains(eventID) }) {
+    if let socketID = socketID(for: eventID) {
       connectionEvents[socketID] = connectionEvents[socketID]?.filter { $0 != eventID }
 
       // if no more events are subscribed to the socket, close the connection
-      if connectionEvents[socketID]?.isEmpty == true {
-        connectionEvents.removeValue(forKey: socketID)
-        if let connection = connections.removeValue(forKey: socketID) {
-          await connection.cancel()
-        }
-      }
+      await closeConnectionIfUnused(socketID)
     }
   }
 
   internal func getFreeWebsocketID() async throws -> String {
-    for (socketID, events) in connectionEvents
-    where events.count < Self.maxSubscriptionsPerConnection {
-      return socketID
-    }
+    while true {
+      if let socketID = freeWebsocketID() {
+        reservedSlots[socketID, default: 0] += 1
+        return socketID
+      }
 
-    return try await createConnection()
+      if let connectionCreationTask {
+        do {
+          _ = try await connectionCreationTask.value
+        } catch {
+          self.connectionCreationTask = nil
+          throw error
+        }
+
+        continue
+      }
+
+      let connectionCreationTask = Task { try await createConnection() }
+      self.connectionCreationTask = connectionCreationTask
+
+      do {
+        _ = try await connectionCreationTask.value
+      } catch {
+        self.connectionCreationTask = nil
+        throw error
+      }
+
+      self.connectionCreationTask = nil
+    }
+  }
+
+  internal func releaseReservation(for socketID: String) async {
+    consumeReservation(for: socketID)
+    await closeConnectionIfUnused(socketID)
   }
 
   private func createConnection(url: URL = eventSubURL) async throws -> SocketID {
@@ -114,6 +142,13 @@ internal actor EventSubClient {
         let id = revocation.subscriptionID
         if let handler = eventHandlers[id] {
           handler.finish(throwing: .revocation(revocation))
+          eventHandlers.removeValue(forKey: id)
+          pendingEvents.removeValue(forKey: id)
+          pendingErrors.removeValue(forKey: id)
+
+          if let socketID = socketID(for: id) {
+            connectionEvents[socketID] = connectionEvents[socketID]?.filter { $0 != id }
+          }
         } else {
           pendingErrors[id] = .revocation(revocation)
         }
@@ -135,6 +170,10 @@ internal actor EventSubClient {
 
       // move all events to the new connection
       connectionEvents[newSocketID] = connectionEvents[socketID]
+
+      if let reserved = reservedSlots.removeValue(forKey: socketID) {
+        reservedSlots[newSocketID] = reserved
+      }
 
       connections.removeValue(forKey: socketID)
       connectionEvents.removeValue(forKey: socketID)
@@ -159,6 +198,7 @@ internal actor EventSubClient {
 
     connectionEvents.removeValue(forKey: socketID)
     connections.removeValue(forKey: socketID)
+    reservedSlots.removeValue(forKey: socketID)
   }
 
   internal func reset() async {
@@ -178,6 +218,9 @@ internal actor EventSubClient {
     eventHandlers.removeAll()
     pendingEvents.removeAll()
     pendingErrors.removeAll()
+    reservedSlots.removeAll()
+    connectionCreationTask?.cancel()
+    connectionCreationTask = nil
 
     isResetting = false
   }
@@ -185,5 +228,41 @@ internal actor EventSubClient {
   internal func switchCredentials(to credentials: TwitchCredentials) async {
     await reset()
     self.credentials = credentials
+  }
+
+  private func freeWebsocketID() -> SocketID? {
+    connections.keys.first(where: hasFreeCapacity)
+  }
+
+  private func hasFreeCapacity(on socketID: SocketID) -> Bool {
+    let subscribedEvents = connectionEvents[socketID]?.count ?? 0
+    let reserved = reservedSlots[socketID] ?? 0
+    return subscribedEvents + reserved < Self.maxSubscriptionsPerConnection
+  }
+
+  private func consumeReservation(for socketID: SocketID) {
+    guard let reserved = reservedSlots[socketID], reserved > 0 else { return }
+
+    let remaining = reserved - 1
+    if remaining > 0 {
+      reservedSlots[socketID] = remaining
+    } else {
+      reservedSlots.removeValue(forKey: socketID)
+    }
+  }
+
+  private func socketID(for eventID: EventID) -> SocketID? {
+    connectionEvents.first(where: { $0.value.contains(eventID) })?.key
+  }
+
+  private func closeConnectionIfUnused(_ socketID: SocketID) async {
+    let hasEvents = !(connectionEvents[socketID]?.isEmpty ?? true)
+    let reserved = reservedSlots[socketID] ?? 0
+    guard !hasEvents, reserved == 0 else { return }
+
+    connectionEvents.removeValue(forKey: socketID)
+    if let connection = connections.removeValue(forKey: socketID) {
+      await connection.cancel()
+    }
   }
 }
