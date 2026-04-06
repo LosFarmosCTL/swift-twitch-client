@@ -5,7 +5,7 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
-public actor IRCConnectionPool {
+internal actor IRCConnectionPool {
   private var connections: [IRCConnection] = []
 
   private let credentials: TwitchCredentials?
