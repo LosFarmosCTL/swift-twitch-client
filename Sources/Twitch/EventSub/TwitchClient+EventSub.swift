@@ -65,9 +65,7 @@ extension TwitchClient {
         let subject = PassthroughSubject<R, EventSubError>()
         let handler = EventSubSubjectHandler(subject: subject)
 
-        Task {
-          await self.eventSubClient.addHandler(handler, for: subscriptionID, on: socketID)
-        }
+        await self.eventSubClient.addHandler(handler, for: subscriptionID, on: socketID)
 
         return
           subject.handleEvents(receiveCancel: { @Sendable [weak self] in
