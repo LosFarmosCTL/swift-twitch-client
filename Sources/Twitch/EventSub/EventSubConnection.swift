@@ -139,7 +139,12 @@ internal actor EventSubConnection {
   {
     switch message {
     case .string(let string):
+      // ignore decoding errors, we should assume that twitch sends valid JSON
+      // if they mess up, we'll just ignore the message, there is no recovery
+      // that we could do here anyways and shutting down the connection because
+      // of an invalid message doesn't make sense
       return try? decoder.decode(EventSubMessage.self, from: Data(string.utf8))
+
     // ignore binary messages, Twitch only sends JSON
     case .data: return nil
     @unknown default: return nil
