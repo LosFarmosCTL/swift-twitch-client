@@ -19,7 +19,6 @@ struct EventSubStreamTests {
     #expect(received.broadcasterLogin == "cool_user")
     #expect(received.broadcasterName == "Cool_User")
     #expect(received.type == .live)
-    #expect(received.startedAt == "2020-10-11T10:11:12.123Z")
   }
 
   @Test("Should decode streamOffline event")

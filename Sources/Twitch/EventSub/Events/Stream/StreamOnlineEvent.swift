@@ -1,3 +1,4 @@
+import Foundation
 import MemberwiseInit
 
 @MemberwiseInit(.public)
@@ -9,7 +10,7 @@ public struct StreamOnlineEvent: Event {
   public let broadcasterName: String
 
   public let type: StreamType
-  public let startedAt: String
+  public let startedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case id
