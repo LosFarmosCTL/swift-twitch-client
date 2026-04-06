@@ -55,7 +55,7 @@ extension TwitchClient {
   }
 
   #if canImport(Combine)
-    public func eventPublisher<R: Decodable & Sendable>(
+    public nonisolated func eventPublisher<R: Decodable & Sendable>(
       for event: EventSubSubscription<R>
     ) async throws -> AnyPublisher<R, EventSubError> {
       do {
