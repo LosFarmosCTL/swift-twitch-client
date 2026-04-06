@@ -141,13 +141,8 @@ internal actor EventSubClient {
         let id = revocation.subscriptionID
         if let handler = eventHandlers[id] {
           handler.finish(throwing: .revocation(revocation))
-          eventHandlers.removeValue(forKey: id)
-          pendingEvents.removeValue(forKey: id)
-          pendingErrors.removeValue(forKey: id)
 
-          if let socketID = socketID(for: id) {
-            connectionEvents[socketID] = connectionEvents[socketID]?.filter { $0 != id }
-          }
+          await removeHandler(for: id)
         } else {
           pendingErrors[id] = .revocation(revocation)
         }

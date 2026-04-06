@@ -1,7 +1,7 @@
 {
   "data": [
     {
-      "id": "11111111-1111-1111-1111-111111111111",
+      "id": "__EVENTSUB_SUBSCRIPTION_ID__",
       "status": "enabled",
       "type": "%type%",
       "version": "%version%",

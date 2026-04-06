@@ -3,6 +3,16 @@ import Foundation
 @testable import Twitch
 
 enum MockedMessages {
+  static let defaultEventMessageID = "Lr70KAICVBHykvCd1o8wsM3KJ0R8ea8aJU1aNWYk4DU="
+  static let defaultWelcomeMessageID = "bf92492a-5520-469a-89a4-104fe2e8cc54"
+  static let defaultControlMessageID = "84c1e79a-2a4b-4c13-ba0b-4312293e9308"
+  static let defaultSubscriptionID = "11111111-1111-1111-1111-111111111111"
+
+  private static let eventMessageIDPlaceholder = "__EVENTSUB_EVENT_MESSAGE_ID__"
+  private static let welcomeMessageIDPlaceholder = "__EVENTSUB_WELCOME_MESSAGE_ID__"
+  private static let controlMessageIDPlaceholder = "__EVENTSUB_CONTROL_MESSAGE_ID__"
+  private static let subscriptionIDPlaceholder = "__EVENTSUB_SUBSCRIPTION_ID__"
+
   // Helix response for creating a subscription
   static let mockEventSubSubscription = fromResource("mockEventSubSubscription")
 
@@ -149,9 +159,46 @@ enum MockedMessages {
 
   static let whisperReceived = fromResource("whisperReceived")
 
+  static func customized(
+    _ message: String,
+    messageID: String? = nil,
+    subscriptionID: String? = nil
+  ) -> String {
+    var customized = message
+
+    if let messageID {
+      customized = [
+        defaultEventMessageID,
+        defaultWelcomeMessageID,
+        defaultControlMessageID,
+      ].reduce(customized) { message, defaultID in
+        message.replacingOccurrences(of: defaultID, with: messageID)
+      }
+    }
+
+    if let subscriptionID {
+      customized = customized.replacingOccurrences(
+        of: defaultSubscriptionID,
+        with: subscriptionID)
+    }
+
+    return customized
+  }
+
   static private func fromResource(_ name: String) -> String {
-    String(
+    let resource = String(
       data: Bundle.module.url(forResource: name, withExtension: "json")!.data,
       encoding: .utf8)!
+
+    return
+      resource
+      .replacingOccurrences(of: eventMessageIDPlaceholder, with: defaultEventMessageID)
+      .replacingOccurrences(
+        of: welcomeMessageIDPlaceholder, with: defaultWelcomeMessageID
+      )
+      .replacingOccurrences(
+        of: controlMessageIDPlaceholder, with: defaultControlMessageID
+      )
+      .replacingOccurrences(of: subscriptionIDPlaceholder, with: defaultSubscriptionID)
   }
 }

@@ -19,16 +19,11 @@ struct WebSocketClientTests {
       authentication: .init(oAuth: "", clientID: "", userID: "", userLogin: ""),
       network: session)
 
-    let subscriptionMessage = MockedMessages.mockEventSubSubscription
-      .replacingOccurrences(of: "%type%", with: "mock")
-      .replacingOccurrences(of: "%version%", with: "1")
-      .data(using: .utf8)!
-
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
     await session.stub(
       url: url, method: "POST",
       status: 200, headers: ["Content-Type": "application/json"],
-      body: subscriptionMessage)
+      body: MockedMessages.mockEventSubSubscription.data(using: .utf8)!)
   }
 
   @Test("Client creates WebSocket task and EventSub subscription")
@@ -64,7 +59,7 @@ struct WebSocketClientTests {
 
   @Test("Client deletes EventSub subscription on stream termination V2")
   func testEventSubDeleteOnTerminationV2() async throws {
-    let subscriptionID = "11111111-1111-1111-1111-111111111111"
+    let subscriptionID = MockedMessages.defaultSubscriptionID
     var components = URLComponents(
       string: "https://api.twitch.tv/helix/eventsub/subscriptions")
     components?.queryItems = [URLQueryItem(name: "id", value: subscriptionID)]
@@ -139,7 +134,53 @@ struct WebSocketClientTests {
     #expect({ if case .revocation = error { true } else { false } }())
 
     let task = try #require(await session.lastTask())
+    #expect(await task.didCancel)
+  }
+
+  @Test("Client keeps websocket open when one of multiple subscriptions is revoked")
+  func testEventSubRevocationKeepsSharedConnectionAlive() async throws {
+    let secondSubscriptionID = "22222222-2222-2222-2222-222222222222"
+    let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
+
+    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    let firstStream = try await twitch.eventStream(for: .mock())
+
+    await session.stub(
+      url: url,
+      method: "POST",
+      status: 200,
+      headers: ["Content-Type": "application/json"],
+      body: MockedMessages.customized(
+        MockedMessages.mockEventSubSubscription,
+        subscriptionID: secondSubscriptionID
+      ).data(using: .utf8)!)
+
+    let secondStream = try await twitch.eventStream(for: .mock())
+
+    await session.simulateIncoming(
+      .string(MockedMessages.mockRevocationMessage))
+
+    var firstIter = firstStream.makeAsyncIterator()
+    let error = await #expect(
+      throws: EventSubError.self,
+      "Should only revoke the targeted subscription"
+    ) { _ = try await firstIter.next() }
+
+    #expect({ if case .revocation = error { true } else { false } }())
+
+    let task = try #require(await session.lastTask())
     #expect(await !task.didCancel)
+
+    await session.simulateIncoming(
+      .string(
+        MockedMessages.customized(
+          MockedMessages.mockEventMessage,
+          messageID: "secondary-event-message-id",
+          subscriptionID: secondSubscriptionID)))
+
+    var secondIter = secondStream.makeAsyncIterator()
+    let message = try await secondIter.next()
+    _ = try #require(message)
   }
 
   @Test("Client reconnects on reconnection message")
