@@ -7,7 +7,6 @@ import Foundation
 internal actor EventSubConnection {
   private let eventSubURL: URL
 
-  private let credentials: TwitchCredentials
   private let network: NetworkSession
   private let decoder: JSONDecoder
 
@@ -39,7 +38,6 @@ internal actor EventSubConnection {
   }
 
   init(
-    credentials: TwitchCredentials,
     network: NetworkSession,
     decoder: JSONDecoder,
     eventSubURL: URL,
@@ -47,7 +45,6 @@ internal actor EventSubConnection {
       @Sendable @escaping (Result<EventSubNotification, EventSubConnectionError>) async ->
       Void
   ) {
-    self.credentials = credentials
     self.network = network
     self.decoder = decoder
 

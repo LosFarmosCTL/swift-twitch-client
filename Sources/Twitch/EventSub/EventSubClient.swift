@@ -109,7 +109,6 @@ internal actor EventSubClient {
 
   private func createConnection(url: URL = eventSubURL) async throws -> SocketID {
     let connection = EventSubConnection(
-      credentials: credentials,
       network: network,
       decoder: decoder,
       eventSubURL: url,
