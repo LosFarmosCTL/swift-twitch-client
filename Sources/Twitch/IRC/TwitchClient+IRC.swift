@@ -6,7 +6,7 @@ import TwitchIRC
 #endif
 
 extension TwitchClient {
-  public func ircClient(
+  public func createIRCClient(
     with options: TwitchIRCClient.Options = .init()
   ) async throws -> TwitchIRCClient {
     return try await TwitchIRCClient(

@@ -13,6 +13,7 @@ actor MockWebSocketTask: WebSocketTask {
   private var pendingReceives:
     [@Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void] = []
   private var pendingMessages: [URLSessionWebSocketTask.Message] = []
+  private var pendingErrors: [Error] = []
 
   let url: URL
 
@@ -27,12 +28,20 @@ actor MockWebSocketTask: WebSocketTask {
     reason: Data?
   ) {
     didCancel = true
-    pendingReceives.removeAll()
+    pendingErrors.append(URLError(.cancelled))
+
+    let pendingReceives = self.pendingReceives
+    self.pendingReceives.removeAll()
+
+    for handler in pendingReceives {
+      handler(.failure(URLError(.cancelled)))
+    }
   }
 
   func send(
     _ message: URLSessionWebSocketTask.Message
-  ) {
+  ) throws {
+    guard !didCancel else { throw URLError(.cancelled) }
     sentMessages.append(message)
   }
 
@@ -40,6 +49,12 @@ actor MockWebSocketTask: WebSocketTask {
     completionHandler:
       @escaping @Sendable (Result<URLSessionWebSocketTask.Message, Error>) -> Void
   ) {
+    guard pendingErrors.isEmpty else {
+      let error = pendingErrors.removeFirst()
+      completionHandler(.failure(error))
+      return
+    }
+
     guard pendingMessages.isEmpty else {
       let message = pendingMessages.removeFirst()
       completionHandler(.success(message))
@@ -68,7 +83,11 @@ actor MockWebSocketTask: WebSocketTask {
   }
 
   func simulateError(_ error: Error) {
-    guard !pendingReceives.isEmpty else { return }
+    guard !pendingReceives.isEmpty else {
+      pendingErrors.append(error)
+      return
+    }
+
     let handler = pendingReceives.removeFirst()
     handler(.failure(error))
   }

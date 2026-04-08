@@ -12,7 +12,13 @@ internal actor IRCConnection {
   private let network: NetworkSession
 
   private var websocket: WebSocketTask?
+  private var receiveTask: Task<Void, Never>?
+  private var isDisconnecting = false
   private(set) var joinedChannels: Set<String> = []
+
+  var isConnected: Bool {
+    websocket != nil
+  }
 
   init(credentials: TwitchCredentials? = nil, network: NetworkSession) {
     self.credentials = credentials
@@ -29,18 +35,31 @@ internal actor IRCConnection {
   internal func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
-    guard self.websocket == nil else { throw WebSocketError.alreadyConnected }
+    guard self.websocket == nil, self.receiveTask == nil else {
+      throw WebSocketError.alreadyConnected
+    }
+
+    self.isDisconnecting = false
     self.websocket = await network.webSocketTask(with: TMI)
     await self.websocket?.resume()
 
-    try await self.requestCapabilities()
-    let globalUserState = try await self.authenticate()
+    let globalUserState: GlobalUserState?
+
+    do {
+      try await self.requestCapabilities()
+      globalUserState = try await self.authenticate()
+    } catch {
+      await self.disconnect()
+      throw error
+    }
 
     let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
 
-    Task {
+    self.receiveTask = Task {
       // return global user state sent with the connection message
       if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
+
+      var shouldCancelWebSocket = false
 
       do {
         while let message = try await self.websocket?.receive() {
@@ -55,20 +74,32 @@ internal actor IRCConnection {
             }
           }
         }
+
+        continuation.finish()
       } catch {
         // If we get the 'socket disconnected' error, check whether we have parted from all rooms.
         // Doing so is what causes us to get this error on the next websocket.receive() call
         let nsError = error as NSError
-        if nsError.domain == "NSPOSIXErrorDomain", nsError.code == 57,
-          joinedChannels.isEmpty
+        if self.isDisconnecting
+          || (nsError.domain == "NSPOSIXErrorDomain" && nsError.code == 57
+            && joinedChannels.isEmpty)
         {
           continuation.finish()
         } else {
           // If we can't identify the origin of the error, return it in the stream to be hanlded upstream
           continuation.finish(throwing: error)
+          shouldCancelWebSocket = true
         }
+      }
 
-        await self.disconnect()
+      let websocket = self.websocket
+      self.websocket = nil
+      self.joinedChannels.removeAll()
+      self.isDisconnecting = false
+      self.receiveTask = nil
+
+      if shouldCancelWebSocket {
+        await websocket?.cancel(with: .goingAway, reason: nil)
       }
     }
 
@@ -76,7 +107,11 @@ internal actor IRCConnection {
   }
 
   internal func send(_ message: OutgoingMessage) async throws {
-    try await self.websocket?.send(.string(message.serialize()))
+    guard let websocket else {
+      throw IRCError.disconnected
+    }
+
+    try await websocket.send(.string(message.serialize()))
   }
 
   internal func join(to channel: String) async throws {
@@ -88,17 +123,32 @@ internal actor IRCConnection {
   }
 
   internal func disconnect() async {
-    await self.websocket?.cancel(with: .goingAway, reason: nil)
+    guard websocket != nil || receiveTask != nil else {
+      joinedChannels.removeAll()
+      return
+    }
+
+    isDisconnecting = true
+
+    let websocket = self.websocket
     self.websocket = nil
+    self.receiveTask?.cancel()
+    self.receiveTask = nil
 
     self.joinedChannels.removeAll()
+
+    await websocket?.cancel(with: .goingAway, reason: nil)
   }
 
   private func requestCapabilities() async throws {
     try await self.send(.capabilities([.commands, .tags]))
 
+    guard let websocket else {
+      throw IRCError.disconnected
+    }
+
     // verify that we receive the capabilities message
-    let nextMessage = try await websocket?.receive()
+    let nextMessage = try await websocket.receive()
     guard case .string(let messageText) = nextMessage else {
       throw WebSocketError.unsupportedDataReceived
     }
@@ -121,8 +171,12 @@ internal actor IRCConnection {
     // twitch allows anonymous connections using justinfanXXXXX
     try await self.send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
 
+    guard let websocket else {
+      throw IRCError.disconnected
+    }
+
     // verify that we receive the connection message
-    let nextMessage = try await self.websocket?.receive()
+    let nextMessage = try await websocket.receive()
     guard case .string(let messageText) = nextMessage else {
       throw WebSocketError.unsupportedDataReceived
     }

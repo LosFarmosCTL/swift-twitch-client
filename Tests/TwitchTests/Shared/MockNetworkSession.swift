@@ -13,6 +13,7 @@ actor MockNetworkSession: NetworkSession {
   }
 
   private var webSocketTasks: [MockWebSocketTask] = []
+  private var taskWaiters: [Int: [CheckedContinuation<MockWebSocketTask, Never>]] = [:]
   var queuedWebSocketMessages: [URLSessionWebSocketTask.Message] = []
   var queuedWebSocketErrors: [Error] = []
 
@@ -43,6 +44,14 @@ actor MockNetworkSession: NetworkSession {
     queuedWebSocketErrors.removeAll()
 
     webSocketTasks.append(task)
+
+    let index = webSocketTasks.count - 1
+    if let waiters = taskWaiters.removeValue(forKey: index) {
+      for waiter in waiters {
+        waiter.resume(returning: task)
+      }
+    }
+
     return task
   }
 
@@ -92,6 +101,16 @@ actor MockNetworkSession: NetworkSession {
 
   func task(at index: Int) -> MockWebSocketTask? {
     webSocketTasks.indices.contains(index) ? webSocketTasks[index] : nil
+  }
+
+  func waitForTask(at index: Int) async -> MockWebSocketTask {
+    if let task = task(at: index) {
+      return task
+    }
+
+    return await withCheckedContinuation { continuation in
+      taskWaiters[index, default: []].append(continuation)
+    }
   }
 
   func taskCount() -> Int {

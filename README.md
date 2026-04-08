@@ -79,39 +79,40 @@ twitch.helixTask(for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])) {
 ### Chat (IRC)
 
 ```swift
-let irc = try await twitch.ircClient(.authenticated)
+let irc = try await twitch.createIRCClient()
 
 try await irc.join(to: "forsen")
 try await irc.part(from: "forsen")
 
 // Using callbacks
 
-irc.listener { result in
-  switch result {
-  case .success(let message): print(message)
+let listener = await irc.listener { event in
+  switch event {
+  case .message(let message): print(message)
+  case .finished: print("IRC disconnected")
   case .failure(let error): print(error)
   }
 }
 
 // Using AsyncStream
 
-let stream = irc.stream()
+let stream = await irc.stream()
 for try await message in stream {
   if case .privateMessage(let privMsg) = message {
-    try await client.send("Received message: \(privMsg.message)", in: "forsen")
+    try await irc.sendMessage("Received message: \(privMsg.message)", to: "forsen")
   }
 }
 
 // Using Combine
 
-let publisher = irc.publisher()
+let publisher = await irc.publisher()
 
-irc.publisher().sink(
-  receiveCompletion: {
-    // handle error
+let cancellable = await irc.publisher().sink(
+  receiveCompletion: { completion in
+    // handle finish or error
   },
-  receiveValue: {
-    // handle msg
+  receiveValue: { message in
+    // handle message
   })
 ```
 

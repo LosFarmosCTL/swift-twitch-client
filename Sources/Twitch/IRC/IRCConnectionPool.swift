@@ -7,11 +7,13 @@ import TwitchIRC
 
 internal actor IRCConnectionPool {
   private var connections: [IRCConnection] = []
+  private var relayTasks: [ObjectIdentifier: Task<Void, Never>] = [:]
 
   private let credentials: TwitchCredentials?
   private let network: NetworkSession
 
   private var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
+  private var isDisconnecting = false
 
   init(with credentials: TwitchCredentials? = nil, network: NetworkSession) {
     self.credentials = credentials
@@ -20,6 +22,8 @@ internal actor IRCConnectionPool {
 
   internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
     guard self.connections.isEmpty else { throw IRCError.alreadyConnected }
+
+    self.isDisconnecting = false
 
     let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>.makeStream()
     self.continuation = continuation
@@ -30,10 +34,20 @@ internal actor IRCConnectionPool {
   }
 
   internal func disconnect() async {
+    self.isDisconnecting = true
+
     for connection in self.connections { await connection.disconnect() }
+
+    for relayTask in self.relayTasks.values {
+      relayTask.cancel()
+    }
+
     self.connections.removeAll()
+    self.relayTasks.removeAll()
 
     self.continuation?.finish()
+    self.continuation = nil
+    self.isDisconnecting = false
   }
 
   internal func join(to channel: String) async throws {
@@ -70,8 +84,14 @@ internal actor IRCConnectionPool {
   }
 
   private func getFreeConnection() async throws -> IRCConnection {
-    for connection in self.connections
-    where await connection.joinedChannels.count < 90 {
+    for connection in self.connections {
+      let isConnected = await connection.isConnected
+      let joinedChannelCount = await connection.joinedChannels.count
+
+      guard isConnected, joinedChannelCount < 90 else {
+        continue
+      }
+
       return connection
     }
 
@@ -81,18 +101,50 @@ internal actor IRCConnectionPool {
   @discardableResult private func createConnection() async throws -> IRCConnection {
     let connection = IRCConnection(credentials: credentials, network: network)
     let messageStream = try await connection.connect()
+    let identifier = ObjectIdentifier(connection)
 
-    Task {
+    connections.append(connection)
+
+    relayTasks[identifier] = Task { [weak self] in
       do {
         for try await message in messageStream {
-          self.continuation?.yield(message)
+          await self?.yield(message)
         }
+
+        await self?.finishConnectionRelay(for: connection)
       } catch {
-        self.continuation?.finish(throwing: error)
+        await self?.finishConnectionRelay(for: connection, error: error)
       }
     }
 
-    connections.append(connection)
     return connection
+  }
+
+  private func yield(_ message: IncomingMessage) {
+    continuation?.yield(message)
+  }
+
+  private func finish(throwing error: Error) {
+    continuation?.finish(throwing: error)
+    continuation = nil
+  }
+
+  private func removeConnection(_ connection: IRCConnection) {
+    connections.removeAll(where: { $0 === connection })
+  }
+
+  private func finishConnectionRelay(
+    for connection: IRCConnection,
+    error: Error? = nil
+  ) {
+    let identifier = ObjectIdentifier(connection)
+    relayTasks.removeValue(forKey: identifier)
+    removeConnection(connection)
+
+    guard !isDisconnecting, let error else {
+      return
+    }
+
+    finish(throwing: error)
   }
 }
