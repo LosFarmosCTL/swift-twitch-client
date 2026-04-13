@@ -6,18 +6,26 @@ import TwitchIRC
 #endif
 
 internal actor IRCConnection {
+  private enum ConnectionState {
+    case disconnected
+    case connecting(WebSocketTask)
+    case connected(WebSocketTask, Task<Void, Never>)
+    case disconnecting(WebSocketTask?)
+  }
+
   private let TMI: URL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
 
   private let credentials: TwitchCredentials?
   private let network: NetworkSession
 
-  private var websocket: WebSocketTask?
-  private var receiveTask: Task<Void, Never>?
-  private var isDisconnecting = false
+  private var state: ConnectionState = .disconnected
   private(set) var joinedChannels: Set<String> = []
 
-  var isConnected: Bool {
-    websocket != nil
+  var isAvailable: Bool {
+    guard case .connected = state else { return false }
+    guard joinedChannels.count < 90 else { return false }
+
+    return true
   }
 
   init(credentials: TwitchCredentials? = nil, network: NetworkSession) {
@@ -26,6 +34,13 @@ internal actor IRCConnection {
   }
 
   deinit {
+    let websocket: WebSocketTask? =
+      switch state {
+      case .connecting(let websocket), .connected(let websocket, _): websocket
+      case .disconnecting(let websocket): websocket
+      case .disconnected: nil
+      }
+
     Task.detached { [websocket] in
       await websocket?.cancel(with: .goingAway, reason: nil)
     }
@@ -35,117 +50,109 @@ internal actor IRCConnection {
   internal func connect() async throws -> AsyncThrowingStream<
     IncomingMessage, Error
   > {
-    guard self.websocket == nil, self.receiveTask == nil else {
-      throw WebSocketError.alreadyConnected
-    }
+    guard case .disconnected = state else { throw WebSocketError.alreadyConnected }
 
-    self.isDisconnecting = false
-    self.websocket = await network.webSocketTask(with: TMI)
-    await self.websocket?.resume()
+    let websocket = await network.webSocketTask(with: TMI)
+    state = .connecting(websocket)
+    await websocket.resume()
 
     let globalUserState: GlobalUserState?
-
     do {
-      try await self.requestCapabilities()
-      globalUserState = try await self.authenticate()
+      try await requestCapabilities()
+      globalUserState = try await authenticate()
     } catch {
-      await self.disconnect()
+      await disconnect()
       throw error
     }
 
     let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
 
-    self.receiveTask = Task {
-      // return global user state sent with the connection message
-      if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
-
-      var shouldCancelWebSocket = false
-
-      do {
-        while let message = try await self.websocket?.receive() {
-          if case .string(let messageText) = message {
-            let messages = IncomingMessage.parse(ircOutput: messageText)
-              .compactMap(\.message)
-
-            for message in messages {
-              guard try await !self.handleMessage(message) else { continue }
-
-              continuation.yield(message)
-            }
-          }
-        }
-
-        continuation.finish()
-      } catch {
-        // If we get the 'socket disconnected' error, check whether we have parted from all rooms.
-        // Doing so is what causes us to get this error on the next websocket.receive() call
-        let nsError = error as NSError
-        if self.isDisconnecting
-          || (nsError.domain == "NSPOSIXErrorDomain" && nsError.code == 57
-            && joinedChannels.isEmpty)
-        {
-          continuation.finish()
-        } else {
-          // If we can't identify the origin of the error, return it in the stream to be hanlded upstream
-          continuation.finish(throwing: error)
-          shouldCancelWebSocket = true
-        }
-      }
-
-      let websocket = self.websocket
-      self.websocket = nil
-      self.joinedChannels.removeAll()
-      self.isDisconnecting = false
-      self.receiveTask = nil
-
-      if shouldCancelWebSocket {
-        await websocket?.cancel(with: .goingAway, reason: nil)
-      }
+    let receiveTask = Task<Void, Never> { [weak self] in
+      await self?.runReceiveLoop(
+        on: websocket,
+        continuation: continuation,
+        globalUserState: globalUserState
+      )
     }
+
+    state = .connected(websocket, receiveTask)
 
     return stream
   }
 
   internal func send(_ message: OutgoingMessage) async throws {
-    guard let websocket else {
-      throw IRCError.disconnected
-    }
+    let websocket: WebSocketTask =
+      switch state {
+      case .connecting(let websocket), .connected(let websocket, _): websocket
+      case .disconnecting, .disconnected: throw IRCError.disconnected
+      }
 
     try await websocket.send(.string(message.serialize()))
   }
 
   internal func join(to channel: String) async throws {
-    try await self.send(.join(to: channel))
+    try await send(.join(to: channel))
   }
 
   internal func part(from channel: String) async throws {
-    try await self.send(.part(from: channel))
+    try await send(.part(from: channel))
   }
 
   internal func disconnect() async {
-    guard websocket != nil || receiveTask != nil else {
-      joinedChannels.removeAll()
-      return
+    joinedChannels.removeAll()
+
+    switch state {
+    case .disconnected, .disconnecting: return
+    case .connecting(let websocket):
+      state = .disconnecting(websocket)
+      await websocket.cancel(with: .goingAway, reason: nil)
+      state = .disconnected
+    case .connected(let websocket, let receiveTask):
+      state = .disconnecting(websocket)
+      receiveTask.cancel()
+      await websocket.cancel(with: .goingAway, reason: nil)
+    }
+  }
+
+  private func runReceiveLoop(
+    on websocket: WebSocketTask,
+    continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation,
+    globalUserState: GlobalUserState?
+  ) async {
+    if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
+
+    do {
+      while true {
+        let message = try await websocket.receive()
+
+        if case .string(let messageText) = message {
+          let messages = IncomingMessage.parse(ircOutput: messageText)
+            .compactMap(\.message)
+
+          for message in messages {
+            guard try await !handleMessage(message) else { continue }
+
+            continuation.yield(message)
+          }
+        }
+      }
+    } catch {
+      if case .disconnecting = state {
+        continuation.finish()
+      } else {
+        continuation.finish(throwing: error)
+        await websocket.cancel(with: .goingAway, reason: nil)
+      }
     }
 
-    isDisconnecting = true
-
-    let websocket = self.websocket
-    self.websocket = nil
-    self.receiveTask?.cancel()
-    self.receiveTask = nil
-
-    self.joinedChannels.removeAll()
-
-    await websocket?.cancel(with: .goingAway, reason: nil)
+    joinedChannels.removeAll()
+    state = .disconnected
   }
 
   private func requestCapabilities() async throws {
-    try await self.send(.capabilities([.commands, .tags]))
+    try await send(.capabilities([.commands, .tags]))
 
-    guard let websocket else {
-      throw IRCError.disconnected
-    }
+    guard case .connecting(let websocket) = state else { throw IRCError.disconnected }
 
     // verify that we receive the capabilities message
     let nextMessage = try await websocket.receive()
@@ -165,15 +172,13 @@ internal actor IRCConnection {
   private func authenticate() async throws -> GlobalUserState? {
     if let credentials {
       // when connecting anonymously, the PASS message can be omitted
-      try await self.send(.pass(pass: credentials.oAuth))
+      try await send(.pass(pass: credentials.oAuth))
     }
 
     // twitch allows anonymous connections using justinfanXXXXX
-    try await self.send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
+    try await send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
 
-    guard let websocket else {
-      throw IRCError.disconnected
-    }
+    guard case .connecting(let websocket) = state else { throw IRCError.disconnected }
 
     // verify that we receive the connection message
     let nextMessage = try await websocket.receive()

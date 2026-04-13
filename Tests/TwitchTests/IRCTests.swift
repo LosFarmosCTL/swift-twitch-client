@@ -66,6 +66,26 @@ struct IRCTests {
     #expect({ if case .unsupportedDataReceived = joinError { true } else { false } }())
   }
 
+  @Test("IRC client fails during handshake and closes the socket")
+  func clientFailsDuringHandshake() async throws {
+    let clientTask = Task {
+      try await TwitchIRCClient(
+        .anonymous,
+        options: .init(enableWriteConnection: false),
+        network: session)
+    }
+
+    let task = await session.waitForTask(at: 0)
+    await task.simulateIncoming(.string(IRCFixtures.welcome))
+
+    let error = await #expect(throws: IRCError.self) {
+      _ = try await clientTask.value
+    }
+
+    #expect({ if case .loginFailed = error { true } else { false } }())
+    #expect(await task.didCancel)
+  }
+
   @Test("IRC client disconnect closes sockets and finishes streams")
   func clientDisconnectShutsDownCleanly() async throws {
     let clientTask = Task {

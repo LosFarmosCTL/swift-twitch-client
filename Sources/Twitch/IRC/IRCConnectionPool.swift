@@ -56,7 +56,7 @@ internal actor IRCConnectionPool {
       return
     }
 
-    let connection = try await self.getFreeConnection()
+    let connection = try await self.getAvailableConnection()
     try await connection.join(to: channel)
   }
 
@@ -83,15 +83,8 @@ internal actor IRCConnectionPool {
     return nil
   }
 
-  private func getFreeConnection() async throws -> IRCConnection {
-    for connection in self.connections {
-      let isConnected = await connection.isConnected
-      let joinedChannelCount = await connection.joinedChannels.count
-
-      guard isConnected, joinedChannelCount < 90 else {
-        continue
-      }
-
+  private func getAvailableConnection() async throws -> IRCConnection {
+    for connection in self.connections where await connection.isAvailable {
       return connection
     }
 
