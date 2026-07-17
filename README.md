@@ -72,8 +72,13 @@ Using the `TwitchClient` you can now access pretty much the full Twitch API surf
 let result = try await twitch.helix(endpoint: .someEndpoint(param1: "forsen"))
 
 // Completion Handlers
-twitch.helixTask(for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])) { result, error in
+let request = twitch.helixTask(
+  for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])
+) { result in
 }
+
+// returns a TwitchCancellable that can be used to cancel the request
+request.cancel()
 ```
 
 ### Chat (IRC)

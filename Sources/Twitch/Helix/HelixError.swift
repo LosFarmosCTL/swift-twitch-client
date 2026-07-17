@@ -1,7 +1,9 @@
 import Foundation
 
 public enum HelixError: Error, Sendable {
+  case cancelled
   case networkError(wrapped: Error)
+  case unexpectedError(wrapped: Error)
   case twitchError(name: String, status: Int, message: String)
 
   case parsingResponseFailed(responseData: Data)
@@ -16,8 +18,12 @@ public enum HelixError: Error, Sendable {
 extension HelixError: CustomStringConvertible {
   public var description: String {
     switch self {
+    case .cancelled:
+      return "Cancelled"
     case .networkError(let error):
       return "Network Error: \(error.localizedDescription)"
+    case .unexpectedError(let error):
+      return "Unexpected Error: \(error.localizedDescription)"
     case .twitchError(let name, let status, let message):
       return "Twitch Error: \(name) (\(status)): \(message)"
     case .parsingResponseFailed(let responseData):
@@ -41,8 +47,12 @@ extension HelixError: CustomStringConvertible {
         Bundle.module.bundleURL)
 
       return switch self {
+      case .cancelled:
+        .init("Cancelled", bundle: bundle)
       case .networkError(let error):
         .init("Network Error: \(error.localizedDescription)", bundle: bundle)
+      case .unexpectedError(let error):
+        .init("Unexpected Error: \(error.localizedDescription)", bundle: bundle)
       case .twitchError(let name, let status, let message):
         .init("Twitch Error: \(name) (\(status)): \(message)")
       case .parsingResponseFailed(let responseData):

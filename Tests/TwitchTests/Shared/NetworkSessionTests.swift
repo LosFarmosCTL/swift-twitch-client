@@ -28,6 +28,41 @@ struct NetworkSessionTests {
       Issue.record("Unexpected error: \(error)")
     }
   }
+
+  @Test(
+    "Cancelling a data request cancels its URLSession task",
+    .timeLimit(.minutes(1)))
+  func cancellationStopsURLSessionTask() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [CancellationURLProtocol.self]
+
+    let session = URLSession(configuration: configuration)
+    defer { session.invalidateAndCancel() }
+
+    let network = URLSessionNetworkSession(session: session)
+    let url = try #require(URL(string: "https://example.com/cancel"))
+    var started = CancellationURLProtocolSignals.started.stream.makeAsyncIterator()
+    var stopped = CancellationURLProtocolSignals.stopped.stream.makeAsyncIterator()
+
+    let task = Task {
+      try await network.data(for: URLRequest(url: url))
+    }
+
+    _ = await started.next()
+    task.cancel()
+    _ = await stopped.next()
+
+    switch await task.result {
+    case .success:
+      Issue.record("Expected the cancelled request to throw.")
+    case .failure(let error as URLError):
+      #expect(error.code == .cancelled)
+    case .failure(is CancellationError):
+      break
+    case .failure(let error):
+      Issue.record("Unexpected error: \(error)")
+    }
+  }
 }
 
 private final class NonHTTPURLProtocol: URLProtocol {
@@ -59,4 +94,27 @@ private final class NonHTTPURLProtocol: URLProtocol {
   }
 
   override func stopLoading() {}
+}
+
+private enum CancellationURLProtocolSignals {
+  static let started = AsyncStream<Void>.makeStream()
+  static let stopped = AsyncStream<Void>.makeStream()
+}
+
+private final class CancellationURLProtocol: URLProtocol {
+  override static func canInit(with request: URLRequest) -> Bool {
+    true
+  }
+
+  override static func canonicalRequest(for request: URLRequest) -> URLRequest {
+    request
+  }
+
+  override func startLoading() {
+    CancellationURLProtocolSignals.started.continuation.yield()
+  }
+
+  override func stopLoading() {
+    CancellationURLProtocolSignals.stopped.continuation.yield()
+  }
 }

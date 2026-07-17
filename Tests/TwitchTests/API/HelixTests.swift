@@ -103,4 +103,104 @@ struct HelixTests {
       return
     }
   }
+
+  @Test(arguments: HelixCancellationSource.allCases)
+  func asyncCancellation(source: HelixCancellationSource) async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/cancel"))
+    await harness.session.stub(url: url, error: source.error)
+
+    await #expect(throws: CancellationError.self) {
+      try await harness.twitch.helix(
+        endpoint: .custom(method: "GET", path: "cancel"))
+    }
+  }
+
+  @Test("Cancelling helixTask completes with a cancellation error")
+  func callbackCancellation() async {
+    let twitch = TwitchClient(
+      authentication: .init(
+        oAuth: "abcdefg",
+        clientID: "123456",
+        userID: "1234",
+        userLogin: "user"),
+      network: SuspendingNetworkSession())
+
+    let result: Result<String?, HelixError> = await withCheckedContinuation {
+      continuation in
+      let cancellable = twitch.helixTask(
+        for: .custom(method: "GET", path: "cancel"),
+        completionHandler: { result in
+          continuation.resume(returning: result)
+        })
+
+      cancellable.cancel()
+    }
+
+    guard case .failure(.cancelled) = result else {
+      Issue.record("Expected callback cancellation, got \(result)")
+      return
+    }
+  }
+
+  @Test("helixTask completes with unexpected errors")
+  func callbackUnexpectedError() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/unexpected"))
+    await harness.session.stub(
+      url: url,
+      body: Data("{\"data\":[\"value\"]}".utf8))
+
+    let endpoint = HelixEndpoint<
+      String?, String, HelixEndpointResponseTypes.Normal
+    >(
+      method: "GET",
+      path: "unexpected",
+      makeResponse: { _ in throw HelixCallbackTestError.unexpected })
+
+    let result: Result<String?, HelixError> = await withCheckedContinuation {
+      continuation in
+      harness.twitch.helixTask(
+        for: endpoint,
+        completionHandler: { result in
+          continuation.resume(returning: result)
+        })
+    }
+
+    guard case .failure(.unexpectedError(let wrapped)) = result else {
+      Issue.record("Expected an unexpected callback error, got \(result)")
+      return
+    }
+
+    let error = try #require(wrapped as? HelixCallbackTestError)
+    #expect(error == .unexpected)
+  }
+}
+
+enum HelixCancellationSource: CaseIterable, Sendable {
+  case cancellationError
+  case urlError
+
+  var error: any Error {
+    switch self {
+    case .cancellationError:
+      CancellationError()
+    case .urlError:
+      URLError(.cancelled)
+    }
+  }
+}
+
+private enum HelixCallbackTestError: Error, Equatable {
+  case requestDidNotCancel
+  case unexpected
+}
+
+private actor SuspendingNetworkSession: NetworkSession {
+  func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    try await Task.sleep(for: .seconds(60))
+    throw HelixCallbackTestError.requestDidNotCancel
+  }
+
+  func webSocketTask(with url: URL) async -> WebSocketTask {
+    fatalError("WebSocket tasks are not used by these tests.")
+  }
 }
