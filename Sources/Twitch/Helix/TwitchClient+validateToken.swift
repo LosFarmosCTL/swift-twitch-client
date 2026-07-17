@@ -6,20 +6,38 @@ import Foundation
 
 extension TwitchClient {
   public static func validateToken(token: String) async throws -> ValidatedToken {
-    let urlSession = URLSession(configuration: .default)
-    let jsonDecoder = JSONDecoder()
-    jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+    let network = URLSessionNetworkSession(
+      session: URLSession(configuration: .default))
 
-    var request = URLRequest(url: URL(string: "https://id.twitch.tv/oauth2/validate")!)
+    return try await validateToken(token: token, network: network)
+  }
+
+  internal static func validateToken(
+    token: String,
+    network: NetworkSession
+  ) async throws -> ValidatedToken {
+    let url = URL(string: "https://id.twitch.tv/oauth2/validate")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
     request.addValue("OAuth \(token)", forHTTPHeaderField: "Authorization")
 
-    let (data, response) = try await urlSession.data(for: request)
+    let (data, response): (Data, HTTPURLResponse)
+    do {
+      (data, response) = try await network.data(for: request)
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
+    } catch let error as CancellationError {
+      throw error
+    }
 
-    // swiftlint:disable:next force_cast
-    let httpResponse = response as! HTTPURLResponse
-    guard (200) ~= httpResponse.statusCode else { throw ValidationError.invalidToken }
+    guard response.statusCode == 200 else {
+      throw ValidationError.invalidToken
+    }
 
-    return try jsonDecoder.decode(ValidatedToken.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+    return try decoder.decode(ValidatedToken.self, from: data)
   }
 }
 
