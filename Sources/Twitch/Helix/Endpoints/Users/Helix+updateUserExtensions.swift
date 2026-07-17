@@ -17,9 +17,7 @@ extension HelixEndpoint {
             panel: panel, overlay: overlay, component: component))
       },
       makeResponse: {
-        guard let activeExtensions = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let activeExtensions = try $0.requireFirst()
 
         return activeExtensions
       })

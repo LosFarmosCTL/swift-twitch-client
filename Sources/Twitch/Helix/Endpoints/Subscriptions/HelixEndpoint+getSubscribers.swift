@@ -19,9 +19,8 @@ extension HelixEndpoint {
         ] + filterUserIDs.map { ("user_id", $0) }
       },
       makeResponse: {
-        guard let total = $0.total, let points = $0.points else {
-          throw HelixError.missingDataInResponse(responseData: $0.rawData)
-        }
+        let total = try $0.require(\.total)
+        let points = try $0.require(\.points)
 
         return SubscribersResponse(
           subscribers: $0.data,

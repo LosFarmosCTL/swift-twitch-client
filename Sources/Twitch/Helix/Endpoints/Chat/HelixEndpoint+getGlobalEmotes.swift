@@ -8,9 +8,7 @@ extension HelixEndpoint {
     .init(
       method: "GET", path: "chat/emotes/global",
       makeResponse: {
-        guard let template = $0.template else {
-          throw HelixError.missingDataInResponse(responseData: $0.rawData)
-        }
+        let template = try $0.require(\.template)
 
         return GlobalEmotes(emotes: $0.data, template: template)
 

@@ -14,9 +14,7 @@ extension HelixEndpoint {
           status: status)
       },
       makeResponse: {
-        guard let poll = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let poll = try $0.requireFirst()
 
         return poll
       })

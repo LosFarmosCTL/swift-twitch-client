@@ -21,9 +21,7 @@ extension HelixEndpoint {
         ]
       },
       makeResponse: {
-        guard let total = $0.total else {
-          throw HelixError.missingDataInResponse(responseData: $0.rawData)
-        }
+        let total = try $0.require(\.total)
 
         return BitsLeaderboard(
           leaders: $0.data,

@@ -23,12 +23,9 @@ extension HelixEndpoint {
         return items
       },
       makeResponse: { response in
-        guard let total = response.total,
-          let totalCost = response.totalCost,
-          let maxTotalCost = response.maxTotalCost
-        else {
-          throw HelixError.missingDataInResponse(responseData: response.rawData)
-        }
+        let total = try response.require(\.total)
+        let totalCost = try response.require(\.totalCost)
+        let maxTotalCost = try response.require(\.maxTotalCost)
 
         return GetEventSubSubscriptionsResponse(
           subscriptions: response.data,

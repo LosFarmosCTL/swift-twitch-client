@@ -21,9 +21,7 @@ extension HelixEndpoint {
           forSourceOnly: forSourceOnly)
       },
       makeResponse: {
-        guard let messageResponse = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let messageResponse = try $0.requireFirst()
 
         return messageResponse
       })

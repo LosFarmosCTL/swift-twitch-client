@@ -13,9 +13,7 @@ extension HelixEndpoint {
         sets.map { ("emote_set_id", $0) }
       },
       makeResponse: {
-        guard let template = $0.template else {
-          throw HelixError.missingDataInResponse(responseData: $0.rawData)
-        }
+        let template = try $0.require(\.template)
 
         return EmoteSetResponse(emotes: $0.data, template: template)
       }

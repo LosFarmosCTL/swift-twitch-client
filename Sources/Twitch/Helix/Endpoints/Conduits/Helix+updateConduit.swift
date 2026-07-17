@@ -11,9 +11,7 @@ extension HelixEndpoint {
         UpdateConduitRequest(id: id, shardCount: shardCount)
       },
       makeResponse: {
-        guard let conduit = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let conduit = try $0.requireFirst()
 
         return conduit
       })

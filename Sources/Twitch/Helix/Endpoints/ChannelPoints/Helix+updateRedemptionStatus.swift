@@ -23,9 +23,7 @@ extension HelixEndpoint {
         UpdateRedemptionStatusBody(status: status)
       },
       makeResponse: {
-        guard let redemption = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let redemption = try $0.requireFirst()
 
         return redemption
       })

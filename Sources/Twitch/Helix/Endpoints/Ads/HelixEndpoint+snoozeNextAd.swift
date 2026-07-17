@@ -9,9 +9,7 @@ extension HelixEndpoint {
       method: "POST", path: "channels/ads/schedule/snooze",
       queryItems: { auth in [("broadcaster_id", auth.userID)] },
       makeResponse: { result in
-        guard let response = result.data.first else {
-          throw HelixError.noDataInResponse(responseData: result.rawData)
-        }
+        let response = try result.requireFirst()
 
         return response
       }

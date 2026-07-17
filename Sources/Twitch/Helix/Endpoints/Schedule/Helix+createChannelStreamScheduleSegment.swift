@@ -26,9 +26,7 @@ extension HelixEndpoint {
           title: title)
       },
       makeResponse: { response in
-        guard let schedule = response.data.first else {
-          throw HelixError.noDataInResponse(responseData: response.rawData)
-        }
+        let schedule = try response.requireFirst()
 
         return schedule
       })

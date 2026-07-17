@@ -10,9 +10,7 @@ extension HelixEndpoint {
         [("description", description)]
       },
       makeResponse: {
-        guard let user = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let user = try $0.requireFirst()
 
         return user
       })

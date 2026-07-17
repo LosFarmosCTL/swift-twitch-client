@@ -13,9 +13,7 @@ extension HelixEndpoint {
         ]
       },
       makeResponse: { response in
-        guard let key = response.data.first else {
-          throw HelixError.noDataInResponse(responseData: response.rawData)
-        }
+        let key = try response.requireFirst()
 
         return key.streamKey
       })

@@ -45,9 +45,7 @@ extension HelixEndpoint {
           shouldRedemptionsSkipRequestQueue: shouldRedemptionsSkipRequestQueue)
       },
       makeResponse: {
-        guard let reward = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let reward = try $0.requireFirst()
 
         return reward
       })

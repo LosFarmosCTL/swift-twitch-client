@@ -14,9 +14,7 @@ extension HelixEndpoint {
         [("user_id", userID ?? auth.userID)]
       },
       makeResponse: {
-        guard let activeExtensions = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let activeExtensions = try $0.requireFirst()
 
         return activeExtensions
       })

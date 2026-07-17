@@ -17,9 +17,7 @@ extension HelixEndpoint {
         ]
       },
       makeResponse: {
-        guard let prediction = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let prediction = try $0.requireFirst()
 
         return prediction
       })

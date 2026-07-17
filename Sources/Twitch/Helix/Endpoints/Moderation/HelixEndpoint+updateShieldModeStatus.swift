@@ -17,9 +17,7 @@ extension HelixEndpoint {
         ]
       }, body: { _ in ["is_active": isActive] },
       makeResponse: {
-        guard let status = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let status = try $0.requireFirst()
         return status
       })
   }

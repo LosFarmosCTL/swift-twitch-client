@@ -23,9 +23,7 @@ extension HelixEndpoint {
           duration: duration)
       },
       makeResponse: {
-        guard let ban = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let ban = try $0.requireFirst()
 
         return ban
       })

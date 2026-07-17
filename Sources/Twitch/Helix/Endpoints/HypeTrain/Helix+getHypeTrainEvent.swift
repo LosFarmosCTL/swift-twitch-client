@@ -11,9 +11,7 @@ extension HelixEndpoint {
         [("broadcaster_id", broadcasterID ?? auth.userID)]
       },
       makeResponse: { response in
-        guard let status = response.data.first else {
-          throw HelixError.noDataInResponse(responseData: response.rawData)
-        }
+        let status = try response.requireFirst()
 
         return status
       })

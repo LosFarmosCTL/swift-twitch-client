@@ -16,9 +16,7 @@ extension HelixEndpoint {
         ]
       },
       makeResponse: { response in
-        guard let session = response.data.first else {
-          throw HelixError.noDataInResponse(responseData: response.rawData)
-        }
+        let session = try response.requireFirst()
 
         return session
       })

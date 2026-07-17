@@ -17,16 +17,11 @@ extension HelixEndpoint {
           transport: transport.transport)
       },
       makeResponse: {
-        guard let subscription = $0.data.first else {
-          throw HelixError.noDataInResponse(responseData: $0.rawData)
-        }
+        let subscription = try $0.requireFirst()
 
-        guard let total = $0.total,
-          let totalCost = $0.totalCost,
-          let maxTotalCost = $0.maxTotalCost
-        else {
-          throw HelixError.missingDataInResponse(responseData: $0.rawData)
-        }
+        let total = try $0.require(\.total)
+        let totalCost = try $0.require(\.totalCost)
+        let maxTotalCost = try $0.require(\.maxTotalCost)
 
         return CreateEventSubResponse(
           subscription: subscription, total: total, totalCost: totalCost,
