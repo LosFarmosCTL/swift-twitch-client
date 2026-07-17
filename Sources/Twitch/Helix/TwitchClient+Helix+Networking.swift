@@ -31,7 +31,12 @@ extension TwitchClient {
     encoder: JSONEncoder = TwitchClient.makeEncoder(),
     decoder: JSONDecoder = TwitchClient.makeDecoder()
   ) async throws -> Data {
-    let request = endpoint.makeRequest(using: credentials, encoder: encoder)
+    let request: URLRequest
+    do {
+      request = try endpoint.makeRequest(using: credentials, encoder: encoder)
+    } catch {
+      throw HelixError.unexpectedError(wrapped: error)
+    }
 
     let (data, response): (Data, HTTPURLResponse)
     do {

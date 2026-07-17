@@ -50,6 +50,28 @@ struct HelixTests {
   }
 
   @Test
+  func bodyEncodingFailureIsUnexpectedError() async {
+    let endpoint = HelixEndpoint<
+      String?, String, HelixEndpointResponseTypes.Normal
+    >(
+      method: "POST",
+      path: "encoding-failure",
+      body: { _ in UnencodableBody() },
+      makeResponse: { $0.data.first })
+
+    do {
+      _ = try await harness.twitch.helix(endpoint: endpoint)
+      Issue.record("Expected body encoding to fail.")
+    } catch HelixError.unexpectedError(let wrapped) {
+      #expect(wrapped is BodyEncodingTestError)
+    } catch {
+      Issue.record("Unexpected error: \(error)")
+    }
+
+    #expect(await harness.session.lastRequest() == nil)
+  }
+
+  @Test
   func errorResponse() async throws {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
     await harness.session.stub(
@@ -192,6 +214,16 @@ enum HelixCancellationSource: CaseIterable, Sendable {
 private enum HelixCallbackTestError: Error, Equatable {
   case requestDidNotCancel
   case unexpected
+}
+
+private enum BodyEncodingTestError: Error {
+  case failed
+}
+
+private struct UnencodableBody: Encodable, Sendable {
+  func encode(to encoder: Encoder) throws {
+    throw BodyEncodingTestError.failed
+  }
 }
 
 private actor SuspendingNetworkSession: NetworkSession {
