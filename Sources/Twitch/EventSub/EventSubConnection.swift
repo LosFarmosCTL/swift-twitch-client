@@ -72,15 +72,23 @@ internal actor EventSubConnection {
     }
 
     // wait for the welcome message to be received
-    let welcomeMessage = try await withCheckedThrowingContinuation { continuation in
-      self.welcomeContinuation = continuation
+    let welcomeMessage = try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { continuation in
+        self.welcomeContinuation = continuation
 
-      // in case the welcome message was received before the continuation was set
-      if let pending = self.pendingWelcomeResult {
-        self.pendingWelcomeResult = nil
-        self.finishWelcome(pending)
+        // in case the welcome message was received before the continuation was set
+        if let pending = self.pendingWelcomeResult {
+          self.pendingWelcomeResult = nil
+          self.finishWelcome(pending)
+        }
+      }
+    } onCancel: {
+      Task { [weak self] in
+        await self?.cancelDuringHandshake()
       }
     }
+
+    try Task.checkCancellation()
 
     // use a slightly longer keepalive timeout to account for network latency
     let timeout = welcomeMessage.keepaliveTimeout + .seconds(1)
@@ -182,6 +190,15 @@ internal actor EventSubConnection {
     } else {
       pendingWelcomeResult = result
     }
+  }
+
+  private func cancelDuringHandshake() async {
+    let disconnectedError = EventSubConnectionError.disconnected(
+      with: CancellationError(), socketID: socketID ?? "")
+
+    finishWelcome(.failure(disconnectedError))
+    await keepaliveTimer?.cancel()
+    await websocket?.cancel(with: .goingAway, reason: nil)
   }
 
   private func handleKeepaliveTimeout() async {

@@ -8,6 +8,12 @@ private typealias EventID = String
 private typealias SocketID = String
 
 internal actor EventSubClient {
+  private struct ConnectionCreation {
+    let id: UUID
+    let task: Task<SocketID, Error>
+    var isCancellationRequested = false
+  }
+
   private static let eventSubURL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
   private static let maxSubscriptionsPerConnection = 300
 
@@ -23,7 +29,9 @@ internal actor EventSubClient {
   private var pendingErrors = [EventID: EventSubError]()
 
   private var reservedSlots = [SocketID: Int]()
-  private var connectionCreationTask: Task<SocketID, Error>?
+  private var connectionCreation: ConnectionCreation?
+  private var connectionCreationWaiters =
+    [UUID: CheckedContinuation<SocketID, Error>]()
 
   private var isResetting = false
 
@@ -72,34 +80,31 @@ internal actor EventSubClient {
 
   internal func getFreeWebsocketID() async throws -> String {
     while true {
-      if let socketID = freeWebsocketID() {
+      try Task.checkCancellation()
+      guard !isResetting else { throw CancellationError() }
+
+      let socketID = connections.keys.first(where: hasFreeCapacity)
+      if let socketID {
         reservedSlots[socketID, default: 0] += 1
         return socketID
       }
 
-      if let connectionCreationTask {
-        do {
-          _ = try await connectionCreationTask.value
-        } catch {
-          self.connectionCreationTask = nil
-          throw error
-        }
-
+      if let creation = connectionCreation,
+        creation.isCancellationRequested || creation.task.isCancelled
+      {
+        let result = await creation.task.result
+        await finishConnectionCreation(id: creation.id, with: result)
         continue
       }
 
-      let connectionCreationTask = Task { try await createConnection() }
-      self.connectionCreationTask = connectionCreationTask
+      if connectionCreation == nil { startConnectionCreation() }
 
-      do {
-        _ = try await connectionCreationTask.value
-      } catch {
-        self.connectionCreationTask = nil
-        throw error
-      }
-
-      self.connectionCreationTask = nil
+      return try await waitForConnectionCreation()
     }
+  }
+
+  internal var connectionCreationWaiterCount: Int {
+    connectionCreationWaiters.count
   }
 
   internal func releaseReservation(for socketID: String) async {
@@ -199,6 +204,10 @@ internal actor EventSubClient {
     guard !isResetting else { return }
     isResetting = true
 
+    defer { isResetting = false }
+
+    await cancelConnectionCreation()
+
     for connection in connections.values {
       await connection.cancel()
     }
@@ -213,21 +222,15 @@ internal actor EventSubClient {
     pendingEvents.removeAll()
     pendingErrors.removeAll()
     reservedSlots.removeAll()
-    connectionCreationTask?.cancel()
-    connectionCreationTask = nil
-
-    isResetting = false
   }
 
   internal func switchCredentials(to credentials: TwitchCredentials) async {
     await reset()
     self.credentials = credentials
   }
+}
 
-  private func freeWebsocketID() -> SocketID? {
-    connections.keys.first(where: hasFreeCapacity)
-  }
-
+extension EventSubClient {
   private func hasFreeCapacity(on socketID: SocketID) -> Bool {
     let subscribedEvents = connectionEvents[socketID]?.count ?? 0
     let reserved = reservedSlots[socketID] ?? 0
@@ -258,5 +261,108 @@ internal actor EventSubClient {
     if let connection = connections.removeValue(forKey: socketID) {
       await connection.cancel()
     }
+  }
+
+  private func startConnectionCreation() {
+    let id = UUID()
+    let task = Task { try await createConnection() }
+    connectionCreation = ConnectionCreation(id: id, task: task)
+
+    Task { [weak self] in
+      let result = await task.result
+      await self?.finishConnectionCreation(id: id, with: result)
+    }
+  }
+
+  private func waitForConnectionCreation() async throws -> SocketID {
+    let waiterID = UUID()
+
+    let socketID = try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { continuation in
+        connectionCreationWaiters[waiterID] = continuation
+      }
+    } onCancel: {
+      Task { [weak self] in
+        await self?.cancelConnectionCreationWaiter(waiterID)
+      }
+    }
+
+    if Task.isCancelled {
+      await releaseReservation(for: socketID)
+      throw CancellationError()
+    }
+
+    return socketID
+  }
+
+  private func cancelConnectionCreationWaiter(_ waiterID: UUID) async {
+    guard let waiter = connectionCreationWaiters.removeValue(forKey: waiterID) else {
+      return
+    }
+
+    if connectionCreationWaiters.isEmpty { await cancelConnectionCreation() }
+
+    waiter.resume(throwing: CancellationError())
+  }
+
+  private func finishConnectionCreation(
+    id: UUID,
+    with result: Result<SocketID, Error>
+  ) async {
+    guard let creation = connectionCreation, creation.id == id else { return }
+
+    connectionCreation = nil
+
+    let waiters = Array(connectionCreationWaiters.values)
+    connectionCreationWaiters.removeAll()
+
+    switch result {
+    case .success(let socketID):
+      if creation.isCancellationRequested || creation.task.isCancelled || isResetting {
+        await closeConnectionIfUnused(socketID)
+
+        for waiter in waiters {
+          waiter.resume(throwing: CancellationError())
+        }
+      } else {
+        reservedSlots[socketID, default: 0] += waiters.count
+
+        for waiter in waiters {
+          waiter.resume(returning: socketID)
+        }
+      }
+    case .failure(let error):
+      let normalizedError = normalizeSetupError(error)
+      for waiter in waiters {
+        waiter.resume(throwing: normalizedError)
+      }
+    }
+  }
+
+  private func cancelConnectionCreation() async {
+    guard var creation = connectionCreation else { return }
+
+    creation.isCancellationRequested = true
+    connectionCreation = creation
+
+    creation.task.cancel()
+    let result = await creation.task.result
+    await finishConnectionCreation(id: creation.id, with: result)
+  }
+
+  private func normalizeSetupError(_ error: Error) -> Error {
+    if error is CancellationError {
+      return CancellationError()
+    }
+
+    guard let error = error as? EventSubConnectionError else {
+      return EventSubError.disconnected(with: error)
+    }
+
+    if case .disconnected(let underlying, _) = error, underlying is CancellationError {
+      return CancellationError()
+    }
+
+    return error.eventSubError
   }
 }

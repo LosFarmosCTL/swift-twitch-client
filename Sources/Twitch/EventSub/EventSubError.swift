@@ -12,3 +12,18 @@ internal enum EventSubConnectionError: Error {
   case timedOut(socketID: String)
   case disconnected(with: Error, socketID: String)
 }
+
+extension EventSubConnectionError {
+  var eventSubError: EventSubError {
+    switch self {
+    case .revocation(let revocation):
+      return .revocation(revocation)
+    case .timedOut:
+      return .timedOut
+    case .disconnected(let error, _):
+      return .disconnected(with: error)
+    case .reconnectRequested:
+      return .disconnected(with: self)
+    }
+  }
+}
