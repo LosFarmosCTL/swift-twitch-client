@@ -8,8 +8,40 @@ import Foundation
 
 actor MockNetworkSession: NetworkSession {
   struct Key: Hashable {
-    let url: URL
+    struct QueryItem: Hashable {
+      let name: String
+      let value: String?
+    }
+
+    let scheme: String?
+    let host: String?
+    let port: Int?
+    let path: String
+    let queryItems: [QueryItem]
     let method: String
+
+    init(url: URL, method: String) {
+      let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+
+      self.scheme = components?.scheme?.lowercased()
+      self.host = components?.host?.lowercased()
+      self.port = components?.port
+      self.path = components?.percentEncodedPath ?? url.path
+      self.queryItems = (components?.queryItems ?? [])
+        .map { QueryItem(name: $0.name, value: $0.value) }
+        .sorted {
+          if $0.name == $1.name {
+            return ($0.value ?? "") < ($1.value ?? "")
+          }
+          return $0.name < $1.name
+        }
+      self.method = method
+    }
+  }
+
+  private enum Stub {
+    case response(Data, HTTPURLResponse)
+    case failure(any Error)
   }
 
   private var webSocketTasks: [MockWebSocketTask] = []
@@ -17,17 +49,27 @@ actor MockNetworkSession: NetworkSession {
   var queuedWebSocketMessages: [URLSessionWebSocketTask.Message] = []
   var queuedWebSocketErrors: [Error] = []
 
-  private var stubs: [Key: (Data, HTTPURLResponse)] = [:]
+  private var stubs: [Key: Stub] = [:]
   private var onRequest: (@Sendable (URLRequest) async -> Void)?
+  private var receivedRequests: [URLRequest] = []
 
-  func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-    await onRequest?(request)
-
+  func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
     guard let url = request.url else { throw URLError(.badURL) }
     let method = request.httpMethod ?? "GET"
+    let key = Key(url: url, method: method)
 
-    if let hit = stubs[Key(url: url, method: method)] { return hit }
-    throw URLError(.unsupportedURL)
+    guard let stub = stubs[key] else { throw URLError(.unsupportedURL) }
+
+    receivedRequests.append(request)
+    let requestHandler = onRequest
+    await requestHandler?(request)
+
+    switch stub {
+    case .response(let data, let response):
+      return (data, response)
+    case .failure(let error):
+      throw error
+    }
   }
 
   func webSocketTask(with url: URL) async -> WebSocketTask {
@@ -67,7 +109,23 @@ actor MockNetworkSession: NetworkSession {
       httpVersion: "HTTP/1.1",
       headerFields: headers)!
 
-    stubs[Key(url: url, method: method)] = (body, response)
+    stubs[Key(url: url, method: method)] = .response(body, response)
+  }
+
+  func stub(url: URL, method: String = "GET", error: any Error) {
+    stubs[Key(url: url, method: method)] = .failure(error)
+  }
+
+  func requests() -> [URLRequest] {
+    receivedRequests
+  }
+
+  func lastRequest() -> URLRequest? {
+    receivedRequests.last
+  }
+
+  func requestCount() -> Int {
+    receivedRequests.count
   }
 
   func simulateIncoming(
@@ -128,5 +186,6 @@ actor MockNetworkSession: NetworkSession {
   func reset() {
     stubs.removeAll()
     onRequest = nil
+    receivedRequests.removeAll()
   }
 }

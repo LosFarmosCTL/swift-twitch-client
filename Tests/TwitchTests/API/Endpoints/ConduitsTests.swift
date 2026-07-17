@@ -1,129 +1,116 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct ConduitsTests {
+  private let harness = HelixTestHarness()
 
-final class ConduitsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getConduits() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/eventsub/conduits"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getConduitsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let conduits = try await harness.twitch.helix(endpoint: .getConduits())
+
+    #expect(conduits.count == 2)
+    #expect(conduits.first?.id == "26b1c993-bfcf-44d9-b876-379dacafe75a")
+    #expect(conduits.first?.shardCount == 15)
   }
 
-  func testGetConduits() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/conduits")!
+  @Test
+  func createConduit() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/eventsub/conduits"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getConduitsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: MockedData.createConduitJSON)
 
-    let conduits = try await twitch.helix(endpoint: .getConduits())
+    let conduit = try await harness.twitch.helix(endpoint: .createConduit(shardCount: 5))
 
-    XCTAssertEqual(conduits.count, 2)
-    XCTAssertEqual(conduits.first?.id, "26b1c993-bfcf-44d9-b876-379dacafe75a")
-    XCTAssertEqual(conduits.first?.shardCount, 15)
+    #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
+    #expect(conduit.shardCount == 5)
   }
 
-  func testCreateConduit() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/conduits")!
+  @Test
+  func updateConduit() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/eventsub/conduits"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: MockedData.createConduitJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PATCH",
+      body: MockedData.updateConduitJSON)
 
-    let conduit = try await twitch.helix(endpoint: .createConduit(shardCount: 5))
-
-    XCTAssertEqual(conduit.id, "bfcfc993-26b1-b876-44d9-afe75a379dac")
-    XCTAssertEqual(conduit.shardCount, 5)
-  }
-
-  func testUpdateConduit() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/conduits")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.patch: MockedData.updateConduitJSON]
-    ).register()
-
-    let conduit = try await twitch.helix(
+    let conduit = try await harness.twitch.helix(
       endpoint: .updateConduit(id: "bfcfc993-26b1-b876-44d9-afe75a379dac", shardCount: 5))
 
-    XCTAssertEqual(conduit.id, "bfcfc993-26b1-b876-44d9-afe75a379dac")
-    XCTAssertEqual(conduit.shardCount, 5)
+    #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
+    #expect(conduit.shardCount == 5)
   }
 
-  func testDeleteConduit() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/eventsub/conduits?id=bfcfc993-26b1-b876-44d9-afe75a379dac"
-    )!
+  @Test
+  func deleteConduit() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/eventsub/conduits?id=bfcfc993-26b1-b876-44d9-afe75a379dac"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "DELETE"
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .deleteConduit(id: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testGetConduitShards() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/eventsub/conduits/shards?conduit_id=bfcfc993-26b1-b876-44d9-afe75a379dac"
-    )!
+  @Test
+  func getConduitShards() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/eventsub/conduits/shards?conduit_id=bfcfc993-26b1-b876-44d9-afe75a379dac"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getConduitShardsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getConduitShardsJSON)
 
-    let (shards, cursor) = try await twitch.helix(
+    let (shards, cursor) = try await harness.twitch.helix(
       endpoint: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
 
-    XCTAssertNil(cursor)
-    XCTAssertEqual(shards.count, 5)
-    XCTAssertEqual(shards[0].id, "0")
-    XCTAssertEqual(shards[0].status, "enabled")
-    XCTAssertEqual(shards[0].transport.method, "webhook")
-    XCTAssertEqual(shards[0].transport.callback, "https://this-is-a-callback.com")
-    XCTAssertNil(shards[0].transport.sessionID)
+    #expect(cursor == nil)
+    #expect(shards.count == 5)
+    #expect(shards[0].id == "0")
+    #expect(shards[0].status == "enabled")
+    #expect(shards[0].transport.method == "webhook")
+    #expect(shards[0].transport.callback == "https://this-is-a-callback.com")
+    #expect(shards[0].transport.sessionID == nil)
 
-    XCTAssertEqual(shards[2].transport.method, "websocket")
-    XCTAssertEqual(shards[2].transport.sessionID, "9fd5164a-a958-4c60-b7f4-6a7202506ca0")
-    XCTAssertNotNil(shards[2].transport.connectedAt)
+    #expect(shards[2].transport.method == "websocket")
+    #expect(shards[2].transport.sessionID == "9fd5164a-a958-4c60-b7f4-6a7202506ca0")
+    #expect(shards[2].transport.connectedAt != nil)
 
-    XCTAssertEqual(shards[4].status, "websocket_disconnected")
-    XCTAssertNotNil(shards[4].transport.disconnectedAt)
+    #expect(shards[4].status == "websocket_disconnected")
+    #expect(shards[4].transport.disconnectedAt != nil)
   }
 
-  func testUpdateConduitShards() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/conduits/shards")!
+  @Test
+  func updateConduitShards() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/eventsub/conduits/shards"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.patch: MockedData.updateConduitShardsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PATCH",
+      body: MockedData.updateConduitShardsJSON)
 
-    let response = try await twitch.helix(
+    let response = try await harness.twitch.helix(
       endpoint: .updateConduitShards(
         conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac",
         shards: [
@@ -137,14 +124,13 @@ final class ConduitsTests: XCTestCase {
               callback: "https://this-is-a-callback-2.com", secret: "s3cre7")),
         ]))
 
-    XCTAssertEqual(response.shards.count, 2)
-    XCTAssertEqual(response.shards.first?.id, "0")
-    XCTAssertEqual(response.shards.first?.status, "enabled")
-    XCTAssertEqual(
-      response.shards.first?.transport.callback, "https://this-is-a-callback.com")
+    #expect(response.shards.count == 2)
+    #expect(response.shards.first?.id == "0")
+    #expect(response.shards.first?.status == "enabled")
+    #expect(response.shards.first?.transport.callback == "https://this-is-a-callback.com")
 
-    XCTAssertEqual(response.errors.count, 1)
-    XCTAssertEqual(response.errors.first?.id, "3")
-    XCTAssertEqual(response.errors.first?.code, "invalid_parameter")
+    #expect(response.errors.count == 1)
+    #expect(response.errors.first?.id == "3")
+    #expect(response.errors.first?.code == "invalid_parameter")
   }
 }

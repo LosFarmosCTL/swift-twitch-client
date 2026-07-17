@@ -1,58 +1,44 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct SearchTests {
+  private let harness = HelixTestHarness()
 
-final class SearchTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func searchCategories() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/search/categories?query=fort"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.searchCategoriesJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
-  }
-
-  func testSearchCategories() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/search/categories?query=fort")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.searchCategoriesJSON]
-    ).register()
-
-    let (categories, cursor) = try await twitch.helix(
+    let (categories, cursor) = try await harness.twitch.helix(
       endpoint: .searchCategories(for: "fort"))
 
-    XCTAssertEqual(cursor, "eyJiIjpudWxsLCJhIjp7IkN")
+    #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN")
 
-    XCTAssertEqual(categories.count, 1)
-    XCTAssert(categories.contains(where: { $0.id == "33214" }))
+    #expect(categories.count == 1)
+    #expect(categories.contains(where: { $0.id == "33214" }))
   }
 
-  func testSearchChannels() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/search/channels?query=loser")!
+  @Test
+  func searchChannels() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/search/channels?query=loser"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.searchChannelsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.searchChannelsJSON)
 
-    let (channels, cursor) = try await twitch.helix(
+    let (channels, cursor) = try await harness.twitch.helix(
       endpoint: .searchChannels(for: "loser"))
 
-    XCTAssertNil(cursor)
+    #expect(cursor == nil)
 
-    XCTAssertEqual(channels.count, 2)
-    XCTAssert(channels.contains(where: { $0.id == "41245072" }))
+    #expect(channels.count == 2)
+    #expect(channels.contains(where: { $0.id == "41245072" }))
   }
 }

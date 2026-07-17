@@ -1,101 +1,83 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct EventSubTests {
+  private let harness = HelixTestHarness()
 
-final class EventSubTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getEventSubSubscriptions() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getEventSubSubscriptionsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let response = try await harness.twitch.helix(endpoint: .getEventSubSubscriptions())
+
+    #expect(response.total == 2)
+    #expect(response.totalCost == 1)
+    #expect(response.maxTotalCost == 10000)
+    #expect(response.cursor == nil)
+
+    #expect(response.subscriptions.count == 2)
+    #expect(response.subscriptions.first?.id == "26b1c993-bfcf-44d9-b876-379dacafe75a")
+    #expect(response.subscriptions.first?.status == "enabled")
+    #expect(response.subscriptions.first?.type == "stream.online")
+    #expect(response.subscriptions.first?.version == "1")
+    #expect(response.subscriptions.first?.cost == 1)
+    #expect(response.subscriptions.first?.condition["broadcaster_user_id"] == "1234")
+
+    #expect(
+      response.subscriptions.last?.status == "webhook_callback_verification_pending")
+    #expect(response.subscriptions.last?.type == "user.update")
+    #expect(response.subscriptions.last?.cost == 0)
   }
 
-  func testGetEventSubSubscriptions() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
+  @Test
+  func createEventSubSubscription() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getEventSubSubscriptionsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: MockedData.createEventSubSubscriptionJSON)
 
-    let response = try await twitch.helix(endpoint: .getEventSubSubscriptions())
-
-    XCTAssertEqual(response.total, 2)
-    XCTAssertEqual(response.totalCost, 1)
-    XCTAssertEqual(response.maxTotalCost, 10000)
-    XCTAssertNil(response.cursor)
-
-    XCTAssertEqual(response.subscriptions.count, 2)
-    XCTAssertEqual(
-      response.subscriptions.first?.id, "26b1c993-bfcf-44d9-b876-379dacafe75a")
-    XCTAssertEqual(response.subscriptions.first?.status, "enabled")
-    XCTAssertEqual(response.subscriptions.first?.type, "stream.online")
-    XCTAssertEqual(response.subscriptions.first?.version, "1")
-    XCTAssertEqual(response.subscriptions.first?.cost, 1)
-    XCTAssertEqual(
-      response.subscriptions.first?.condition["broadcaster_user_id"], "1234")
-
-    XCTAssertEqual(
-      response.subscriptions.last?.status, "webhook_callback_verification_pending")
-    XCTAssertEqual(response.subscriptions.last?.type, "user.update")
-    XCTAssertEqual(response.subscriptions.last?.cost, 0)
-  }
-
-  func testCreateEventSubSubscription() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: MockedData.createEventSubSubscriptionJSON]
-    ).register()
-
-    let response = try await twitch.helix(
+    let response = try await harness.twitch.helix(
       endpoint: .createEventSubSubscription(
         using: .webhook(callback: "https://this-is-a-callback.com", secret: "s3cre7"),
         type: .userUpdate(userID: "1234")))
 
-    XCTAssertEqual(response.total, 1)
-    XCTAssertEqual(response.totalCost, 1)
-    XCTAssertEqual(response.maxTotalCost, 10000)
+    #expect(response.total == 1)
+    #expect(response.totalCost == 1)
+    #expect(response.maxTotalCost == 10000)
 
-    XCTAssertEqual(response.subscription.id, "26b1c993-bfcf-44d9-b876-379dacafe75a")
-    XCTAssertEqual(response.subscription.status, "webhook_callback_verification_pending")
-    XCTAssertEqual(response.subscription.type, "user.update")
-    XCTAssertEqual(response.subscription.version, "1")
-    XCTAssertEqual(response.subscription.cost, 1)
-    XCTAssertEqual(response.subscription.transport.method, "webhook")
-    XCTAssertEqual(
-      response.subscription.condition["user_id"], "1234")
+    #expect(response.subscription.id == "26b1c993-bfcf-44d9-b876-379dacafe75a")
+    #expect(response.subscription.status == "webhook_callback_verification_pending")
+    #expect(response.subscription.type == "user.update")
+    #expect(response.subscription.version == "1")
+    #expect(response.subscription.cost == 1)
+    #expect(response.subscription.transport.method == "webhook")
+    #expect(response.subscription.condition["user_id"] == "1234")
   }
 
-  func testDeleteEventSubSubscription() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/eventsub/subscriptions?id=26b1c993-bfcf-44d9-b876-379dacafe75a"
-    )!
+  @Test
+  func deleteEventSubSubscription() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/eventsub/subscriptions?id=26b1c993-bfcf-44d9-b876-379dacafe75a"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "DELETE"
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .deleteEventSubSubscription(id: "26b1c993-bfcf-44d9-b876-379dacafe75a"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 }

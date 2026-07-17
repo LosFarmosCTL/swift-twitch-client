@@ -1,247 +1,235 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct ExtensionsTests {
+  private let harness = HelixTestHarness()
 
-final class ExtensionsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getExtensionConfigurationSegment() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/configurations?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&segment=global"
+      ))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionConfigurationSegmentJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
-  }
-
-  func testGetExtensionConfigurationSegment() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions/configurations?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&segment=global"
-    )!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionConfigurationSegmentJSON]
-    ).register()
-
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .getExtensionConfigurationSegment(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         segments: [.global]))
 
-    XCTAssertEqual(result.count, 1)
-    XCTAssertEqual(result.first?.segment, .global)
-    XCTAssertEqual(result.first?.content, "hello config!")
-    XCTAssertEqual(result.first?.version, "0.0.1")
+    #expect(result.count == 1)
+    #expect(result.first?.segment == .global)
+    #expect(result.first?.content == "hello config!")
+    #expect(result.first?.version == "0.0.1")
   }
 
-  func testSetExtensionConfigurationSegment() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/extensions/configurations")!
+  @Test
+  func setExtensionConfigurationSegment() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/extensions/configurations"))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "PUT"
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .setExtensionConfigurationSegment(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         segment: .global,
         content: "hello config!",
         version: "0.0.1"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testSendExtensionPubSubMessage() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/extensions/pubsub")!
+  @Test
+  func sendExtensionPubSubMessage() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/extensions/pubsub"))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .sendExtensionPubSubMessage(
         target: [.broadcast],
         message: "hello world!",
         broadcasterID: "141981764"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testGetExtensionLiveChannels() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions/live?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&first=1"
-    )!
+  @Test
+  func getExtensionLiveChannels() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/live?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&first=1"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionLiveChannelsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionLiveChannelsJSON)
 
-    let (channels, cursor) = try await twitch.helix(
+    let (channels, cursor) = try await harness.twitch.helix(
       endpoint: .getExtensionLiveChannels(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         limit: 1))
 
-    XCTAssertEqual(
-      cursor,
-      "YVc1emRHRnNiQ015TmpJek5qazVOVHBoYWpKbGRIZDFaR0Z5YjNCMGN6UTJNMkZ1TUdwM2FHWnBZbm8yYW5rNjoy"
+    #expect(
+      cursor
+        == "YVc1emRHRnNiQ015TmpJek5qazVOVHBoYWpKbGRIZDFaR0Z5YjNCMGN6UTJNMkZ1TUdwM2FHWnBZbm8yYW5rNjoy"
     )
-    XCTAssertEqual(channels.count, 3)
-    XCTAssertEqual(channels.first?.broadcasterID, "252766116")
-    XCTAssertEqual(channels.first?.gameID, "460630")
+    #expect(channels.count == 3)
+    #expect(channels.first?.broadcasterID == "252766116")
+    #expect(channels.first?.gameID == "460630")
   }
 
-  func testGetExtensionSecrets() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions/jwt/secrets?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2"
-    )!
+  @Test
+  func getExtensionSecrets() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/jwt/secrets?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionSecretsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionSecretsJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .getExtensionSecrets(extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2"))
 
-    XCTAssertEqual(result.formatVersion, 1)
-    XCTAssertEqual(result.secrets.count, 1)
-    XCTAssertEqual(result.secrets.first?.content, "secret")
+    #expect(result.formatVersion == 1)
+    #expect(result.secrets.count == 1)
+    #expect(result.secrets.first?.content == "secret")
   }
 
-  func testCreateExtensionSecret() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions/jwt/secrets?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&delay=600"
-    )!
+  @Test
+  func createExtensionSecret() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/jwt/secrets?extension_id=uo6dggojyb8d6soh92zknwmi5ej1q2&delay=600"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: MockedData.createExtensionSecretJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: MockedData.createExtensionSecretJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .createExtensionSecret(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         delay: 600))
 
-    XCTAssertEqual(result.formatVersion, 1)
-    XCTAssertEqual(result.secrets.count, 2)
-    XCTAssertEqual(result.secrets.first?.content, "old-secret")
-    XCTAssertEqual(result.secrets.last?.content, "new-secret")
+    #expect(result.formatVersion == 1)
+    #expect(result.secrets.count == 2)
+    #expect(result.secrets.first?.content == "old-secret")
+    #expect(result.secrets.last?.content == "new-secret")
   }
 
-  func testSendExtensionChatMessage() async throws {
-    let url = URL(
-      string: "https://api.twitch.tv/helix/extensions/chat?broadcaster_id=237757755"
-    )!
+  @Test
+  func sendExtensionChatMessage() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/extensions/chat?broadcaster_id=237757755"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .sendExtensionChatMessage(
         in: "237757755",
         text: "Hello",
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         extensionVersion: "0.0.9"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testGetExtension() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions?extension_id=pgn0bjv51epi7eaekt53tovjnc82qo&extension_version=0.0.9"
-    )!
+  @Test
+  func getExtension() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions?extension_id=pgn0bjv51epi7eaekt53tovjnc82qo&extension_version=0.0.9"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .getExtension(
         extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
         version: "0.0.9"))
 
-    XCTAssertEqual(result.id, "pgn0bjv51epi7eaekt53tovjnc82qo")
-    XCTAssertEqual(result.name, "Official Developers Demo")
-    XCTAssertEqual(result.state, .released)
-    XCTAssertEqual(result.subscriptionsSupportLevel, .optional)
-    XCTAssertEqual(result.views?.panel?.height, 300)
+    #expect(result.id == "pgn0bjv51epi7eaekt53tovjnc82qo")
+    #expect(result.name == "Official Developers Demo")
+    #expect(result.state == .released)
+    #expect(result.subscriptionsSupportLevel == .optional)
+    #expect(result.views?.panel?.height == 300)
   }
 
-  func testGetReleasedExtension() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/extensions/released?extension_id=pgn0bjv51epi7eaekt53tovjnc82qo&extension_version=0.0.9"
-    )!
+  @Test
+  func getReleasedExtension() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/released?extension_id=pgn0bjv51epi7eaekt53tovjnc82qo&extension_version=0.0.9"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getReleasedExtensionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getReleasedExtensionJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .getReleasedExtension(
         extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
         version: "0.0.9"))
 
-    XCTAssertEqual(result.id, "pgn0bjv51epi7eaekt53tovjnc82qo")
-    XCTAssertEqual(result.name, "Official Developer Experience Demo")
-    XCTAssertEqual(result.state, .released)
-    XCTAssertEqual(result.subscriptionsSupportLevel, .optional)
+    #expect(result.id == "pgn0bjv51epi7eaekt53tovjnc82qo")
+    #expect(result.name == "Official Developer Experience Demo")
+    #expect(result.state == .released)
+    #expect(result.subscriptionsSupportLevel == .optional)
   }
 
-  func testGetExtensionBitsProducts() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/bits/extensions")!
+  @Test
+  func getExtensionBitsProducts() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/bits/extensions?should_include_all=true"))
 
-    Mock(
-      url: url, ignoreQuery: true, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionBitsProductsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionBitsProductsJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .getExtensionBitsProducts(includeAll: true))
 
-    XCTAssertEqual(result.count, 1)
-    XCTAssertEqual(result.first?.sku, "1010")
-    XCTAssertEqual(result.first?.cost.amount, 990)
-    XCTAssertEqual(result.first?.displayName, "Rusty Crate 2")
+    #expect(result.count == 1)
+    #expect(result.first?.sku == "1010")
+    #expect(result.first?.cost.amount == 990)
+    #expect(result.first?.displayName == "Rusty Crate 2")
   }
 
-  func testUpdateExtensionBitsProduct() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/bits/extensions")!
+  @Test
+  func updateExtensionBitsProduct() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/bits/extensions"))
 
-    Mock(
-      url: url, ignoreQuery: true, contentType: .json, statusCode: 200,
-      data: [.put: MockedData.updateExtensionBitsProductJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      body: MockedData.updateExtensionBitsProductJSON)
 
-    let result = try await twitch.helix(
+    let result = try await harness.twitch.helix(
       endpoint: .updateExtensionBitsProduct(
         sku: "1010",
         cost: .init(amount: 990, type: .bits),
@@ -250,8 +238,8 @@ final class ExtensionsTests: XCTestCase {
         expiration: Date(timeIntervalSince1970: 1_621_329_013.397),
         isBroadcast: true))
 
-    XCTAssertEqual(result.count, 1)
-    XCTAssertEqual(result.first?.sku, "1010")
-    XCTAssertEqual(result.first?.isBroadcast, true)
+    #expect(result.count == 1)
+    #expect(result.first?.sku == "1010")
+    #expect(result.first?.isBroadcast == true)
   }
 }

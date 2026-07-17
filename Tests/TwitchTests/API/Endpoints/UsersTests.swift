@@ -1,114 +1,105 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct UsersTests {
+  private let harness = HelixTestHarness()
 
-final class UsersTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getUsers() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/users?id=141981764"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getUsersJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let users = try await harness.twitch.helix(endpoint: .getUsers(ids: ["141981764"]))
+
+    #expect(users.count == 1)
+
+    #expect(users.first?.id == "141981764")
+    #expect(users.first?.broadcasterType == User.BroadcasterType.partner)
+    #expect(users.first?.email == nil)
   }
 
-  func testGetUsers() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users?id=141981764")!
+  @Test
+  func updateUser() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/users?description=Hello%20world!"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200, data: [.get: MockedData.getUsersJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      body: MockedData.updateUserJSON)
 
-    let users = try await twitch.helix(endpoint: .getUsers(ids: ["141981764"]))
-
-    XCTAssertEqual(users.count, 1)
-
-    XCTAssertEqual(users.first?.id, "141981764")
-    XCTAssertEqual(users.first?.broadcasterType, User.BroadcasterType.partner)
-    XCTAssertNil(users.first?.email)
-  }
-
-  func testUpdateUser() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users?description=Hello%20world!")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.put: MockedData.updateUserJSON]
-    ).register()
-
-    let user = try await twitch.helix(
+    let user = try await harness.twitch.helix(
       endpoint: .updateUser(description: "Hello world!"))
 
-    XCTAssertEqual(user.description, "Hello world!")
-    XCTAssertNotNil(user.email)
+    #expect(user.description == "Hello world!")
+    #expect(user.email != nil)
   }
 
-  func testGetUserBlocklist() async throws {
-    let url = URL(
-      string: "https://api.twitch.tv/helix/users/blocks?broadcaster_id=1234&first=2")!
+  @Test
+  func getUserBlocklist() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/users/blocks?broadcaster_id=1234&first=2"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getUserBlocklistJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getUserBlocklistJSON)
 
-    let blocks = try await twitch.helix(endpoint: .getBlocklist(limit: 2))
+    let blocks = try await harness.twitch.helix(endpoint: .getBlocklist(limit: 2))
 
-    XCTAssertEqual(blocks.count, 2)
-    XCTAssert(blocks.contains(where: { $0.userID == "135093069" }))
+    #expect(blocks.count == 2)
+    #expect(blocks.contains(where: { $0.userID == "135093069" }))
   }
 
-  func testGetUserExtensions() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users/extensions/list")!
+  @Test
+  func getUserExtensions() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/users/extensions/list"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getUserExtensionsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getUserExtensionsJSON)
 
-    let extensions = try await twitch.helix(endpoint: .getUserExtensions())
+    let extensions = try await harness.twitch.helix(endpoint: .getUserExtensions())
 
-    XCTAssertEqual(extensions.count, 5)
-    XCTAssert(extensions.contains(where: { $0.id == "wi08ebtatdc7oj83wtl9uxwz807l8b" }))
-    XCTAssert(extensions.contains(where: { $0.types.contains(.panel) }))
+    #expect(extensions.count == 5)
+    #expect(extensions.contains(where: { $0.id == "wi08ebtatdc7oj83wtl9uxwz807l8b" }))
+    #expect(extensions.contains(where: { $0.types.contains(.panel) }))
   }
 
-  func testGetUserActiveExtensions() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users/extensions?user_id=1234")!
+  @Test
+  func getUserActiveExtensions() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/users/extensions?user_id=1234"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getUserActiveExtensionsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getUserActiveExtensionsJSON)
 
-    let activeExtensions = try await twitch.helix(
+    let activeExtensions = try await harness.twitch.helix(
       endpoint: .getUserActiveExtensions())
 
-    XCTAssertEqual(activeExtensions.panel?["1"]?.name, "TopClip")
-    XCTAssertEqual(activeExtensions.overlay?["1"]?.id, "zfh2irvx2jb4s60f02jq0ajm8vwgka")
-    XCTAssertEqual(activeExtensions.component?["1"]?.x, 0)
-    XCTAssertEqual(activeExtensions.component?["2"]?.isActive, false)
+    #expect(activeExtensions.panel?["1"]?.name == "TopClip")
+    #expect(activeExtensions.overlay?["1"]?.id == "zfh2irvx2jb4s60f02jq0ajm8vwgka")
+    #expect(activeExtensions.component?["1"]?.x == 0)
+    #expect(activeExtensions.component?["2"]?.isActive == false)
   }
 
-  func testUpdateUserExtensions() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users/extensions")!
+  @Test
+  func updateUserExtensions() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/users/extensions"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.put: MockedData.updateUserExtensionsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      body: MockedData.updateUserExtensionsJSON)
 
-    let userExtensions = try await twitch.helix(
+    let userExtensions = try await harness.twitch.helix(
       endpoint: .updateUserExtensions(
         panel: [
           "1": ExtensionSlotUpdate(
@@ -125,38 +116,35 @@ final class UsersTests: XCTestCase {
           "2": ExtensionSlotUpdate(isActive: false),
         ]))
 
-    XCTAssertEqual(userExtensions.panel?["1"]?.version, "1.1.0")
-    XCTAssertEqual(userExtensions.component?["1"]?.y, 0)
+    #expect(userExtensions.panel?["1"]?.version == "1.1.0")
+    #expect(userExtensions.component?["1"]?.y == 0)
   }
 
-  func testBlockUser() async throws {
-    let url = URL(
-      string: "https://api.twitch.tv/helix/users/blocks?target_user_id=1234&reason=spam")!
+  @Test
+  func blockUser() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/users/blocks?target_user_id=1234&reason=spam"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "PUT"
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(endpoint: .block("1234", reason: .spam))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
+    try await harness.twitch.helix(endpoint: .block("1234", reason: .spam))
   }
 
-  func testUnblockUser() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/users/blocks?target_user_id=1234")!
+  @Test
+  func unblockUser() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/users/blocks?target_user_id=1234"))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "DELETE"
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(endpoint: .unblock("1234"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
+    try await harness.twitch.helix(endpoint: .unblock("1234"))
   }
 }

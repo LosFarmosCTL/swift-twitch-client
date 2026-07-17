@@ -1,40 +1,40 @@
-import XCTest
+import Testing
 
 @testable import Twitch
 
-class AuthenticationTests: XCTestCase {
+struct AuthenticationTests {
   let oAuth = "abcdefghijklmnop"
   let clientID = "1234567890"
   let userID = "1234"
   let userLogin = "user"
 
-  func testInitialization() {
+  @Test
+  func initialization() {
     let auth = TwitchCredentials(
       oAuth: oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
-    XCTAssertEqual(auth.oAuth, oAuth)
-    XCTAssertEqual(auth.clientID, clientID)
-    XCTAssertEqual(auth.userID, userID)
-    XCTAssertEqual(auth.userLogin, userLogin)
+    #expect(auth.oAuth == oAuth)
+    #expect(auth.clientID == clientID)
+    #expect(auth.userID == userID)
+    #expect(auth.userLogin == userLogin)
   }
 
-  func testWithOAuthPrefix() {
+  @Test
+  func withOAuthPrefix() {
     let auth = TwitchCredentials(
       oAuth: "oauth:" + oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
-    XCTAssertEqual(auth.oAuth, oAuth)
+    #expect(auth.oAuth == oAuth)
   }
 
-  func testHTTPHeaders() throws {
+  @Test
+  func httpHeaders() {
     let auth = TwitchCredentials(
       oAuth: oAuth, clientID: clientID, userID: userID, userLogin: userLogin)
 
     let headers = auth.httpHeaders()
 
-    XCTAssert(
-      headers.contains(where: {
-        $0.key == "Authorization" && $0.value == "Bearer \(oAuth)"
-      }))
-    XCTAssert(headers.contains(where: { $0.key == "Client-Id" && $0.value == clientID }))
+    #expect(headers["Authorization"] == "Bearer \(oAuth)")
+    #expect(headers["Client-Id"] == clientID)
   }
 }

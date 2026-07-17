@@ -1,71 +1,56 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct ClipsTests {
+  private let harness = HelixTestHarness()
 
-final class ClipsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func createClip() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/clips?broadcaster_id=1234"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      status: 202,
+      body: MockedData.createClipJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let clip = try await harness.twitch.helix(endpoint: .createClip())
+
+    #expect(clip.id == "FiveWordsForClipSlug")
+    #expect(clip.editURL == "https://www.twitch.tv/twitchdev/clip/FiveWordsForClipSlug")
   }
 
-  func testCreateClip() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/clips?broadcaster_id=1234")!
+  @Test
+  func getClips() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/clips?id=AwkwardHelplessSalamanderSwiftRage"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 202,
-      data: [.post: MockedData.createClipJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getClipsJSON)
 
-    let clip = try await twitch.helix(endpoint: .createClip())
-
-    XCTAssertEqual(clip.id, "FiveWordsForClipSlug")
-    XCTAssertEqual(
-      clip.editURL,
-      "https://www.twitch.tv/twitchdev/clip/FiveWordsForClipSlug"
-    )
-  }
-
-  func testGetClips() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/clips?id=AwkwardHelplessSalamanderSwiftRage")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getClipsJSON]
-    ).register()
-
-    let (clips, cursor) = try await twitch.helix(
+    let (clips, cursor) = try await harness.twitch.helix(
       endpoint: .getClips(ids: ["AwkwardHelplessSalamanderSwiftRage"]))
 
-    XCTAssertNil(cursor)
-    XCTAssertEqual(clips.count, 1)
+    #expect(cursor == nil)
+    #expect(clips.count == 1)
 
     let clip = clips.first
-    XCTAssertEqual(clip?.id, "AwkwardHelplessSalamanderSwiftRage")
-    XCTAssertEqual(clip?.broadcasterID, "67955580")
-    XCTAssertEqual(clip?.creatorID, "53834192")
-    XCTAssertEqual(clip?.viewCount, 10)
-    XCTAssertEqual(clip?.createdAt.formatted(.iso8601), "2017-11-30T22:34:18Z")
-    XCTAssertEqual(
-      clip?.thumbnailURL,
-      "https://clips-media-assets.twitch.tv/157589949-preview-480x272.jpg")
-    XCTAssertEqual(clip?.duration, 60)
-    XCTAssertEqual(clip?.vodOffset, 480)
-    XCTAssertEqual(clip?.isFeatured, false)
+    #expect(clip?.id == "AwkwardHelplessSalamanderSwiftRage")
+    #expect(clip?.broadcasterID == "67955580")
+    #expect(clip?.creatorID == "53834192")
+    #expect(clip?.viewCount == 10)
+    #expect(clip?.createdAt.formatted(.iso8601) == "2017-11-30T22:34:18Z")
+    #expect(
+      clip?.thumbnailURL
+        == "https://clips-media-assets.twitch.tv/157589949-preview-480x272.jpg")
+    #expect(clip?.duration == 60)
+    #expect(clip?.vodOffset == 480)
+    #expect(clip?.isFeatured == false)
   }
 }

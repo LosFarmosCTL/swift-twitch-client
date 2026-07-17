@@ -1,6 +1,5 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
@@ -8,126 +7,100 @@ import XCTest
   import FoundationNetworking
 #endif
 
-class HelixTests: XCTestCase {
-  private var mockingURLSession: URLSession!
-  private var twitch: TwitchClient!
+struct HelixTests {
+  private let harness = HelixTestHarness(
+    authentication: .init(
+      oAuth: "abcdefg",
+      clientID: "123456",
+      userID: "1234",
+      userLogin: "user"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    self.mockingURLSession = URLSession(configuration: configuration)
+  @Test
+  func helixAuthentication() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/chat/badges/global"))
+    await harness.session.stub(
+      url: url,
+      body: Data("{\"data\":[]}".utf8))
 
-    self.twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "abcdefg", clientID: "123456", userID: "1234", userLogin: "user"),
-      urlSession: mockingURLSession)
+    _ = try await harness.twitch.helix(endpoint: .getGlobalBadges())
+
+    let request = try #require(await harness.session.lastRequest())
+    #expect(request.value(forHTTPHeaderField: "Client-Id") == "123456")
+    #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer abcdefg")
   }
 
-  func testHelixAuthentication() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/chat/badges/global")!
-    var mock = Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: Data("{\"data\":[]}".utf8)])
+  @Test
+  func withJSONBody() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/test"))
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: Data("{\"data\":[\"forsen\"]}".utf8))
 
-    mock.onRequestHandler = OnRequestHandler(requestCallback: { request in
-      guard let clientIDHeader = request.value(forHTTPHeaderField: "Client-Id") else {
-        return XCTFail("Helix request must contain a Client-Id header.")
-      }
-
-      guard let authenticationHeader = request.value(forHTTPHeaderField: "Authorization")
-      else { return XCTFail("Helix request must contain an Authorization header.") }
-
-      XCTAssertEqual(
-        clientIDHeader, "123456",
-        "Helix request must contain the correct Client-Id header.")
-      XCTAssertEqual(
-        authenticationHeader, "Bearer abcdefg",
-        "Helix request must contain the correct Authorization header.")
-    })
-
-    mock.register()
-
-    _ = try await self.twitch.helix(endpoint: .getGlobalBadges())
-  }
-
-  func testWithJsonBody() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/test")!
-    var mock = Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: Data("{\"data\":[\"forsen\"]}".utf8)])
-
-    mock.onRequestHandler = OnRequestHandler(
-      httpBodyType: [String: String].self,
-      callback: { request, body in
-        XCTAssertEqual(
-          request.value(forHTTPHeaderField: "Content-Type"), "application/json",
-          "Helix request must contain the correct Content-Type header.")
-
-        guard let body else { return XCTFail("Helix request must contain a body.") }
-
-        XCTAssertEqual(
-          body, ["test": "test"], "Helix request must contain the correct body.")
-      })
-
-    mock.register()
-
-    _ = try await self.twitch.helix(
+    _ = try await harness.twitch.helix(
       endpoint: .custom(method: "POST", path: "test", body: ["test": "test"]))
+
+    let request = try #require(await harness.session.lastRequest())
+    #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+
+    let body = try #require(request.httpBody)
+    let decodedBody = try JSONDecoder().decode([String: String].self, from: body)
+    #expect(decodedBody == ["test": "test"])
   }
 
-  func testErrorResponse() async {
-    let url = URL(string: "https://api.twitch.tv/helix/invalid")!
+  @Test
+  func errorResponse() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
+    await harness.session.stub(
+      url: url,
+      status: 400,
+      body: MockedData.errorResponseJSON)
 
-    Mock(
-      url: url, contentType: .json, statusCode: 400,
-      data: [.get: MockedData.errorResponseJSON]
-    ).register()
+    let error = await #expect(throws: HelixError.self) {
+      try await harness.twitch.helix(
+        endpoint: .custom(method: "GET", path: "invalid"))
+    }
 
-    await XCTAssertThrowsErrorAsync(
-      try await twitch.helix(endpoint: .custom(method: "GET", path: "invalid")),
-      "An invalid request should throw an error."
-    ) { err in
-      guard case HelixError.twitchError(let name, let status, let message) = err else {
-        return XCTFail(
-          "An invalid request should throw a requestFailed error, not \(err).")
-      }
+    guard case .twitchError(let name, let status, let message) = error else {
+      Issue.record("Expected a twitchError, got \(String(describing: error))")
+      return
+    }
 
-      XCTAssertEqual(name, "Bad Request")
-      XCTAssertEqual(status, 400)
-      XCTAssertEqual(message, "Invalid request")
+    #expect(name == "Bad Request")
+    #expect(status == 400)
+    #expect(message == "Invalid request")
+  }
+
+  @Test
+  func invalidResponse() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
+    await harness.session.stub(url: url)
+
+    let error = await #expect(throws: HelixError.self) {
+      try await harness.twitch.helix(
+        endpoint: .custom(method: "GET", path: "invalid"))
+    }
+
+    guard case .parsingResponseFailed = error else {
+      Issue.record("Expected parsingResponseFailed, got \(String(describing: error))")
+      return
     }
   }
 
-  func testInvalidResponse() async {
-    let url = URL(string: "https://api.twitch.tv/helix/invalid")!
+  @Test
+  func invalidErrorResponse() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
+    await harness.session.stub(url: url, status: 500)
 
-    Mock(url: url, contentType: .json, statusCode: 200, data: [.get: Data()])
-      .register()
+    let error = await #expect(throws: HelixError.self) {
+      try await harness.twitch.helix(
+        endpoint: .custom(method: "GET", path: "invalid"))
+    }
 
-    await XCTAssertThrowsErrorAsync(
-      try await self.twitch.helix(endpoint: .custom(method: "GET", path: "invalid")),
-      "An invalid response should throw a HelixError",
-      { (error) in
-        guard case HelixError.parsingResponseFailed(_) = error else {
-          return XCTFail(
-            "An invalid response should throw a parsingResponseFailed HelixError")
-        }
-      })
-  }
-
-  func testInvalidErrorResponse() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/invalid")!
-    Mock(url: url, contentType: .json, statusCode: 500, data: [.get: Data("".utf8)])
-      .register()
-
-    await XCTAssertThrowsErrorAsync(
-      try await self.twitch.helix(endpoint: .custom(method: "GET", path: "invalid")),
-      "An invalid response should throw a HelixError",
-      { (error) in
-        guard case HelixError.parsingErrorFailed(_, _) = error else {
-          return XCTFail(
-            "An invalid error response should throw an invalidErrorResponse HelixError")
-        }
-      })
+    guard case .parsingErrorFailed = error else {
+      Issue.record("Expected parsingErrorFailed, got \(String(describing: error))")
+      return
+    }
   }
 }

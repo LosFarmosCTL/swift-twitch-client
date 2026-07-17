@@ -1,66 +1,51 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct PollsTests {
+  private let harness = HelixTestHarness()
 
-final class PollsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getPolls() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/polls?broadcaster_id=1234&id=ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"
+      ))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getPollsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
-  }
-
-  func testGetPolls() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/polls?broadcaster_id=1234&id=ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"
-    )!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getPollsJSON]
-    ).register()
-
-    let (polls, cursor) = try await twitch.helix(
+    let (polls, cursor) = try await harness.twitch.helix(
       endpoint: .getPolls(filterIDs: ["ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"]))
 
-    XCTAssertEqual(polls.count, 1)
-    XCTAssertNil(cursor)
+    #expect(polls.count == 1)
+    #expect(cursor == nil)
 
     let poll = polls.first
-    XCTAssertEqual(poll?.id, "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
-    XCTAssertEqual(poll?.broadcasterID, "55696719")
-    XCTAssertEqual(poll?.title, "Heads or Tails?")
-    XCTAssertEqual(poll?.choices.count, 2)
-    XCTAssertEqual(poll?.choices.first?.title, "Heads")
-    XCTAssertEqual(poll?.status, .active)
-    XCTAssertEqual(poll?.duration, 1800)
-    XCTAssertEqual(
-      poll?.startedAt.formatted(.iso8601), "2021-03-19T06:08:33Z")
-    XCTAssertNil(poll?.endedAt)
+    #expect(poll?.id == "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
+    #expect(poll?.broadcasterID == "55696719")
+    #expect(poll?.title == "Heads or Tails?")
+    #expect(poll?.choices.count == 2)
+    #expect(poll?.choices.first?.title == "Heads")
+    #expect(poll?.status == .active)
+    #expect(poll?.duration == 1800)
+    #expect(poll?.startedAt.formatted(.iso8601) == "2021-03-19T06:08:33Z")
+    #expect(poll?.endedAt == nil)
   }
 
-  func testCreatePoll() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/polls")!
+  @Test
+  func createPoll() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/polls"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: MockedData.createPollJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: MockedData.createPollJSON)
 
-    let poll = try await twitch.helix(
+    let poll = try await harness.twitch.helix(
       endpoint: .createPoll(
         title: "Heads or Tails?",
         choices: ["Heads", "Tails"],
@@ -68,29 +53,29 @@ final class PollsTests: XCTestCase {
         channelPointsVotingEnabled: true,
         channelPointsPerVote: 100))
 
-    XCTAssertEqual(poll.id, "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
-    XCTAssertEqual(poll.broadcasterID, "141981764")
-    XCTAssertEqual(poll.channelPointsVotingEnabled, true)
-    XCTAssertEqual(poll.channelPointsPerVote, 100)
-    XCTAssertEqual(poll.status, .active)
+    #expect(poll.id == "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
+    #expect(poll.broadcasterID == "141981764")
+    #expect(poll.channelPointsVotingEnabled == true)
+    #expect(poll.channelPointsPerVote == 100)
+    #expect(poll.status == .active)
   }
 
-  func testEndPoll() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/polls")!
+  @Test
+  func endPoll() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/polls"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.patch: MockedData.endPollJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PATCH",
+      body: MockedData.endPollJSON)
 
-    let poll = try await twitch.helix(
+    let poll = try await harness.twitch.helix(
       endpoint: .endPoll(
         id: "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a",
         status: .terminated))
 
-    XCTAssertEqual(poll.id, "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
-    XCTAssertEqual(poll.status, .terminated)
-    XCTAssertEqual(
-      poll.endedAt?.formatted(.iso8601), "2021-03-19T06:11:26Z")
+    #expect(poll.id == "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")
+    #expect(poll.status == .terminated)
+    #expect(poll.endedAt?.formatted(.iso8601) == "2021-03-19T06:11:26Z")
   }
 }

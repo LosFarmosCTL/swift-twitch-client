@@ -1,65 +1,53 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct SubscriptionsTests {
+  private let harness = HelixTestHarness()
 
-final class SubscriptionsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getBroadcasterSubscribers() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/subscriptions?broadcaster_id=1234&first=2"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getBroadcasterSubscriptionsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
-  }
-
-  func testGetBroadcasterSubscribers() async throws {
-    let url = URL(
-      string: "https://api.twitch.tv/helix/subscriptions?broadcaster_id=1234&first=2")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getBroadcasterSubscriptionsJSON]
-    ).register()
-
-    let result = try await twitch.helix(endpoint: .getSubscribers(limit: 2))
+    let result = try await harness.twitch.helix(endpoint: .getSubscribers(limit: 2))
     let subscribers = result.subscribers
 
-    XCTAssertEqual(result.total, 13)
-    XCTAssertEqual(result.points, 13)
+    #expect(result.total == 13)
+    #expect(result.points == 13)
 
-    XCTAssertEqual(result.cursor, "jnksdfyg7is8do7fv7yuwbisudg")
+    #expect(result.cursor == "jnksdfyg7is8do7fv7yuwbisudg")
 
-    XCTAssertEqual(subscribers.count, 2)
-    XCTAssertNotNil(subscribers.first?.gifter)
-    XCTAssertEqual(subscribers.first?.gifter?.id, "12826")
-    XCTAssertEqual(subscribers.first?.gifter?.login, "twitch")
-    XCTAssertEqual(subscribers.first?.gifter?.name, "Twitch")
-    XCTAssertNil(subscribers.last?.gifter)
+    #expect(subscribers.count == 2)
+    #expect(subscribers.first?.gifter != nil)
+    #expect(subscribers.first?.gifter?.id == "12826")
+    #expect(subscribers.first?.gifter?.login == "twitch")
+    #expect(subscribers.first?.gifter?.name == "Twitch")
+    #expect(subscribers.last?.gifter == nil)
   }
 
-  func testCheckUserSubscription() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=1234&user_id=1234")!
+  @Test
+  func checkUserSubscription() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=1234&user_id=1234"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.checkUserSubscriptionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.checkUserSubscriptionJSON)
 
-    let subscription = try await twitch.helix(endpoint: .checkSubscription(to: "1234"))
+    let subscription = try await harness.twitch.helix(
+      endpoint: .checkSubscription(to: "1234"))
 
-    XCTAssertEqual(subscription?.broadcasterID, "141981764")
-    XCTAssertEqual(subscription?.gifter?.id, "12826")
+    #expect(subscription?.broadcasterID == "141981764")
+    #expect(subscription?.gifter?.id == "12826")
   }
 }

@@ -1,285 +1,264 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct GuestStarTests {
+  private let harness = HelixTestHarness()
 
-final class GuestStarTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getChannelGuestStarSettings() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&moderator_id=1234"
+      ))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getChannelGuestStarSettingsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let settings = try await harness.twitch.helix(
+      endpoint: .getChannelGuestStarSettings())
+
+    #expect(settings.isModeratorSendLiveEnabled == true)
+    #expect(settings.slotCount == 4)
+    #expect(settings.isBrowserSourceAudioEnabled == true)
+    #expect(settings.groupLayout == .tiledLayout)
+    #expect(settings.browserSourceToken == "eihq8rew7q3hgierufhi3q")
   }
 
-  func testGetChannelGuestStarSettings() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&moderator_id=1234"
-    )!
+  @Test
+  func updateChannelGuestStarSettings() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&is_moderator_send_live_enabled=false&slot_count=6&is_browser_source_audio_enabled=true&group_layout=HORIZONTAL_LAYOUT&regenerate_browser_sources=true"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getChannelGuestStarSettingsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "PUT",
+      status: 204)
 
-    let settings = try await twitch.helix(endpoint: .getChannelGuestStarSettings())
-
-    XCTAssertEqual(settings.isModeratorSendLiveEnabled, true)
-    XCTAssertEqual(settings.slotCount, 4)
-    XCTAssertEqual(settings.isBrowserSourceAudioEnabled, true)
-    XCTAssertEqual(settings.groupLayout, .tiledLayout)
-    XCTAssertEqual(settings.browserSourceToken, "eihq8rew7q3hgierufhi3q")
-  }
-
-  func testUpdateChannelGuestStarSettings() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&is_moderator_send_live_enabled=false&slot_count=6&is_browser_source_audio_enabled=true&group_layout=HORIZONTAL_LAYOUT&regenerate_browser_sources=true"
-    )!
-
-    var request = URLRequest(url: url)
-    request.httpMethod = "PUT"
-
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .updateChannelGuestStarSettings(
         isModeratorSendLiveEnabled: false,
         slotCount: 6,
         isBrowserSourceAudioEnabled: true,
         groupLayout: .horizontalLayout,
         regenerateBrowserSources: true))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testGetGuestStarSession() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234&moderator_id=1234"
-    )!
+  @Test
+  func getGuestStarSession() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234&moderator_id=1234"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getGuestStarSessionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getGuestStarSessionJSON)
 
-    let session = try await twitch.helix(endpoint: .getGuestStarSession())
+    let session = try await harness.twitch.helix(endpoint: .getGuestStarSession())
 
-    XCTAssertEqual(session.id, "2KFRQbFtpmfyD3IevNRnCzOPRJI")
-    XCTAssertEqual(session.guests.count, 2)
+    #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
+    #expect(session.guests.count == 2)
 
-    XCTAssertEqual(session.guests.first?.slotID, "0")
-    XCTAssertEqual(session.guests.first?.userID, "9321049")
-    XCTAssertEqual(session.guests.first?.userDisplayName, "Cool_User")
-    XCTAssertEqual(session.guests.first?.userLogin, "cool_user")
-    XCTAssertEqual(session.guests.first?.isLive, true)
-    XCTAssertEqual(session.guests.first?.volume, 100)
-    XCTAssertEqual(
-      session.guests.first?.assignedAt.formatted(.iso8601), "2023-01-02T04:16:53Z")
-    XCTAssertEqual(session.guests.first?.audioSettings.isAvailable, true)
-    XCTAssertEqual(session.guests.first?.videoSettings.isAvailable, true)
+    #expect(session.guests.first?.slotID == "0")
+    #expect(session.guests.first?.userID == "9321049")
+    #expect(session.guests.first?.userDisplayName == "Cool_User")
+    #expect(session.guests.first?.userLogin == "cool_user")
+    #expect(session.guests.first?.isLive == true)
+    #expect(session.guests.first?.volume == 100)
+    #expect(
+      session.guests.first?.assignedAt.formatted(.iso8601) == "2023-01-02T04:16:53Z")
+    #expect(session.guests.first?.audioSettings.isAvailable == true)
+    #expect(session.guests.first?.videoSettings.isAvailable == true)
   }
 
-  func testCreateGuestStarSession() async throws {
-    let url = URL(
-      string: "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234")!
+  @Test
+  func createGuestStarSession() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.post: MockedData.createGuestStarSessionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      body: MockedData.createGuestStarSessionJSON)
 
-    let session = try await twitch.helix(endpoint: .createGuestStarSession())
+    let session = try await harness.twitch.helix(endpoint: .createGuestStarSession())
 
-    XCTAssertEqual(session.id, "2KFRQbFtpmfyD3IevNRnCzOPRJI")
-    XCTAssertEqual(session.guests.count, 1)
-    XCTAssertEqual(session.guests.first?.slotID, "0")
-    XCTAssertEqual(session.guests.first?.userID, "9321049")
-    XCTAssertEqual(session.guests.first?.isLive, true)
+    #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
+    #expect(session.guests.count == 1)
+    #expect(session.guests.first?.slotID == "0")
+    #expect(session.guests.first?.userID == "9321049")
+    #expect(session.guests.first?.isLive == true)
   }
 
-  func testEndGuestStarSession() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI"
-    )!
+  @Test
+  func endGuestStarSession() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/session?broadcaster_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.delete: MockedData.endGuestStarSessionJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      body: MockedData.endGuestStarSessionJSON)
 
-    let session = try await twitch.helix(
+    let session = try await harness.twitch.helix(
       endpoint: .endGuestStarSession(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
 
-    XCTAssertEqual(session.id, "2KFRQbFtpmfyD3IevNRnCzOPRJI")
-    XCTAssertEqual(session.guests.count, 1)
-    XCTAssertEqual(session.guests.first?.slotID, "0")
-    XCTAssertEqual(session.guests.first?.userLogin, "cool_user")
+    #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
+    #expect(session.guests.count == 1)
+    #expect(session.guests.first?.slotID == "0")
+    #expect(session.guests.first?.userLogin == "cool_user")
   }
 
-  func testGetGuestStarInvites() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI"
-    )!
+  @Test
+  func getGuestStarInvites() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI"
+      ))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getGuestStarInvitesJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getGuestStarInvitesJSON)
 
-    let invites = try await twitch.helix(
+    let invites = try await harness.twitch.helix(
       endpoint: .getGuestStarInvites(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
 
-    XCTAssertEqual(invites.count, 1)
-    XCTAssertEqual(invites.first?.userID, "144601104")
-    XCTAssertEqual(invites.first?.status, .invited)
-    XCTAssertEqual(invites.first?.isAudioEnabled, false)
-    XCTAssertEqual(invites.first?.isVideoEnabled, true)
-    XCTAssertEqual(invites.first?.isAudioAvailable, true)
-    XCTAssertEqual(invites.first?.isVideoAvailable, true)
-    XCTAssertEqual(
-      invites.first?.invitedAt.formatted(.iso8601), "2023-01-02T04:16:53Z")
+    #expect(invites.count == 1)
+    #expect(invites.first?.userID == "144601104")
+    #expect(invites.first?.status == .invited)
+    #expect(invites.first?.isAudioEnabled == false)
+    #expect(invites.first?.isVideoEnabled == true)
+    #expect(invites.first?.isAudioAvailable == true)
+    #expect(invites.first?.isVideoAvailable == true)
+    #expect(invites.first?.invitedAt.formatted(.iso8601) == "2023-01-02T04:16:53Z")
   }
 
-  func testSendGuestStarInvite() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104"
-    )!
+  @Test
+  func sendGuestStarInvite() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .sendGuestStarInvite(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testDeleteGuestStarInvite() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104"
-    )!
+  @Test
+  func deleteGuestStarInvite() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/invites?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "DELETE"
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .deleteGuestStarInvite(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testAssignGuestStarSlot() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104&slot_id=1"
-    )!
+  @Test
+  func assignGuestStarSlot() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104&slot_id=1"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
+    await harness.session.stub(
+      url: url,
+      method: "POST",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .assignGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104",
         slotID: "1"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testUpdateGuestStarSlot() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&source_slot_id=1&destination_slot_id=2"
-    )!
+  @Test
+  func updateGuestStarSlot() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&source_slot_id=1&destination_slot_id=2"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "PATCH"
+    await harness.session.stub(
+      url: url,
+      method: "PATCH",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .updateGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         sourceSlotID: "1",
         destinationSlotID: "2"))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testDeleteGuestStarSlot() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104&slot_id=1&should_reinvite_guest=true"
-    )!
+  @Test
+  func deleteGuestStarSlot() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/slot?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&guest_id=144601104&slot_id=1&should_reinvite_guest=true"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "DELETE"
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .deleteGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104",
         slotID: "1",
         shouldReinviteGuest: true))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 
-  func testUpdateGuestStarSlotSettings() async throws {
-    let url = URL(
-      string:
-        "https://api.twitch.tv/helix/guest_star/slot_settings?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&slot_id=1&is_audio_enabled=false&is_video_enabled=true&is_live=true&volume=40"
-    )!
+  @Test
+  func updateGuestStarSlotSettings() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/guest_star/slot_settings?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&slot_id=1&is_audio_enabled=false&is_video_enabled=true&is_live=true&volume=40"
+      ))
 
-    var request = URLRequest(url: url)
-    request.httpMethod = "PATCH"
+    await harness.session.stub(
+      url: url,
+      method: "PATCH",
+      status: 204)
 
-    var mock = Mock(request: request, statusCode: 204)
-    let completionExpectation = expectationForCompletingMock(&mock)
-    mock.register()
-
-    try await twitch.helix(
+    try await harness.twitch.helix(
       endpoint: .updateGuestStarSlotSettings(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         slotID: "1",
@@ -287,7 +266,5 @@ final class GuestStarTests: XCTestCase {
         isVideoEnabled: true,
         isLive: true,
         volume: 40))
-
-    await fulfillment(of: [completionExpectation], timeout: 2.0)
   }
 }

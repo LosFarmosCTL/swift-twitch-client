@@ -1,74 +1,61 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct VideosTests {
+  private let harness = HelixTestHarness()
 
-final class VideosTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getVideos() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/videos?id=987654321"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getVideosJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
-  }
-
-  func testGetVideos() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/videos?id=987654321")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getVideosJSON]
-    ).register()
-
-    let (videos, cursor) = try await twitch.helix(
+    let (videos, cursor) = try await harness.twitch.helix(
       endpoint: .getVideos(ids: ["987654321"]))
 
-    XCTAssertNil(cursor)
+    #expect(cursor == nil)
 
-    XCTAssertEqual(videos.count, 1)
+    #expect(videos.count == 1)
 
-    let video = try XCTUnwrap(videos.first)
-    XCTAssertEqual(video.id, "987654321")
-    XCTAssertEqual(video.streamID, "111222333")
-    XCTAssertEqual(video.userID, "56789")
-    XCTAssertEqual(video.userLogin, "zzzztopper")
-    XCTAssertEqual(video.userName, "zzzzTopper")
-    XCTAssertEqual(video.title, "The incredible artistry that is me.")
-    XCTAssertEqual(video.description, "")
-    XCTAssertEqual(video.createdAt.formatted(.iso8601), "2022-07-08T16:58:46Z")
-    XCTAssertEqual(video.publishedAt.formatted(.iso8601), "2022-07-08T16:58:46Z")
-    XCTAssertEqual(video.url, "https://www.twitch.tv/videos/987654321")
-    XCTAssertEqual(
-      video.thumbnailURL,
-      "https://static-cdn.jtvnw.net/cf_vods/dgeft87wbj63p/ce4ddf3095472cde00cd_zzzztopper_45725106652_1657299521//thumb/thumb0-%{width}x%{height}.jpg"
+    let video = try #require(videos.first)
+    #expect(video.id == "987654321")
+    #expect(video.streamID == "111222333")
+    #expect(video.userID == "56789")
+    #expect(video.userLogin == "zzzztopper")
+    #expect(video.userName == "zzzzTopper")
+    #expect(video.title == "The incredible artistry that is me.")
+    #expect(video.description == "")
+    #expect(video.createdAt.formatted(.iso8601) == "2022-07-08T16:58:46Z")
+    #expect(video.publishedAt.formatted(.iso8601) == "2022-07-08T16:58:46Z")
+    #expect(video.url == "https://www.twitch.tv/videos/987654321")
+    #expect(
+      video.thumbnailURL
+        == "https://static-cdn.jtvnw.net/cf_vods/dgeft87wbj63p/ce4ddf3095472cde00cd_zzzztopper_45725106652_1657299521//thumb/thumb0-%{width}x%{height}.jpg"
     )
-    XCTAssertEqual(video.viewable, "public")
-    XCTAssertEqual(video.viewCount, 395_246)
-    XCTAssertEqual(video.language, "en")
-    XCTAssertEqual(video.type, .archive)
-    XCTAssertEqual(video.duration, "6h26m14s")
-    XCTAssertNil(video.mutedSegments)
+    #expect(video.viewable == "public")
+    #expect(video.viewCount == 395_246)
+    #expect(video.language == "en")
+    #expect(video.type == .archive)
+    #expect(video.duration == "6h26m14s")
+    #expect(video.mutedSegments == nil)
   }
 
-  func testDeleteVideos() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/videos?id=1535513785")!
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.delete: MockedData.deleteVideosJSON]
-    ).register()
+  @Test
+  func deleteVideos() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/videos?id=1535513785"))
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      body: MockedData.deleteVideosJSON)
 
-    let deletedIDs = try await twitch.helix(endpoint: .deleteVideos(ids: ["1535513785"]))
+    let deletedIDs = try await harness.twitch.helix(
+      endpoint: .deleteVideos(ids: ["1535513785"]))
 
-    XCTAssertEqual(deletedIDs, ["1535513785"])
+    #expect(deletedIDs == ["1535513785"])
   }
 }

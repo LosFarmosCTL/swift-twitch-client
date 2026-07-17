@@ -33,7 +33,7 @@ extension TwitchClient {
   ) async throws -> Data {
     let request = endpoint.makeRequest(using: credentials, encoder: encoder)
 
-    let (data, response): (Data, URLResponse)
+    let (data, response): (Data, HTTPURLResponse)
     do {
       (data, response) = try await network.data(for: request)
     } catch let error as URLError where error.code == .cancelled {
@@ -44,10 +44,7 @@ extension TwitchClient {
       throw HelixError.networkError(wrapped: error)
     }
 
-    // since we are always using an http(s) url, we can force cast the response
-    // swiftlint:disable:next force_cast
-    let httpResponse = response as! HTTPURLResponse
-    try Self.validate(data: data, response: httpResponse, decoder: decoder)
+    try Self.validate(data: data, response: response, decoder: decoder)
 
     return data
   }

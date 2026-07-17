@@ -1,61 +1,45 @@
 import Foundation
-import Mocker
-import XCTest
+import Testing
 
 @testable import Twitch
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
+struct AnalyticsTests {
+  private let harness = HelixTestHarness()
 
-final class AnalyticsTests: XCTestCase {
-  private var twitch: TwitchClient!
+  @Test
+  func getExtensionAnalytics() async throws {
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/analytics/extensions"))
 
-  override func setUpWithError() throws {
-    let configuration = URLSessionConfiguration.default
-    configuration.protocolClasses = [MockingURLProtocol.self]
-    let urlSession = URLSession(configuration: configuration)
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getExtensionAnalyticsJSON)
 
-    twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "1234567989", clientID: "abcdefghijkl", userID: "1234", userLogin: "user"),
-      urlSession: urlSession)
+    let (analytics, _) = try await harness.twitch.helix(
+      endpoint: .getExtensionAnalytics())
+
+    #expect(analytics.count == 1)
+    #expect(analytics.contains(where: { $0.extensionID == "efgh" }))
+
+    #expect(analytics.first?.range.start.formatted(.iso8601) == "2018-03-01T00:00:00Z")
+    #expect(analytics.first?.range.end.formatted(.iso8601) == "2018-06-01T00:00:00Z")
   }
 
-  func testGetExtensionAnalytics() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/analytics/extensions")!
+  @Test
+  func getGameAnalytics() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/analytics/games"))
 
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getExtensionAnalyticsJSON]
-    ).register()
+    await harness.session.stub(
+      url: url,
+      body: MockedData.getGameAnalyticsJSON)
 
-    let (analytics, _) = try await twitch.helix(endpoint: .getExtensionAnalytics())
+    let (analytics, _) = try await harness.twitch.helix(endpoint: .getGameAnalytics())
 
-    XCTAssertEqual(analytics.count, 1)
-    XCTAssert(analytics.contains(where: { $0.extensionID == "efgh" }))
+    #expect(analytics.count == 1)
 
-    XCTAssertEqual(
-      analytics.first?.range.start.formatted(.iso8601), "2018-03-01T00:00:00Z")
-    XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-01T00:00:00Z")
-  }
+    #expect(analytics.contains(where: { $0.gameID == "9821" }))
 
-  func testGetGameAnalytics() async throws {
-    let url = URL(string: "https://api.twitch.tv/helix/analytics/games")!
-
-    Mock(
-      url: url, contentType: .json, statusCode: 200,
-      data: [.get: MockedData.getGameAnalyticsJSON]
-    ).register()
-
-    let (analytics, _) = try await twitch.helix(endpoint: .getGameAnalytics())
-
-    XCTAssertEqual(analytics.count, 1)
-
-    XCTAssert(analytics.contains(where: { $0.gameID == "9821" }))
-
-    XCTAssertEqual(
-      analytics.first?.range.start.formatted(.iso8601), "2018-03-13T00:00:00Z")
-    XCTAssertEqual(analytics.first?.range.end.formatted(.iso8601), "2018-06-13T00:00:00Z")
+    #expect(analytics.first?.range.start.formatted(.iso8601) == "2018-03-13T00:00:00Z")
+    #expect(analytics.first?.range.end.formatted(.iso8601) == "2018-06-13T00:00:00Z")
   }
 }
