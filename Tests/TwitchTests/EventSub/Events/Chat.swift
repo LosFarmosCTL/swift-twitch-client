@@ -89,6 +89,24 @@ struct EventSubChatTests {
     #expect(notice.gift == nil)
   }
 
+  @Test("Should preserve unknown chat notification types")
+  func unknownNoticeType() async throws {
+    let fixture = MockedMessages.channelChatNotification.replacingOccurrences(
+      of: "\"notice_type\": \"resub\"", with: "\"notice_type\": \"future_notice\"")
+    let message = try await harness.testEvent(
+      .channelChatNotification(broadcasterID: "111", userID: "222"),
+      with: fixture,
+      requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
+
+    let received = try #require(message)
+    guard case .unknown(let type) = received.noticeType else {
+      Issue.record("Expected unknown notice, got \(received.noticeType)")
+      return
+    }
+
+    #expect(type == "future_notice")
+  }
+
   @Test("Should decode channelChatSettingsUpdate event")
   func testChannelChatSettingsUpdateEvent() async throws {
     let message = try await harness.testEvent(
