@@ -3,6 +3,7 @@ import MemberwiseInit
 public enum AutomodHoldReason: Sendable {
   case automod(Automod)
   case blockedTerm(BlockedTerm)
+  case blockedLink(BlockedTerm)
 
   @MemberwiseInit(.public)
   public struct Automod: Decodable, Sendable {
@@ -67,11 +68,17 @@ public enum AutomodHoldReason: Sendable {
         AutomodHoldReason.BlockedTerm.self, forKey: .blockedTerm)
 
       self = .blockedTerm(blockedTermReason)
+    case .blockedLink:
+      let blockedLinkReason = try container.decode(
+        AutomodHoldReason.BlockedTerm.self, forKey: .blockedTerm)
+
+      self = .blockedLink(blockedLinkReason)
     }
   }
 
   private enum HoldReason: String, Decodable, Sendable {
     case automod = "automod"
     case blockedTerm = "blocked_term"
+    case blockedLink = "blocked_link"
   }
 }
