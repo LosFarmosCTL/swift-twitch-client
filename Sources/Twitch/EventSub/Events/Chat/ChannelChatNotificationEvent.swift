@@ -40,11 +40,12 @@ public struct ChannelChatNotificationEvent: Event {
 
     case noticeType
     case sub, resub, subGift, communitySubGift, giftPaidUpgrade, primePaidUpgrade,
-      payItForward, raid, unraid, announcement, bitsBadgeTier, charityDonation
+      payItForward, raid, unraid, announcement, bitsBadgeTier, charityDonation,
+      giftedDropsSummary
     case sharedChatSub, sharedChatResub, sharedChatSubGift, sharedChatCommunitySubGift,
       sharedChatGiftPaidUpgrade, sharedChatPrimePaidUpgrade, sharedChatPayItForward,
       sharedChatRaid, sharedChatAnnouncement, sharedChatBitsBadgeTier,
-      sharedChatCharityDonation
+      sharedChatCharityDonation, sharedChatGiftedDropsSummary
 
     case sourceBroadcasterID = "sourceBroadcasterUserId"
     case sourceBroadcasterLogin = "sourceBroadcasterUserLogin"
@@ -121,6 +122,7 @@ public struct ChannelChatNotificationEvent: Event {
     case announcement(AnnouncementNotice)
     case bitsBadgeTier(BitsBadgeTierNotice)
     case charityDonation(CharityDonationNotice)
+    case giftedDropsSummary(GiftedDropsSummaryNotice)
 
     case sharedChatSub(SubNotice)
     case sharedChatResub(ResubNotice)
@@ -134,6 +136,7 @@ public struct ChannelChatNotificationEvent: Event {
     case sharedChatAnnouncement(AnnouncementNotice)
     case sharedChatBitsBadgeTier(BitsBadgeTierNotice)
     case sharedChatCharityDonation(CharityDonationNotice)
+    case sharedChatGiftedDropsSummary(GiftedDropsSummaryNotice)
 
     case unknown(String)
 
@@ -174,6 +177,10 @@ public struct ChannelChatNotificationEvent: Event {
       case "charity_donation":
         self = .charityDonation(
           try container.decode(CharityDonationNotice.self, forKey: .charityDonation))
+      case "gifted_drops_summary":
+        self = .giftedDropsSummary(
+          try container.decode(GiftedDropsSummaryNotice.self, forKey: .giftedDropsSummary)
+        )
       case "shared_chat_sub":
         self = .sharedChatSub(
           try container.decode(SubNotice.self, forKey: .sharedChatSub))
@@ -216,6 +223,10 @@ public struct ChannelChatNotificationEvent: Event {
         self = .sharedChatCharityDonation(
           try container.decode(
             CharityDonationNotice.self, forKey: .sharedChatCharityDonation))
+      case "shared_chat_gifted_drops_summary":
+        self = .sharedChatGiftedDropsSummary(
+          try container.decode(
+            GiftedDropsSummaryNotice.self, forKey: .sharedChatGiftedDropsSummary))
       default:
         self = .unknown(type)
       }
@@ -444,4 +455,9 @@ public struct BitsBadgeTierNotice: Decodable, Sendable {
 public struct CharityDonationNotice: Decodable, Sendable {
   public let charityName: String
   public let amount: CharityDonationEvent.CharityAmount
+}
+
+@MemberwiseInit(.public)
+public struct GiftedDropsSummaryNotice: Decodable, Sendable {
+  public let recipientCount: Int
 }
