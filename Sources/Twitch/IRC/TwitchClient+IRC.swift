@@ -1,18 +1,10 @@
-import Foundation
-import TwitchIRC
-
-#if canImport(Combine)
-  import Combine
-#endif
-
 extension TwitchClient {
-  public func createIRCClient(
-    with options: TwitchIRCClient.Options = .init()
-  ) async throws -> TwitchIRCClient {
-    return try await TwitchIRCClient(
-      .authenticated(self.authentication),
-      options: options,
-      network: self.network
-    )
+  /// Creates an unconnected, independently owned IRC session.
+  /// Credentials are captured now. Later switchCredentials calls do not update this session.
+  public func makeIRCClient(
+    mode: TwitchIRCClient.Mode = .readWrite
+  ) -> TwitchIRCClient {
+    TwitchIRCClient(
+      .authenticated(self.authentication), mode: mode, network: self.network)
   }
 }

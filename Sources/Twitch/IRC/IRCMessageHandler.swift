@@ -7,7 +7,7 @@ public enum IRCListenerEvent: Sendable {
   case failure(Error)
 }
 
-internal protocol IRCMessageHandler {
+internal protocol IRCMessageHandler: Sendable {
   var id: UUID { get }
   func yield(_ message: IncomingMessage)
   func finish()
@@ -16,7 +16,7 @@ internal protocol IRCMessageHandler {
 
 internal struct IRCMessageCallbackHandler: IRCMessageHandler {
   let id: UUID
-  let callback: (IRCListenerEvent) -> Void
+  let callback: @Sendable (IRCListenerEvent) -> Void
 
   func yield(_ message: IncomingMessage) {
     callback(.message(message))

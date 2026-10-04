@@ -16,7 +16,7 @@ private enum IRCFixtures {
     ":tester!tester@tester.tmi.twitch.tv JOIN #swift"
 }
 
-@Suite("IRC Tests")
+@Suite("IRC Tests", .timeLimit(.minutes(1)))
 struct IRCTests {
   let session = MockNetworkSession()
 
@@ -27,69 +27,107 @@ struct IRCTests {
     await task.simulateIncoming(.string(IRCFixtures.welcome))
   }
 
-  private func settle(attempts: Int = 10) async {
-    for _ in 0..<attempts {
-      await Task.yield()
-    }
-  }
-
-  @Test("IRC client fails loudly after socket failure")
-  func clientFailsLoudlyAfterSocketFailure() async throws {
+  @Test(
+    "IRC client preserves its stream and rejoins after interruption",
+    arguments: [false, true])
+  func clientRecovers(serverReconnect: Bool) async throws {
     let clientTask = Task {
-      try await TwitchIRCClient(
-        .anonymous,
-        options: .init(enableWriteConnection: false),
-        network: session)
+      let client = TwitchIRCClient(
+        .anonymous, mode: .receiveOnly, network: session)
+
+      try await client.connect()
+
+      return client
     }
 
-    let task = await session.waitForTask(at: 0)
-    await completeAnonymousHandshake(for: task)
-
+    let socket = await session.waitForTask(at: 0)
+    await completeAnonymousHandshake(for: socket)
     let client = try await clientTask.value
 
-    let stream = await client.stream()
-    var iterator = stream.makeAsyncIterator()
+    var messages = await client.messages().makeAsyncIterator()
+    try await client.requestJoin(to: "swift")
 
-    await task.simulateError(WebSocketError.unsupportedDataReceived)
+    let updates = await client.stateUpdates()
+    _ = try #require(await updates.first { $0.channels == ["swift": .joining] })
 
-    let streamError = await #expect(throws: WebSocketError.self) {
-      _ = try await iterator.next()
+    var statuses = await client.channelStatusSnapshots().makeAsyncIterator()
+    #expect(await statuses.next() == ["swift": .joining])
+
+    await socket.simulateIncoming(
+      .string(
+        ":justinfan12345!justinfan12345@justinfan12345.tmi.twitch.tv JOIN #swift"))
+
+    #expect(await statuses.next() == ["swift": .joined])
+    _ = try await messages.next()
+
+    if serverReconnect {
+      await socket.simulateIncoming(.string(":tmi.twitch.tv RECONNECT"))
+    } else {
+      await socket.simulateError(URLError(.networkConnectionLost))
     }
 
-    #expect({ if case .unsupportedDataReceived = streamError { true } else { false } }())
-    #expect(await task.didCancel)
+    #expect(await statuses.next() == ["swift": .reconnecting])
 
-    let joinError = await #expect(throws: WebSocketError.self) {
-      try await client.join(to: "swift")
+    let replacement = await session.waitForTask(at: 1)
+    await completeAnonymousHandshake(for: replacement)
+    await replacement.waitForSent("JOIN #swift")
+    await replacement.simulateIncoming(.string(IRCFixtures.join))
+
+    let next = try #require(try await messages.next())
+
+    guard case .join(let join) = next else {
+      Issue.record("Expected message on the original stream")
+      await client.shutdown()
+      return
     }
 
-    #expect({ if case .unsupportedDataReceived = joinError { true } else { false } }())
+    #expect(join.channel == "swift")
+    #expect(await socket.didCancel)
+
+    await client.shutdown()
   }
 
   @Test("IRC client fails during handshake and closes the socket")
   func clientFailsDuringHandshake() async throws {
     let clientTask = Task {
-      try await TwitchIRCClient(
+      let client = TwitchIRCClient(
         .anonymous,
-        options: .init(enableWriteConnection: false),
+        mode: .receiveOnly,
         network: session)
+
+      try await client.connect()
+
+      return client
     }
 
     let task = await session.waitForTask(at: 0)
-    await task.simulateIncoming(.string(IRCFixtures.welcome))
+    await task.simulateIncoming(
+      .string(":tmi.twitch.tv NOTICE * :Login authentication failed"))
 
     let error = await #expect(throws: IRCError.self) {
       _ = try await clientTask.value
     }
 
-    #expect({ if case .loginFailed = error { true } else { false } }())
+    #expect(
+      {
+        if case .loginFailed = error {
+          true
+        } else {
+          false
+        }
+      }())
+
     #expect(await task.didCancel)
   }
 
   @Test("IRC client disconnect closes sockets and finishes streams")
   func clientDisconnectShutsDownCleanly() async throws {
     let clientTask = Task {
-      try await TwitchIRCClient(.anonymous, network: session)
+      let client = TwitchIRCClient(.anonymous, network: session)
+
+      try await client.connect()
+
+      return client
     }
 
     let writeTask = await session.waitForTask(at: 0)
@@ -99,10 +137,10 @@ struct IRCTests {
     await completeAnonymousHandshake(for: readTask)
 
     let client = try await clientTask.value
-    let stream = await client.stream()
+    let stream = await client.messages()
     var iterator = stream.makeAsyncIterator()
 
-    await client.disconnect()
+    await client.shutdown()
 
     #expect(await readTask.didCancel)
     #expect(await writeTask.didCancel)
@@ -111,19 +149,30 @@ struct IRCTests {
     #expect(next == nil)
 
     let error = await #expect(throws: IRCError.self) {
-      try await client.join(to: "swift")
+      try await client.requestJoin(to: "swift")
     }
 
-    #expect({ if case .disconnected = error { true } else { false } }())
+    #expect(
+      {
+        if case .disconnected = error {
+          true
+        } else {
+          false
+        }
+      }())
   }
 
   @Test("IRC listener forwards messages and finishes on disconnect")
   func listenerForwardsMessagesAndFinishesOnDisconnect() async throws {
     let clientTask = Task {
-      try await TwitchIRCClient(
+      let client = TwitchIRCClient(
         .anonymous,
-        options: .init(enableWriteConnection: false),
+        mode: .receiveOnly,
         network: session)
+
+      try await client.connect()
+
+      return client
     }
 
     let task = await session.waitForTask(at: 0)
@@ -135,40 +184,47 @@ struct IRCTests {
       received in
       let receivedMessage = AsyncStream<Void>.makeStream()
       let finished = AsyncStream<Void>.makeStream()
+
       let cancellable = await client.listener { event in
         switch event {
         case .message(.join(let join)):
           #expect(join.channel == "swift")
           received()
           receivedMessage.continuation.finish()
+
         case .finished:
           received()
           finished.continuation.finish()
+
         case .message:
           break
+
         case .failure:
           Issue.record("Listener should not fail on explicit disconnect")
         }
       }
 
-      await settle(attempts: 20)
-
       await session.simulateIncoming(.string(IRCFixtures.join))
       _ = await receivedMessage.stream.first(where: { _ in true })
-      await client.disconnect()
+
+      await client.shutdown()
       _ = await finished.stream.first(where: { _ in true })
 
       _ = cancellable
     }
   }
 
-  @Test("IRC listener fails after socket failure")
-  func listenerFailsAfterSocketFailure() async throws {
+  @Test("IRC listener fails after authentication failure")
+  func listenerFailsAfterAuthenticationFailure() async throws {
     let clientTask = Task {
-      try await TwitchIRCClient(
+      let client = TwitchIRCClient(
         .anonymous,
-        options: .init(enableWriteConnection: false),
+        mode: .receiveOnly,
         network: session)
+
+      try await client.connect()
+
+      return client
     }
 
     let task = await session.waitForTask(at: 0)
@@ -178,19 +234,27 @@ struct IRCTests {
 
     await confirmation("Listener should receive failure", expectedCount: 1) { received in
       let failed = AsyncStream<Void>.makeStream()
+
       let cancellable = await client.listener { event in
-        guard case .failure(let error) = event else { return }
+        guard case .failure(let error) = event else {
+          return
+        }
+
         #expect(
           {
-            if case WebSocketError.unsupportedDataReceived = error { true } else { false }
+            if case IRCError.loginFailed = error {
+              true
+            } else {
+              false
+            }
           }())
+
         received()
         failed.continuation.finish()
       }
 
-      await settle(attempts: 20)
-
-      await task.simulateError(WebSocketError.unsupportedDataReceived)
+      await task.simulateIncoming(
+        .string(":tmi.twitch.tv NOTICE * :Login authentication failed"))
       _ = await failed.stream.first(where: { _ in true })
 
       _ = cancellable
@@ -201,10 +265,14 @@ struct IRCTests {
     @Test("IRC publisher forwards messages and finishes on disconnect")
     func publisherForwardsMessages() async throws {
       let clientTask = Task {
-        try await TwitchIRCClient(
+        let client = TwitchIRCClient(
           .anonymous,
-          options: .init(enableWriteConnection: false),
+          mode: .receiveOnly,
           network: session)
+
+        try await client.connect()
+
+        return client
       }
 
       let task = await session.waitForTask(at: 0)
@@ -216,6 +284,7 @@ struct IRCTests {
       {
         received in
         let receivedMessage = AsyncStream<Void>.makeStream()
+
         let cancellable = await client.publisher().sink(
           receiveCompletion: { completion in
             guard case .finished = completion
@@ -227,17 +296,19 @@ struct IRCTests {
             receivedMessage.continuation.finish()
           },
           receiveValue: { message in
-            guard case .join(let join) = message else { return }
+            guard case .join(let join) = message else {
+              return
+            }
+
             #expect(join.channel == "swift")
             received()
             receivedMessage.continuation.finish()
           })
 
-        await settle(attempts: 20)
-
         await session.simulateIncoming(.string(IRCFixtures.join))
         _ = await receivedMessage.stream.first(where: { _ in true })
-        await client.disconnect()
+
+        await client.shutdown()
 
         _ = cancellable
       }

@@ -1,227 +1,157 @@
 import Foundation
 import TwitchIRC
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
 internal actor IRCConnection {
-  private enum ConnectionState {
-    case disconnected
-    case connecting(WebSocketTask)
-    case connected(WebSocketTask, Task<Void, Never>)
-    case disconnecting(WebSocketTask?)
-  }
-
-  private let TMI: URL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
+  private static let tmiURL = URL(string: "wss://irc-ws.chat.twitch.tv:443")!
 
   private let credentials: TwitchCredentials?
   private let network: NetworkSession
+  private let handshakeTimeout: Duration
+  private let rateLimiter: IRCAccountRateLimiter
 
-  private var state: ConnectionState = .disconnected
-  private(set) var joinedChannels: Set<String> = []
+  private var authenticationTask: Task<Void, Error>?
+  private var receiveTask: Task<Void, Never>?
 
-  var isAvailable: Bool {
-    guard case .connected = state else { return false }
-    guard joinedChannels.count < 90 else { return false }
+  private var connectionAttemptID = UUID()
+  private var connecting = false
+  private var websocket: WebSocketTask?
 
-    return true
-  }
-
-  init(credentials: TwitchCredentials? = nil, network: NetworkSession) {
+  init(
+    credentials: TwitchCredentials? = nil,
+    network: NetworkSession,
+    handshakeTimeout: Duration = .seconds(15),
+    rateLimiter: IRCAccountRateLimiter = .shared
+  ) {
     self.credentials = credentials
     self.network = network
+    self.handshakeTimeout = handshakeTimeout
+    self.rateLimiter = rateLimiter
   }
 
   deinit {
-    let websocket: WebSocketTask? =
-      switch state {
-      case .connecting(let websocket), .connected(let websocket, _): websocket
-      case .disconnecting(let websocket): websocket
-      case .disconnected: nil
-      }
+    authenticationTask?.cancel()
+    receiveTask?.cancel()
 
-    Task.detached { [websocket] in
-      await websocket?.cancel(with: .goingAway, reason: nil)
+    let websocket = websocket
+    Task.detached { await websocket?.cancel(with: .goingAway, reason: nil) }
+  }
+
+  func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
+    guard !connecting else { throw IRCError.alreadyConnected }
+    guard websocket == nil else { throw IRCError.alreadyConnected }
+
+    connecting = true
+    let attemptID = connectionAttemptID
+
+    let socket = await network.webSocketTask(with: Self.tmiURL)
+
+    guard attemptID == connectionAttemptID else {
+      await socket.cancel(with: .goingAway, reason: nil)
+      throw CancellationError()
+    }
+
+    websocket = socket
+
+    do {
+      try Task.checkCancellation()
+      try await paceAuthentication()
+
+      guard attemptID == connectionAttemptID else { throw IRCError.disconnected }
+
+      authenticationTask = nil
+
+      let buffered = try await Self.handshake(
+        on: socket, credentials: credentials, timeout: handshakeTimeout)
+      try Task.checkCancellation()
+
+      guard attemptID == connectionAttemptID else { throw IRCError.disconnected }
+
+      connecting = false
+
+      return receiveMessages(on: socket, attemptID: attemptID, buffered: buffered)
+    } catch {
+      await close(attemptID: attemptID)
+      try Task.checkCancellation()
+      throw error
     }
   }
 
-  @discardableResult
-  internal func connect() async throws -> AsyncThrowingStream<
-    IncomingMessage, Error
-  > {
-    guard case .disconnected = state else { throw WebSocketError.alreadyConnected }
+  private func receiveMessages(
+    on socket: WebSocketTask,
+    attemptID: UUID,
+    buffered: [IncomingMessage]
+  ) -> AsyncThrowingStream<IncomingMessage, Error> {
+    let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>.makeStream()
 
-    let websocket = await network.webSocketTask(with: TMI)
-    state = .connecting(websocket)
-    await websocket.resume()
+    for message in buffered { continuation.yield(message) }
 
-    let globalUserState: GlobalUserState?
-    do {
-      try await requestCapabilities()
-      globalUserState = try await authenticate()
-    } catch {
-      await disconnect()
-      throw error
+    receiveTask = Task { [weak self] in
+      do {
+        while !Task.isCancelled {
+          for message in try await Self.receive(on: socket) {
+            continuation.yield(message)
+          }
+        }
+
+        continuation.finish()
+      } catch {
+        if Task.isCancelled {
+          continuation.finish()
+        } else {
+          continuation.finish(throwing: error)
+        }
+      }
+
+      await self?.close(attemptID: attemptID)
     }
-
-    let (stream, continuation) = AsyncThrowingStream.makeStream(of: IncomingMessage.self)
-
-    let receiveTask = Task<Void, Never> { [weak self] in
-      await self?.runReceiveLoop(
-        on: websocket,
-        continuation: continuation,
-        globalUserState: globalUserState
-      )
-    }
-
-    state = .connected(websocket, receiveTask)
 
     return stream
   }
 
-  internal func send(_ message: OutgoingMessage) async throws {
-    let websocket: WebSocketTask =
-      switch state {
-      case .connecting(let websocket), .connected(let websocket, _): websocket
-      case .disconnecting, .disconnected: throw IRCError.disconnected
-      }
+  func send(_ message: OutgoingMessage) async throws {
+    try Task.checkCancellation()
+
+    guard let websocket else { throw IRCError.disconnected }
+    guard !connecting else { throw IRCError.disconnected }
 
     try await websocket.send(.string(message.serialize()))
   }
 
-  internal func join(to channel: String) async throws {
-    try await send(.join(to: channel))
+  func disconnect() async {
+    connectionAttemptID = UUID()
+    connecting = false
+
+    let socket = websocket
+    websocket = nil
+
+    authenticationTask?.cancel()
+    authenticationTask = nil
+
+    receiveTask?.cancel()
+    receiveTask = nil
+
+    await socket?.cancel(with: .goingAway, reason: nil)
   }
 
-  internal func part(from channel: String) async throws {
-    try await send(.part(from: channel))
+  private func close(attemptID: UUID) async {
+    guard connectionAttemptID == attemptID else { return }
+    await disconnect()
   }
 
-  internal func disconnect() async {
-    joinedChannels.removeAll()
+  private func paceAuthentication() async throws {
+    guard let credentials else { return }
 
-    switch state {
-    case .disconnected, .disconnecting: return
-    case .connecting(let websocket):
-      state = .disconnecting(websocket)
-      await websocket.cancel(with: .goingAway, reason: nil)
-      state = .disconnected
-    case .connected(let websocket, let receiveTask):
-      state = .disconnecting(websocket)
-      receiveTask.cancel()
-      await websocket.cancel(with: .goingAway, reason: nil)
-    }
-  }
-
-  private func runReceiveLoop(
-    on websocket: WebSocketTask,
-    continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation,
-    globalUserState: GlobalUserState?
-  ) async {
-    if let globalUserState { continuation.yield(.globalUserState(globalUserState)) }
-
-    do {
-      while true {
-        let message = try await websocket.receive()
-
-        if case .string(let messageText) = message {
-          let messages = IncomingMessage.parse(ircOutput: messageText)
-            .compactMap(\.message)
-
-          for message in messages {
-            guard try await !handleMessage(message) else { continue }
-
-            continuation.yield(message)
-          }
-        }
-      }
-    } catch {
-      if case .disconnecting = state {
-        continuation.finish()
-      } else {
-        continuation.finish(throwing: error)
-        await websocket.cancel(with: .goingAway, reason: nil)
-      }
+    let task = Task { [rateLimiter] in
+      try await rateLimiter.acquire(account: credentials.userID, operation: .authenticate)
     }
 
-    joinedChannels.removeAll()
-    state = .disconnected
-  }
+    authenticationTask = task
 
-  private func requestCapabilities() async throws {
-    try await send(.capabilities([.commands, .tags]))
-
-    guard case .connecting(let websocket) = state else { throw IRCError.disconnected }
-
-    // verify that we receive the capabilities message
-    let nextMessage = try await websocket.receive()
-    guard case .string(let messageText) = nextMessage else {
-      throw WebSocketError.unsupportedDataReceived
+    try await withTaskCancellationHandler {
+      try await task.value
+      try Task.checkCancellation()
+    } onCancel: {
+      task.cancel()
     }
-
-    let receivedCapabilitiesMessage = IncomingMessage.parse(ircOutput: messageText)
-      .map(\.message)
-      .allSatisfy({ if case .capabilities = $0 { true } else { false } })
-
-    guard receivedCapabilitiesMessage else {
-      throw IRCError.loginFailed
-    }
-  }
-
-  private func authenticate() async throws -> GlobalUserState? {
-    if let credentials {
-      // when connecting anonymously, the PASS message can be omitted
-      try await send(.pass(pass: credentials.oAuth))
-    }
-
-    // twitch allows anonymous connections using justinfanXXXXX
-    try await send(.nick(name: credentials?.userLogin ?? "justinfan12345"))
-
-    guard case .connecting(let websocket) = state else { throw IRCError.disconnected }
-
-    // verify that we receive the connection message
-    let nextMessage = try await websocket.receive()
-    guard case .string(let messageText) = nextMessage else {
-      throw WebSocketError.unsupportedDataReceived
-    }
-
-    let parsedMessages = IncomingMessage.parse(ircOutput: messageText).map(\.message)
-
-    let receivedConnectionMessage = parsedMessages.contains(where: {
-      if case .connectionNotice = $0 { true } else { false }
-    })
-
-    guard receivedConnectionMessage else {
-      throw IRCError.loginFailed
-    }
-
-    // verify that we receive the global user state message if authenticated
-    var globalUserState: GlobalUserState?
-    if credentials != nil {
-      guard case .globalUserState(let userState) = parsedMessages.last else {
-        throw IRCError.loginFailed
-      }
-
-      globalUserState = userState
-    }
-
-    // pass on the GLOBALUSERSTATE message sent on connection
-    return globalUserState
-  }
-
-  private func handleMessage(_ message: IncomingMessage) async throws -> Bool {
-    switch message {
-    case .ping:
-      try await self.send(.pong)
-      return true
-    case .join(let join):
-      joinedChannels.insert(join.channel)
-    case .part(let part):
-      joinedChannels.remove(part.channel)
-    default: break
-    }
-
-    return false
   }
 }

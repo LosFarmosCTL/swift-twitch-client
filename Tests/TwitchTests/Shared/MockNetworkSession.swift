@@ -46,6 +46,7 @@ actor MockNetworkSession: NetworkSession {
 
   private var webSocketTasks: [MockWebSocketTask] = []
   private var taskWaiters: [Int: [CheckedContinuation<MockWebSocketTask, Never>]] = [:]
+  private var socketCreationHandler: (@Sendable () async -> Void)?
   var queuedWebSocketMessages: [URLSessionWebSocketTask.Message] = []
   var queuedWebSocketErrors: [Error] = []
 
@@ -78,6 +79,7 @@ actor MockNetworkSession: NetworkSession {
     for message in queuedWebSocketMessages {
       await task.simulateIncoming(message)
     }
+
     for error in queuedWebSocketErrors {
       await task.simulateError(error)
     }
@@ -88,13 +90,20 @@ actor MockNetworkSession: NetworkSession {
     webSocketTasks.append(task)
 
     let index = webSocketTasks.count - 1
+
     if let waiters = taskWaiters.removeValue(forKey: index) {
       for waiter in waiters {
         waiter.resume(returning: task)
       }
     }
 
+    await socketCreationHandler?()
+
     return task
+  }
+
+  func onSocketCreation(_ handler: (@Sendable () async -> Void)?) {
+    socketCreationHandler = handler
   }
 
   func stub(
@@ -158,7 +167,7 @@ actor MockNetworkSession: NetworkSession {
   }
 
   func task(at index: Int) -> MockWebSocketTask? {
-    webSocketTasks.indices.contains(index) ? webSocketTasks[index] : nil
+    if webSocketTasks.indices.contains(index) { webSocketTasks[index] } else { nil }
   }
 
   func waitForTask(at index: Int) async -> MockWebSocketTask {

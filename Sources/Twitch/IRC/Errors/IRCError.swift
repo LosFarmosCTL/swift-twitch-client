@@ -1,4 +1,5 @@
 public enum IRCError: Error {
+  case handshakeTimedOut
   case loginFailed
   case alreadyConnected
   case disconnected

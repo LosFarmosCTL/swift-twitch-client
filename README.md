@@ -15,12 +15,12 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
 
 - [x] Works on all Apple platforms, as well as Linux ([with caveats due to libcurl](#linux-support))
 - [x] Compatible with Swift 6s new strict concurrency model
-- [x] Access the full Helix API using async/await or Combine
+- [x] Access the full Helix API using async/await or callbacks
 - [x] Access IRC chat _and_ EventSub using event listeners, `AsyncStream` or Combine
 - [x] Handles all annoying plumbing for you
   - [x] Connection pooling for IRC & EventSub
   - [x] Automatic welcome message and keepalive handling
-  - [x] Automatic reconnection for EventSub
+  - [x] Automatic reconnection for IRC & EventSub
   - [x] IRC parsing (huge shoutout to [TwitchIRC](https://github.com/MahdiBM/TwitchIRC))
   - [x] JSON encoding/decoding
   - [x] Typed request parameters
@@ -68,10 +68,12 @@ Using the `TwitchClient` you can now access pretty much the full Twitch API surf
 ### Helix
 
 ```swift
-// Async/Await
+// Using async/await
+
 let result = try await twitch.helix(endpoint: .someEndpoint(param1: "forsen"))
 
-// Completion Handlers
+// Using completion Handlers
+
 let request = twitch.helixTask(
   for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])
 ) { result in
@@ -79,46 +81,6 @@ let request = twitch.helixTask(
 
 // returns a TwitchCancellable that can be used to cancel the request
 request.cancel()
-```
-
-### Chat (IRC)
-
-```swift
-let irc = try await twitch.createIRCClient()
-
-try await irc.join(to: "forsen")
-try await irc.part(from: "forsen")
-
-// Using callbacks
-
-let listener = await irc.listener { event in
-  switch event {
-  case .message(let message): print(message)
-  case .finished: print("IRC disconnected")
-  case .failure(let error): print(error)
-  }
-}
-
-// Using AsyncStream
-
-let stream = await irc.stream()
-for try await message in stream {
-  if case .privateMessage(let privMsg) = message {
-    try await irc.sendMessage("Received message: \(privMsg.message)", to: "forsen")
-  }
-}
-
-// Using Combine
-
-let publisher = await irc.publisher()
-
-let cancellable = await irc.publisher().sink(
-  receiveCompletion: { completion in
-    // handle finish or error
-  },
-  receiveValue: { message in
-    // handle message
-  })
 ```
 
 ### EventSub
@@ -158,6 +120,71 @@ publisher.sink(
   receiveValue: { event in
     // handle event
   })
+```
+
+### Chat (IRC)
+
+IRC has its own session lifetime, separate from Helix and EventSub. The factory captures the current credentials;
+later `TwitchClient.switchCredentials` calls do not update an existing IRC session.
+
+```swift
+let irc = await twitch.makeIRCClient(mode: .receiveOnly)
+let messages = await irc.messages()
+let states = await irc.stateUpdates()
+
+try await irc.setDesiredChannels(["forsen", "twitchdev"])
+
+// Start consumers before connecting so healthy sockets can deliver during startup.
+let messageTask = Task {
+  for try await message in messages {
+    if case .privateMessage(let chat) = message {
+      print(chat.message)
+    }
+  }
+}
+
+let stateTask = Task {
+  for await state in states {
+    print(state.status, state.channels)
+    // state.recoveries includes the affected channels, reason, retry attempt,
+    // and scheduled retry time (nil while establishing the replacement socket).
+    // state.globalUserState retains the latest USERSTATE information.
+  }
+}
+
+try await irc.connect()
+
+// replace the full set of channels at once, or JOIN/PART individually
+try await irc.setDesiredChannels(["xqc", "twitchdev"])
+try await irc.requestPart(from: "xqc")
+try await irc.requestJoin(to: "forsen")
+
+await irc.shutdown()
+try await messageTask.value
+await stateTask.value
+```
+
+IRC is accessible via listeners and combine publishers as well:
+
+```swift
+let irc = await twitch.makeIRCClient()
+
+let listener = await irc.listener { event in
+  switch event {
+  case .message(let message): print(message)
+  case .finished: print("IRC session ended")
+  case .failure(let error): print(error)
+  }
+}
+
+let cancellable = await irc.publisher().sink(
+  receiveCompletion: { completion in print(completion) },
+  receiveValue: { message in print(message) })
+
+try await irc.setDesiredChannels(["forsen"])
+try await irc.connect()
+try await irc.sendMessage("Hello chat!", to: "forsen")
+await irc.shutdown()
 ```
 
 ## One-off requests using static methods

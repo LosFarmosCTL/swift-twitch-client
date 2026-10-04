@@ -6,86 +6,145 @@ import TwitchIRC
 #endif
 
 public actor TwitchIRCClient {
-  private enum TerminalState {
+  enum TerminalState {
     case finished
     case failed(Error)
   }
 
-  public enum AuthenticationStyle {
+  public enum AuthenticationStyle: Sendable {
     case anonymous
     case authenticated(_ credentials: TwitchCredentials)
   }
 
-  public struct Options: Sendable {
-    let enableWriteConnection: Bool
+  public enum Mode: Sendable {
+    case receiveOnly
+    case readWrite
+  }
 
-    public init(enableWriteConnection: Bool = true) {
-      self.enableWriteConnection = enableWriteConnection
+  public var state: IRCState { currentState }
+  private var currentState = IRCState() {
+    didSet {
+      for observer in stateObservers.values {
+        observer.yield(currentState)
+      }
     }
   }
 
-  private let writeConnection: IRCConnection?
-  private let readConnectionPool: IRCConnectionPool
+  let writeConnection: IRCConnectionSupervisor?
+  let readConnectionPool: IRCConnectionPool
 
-  private var handlers = [IRCMessageHandler]()
+  var stateObservers: [UUID: AsyncStream<IRCState>.Continuation] = [:]
+  var readState = IRCState()
+  var writeState = IRCState()
+
+  var handlers = [IRCMessageHandler]()
+
+  var readStateTask: Task<Void, Never>?
+  var writeStateTask: Task<Void, Never>?
   private var messageTask: Task<Void, Never>?
-  private var terminalState: TerminalState?
+  private var writeTask: Task<Void, Never>?
+
+  private(set) var started = false
+  var terminalState: TerminalState?
 
   public init(
     _ authenticationStyle: AuthenticationStyle,
-    options: Options = .init(),
-    urlSession: URLSession
-  ) async throws {
-    try await self.init(
+    mode: Mode = .readWrite,
+    urlSession: URLSession = .shared
+  ) {
+    self.init(
       authenticationStyle,
-      options: options,
-      network: URLSessionNetworkSession(session: urlSession)
-    )
+      mode: mode,
+      network: URLSessionNetworkSession(session: urlSession))
   }
 
   internal init(
     _ authenticationStyle: AuthenticationStyle,
-    options: Options = .init(),
+    mode: Mode = .readWrite,
     network: NetworkSession
-  ) async throws {
+  ) {
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
-      case .anonymous: nil
       case .authenticated(let credentials): credentials
+      case .anonymous: nil
       }
 
-    if options.enableWriteConnection {
-      self.writeConnection = IRCConnection(
-        credentials: credentials,
-        network: network
-      )
-    } else {
-      self.writeConnection = nil
+    self.writeConnection =
+      if mode == .readWrite {
+        IRCConnectionSupervisor(
+          credentials: credentials,
+          network: network,
+          role: .write)
+      } else { nil }
+
+    self.readConnectionPool = IRCConnectionPool(with: credentials, network: network)
+
+    Task { [weak self] in await self?.observeConnectionStates() }
+  }
+
+  public func connect() async throws {
+    try throwIfDisconnected()
+    try Task.checkCancellation()
+    guard !started else { throw IRCError.alreadyConnected }
+
+    started = true
+    updateState { state in state.status = .connecting }
+
+    do {
+      try await establishConnections()
+      try Task.checkCancellation()
+      try throwIfDisconnected()
+    } catch {
+      if case .failed(let failure) = terminalState { throw failure }
+
+      if Task.isCancelled || error is CancellationError {
+        await shutdown()
+        throw CancellationError()
+      }
+
+      try throwIfDisconnected()
+      await handleMessageStreamFailure(error)
+      throw error
+    }
+  }
+
+  private func establishConnections() async throws {
+    if let writeConnection {
+      let stream = try await writeConnection.start()
+      try throwIfDisconnected()
+
+      writeTask = Task { [weak self] in
+        do { for try await _ in stream {} } catch {
+          await self?.handleMessageStreamFailure(error)
+        }
+      }
+
+      try await writeConnection.waitUntilConnected()
+      try throwIfDisconnected()
     }
 
-    self.readConnectionPool = IRCConnectionPool(
-      with: credentials,
-      network: network
-    )
+    let stream = try await readConnectionPool.start()
+    try throwIfDisconnected()
 
-    try await writeConnection?.connect()
-    let messageStream = try await readConnectionPool.connect()
-
-    self.messageTask = Task { [weak self] in
+    messageTask = Task { [weak self] in
       do {
-        for try await message in messageStream {
-          await self?.yield(message)
-        }
-
-        await self?.handleMessageStreamFinished()
+        for try await message in stream { await self?.yield(message) }
       } catch {
         await self?.handleMessageStreamFailure(error)
       }
     }
+
+    try await readConnectionPool.waitUntilConnected()
   }
 
   deinit {
     messageTask?.cancel()
+    writeTask?.cancel()
+    readStateTask?.cancel()
+    writeStateTask?.cancel()
+
+    for observer in stateObservers.values { observer.finish() }
+    for handler in handlers { handler.finish() }
 
     let writeConnection = writeConnection
     let readConnectionPool = readConnectionPool
@@ -96,85 +155,43 @@ public actor TwitchIRCClient {
     }
   }
 
-  public func stream() -> AsyncThrowingStream<IncomingMessage, Error> {
-    if let terminalState {
-      let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>
-        .makeStream()
-
-      switch terminalState {
-      case .finished:
-        continuation.finish()
-      case .failed(let error):
-        continuation.finish(throwing: error)
-      }
-
-      return stream
-    }
-
-    let id = UUID()
-    let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>.makeStream()
-    continuation.onTermination = { [weak self] _ in
-      Task {
-        await self?.removeHandler(withID: id)
-      }
-    }
-
-    self.handlers.append(
-      IRCMessageContinuationHandler(id: id, continuation: continuation)
-    )
-
-    return stream
-  }
-
-  @discardableResult
-  public func listener(
-    _ callback: @escaping @Sendable (IRCListenerEvent) -> Void
-  ) -> TwitchCancellable {
-    if let terminalState {
-      switch terminalState {
-      case .finished:
-        callback(.finished)
-      case .failed(let error):
-        callback(.failure(error))
-      }
-
-      return TwitchCancellable {}
-    }
-
-    let id = UUID()
-    self.handlers.append(IRCMessageCallbackHandler(id: id, callback: callback))
-
-    return TwitchCancellable { [weak self] in
-      Task {
-        await self?.removeHandler(withID: id)
-      }
-    }
-  }
-
-  public func disconnect() async {
+  public func shutdown() async {
     guard terminalState == nil else { return }
 
     terminalState = .finished
+    stopTasks()
 
-    messageTask?.cancel()
-    messageTask = nil
+    updateState { state in
+      state.status = .shutdown
+      state.channels = [:]
+      state.recoveries = []
+    }
+
+    finishStateObservers()
+    finishHandlers()
 
     await writeConnection?.disconnect()
     await readConnectionPool.disconnect()
-
-    finishHandlers()
   }
 
-  // MARK: - IRC
-
-  public func join(to channel: String) async throws {
+  public func setDesiredChannels(_ channels: [String]) async throws {
     try throwIfDisconnected()
-    try await self.readConnectionPool.join(to: channel)
+    try await readConnectionPool.setChannels(channels)
   }
 
-  public func part(from channel: String) async throws {
+  public func requestJoin(to channel: String) async throws {
     try throwIfDisconnected()
-    try await self.readConnectionPool.part(from: channel)
+    try await readConnectionPool.join(to: channel)
+  }
+
+  public func requestPart(from channel: String) async throws {
+    try throwIfDisconnected()
+    try await readConnectionPool.part(from: channel)
+  }
+
+  public func retryChannel(_ channel: String) async throws {
+    try throwIfDisconnected()
+    try await readConnectionPool.retryChannel(channel)
   }
 
   public func sendMessage(
@@ -183,7 +200,13 @@ public actor TwitchIRCClient {
     replyTo replyMessageID: String? = nil,
     clientNonce: String? = nil
   ) async throws {
-    try await send(
+    try throwIfDisconnected()
+
+    guard let writeConnection else {
+      throw IRCError.writeConnectionNotEnabled
+    }
+
+    try await writeConnection.send(
       .privateMessage(
         to: channel,
         message: message,
@@ -191,16 +214,6 @@ public actor TwitchIRCClient {
         clientNonce: clientNonce
       )
     )
-  }
-
-  private func send(_ message: OutgoingMessage) async throws {
-    try throwIfDisconnected()
-
-    guard let writeConnection else {
-      throw IRCError.writeConnectionNotEnabled
-    }
-
-    try await writeConnection.send(message)
   }
 
   private func throwIfDisconnected() throws {
@@ -214,96 +227,45 @@ public actor TwitchIRCClient {
     }
   }
 
-  private func yield(_ message: IncomingMessage) {
-    for handler in handlers {
-      handler.yield(message)
-    }
-  }
-
-  private func finishHandlers() {
-    let handlers = self.handlers
-    self.handlers.removeAll()
-
-    for handler in handlers {
-      handler.finish()
-    }
-  }
-
-  private func finishHandlers(throwing error: Error) {
-    let handlers = self.handlers
-    self.handlers.removeAll()
-
-    for handler in handlers {
-      handler.finish(throwing: error)
-    }
-  }
-
-  private func removeHandler(withID id: UUID) {
-    handlers.removeAll(where: { $0.id == id })
-  }
-
-  private func handleMessageStreamFinished() {
-    messageTask = nil
-  }
-
   private func handleMessageStreamFailure(_ error: Error) async {
-    messageTask = nil
-
-    guard terminalState == nil else {
-      return
-    }
+    guard terminalState == nil else { return }
 
     terminalState = .failed(error)
+    stopTasks()
 
-    await writeConnection?.disconnect()
-    await readConnectionPool.disconnect()
+    let failure = IRCChannelFailure(terminalError: error)
+    updateState { state in
+      state.status = .failed(failure)
+      state.channels = state.channels.mapValues { _ in .failed(failure) }
+      state.recoveries = []
+    }
+
+    finishStateObservers()
     finishHandlers(throwing: error)
+
+    await writeConnection?.disconnect(throwing: error)
+    await readConnectionPool.disconnect(throwing: error)
   }
 }
 
-#if canImport(Combine)
-  @preconcurrency import Combine
-
-  extension TwitchIRCClient {
-    public nonisolated func publisher() async -> AnyPublisher<IncomingMessage, Error> {
-      let subject = PassthroughSubject<IncomingMessage, Error>()
-      let id = UUID()
-
-      await self.registerPublisher(subject, withID: id)
-
-      return
-        subject
-        .handleEvents(
-          receiveCompletion: { [weak self] _ in
-            Task {
-              await self?.removeHandler(withID: id)
-            }
-          },
-          receiveCancel: { [weak self] in
-            Task {
-              await self?.removeHandler(withID: id)
-            }
-          }
-        )
-        .eraseToAnyPublisher()
-    }
-
-    private func registerPublisher(
-      _ subject: PassthroughSubject<IncomingMessage, Error>,
-      withID id: UUID
-    ) {
-      if let terminalState {
-        switch terminalState {
-        case .finished:
-          subject.send(completion: .finished)
-        case .failed(let error):
-          subject.send(completion: .failure(error))
-        }
-
-        return
-      }
-
-      handlers.append(IRCMessageSubjectHandler(id: id, subject: subject))
-    }
+extension TwitchIRCClient {
+  func updateState(_ update: (inout IRCState) -> Void) {
+    var state = currentState
+    update(&state)
+    currentState = state
   }
-#endif
+
+  fileprivate func stopTasks() {
+    messageTask?.cancel()
+    messageTask = nil
+
+    writeTask?.cancel()
+    writeTask = nil
+
+    readStateTask?.cancel()
+    readStateTask = nil
+
+    writeStateTask?.cancel()
+    writeStateTask = nil
+  }
+}

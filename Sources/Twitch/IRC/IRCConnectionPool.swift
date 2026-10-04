@@ -1,143 +1,153 @@
 import Foundation
 import TwitchIRC
 
-#if canImport(FoundationNetworking)
-  import FoundationNetworking
-#endif
-
 internal actor IRCConnectionPool {
-  private var connections: [IRCConnection] = []
-  private var relayTasks: [ObjectIdentifier: Task<Void, Never>] = [:]
+  struct Entry: Sendable {
+    let supervisor: IRCConnectionSupervisor
 
-  private let credentials: TwitchCredentials?
-  private let network: NetworkSession
-
-  private var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
-  private var isDisconnecting = false
-
-  init(with credentials: TwitchCredentials? = nil, network: NetworkSession) {
-    self.credentials = credentials
-    self.network = network
+    var channels: Set<String> = []
+    var ready = false
+    var recovery: IRCRecovery?
+    var globalUserState: GlobalUserState?
+    var task: Task<Void, Never>?
   }
 
-  internal func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
-    guard self.connections.isEmpty else { throw IRCError.alreadyConnected }
+  struct PendingJoin {
+    let token: UUID
+    let task: Task<Void, Never>
+  }
 
-    self.isDisconnecting = false
+  private let network: NetworkSession
+
+  let credentials: TwitchCredentials?
+  let rateLimiter: IRCAccountRateLimiter
+  let joinTimeout: Duration
+
+  var state: State { currentState }
+  private var currentState = State() {
+    didSet {
+      let snapshot = snapshot
+      for observer in stateObservers.values { observer.yield(snapshot) }
+    }
+  }
+
+  var pendingJoins: [String: PendingJoin] = [:]
+  private(set) var established = false
+
+  var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
+  var stateObservers: [UUID: AsyncStream<IRCState>.Continuation] = [:]
+
+  init(
+    with credentials: TwitchCredentials? = nil,
+    network: NetworkSession,
+    joinTimeout: Duration = .seconds(15),
+    rateLimiter: IRCAccountRateLimiter = .shared
+  ) {
+    self.credentials = credentials
+    self.network = network
+    self.joinTimeout = joinTimeout
+    self.rateLimiter = rateLimiter
+  }
+
+  func start() throws -> AsyncThrowingStream<IncomingMessage, Error> {
+    try Task.checkCancellation()
+
+    guard !state.ended else { throw state.terminalError ?? IRCError.disconnected }
+    guard !state.active else { throw IRCError.alreadyConnected }
 
     let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>.makeStream()
     self.continuation = continuation
 
-    try await self.createConnection()
+    updateState { state in
+      state.active = true
+
+      if state.entries.isEmpty {
+        _ = addEntry(to: &state)
+      }
+    }
+
+    for id in state.entries.keys { startRelay(id) }
 
     return stream
   }
 
-  internal func disconnect() async {
-    self.isDisconnecting = true
+  func waitUntilConnected() async throws {
+    let updates = stateUpdates()
+    try await withTaskCancellationHandler {
+      for await _ in updates {
+        try Task.checkCancellation()
 
-    for connection in self.connections { await connection.disconnect() }
-
-    for relayTask in self.relayTasks.values {
-      relayTask.cancel()
-    }
-
-    self.connections.removeAll()
-    self.relayTasks.removeAll()
-
-    self.continuation?.finish()
-    self.continuation = nil
-    self.isDisconnecting = false
-  }
-
-  internal func join(to channel: String) async throws {
-    // ignore if there is already a connection to the channel
-    guard await self.getConnection(to: channel) == nil else {
-      return
-    }
-
-    let connection = try await self.getAvailableConnection()
-    try await connection.join(to: channel)
-  }
-
-  internal func part(from channel: String) async throws {
-    guard let connection = await self.getConnection(to: channel) else {
-      return
-    }
-
-    guard await connection.joinedChannels.count >= 2 else {
-      await connection.disconnect()
-      self.connections.removeAll(where: { $0 === connection })
-      return
-    }
-
-    try await connection.part(from: channel)
-  }
-
-  private func getConnection(to channel: String) async -> IRCConnection? {
-    for connection in self.connections
-    where await connection.joinedChannels.contains(channel) {
-      return connection
-    }
-
-    return nil
-  }
-
-  private func getAvailableConnection() async throws -> IRCConnection {
-    for connection in self.connections where await connection.isAvailable {
-      return connection
-    }
-
-    return try await self.createConnection()
-  }
-
-  @discardableResult private func createConnection() async throws -> IRCConnection {
-    let connection = IRCConnection(credentials: credentials, network: network)
-    let messageStream = try await connection.connect()
-    let identifier = ObjectIdentifier(connection)
-
-    connections.append(connection)
-
-    relayTasks[identifier] = Task { [weak self] in
-      do {
-        for try await message in messageStream {
-          await self?.yield(message)
+        switch snapshot.status {
+        case .connected:
+          established = true
+          return
+        case .failed: throw state.terminalError ?? IRCError.disconnected
+        case .shutdown: throw IRCError.disconnected
+        default: break
         }
+      }
 
-        await self?.finishConnectionRelay(for: connection)
-      } catch {
-        await self?.finishConnectionRelay(for: connection, error: error)
+      try Task.checkCancellation()
+      throw IRCError.disconnected
+    } onCancel: {
+      Task { await self.disconnect() }
+    }
+  }
+
+  func disconnect(throwing error: Error? = nil) async {
+    guard !state.ended else { return }
+
+    for channel in Array(pendingJoins.keys) { cancelJoin(channel) }
+
+    let oldEntries = state.entries
+
+    updateState { state in
+      state.ended = true
+      state.active = false
+      state.terminalError = error
+      state.entries.removeAll()
+      state.userStateConnectionID = nil
+
+      if let error {
+        state.statuses = state.statuses.mapValues { _ in
+          .failed(.init(terminalError: error))
+        }
+      } else {
+        state.statuses.removeAll()
       }
     }
 
-    return connection
-  }
+    finishStateObservers()
 
-  private func yield(_ message: IncomingMessage) {
-    continuation?.yield(message)
-  }
-
-  private func finish(throwing error: Error) {
     continuation?.finish(throwing: error)
     continuation = nil
+
+    for entry in oldEntries.values { entry.task?.cancel() }
+    for entry in oldEntries.values { await entry.supervisor.disconnect() }
   }
 
-  private func removeConnection(_ connection: IRCConnection) {
-    connections.removeAll(where: { $0 === connection })
-  }
+  func addEntry(to state: inout State) -> UUID {
+    let supervisor = IRCConnectionSupervisor(
+      credentials: credentials,
+      network: network,
+      role: .read,
+      rateLimiter: rateLimiter)
 
-  private func finishConnectionRelay(
-    for connection: IRCConnection,
-    error: Error? = nil
-  ) {
-    let identifier = ObjectIdentifier(connection)
-    relayTasks.removeValue(forKey: identifier)
-    removeConnection(connection)
+    let id = supervisor.id
+    state.entries[id] = Entry(supervisor: supervisor)
 
-    guard !isDisconnecting, let error else {
-      return
+    if state.userStateConnectionID == nil {
+      state.userStateConnectionID = id
     }
 
-    finish(throwing: error)
+    return id
+  }
+
+  @discardableResult
+  func updateState<Result>(_ update: (inout State) -> Result) -> Result {
+    var state = currentState
+    let result = update(&state)
+    currentState = state
+    return result
   }
 }
