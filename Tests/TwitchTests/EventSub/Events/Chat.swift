@@ -34,7 +34,25 @@ struct EventSubChatTests {
       with: MockedMessages.channelChatMessage,
       requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
 
-    _ = try #require(message)
+    let received = try #require(message)
+    #expect(received.message.text == "Hi chat [GIF]")
+    #expect(received.messageType == .text)
+    let fragments = received.message.fragments
+    try #require(fragments.count == 2)
+    #expect(fragments[0].text == "Hi chat ")
+    guard case .text = fragments[0].type else {
+      Issue.record("Expected text fragment, got \(fragments[0].type)")
+      return
+    }
+
+    #expect(fragments[1].text == "[GIF]")
+    guard case .gif(let gif) = fragments[1].type else {
+      Issue.record("Expected GIF fragment, got \(fragments[1].type)")
+      return
+    }
+
+    #expect(gif.gifID == "celebration-123")
+    #expect(gif.url == "https://example.com/celebration.gif")
   }
 
   @Test("Should decode channelChatMessageDelete event")

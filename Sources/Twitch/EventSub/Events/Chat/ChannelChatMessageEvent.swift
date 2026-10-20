@@ -139,12 +139,14 @@ public struct ChannelChatMessageEvent: Event {
         case emote(Emote)
         case cheermote(Cheermote)
         case mention(Mention)
+        case gif(GIF)
 
         enum CodingKeys: String, CodingKey {
           case type
           case emote
           case cheermote
           case mention
+          case gif
         }
 
         init(from decoder: Decoder) throws {
@@ -160,11 +162,24 @@ public struct ChannelChatMessageEvent: Event {
             self = .cheermote(try container.decode(Cheermote.self, forKey: .cheermote))
           case .mention:
             self = .mention(try container.decode(Mention.self, forKey: .mention))
+          case .gif:
+            self = .gif(try container.decode(GIF.self, forKey: .gif))
           }
         }
 
         private enum FragmentType: String, Decodable, Sendable {
-          case text, emote, cheermote, mention
+          case text, emote, cheermote, mention, gif
+        }
+      }
+
+      @MemberwiseInit(.public)
+      public struct GIF: Decodable, Sendable {
+        public let gifID: String
+        public let url: String
+
+        enum CodingKeys: String, CodingKey {
+          case gifID = "gifId"
+          case url
         }
       }
 

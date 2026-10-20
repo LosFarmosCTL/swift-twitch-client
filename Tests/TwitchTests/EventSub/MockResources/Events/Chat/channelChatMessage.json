@@ -32,14 +32,26 @@
       "chatter_user_name": "viewer32",
       "message_id": "cc106a89-1814-919d-454c-f4f2f970aae7",
       "message": {
-        "text": "Hi chat",
+        "text": "Hi chat [GIF]",
         "fragments": [
           {
             "type": "text",
-            "text": "Hi chat",
+            "text": "Hi chat ",
             "cheermote": null,
             "emote": null,
-            "mention": null
+            "mention": null,
+            "gif": null
+          },
+          {
+            "type": "gif",
+            "text": "[GIF]",
+            "cheermote": null,
+            "emote": null,
+            "mention": null,
+            "gif": {
+              "gif_id": "celebration-123",
+              "url": "https://example.com/celebration.gif"
+            }
           }
         ]
       },
