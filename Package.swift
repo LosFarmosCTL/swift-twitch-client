@@ -2,6 +2,15 @@
 
 import PackageDescription
 
+#if os(Linux)
+  // String catalogs require Apple's tooling; Linux uses plain error descriptions.
+  let twitchExcludes = ["Localizable.xcstrings"]
+  let twitchResources: [Resource] = []
+#else
+  let twitchExcludes: [String] = []
+  let twitchResources: [Resource] = [.process("Localizable.xcstrings")]
+#endif
+
 let package = Package(
   name: "swift-twitch-client",
   defaultLocalization: "en",
@@ -23,7 +32,8 @@ let package = Package(
         "TwitchIRC",
         .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro"),
       ],
-      resources: [.process("Localizable.xcstrings")],
+      exclude: twitchExcludes,
+      resources: twitchResources,
       swiftSettings: [.swiftLanguageMode(.v6)],
     ),
     .testTarget(
