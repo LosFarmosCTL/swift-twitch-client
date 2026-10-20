@@ -1,5 +1,5 @@
 {
-  "originHash" : "a7c5d4cb2e18c25605c279e06e671417ae6fe5e1e7afa0a84e8bc707e701875f",
+  "originHash" : "13c1abf7781f0f1d2bd59d8cb1d084efaa620d10e84be27cd7c9be503311ddd5",
   "pins" : [
     {
       "identity" : "swift-memberwise-init-macro",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
-        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
-        "version" : "603.0.2"
+        "revision" : "050f1a346fbbac0ca2cfb15a95274f7bd1cf0ccf",
+        "version" : "604.0.0"
       }
     },
     {

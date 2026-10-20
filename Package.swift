@@ -1,4 +1,4 @@
-// swift-tools-version:6.3
+// swift-tools-version:6.4
 
 import PackageDescription
 
@@ -23,7 +23,7 @@ let package = Package(
 
     .package(
       url: "https://github.com/gohanlon/swift-memberwise-init-macro",
-      .upToNextMajor(from: "0.5.2")),
+      .upToNextMajor(from: "0.6.0")),
   ],
   targets: [
     .target(

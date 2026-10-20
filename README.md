@@ -32,6 +32,8 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
 
 ## Installation
 
+Requires Swift 6.4 or later, using Swift 6 language mode. Supported deployment targets are macOS 13, iOS 16, tvOS 16, and watchOS 9 or later.
+
 Add the following dependency to your `Package.swift`:
 
 ```swift
