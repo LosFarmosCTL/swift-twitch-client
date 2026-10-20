@@ -106,7 +106,7 @@ extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes
   }
 }
 
-public protocol HelixEndpointResponseType {}
+public protocol HelixEndpointResponseType: SendableMetatype {}
 public enum HelixEndpointResponseTypes {
   public enum Void: HelixEndpointResponseType {}
   public enum Normal: HelixEndpointResponseType {}
