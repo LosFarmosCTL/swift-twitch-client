@@ -8,7 +8,7 @@ public struct ChannelGoalBeginEvent: Event {
   public let id: String
 
   public let broadcasterID: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let broadcasterLogin: String
 
   public let type: String
@@ -22,11 +22,12 @@ public struct ChannelGoalBeginEvent: Event {
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterUserId"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case broadcasterLogin = "broadcasterUserLogin"
-
-    case type, description
-    case currentAmount, targetAmount
+    case type
+    case description
+    case currentAmount
+    case targetAmount
     case startedAt
   }
 

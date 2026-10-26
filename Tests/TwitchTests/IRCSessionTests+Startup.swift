@@ -11,7 +11,7 @@ extension IRCSessionTests {
   ) async throws {
     let client = TwitchIRCClient(.anonymous, mode: mode, network: session)
     try await client.setDesiredChannels((0..<91).map { "channel\($0)" })
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     let pending = Task { try await client.connect() }
     defer { pending.cancel() }
 

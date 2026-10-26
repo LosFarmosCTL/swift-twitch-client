@@ -10,11 +10,11 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let userInput: String
   public let status: String
@@ -23,16 +23,16 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case id
-
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case userID = "userId"
-    case userLogin = "userLogin"
-    case userName = "userName"
-
-    case userInput, status, reward, redeemedAt
+    case userLogin
+    case userDisplayName = "userName"
+    case userInput
+    case status
+    case reward
+    case redeemedAt
   }
 
   @MemberwiseInit(.public)
@@ -44,6 +44,9 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
   }
 
   public enum Status: String, Decodable, Sendable {
-    case unknown, unfulfilled, fulfilled, canceled
+    case unknown
+    case unfulfilled
+    case fulfilled
+    case cancelled = "canceled"
   }
 }

@@ -3,19 +3,19 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 public struct ChannelGuestStarGuestUpdateEvent: Event {
   public let broadcasterID: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let broadcasterLogin: String
 
   public let moderatorID: String?
-  public let moderatorName: String?
+  public let moderatorDisplayName: String?
   public let moderatorLogin: String?
 
   public let guestID: String?
-  public let guestName: String?
+  public let guestDisplayName: String?
   public let guestLogin: String?
 
   public let hostID: String
-  public let hostName: String
+  public let hostDisplayName: String
   public let hostLogin: String
 
   public let sessionID: String
@@ -28,26 +28,23 @@ public struct ChannelGuestStarGuestUpdateEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case broadcasterLogin = "broadcasterUserLogin"
-
     case moderatorID = "moderatorUserId"
-    case moderatorName = "moderatorUserName"
+    case moderatorDisplayName = "moderatorUserName"
     case moderatorLogin = "moderatorUserLogin"
-
     case guestID = "guestUserId"
-    case guestName = "guestUserName"
+    case guestDisplayName = "guestUserName"
     case guestLogin = "guestUserLogin"
-
     case hostID = "hostUserId"
-    case hostName = "hostUserName"
+    case hostDisplayName = "hostUserName"
     case hostLogin = "hostUserLogin"
-
     case sessionID = "sessionId"
     case slotID = "slotId"
     case state
-
-    case hostVideoEnabled, hostAudioEnabled, hostVolume
+    case hostVideoEnabled
+    case hostAudioEnabled
+    case hostVolume
   }
 
   public enum State: String, Codable, Sendable {

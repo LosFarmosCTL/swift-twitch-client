@@ -1,0 +1,48 @@
+import Foundation
+import MemberwiseInit
+
+extension HelixEndpoint {
+  public static func getCreatorGoals(broadcasterID: String? = nil)
+    -> HelixEndpoint<[CreatorGoal], CreatorGoal, HelixEndpointResponseTypes.Normal>
+  {
+    .init(
+      method: "GET", path: "goals",
+      queryItems: { credentials in
+        [("broadcaster_id", broadcasterID ?? credentials.userID)]
+      },
+      makeResponse: { $0.data })
+  }
+}
+
+@MemberwiseInit(.public)
+public struct CreatorGoal: Decodable, Sendable {
+  public let id: String
+  public let broadcasterID: String
+  public let broadcasterDisplayName: String
+  public let broadcasterLogin: String
+  public let type: CreatorGoalType
+  public let description: String
+  public let currentAmount: Int
+  public let targetAmount: Int
+  public let createdAt: Date
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case broadcasterID = "broadcasterId"
+    case broadcasterDisplayName = "broadcasterName"
+    case broadcasterLogin
+    case type
+    case description
+    case currentAmount
+    case targetAmount
+    case createdAt
+  }
+}
+
+public enum CreatorGoalType: String, Decodable, Sendable {
+  case follower
+  case subscription
+  case subscriptionCount = "subscription_count"
+  case newSubscription = "new_subscription"
+  case newSubscriptionCount = "new_subscription_count"
+}

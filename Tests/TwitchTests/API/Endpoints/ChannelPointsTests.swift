@@ -18,7 +18,7 @@ struct ChannelPointsTests {
       url: url,
       body: MockedData.getCustomRewardsJSON)
 
-    let rewards = try await harness.twitch.helix(endpoint: .getCustomRewards())
+    let rewards = try await harness.twitch.helix(for: .getCustomRewards())
 
     #expect(rewards.count == 1)
     #expect(rewards.first?.id == "92af127c-7326-4483-a52b-b0da0be61c01")
@@ -43,7 +43,7 @@ struct ChannelPointsTests {
       body: MockedData.createCustomRewardJSON)
 
     let reward = try await harness.twitch.helix(
-      endpoint: .createCustomReward(title: "game analysis 1v1", cost: 50000))
+      for: .createCustomReward(title: "game analysis 1v1", cost: 50000))
 
     #expect(reward.broadcasterID == "274637212")
     #expect(reward.id == "afaa7e34-6b17-49f0-a19a-d1e76eaaf673")
@@ -65,7 +65,7 @@ struct ChannelPointsTests {
       body: MockedData.updateCustomRewardJSON)
 
     let reward = try await harness.twitch.helix(
-      endpoint: .updateCustomReward(
+      for: .updateCustomReward(
         "92af127c-7326-4483-a52b-b0da0be61c01",
         isEnabled: false))
 
@@ -90,7 +90,7 @@ struct ChannelPointsTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .deleteCustomReward("92af127c-7326-4483-a52b-b0da0be61c01"))
+      for: .deleteCustomReward("92af127c-7326-4483-a52b-b0da0be61c01"))
   }
 
   @Test
@@ -106,13 +106,13 @@ struct ChannelPointsTests {
       body: MockedData.getCustomRewardRedemptionsJSON)
 
     let (redemptions, cursor) = try await harness.twitch.helix(
-      endpoint: .getCustomRewardRedemptions(
+      for: .getCustomRewardRedemptions(
         rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
-        status: .canceled))
+        status: .cancelled))
 
     #expect(redemptions.count == 1)
     #expect(redemptions.first?.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
-    #expect(redemptions.first?.status == .canceled)
+    #expect(redemptions.first?.status == .cancelled)
     #expect(redemptions.first?.reward.title == "game analysis")
     #expect(
       cursor
@@ -121,7 +121,7 @@ struct ChannelPointsTests {
   }
 
   @Test
-  func updateRedemptionStatus() async throws {
+  func updateCustomRewardRedemptionStatus() async throws {
     let url = try #require(
       URL(
         string:
@@ -134,13 +134,13 @@ struct ChannelPointsTests {
       body: MockedData.updateRedemptionStatusJSON)
 
     let redemption = try await harness.twitch.helix(
-      endpoint: .updateRedemptionStatus(
+      for: .updateCustomRewardRedemptionStatus(
         ["17fa2df1-ad76-4804-bfa5-a40ef63efe63"],
         rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
-        status: .canceled))
+        status: .cancelled))
 
     #expect(redemption.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
-    #expect(redemption.status == .canceled)
+    #expect(redemption.status == .cancelled)
     #expect(redemption.userID == "274637212")
     #expect(redemption.reward.cost == 50000)
   }

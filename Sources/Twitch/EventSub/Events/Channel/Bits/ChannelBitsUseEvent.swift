@@ -4,11 +4,11 @@ import MemberwiseInit
 public struct ChannelBitsUseEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let bits: Int
   public let message: Message?
@@ -18,22 +18,23 @@ public struct ChannelBitsUseEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case userID = "userId"
-    case userLogin, userName
-
-    case bits, message
+    case userLogin
+    case userDisplayName = "userName"
+    case bits
+    case message
   }
 
   public init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
     userID = try container.decode(String.self, forKey: .userID)
     userLogin = try container.decode(String.self, forKey: .userLogin)
-    userName = try container.decode(String.self, forKey: .userName)
+    userDisplayName = try container.decode(String.self, forKey: .userDisplayName)
     bits = try container.decode(Int.self, forKey: .bits)
     message = try container.decodeIfPresent(Message.self, forKey: .message)
 
@@ -97,13 +98,13 @@ public struct ChannelBitsUseEvent: Event {
       @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
-        public let emoteSetID: String
+        public let setID: String
         public let ownerID: String
         public let format: [String]
 
         enum CodingKeys: String, CodingKey {
           case id
-          case emoteSetID = "emoteSetId"
+          case setID = "emoteSetId"
           case ownerID = "ownerId"
           case format
         }

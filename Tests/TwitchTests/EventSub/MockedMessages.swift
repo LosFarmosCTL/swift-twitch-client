@@ -25,12 +25,12 @@ enum MockedMessages {
   static let mockReconnectMessage = fromResource("reconnectMessage")
   static let mockEventMessage = fromResource("mockEventMessage")
 
-  // MARK: - Automod Messages
+  // MARK: - AutoMod Messages
 
-  static let automodMessageHold = fromResource("automodMessageHold")
-  static let automodMessageUpdate = fromResource("automodMessageUpdate")
-  static let automodSettingsUpdate = fromResource("automodSettingsUpdate")
-  static let automodTermsUpdate = fromResource("automodTermsUpdate")
+  static let autoModMessageHold = fromResource("automodMessageHold")
+  static let autoModMessageUpdate = fromResource("automodMessageUpdate")
+  static let autoModSettingsUpdate = fromResource("automodSettingsUpdate")
+  static let autoModTermsUpdate = fromResource("automodTermsUpdate")
 
   // MARK: - Channel Messages
 
@@ -157,7 +157,7 @@ enum MockedMessages {
 
   // MARK: - Whisper Messages
 
-  static let whisperReceived = fromResource("whisperReceived")
+  static let userWhisperMessage = fromResource("whisperReceived")
 
   static func customized(
     _ message: String,

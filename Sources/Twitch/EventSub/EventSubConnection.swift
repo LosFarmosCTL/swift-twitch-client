@@ -11,8 +11,8 @@ internal actor EventSubConnection {
   private let decoder: JSONDecoder
 
   private var keepaliveTimer: KeepaliveTimer?
-  private var websocket: WebSocketTask?
-  private var socketID: String?
+  private var webSocket: WebSocketTask?
+  private var sessionID: String?
 
   private var isClosing = false
 
@@ -31,9 +31,9 @@ internal actor EventSubConnection {
       .failure(
         EventSubConnectionError.disconnected(
           with: CancellationError(),
-          socketID: socketID ?? "")))
+          sessionID: sessionID ?? "")))
 
-    await websocket?.cancel(with: .goingAway, reason: nil)
+    await webSocket?.cancel(with: .goingAway, reason: nil)
     await keepaliveTimer?.cancel()
   }
 
@@ -56,10 +56,10 @@ internal actor EventSubConnection {
   internal func resume() async throws -> String {
     isClosing = false
 
-    if let socketID = self.socketID { return socketID }
+    if let sessionID = self.sessionID { return sessionID }
 
-    self.websocket = await network.webSocketTask(with: eventSubURL)
-    await self.websocket?.resume()
+    self.webSocket = await network.webSocketTask(with: eventSubURL)
+    await self.webSocket?.resume()
     await self.scheduleReceive()
 
     // Twitch sends keepalive messages in a specified time interval,
@@ -94,12 +94,12 @@ internal actor EventSubConnection {
     let timeout = welcomeMessage.keepaliveTimeout + .seconds(1)
     await self.keepaliveTimer?.reset(duration: timeout)
 
-    self.socketID = welcomeMessage.sessionID
+    self.sessionID = welcomeMessage.sessionID
     return welcomeMessage.sessionID
   }
 
   private func scheduleReceive() async {
-    await self.websocket?.receive { @Sendable result in
+    await self.webSocket?.receive { @Sendable result in
       Task { await self.receiveMessage(result) }
     }
   }
@@ -133,7 +133,7 @@ internal actor EventSubConnection {
       if isClosing { return }
 
       let disconnectedError = EventSubConnectionError.disconnected(
-        with: error, socketID: socketID ?? "")
+        with: error, sessionID: sessionID ?? "")
 
       self.finishWelcome(.failure(disconnectedError))
 
@@ -172,7 +172,7 @@ internal actor EventSubConnection {
       await onMessage(
         .failure(
           EventSubConnectionError.reconnectRequested(
-            reconnectURL: reconnect.reconnectURL, socketID: socketID ?? "")))
+            reconnectURL: reconnect.reconnectURL, sessionID: sessionID ?? "")))
     }
   }
 
@@ -194,11 +194,11 @@ internal actor EventSubConnection {
 
   private func cancelDuringHandshake() async {
     let disconnectedError = EventSubConnectionError.disconnected(
-      with: CancellationError(), socketID: socketID ?? "")
+      with: CancellationError(), sessionID: sessionID ?? "")
 
     finishWelcome(.failure(disconnectedError))
     await keepaliveTimer?.cancel()
-    await websocket?.cancel(with: .goingAway, reason: nil)
+    await webSocket?.cancel(with: .goingAway, reason: nil)
   }
 
   private func handleKeepaliveTimeout() async {
@@ -208,10 +208,10 @@ internal actor EventSubConnection {
     // isolation gets erased in `EventSubClient` when passing an instance method as the
     // handler to the connection.
     await self.onMessage(
-      .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
-    await self.websocket?.cancel(with: .goingAway, reason: nil)
+      .failure(EventSubConnectionError.timedOut(sessionID: self.sessionID ?? "")))
+    await self.webSocket?.cancel(with: .goingAway, reason: nil)
 
     self.finishWelcome(
-      .failure(EventSubConnectionError.timedOut(socketID: self.socketID ?? "")))
+      .failure(EventSubConnectionError.timedOut(sessionID: self.sessionID ?? "")))
   }
 }

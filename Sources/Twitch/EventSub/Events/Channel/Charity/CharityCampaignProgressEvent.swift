@@ -6,7 +6,7 @@ public struct CharityCampaignProgressEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let charityName: String
   public let charityDescription: String
@@ -18,11 +18,14 @@ public struct CharityCampaignProgressEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case id
-
     case broadcasterID = "broadcasterId"
-    case broadcasterLogin, broadcasterName
-
-    case charityName, charityDescription, charityLogo, charityWebsite
-    case currentAmount, targetAmount
+    case broadcasterLogin
+    case broadcasterDisplayName = "broadcasterName"
+    case charityName
+    case charityDescription
+    case charityLogo
+    case charityWebsite
+    case currentAmount
+    case targetAmount
   }
 }

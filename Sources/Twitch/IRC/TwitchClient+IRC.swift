@@ -5,6 +5,6 @@ extension TwitchClient {
     mode: TwitchIRCClient.Mode = .readWrite
   ) -> TwitchIRCClient {
     TwitchIRCClient(
-      .authenticated(self.authentication), mode: mode, network: self.network)
+      .authenticated(self.credentials), mode: mode, network: self.network)
   }
 }

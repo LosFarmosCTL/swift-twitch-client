@@ -8,9 +8,9 @@ public enum EventSubError: Error {
 
 internal enum EventSubConnectionError: Error {
   case revocation(EventSubRevocation)
-  case reconnectRequested(reconnectURL: URL, socketID: String)
-  case timedOut(socketID: String)
-  case disconnected(with: Error, socketID: String)
+  case reconnectRequested(reconnectURL: URL, sessionID: String)
+  case timedOut(sessionID: String)
+  case disconnected(with: Error, sessionID: String)
 }
 
 extension EventSubConnectionError {

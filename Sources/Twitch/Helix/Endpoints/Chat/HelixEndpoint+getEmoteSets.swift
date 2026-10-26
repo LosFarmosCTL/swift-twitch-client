@@ -5,24 +5,24 @@ public typealias EmoteSetID = String
 
 extension HelixEndpoint {
   public static func getEmoteSets(
-    _ sets: [EmoteSetID]
-  ) -> HelixEndpoint<EmoteSetResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
+    _ setIDs: [EmoteSetID]
+  ) -> HelixEndpoint<EmoteSetsResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/emotes/set",
       queryItems: { _ in
-        sets.map { ("emote_set_id", $0) }
+        setIDs.map { ("emote_set_id", $0) }
       },
       makeResponse: {
         let template = try $0.require(\.template)
 
-        return EmoteSetResponse(emotes: $0.data, template: template)
+        return EmoteSetsResponse(emotes: $0.data, template: template)
       }
     )
   }
 }
 
 @MemberwiseInit(.public)
-public struct EmoteSetResponse: Decodable, Sendable {
+public struct EmoteSetsResponse: Decodable, Sendable {
   public let emotes: [SetEmote]
 
   public let template: String
@@ -48,11 +48,11 @@ public struct SetEmote: Decodable, Sendable {
   }
 
   public func getURL(
-    from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
+    from templateURL: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark
   ) -> URL? {
     return URL(
-      string: templateUrl.replacingOccurrences(of: "{{id}}", with: self.id)
+      string: templateURL.replacingOccurrences(of: "{{id}}", with: self.id)
         .replacingOccurrences(of: "{{scale}}", with: scale.rawValue).replacingOccurrences(
           of: "{{format}}", with: format.rawValue
         ).replacingOccurrences(of: "{{theme_mode}}", with: themeMode.rawValue))

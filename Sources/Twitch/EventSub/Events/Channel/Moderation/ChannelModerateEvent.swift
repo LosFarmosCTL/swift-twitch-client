@@ -6,31 +6,49 @@ import MemberwiseInit
 public struct ChannelModerateEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let sourceBroadcasterID: String?
   public let sourceBroadcasterLogin: String?
-  public let sourceBroadcasterName: String?
+  public let sourceBroadcasterDisplayName: String?
 
   public let moderatorID: String
   public let moderatorLogin: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
 
   public let action: Action
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case sourceBroadcasterID = "sourceBroadcasterUserId"
     case sourceBroadcasterLogin = "sourceBroadcasterUserLogin"
-    case sourceBroadcasterName = "sourceBroadcasterUserName"
+    case sourceBroadcasterDisplayName = "sourceBroadcasterUserName"
     case moderatorID = "moderatorUserId"
     case moderatorLogin = "moderatorUserLogin"
-    case moderatorName = "moderatorUserName"
-
-    case action, followers, slow, vip, unvip, mod, unmod, ban, unban, timeout, untimeout,
-      raid, unraid, delete, automodTerms, unbanRequest, warn, sharedChatBan,
-      sharedChatTimeout, sharedChatUnban, sharedChatUntimeout, sharedChatDelete
+    case moderatorDisplayName = "moderatorUserName"
+    case action
+    case followers
+    case slow
+    case vip
+    case unvip
+    case mod
+    case unmod
+    case ban
+    case unban
+    case timeout
+    case untimeout
+    case raid
+    case unraid
+    case delete
+    case autoModTerms = "automodTerms"
+    case unbanRequest
+    case warn
+    case sharedChatBan
+    case sharedChatTimeout
+    case sharedChatUnban
+    case sharedChatUntimeout
+    case sharedChatDelete
   }
 
   public init(from decoder: Decoder) throws {
@@ -38,16 +56,18 @@ public struct ChannelModerateEvent: Event {
 
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
     sourceBroadcasterID = try container.decodeIfPresent(
       String.self, forKey: .sourceBroadcasterID)
     sourceBroadcasterLogin = try container.decodeIfPresent(
       String.self, forKey: .sourceBroadcasterLogin)
-    sourceBroadcasterName = try container.decodeIfPresent(
-      String.self, forKey: .sourceBroadcasterName)
+    sourceBroadcasterDisplayName = try container.decodeIfPresent(
+      String.self, forKey: .sourceBroadcasterDisplayName)
     moderatorID = try container.decode(String.self, forKey: .moderatorID)
     moderatorLogin = try container.decode(String.self, forKey: .moderatorLogin)
-    moderatorName = try container.decode(String.self, forKey: .moderatorName)
+    moderatorDisplayName = try container.decode(
+      String.self, forKey: .moderatorDisplayName)
 
     action = try Action(from: decoder)
   }
@@ -76,10 +96,10 @@ public struct ChannelModerateEvent: Event {
     case unmod(User)
     case delete(Delete)
     case warn(Warn)
-    case addBlockedTerm(AutomodTerm)
-    case removeBlockedTerm(AutomodTerm)
-    case addPermittedTerm(AutomodTerm)
-    case removePermittedTerm(AutomodTerm)
+    case addBlockedTerm(broadcasterID: AutoModTerm)
+    case removeBlockedTerm(broadcasterID: AutoModTerm)
+    case addPermittedTerm(AutoModTerm)
+    case removePermittedTerm(AutoModTerm)
     case approveUnbanRequest(UnbanRequest)
     case denyUnbanRequest(UnbanRequest)
     case sharedChatBan(Ban)
@@ -143,16 +163,16 @@ public struct ChannelModerateEvent: Event {
         self = .warn(try container.decode(Warn.self, forKey: .warn))
       case .addBlockedTerm:
         self = .addBlockedTerm(
-          try container.decode(AutomodTerm.self, forKey: .automodTerms))
+          try container.decode(AutoModTerm.self, forKey: .autoModTerms))
       case .removeBlockedTerm:
         self = .removeBlockedTerm(
-          try container.decode(AutomodTerm.self, forKey: .automodTerms))
+          try container.decode(AutoModTerm.self, forKey: .autoModTerms))
       case .addPermittedTerm:
         self = .addPermittedTerm(
-          try container.decode(AutomodTerm.self, forKey: .automodTerms))
+          try container.decode(AutoModTerm.self, forKey: .autoModTerms))
       case .removePermittedTerm:
         self = .removePermittedTerm(
-          try container.decode(AutomodTerm.self, forKey: .automodTerms))
+          try container.decode(AutoModTerm.self, forKey: .autoModTerms))
       case .approveUnbanRequest:
         self = .approveUnbanRequest(
           try container.decode(UnbanRequest.self, forKey: .unbanRequest))
@@ -210,11 +230,12 @@ public struct ChannelModerateEvent: Event {
     public struct User: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
+        case userLogin
+        case userDisplayName = "userName"
       }
     }
 
@@ -222,12 +243,13 @@ public struct ChannelModerateEvent: Event {
     public struct Ban: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let reason: String?
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
+        case userLogin
+        case userDisplayName = "userName"
         case reason
       }
     }
@@ -236,14 +258,16 @@ public struct ChannelModerateEvent: Event {
     public struct Timeout: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let reason: String?
       public let expiresAt: Date
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
-        case reason, expiresAt
+        case userLogin
+        case userDisplayName = "userName"
+        case reason
+        case expiresAt
       }
     }
 
@@ -251,12 +275,13 @@ public struct ChannelModerateEvent: Event {
     public struct Raid: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let viewerCount: Int
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
+        case userLogin
+        case userDisplayName = "userName"
         case viewerCount
       }
     }
@@ -265,13 +290,14 @@ public struct ChannelModerateEvent: Event {
     public struct Delete: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let messageID: String
       public let messageBody: String
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
+        case userLogin
+        case userDisplayName = "userName"
         case messageID = "messageId"
         case messageBody
       }
@@ -281,33 +307,41 @@ public struct ChannelModerateEvent: Event {
     public struct Warn: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let reason: String?
       public let chatRulesCited: [String]?
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
-        case reason, chatRulesCited
+        case userLogin
+        case userDisplayName = "userName"
+        case reason
+        case chatRulesCited
       }
     }
 
     @MemberwiseInit(.public)
-    public struct AutomodTerm: Codable, Sendable {
+    public struct AutoModTerm: Codable, Sendable {
       public let terms: [String]
-      public let fromAutomod: Bool
+      public let fromAutoMod: Bool
+
+      enum CodingKeys: String, CodingKey {
+        case terms
+        case fromAutoMod = "fromAutomod"
+      }
     }
 
     @MemberwiseInit(.public)
     public struct UnbanRequest: Codable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
       public let moderatorMessage: String
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
+        case userLogin
+        case userDisplayName = "userName"
         case moderatorMessage
       }
     }

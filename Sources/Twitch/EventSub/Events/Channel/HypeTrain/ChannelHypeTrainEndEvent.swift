@@ -7,7 +7,7 @@ public struct ChannelHypeTrainEndEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let total: Int
   public let level: Int
@@ -27,14 +27,15 @@ public struct ChannelHypeTrainEndEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case total, level
+    case broadcasterDisplayName = "broadcasterUserName"
+    case total
+    case level
     case topContributions
-
-    case startedAt, endedAt, cooldownEndsAt
-
-    case sharedTrainParticipants, isSharedTrain
+    case startedAt
+    case endedAt
+    case cooldownEndsAt
+    case sharedTrainParticipants
+    case isSharedTrain
     case type
   }
 }

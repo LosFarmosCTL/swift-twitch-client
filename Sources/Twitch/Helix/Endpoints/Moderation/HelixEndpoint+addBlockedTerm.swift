@@ -2,15 +2,15 @@ import Foundation
 
 extension HelixEndpoint {
   public static func addBlockedTerm(
-    in channel: String,
+    in broadcasterID: String,
     text: String
   ) -> HelixEndpoint<BlockedTerm, BlockedTerm, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "moderation/blocked_terms",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       },
       body: { _ in ["text": text] },

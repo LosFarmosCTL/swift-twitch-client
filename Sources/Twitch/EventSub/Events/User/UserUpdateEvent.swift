@@ -4,7 +4,7 @@ import MemberwiseInit
 public struct UserUpdateEvent: Event {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
   public let description: String
 
   public let email: String?
@@ -12,8 +12,10 @@ public struct UserUpdateEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName, description
-
-    case email, emailVerified
+    case userLogin
+    case userDisplayName = "userName"
+    case description
+    case email
+    case emailVerified
   }
 }

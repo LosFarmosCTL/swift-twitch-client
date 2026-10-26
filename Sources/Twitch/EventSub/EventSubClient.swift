@@ -4,13 +4,13 @@ import Foundation
   import FoundationNetworking
 #endif
 
-private typealias EventID = String
-private typealias SocketID = String
+private typealias SubscriptionID = String
+private typealias SessionID = String
 
 internal actor EventSubClient {
   private struct ConnectionCreation {
     let id: UUID
-    let task: Task<SocketID, Error>
+    let task: Task<SessionID, Error>
     var isCancellationRequested = false
   }
 
@@ -21,17 +21,17 @@ internal actor EventSubClient {
   private let network: NetworkSession
   private let decoder: JSONDecoder
 
-  private var connections = [SocketID: EventSubConnection]()
-  private var connectionEvents = [SocketID: [EventID]]()
-  private var eventHandlers = [EventID: EventSubHandler]()
+  private var connections = [SessionID: EventSubConnection]()
+  private var connectionSubscriptions = [SessionID: [SubscriptionID]]()
+  private var eventHandlers = [SubscriptionID: EventSubHandler]()
 
-  private var pendingEvents = [EventID: [Event]]()
-  private var pendingErrors = [EventID: EventSubError]()
+  private var pendingEvents = [SubscriptionID: [Event]]()
+  private var pendingErrors = [SubscriptionID: EventSubError]()
 
-  private var reservedSlots = [SocketID: Int]()
+  private var reservedSlots = [SessionID: Int]()
   private var connectionCreation: ConnectionCreation?
   private var connectionCreationWaiters =
-    [UUID: CheckedContinuation<SocketID, Error>]()
+    [UUID: CheckedContinuation<SessionID, Error>]()
 
   private var isResetting = false
 
@@ -46,47 +46,48 @@ internal actor EventSubClient {
   }
 
   internal func addHandler(
-    _ handler: EventSubHandler, for eventID: String, on socketID: String
+    _ handler: EventSubHandler, for subscriptionID: String, on sessionID: String
   ) {
-    consumeReservation(for: socketID)
+    consumeReservation(for: sessionID)
 
-    eventHandlers[eventID] = handler
-    connectionEvents[socketID, default: []].append(eventID)
+    eventHandlers[subscriptionID] = handler
+    connectionSubscriptions[sessionID, default: []].append(subscriptionID)
 
     // if events were received before the handler was registered, yield them
-    if let pendingEvents = pendingEvents.removeValue(forKey: eventID) {
+    if let pendingEvents = pendingEvents.removeValue(forKey: subscriptionID) {
       for event in pendingEvents {
         handler.yield(event)
       }
     }
 
-    if let pendingError = pendingErrors.removeValue(forKey: eventID) {
+    if let pendingError = pendingErrors.removeValue(forKey: subscriptionID) {
       handler.finish(throwing: pendingError)
     }
   }
 
-  internal func removeHandler(for eventID: String) async {
-    eventHandlers.removeValue(forKey: eventID)
-    pendingEvents.removeValue(forKey: eventID)
-    pendingErrors.removeValue(forKey: eventID)
+  internal func removeHandler(for subscriptionID: String) async {
+    eventHandlers.removeValue(forKey: subscriptionID)
+    pendingEvents.removeValue(forKey: subscriptionID)
+    pendingErrors.removeValue(forKey: subscriptionID)
 
-    if let socketID = socketID(for: eventID) {
-      connectionEvents[socketID] = connectionEvents[socketID]?.filter { $0 != eventID }
+    if let sessionID = sessionID(for: subscriptionID) {
+      connectionSubscriptions[sessionID] =
+        connectionSubscriptions[sessionID]?.filter { $0 != subscriptionID }
 
       // if no more events are subscribed to the socket, close the connection
-      await closeConnectionIfUnused(socketID)
+      await closeConnectionIfUnused(sessionID)
     }
   }
 
-  internal func getFreeWebsocketID() async throws -> String {
+  internal func reserveWebSocketSessionID() async throws -> String {
     while true {
       try Task.checkCancellation()
       guard !isResetting else { throw CancellationError() }
 
-      let socketID = connections.keys.first(where: hasFreeCapacity)
-      if let socketID {
-        reservedSlots[socketID, default: 0] += 1
-        return socketID
+      let sessionID = connections.keys.first(where: hasFreeCapacity)
+      if let sessionID {
+        reservedSlots[sessionID, default: 0] += 1
+        return sessionID
       }
 
       if let creation = connectionCreation,
@@ -107,22 +108,22 @@ internal actor EventSubClient {
     connectionCreationWaiters.count
   }
 
-  internal func releaseReservation(for socketID: String) async {
-    consumeReservation(for: socketID)
-    await closeConnectionIfUnused(socketID)
+  internal func releaseReservation(for sessionID: String) async {
+    consumeReservation(for: sessionID)
+    await closeConnectionIfUnused(sessionID)
   }
 
-  private func createConnection(url: URL = eventSubURL) async throws -> SocketID {
+  private func createConnection(url: URL = eventSubURL) async throws -> SessionID {
     let connection = EventSubConnection(
       network: network,
       decoder: decoder,
       eventSubURL: url,
       onMessage: receiveMessage)
 
-    let socketID = try await connection.resume()
+    let sessionID = try await connection.resume()
 
-    connections[socketID] = connection
-    return socketID
+    connections[sessionID] = connection
+    return sessionID
   }
 
   // NOTE: needs to be async because of the keepalive timer, actor isolation gets erased
@@ -151,41 +152,43 @@ internal actor EventSubClient {
         } else {
           pendingErrors[id] = .revocation(revocation)
         }
-      case .reconnectRequested(let reconnectURL, let socketID):
-        await self.reconnect(socketID, reconnectURL: reconnectURL)
-      case .disconnected(let error, let socketID):
-        await self.finishConnection(socketID, throwing: .disconnected(with: error))
-      case .timedOut(let socketID):
-        await self.finishConnection(socketID, throwing: .timedOut)
+      case .reconnectRequested(let reconnectURL, let sessionID):
+        await self.reconnect(sessionID, reconnectURL: reconnectURL)
+      case .disconnected(let error, let sessionID):
+        await self.finishConnection(sessionID, throwing: .disconnected(with: error))
+      case .timedOut(let sessionID):
+        await self.finishConnection(sessionID, throwing: .timedOut)
       }
     }
   }
 
-  private func reconnect(_ socketID: SocketID, reconnectURL: URL) async {
+  private func reconnect(_ sessionID: SessionID, reconnectURL: URL) async {
     do {
-      if let old = connections[socketID] { await old.cancel() }
+      if let old = connections[sessionID] { await old.cancel() }
 
       let newSocketID = try await self.createConnection(url: reconnectURL)
 
       // move all events to the new connection
-      connectionEvents[newSocketID] = connectionEvents[socketID]
+      connectionSubscriptions[newSocketID] = connectionSubscriptions[sessionID]
 
-      if let reserved = reservedSlots.removeValue(forKey: socketID) {
+      if let reserved = reservedSlots.removeValue(forKey: sessionID) {
         reservedSlots[newSocketID] = reserved
       }
 
-      connections.removeValue(forKey: socketID)
-      connectionEvents.removeValue(forKey: socketID)
+      connections.removeValue(forKey: sessionID)
+      connectionSubscriptions.removeValue(forKey: sessionID)
     } catch {
-      await finishConnection(socketID, throwing: .disconnected(with: error))
+      await finishConnection(sessionID, throwing: .disconnected(with: error))
     }
   }
 
-  private func finishConnection(_ socketID: SocketID, throwing error: EventSubError) async
+  private func finishConnection(
+    _ sessionID: SessionID, throwing error: EventSubError
+  ) async
   {
-    if let connection = connections[socketID] { await connection.cancel() }
+    if let connection = connections[sessionID] { await connection.cancel() }
 
-    for (socket, events) in connectionEvents where socket == socketID {
+    for (socket, events) in connectionSubscriptions where socket == sessionID {
       events.forEach { event in
         if let handler = eventHandlers[event] {
           handler.finish(throwing: error)
@@ -195,9 +198,9 @@ internal actor EventSubClient {
       }
     }
 
-    connectionEvents.removeValue(forKey: socketID)
-    connections.removeValue(forKey: socketID)
-    reservedSlots.removeValue(forKey: socketID)
+    connectionSubscriptions.removeValue(forKey: sessionID)
+    connections.removeValue(forKey: sessionID)
+    reservedSlots.removeValue(forKey: sessionID)
   }
 
   internal func reset() async {
@@ -217,7 +220,7 @@ internal actor EventSubClient {
     }
 
     connections.removeAll()
-    connectionEvents.removeAll()
+    connectionSubscriptions.removeAll()
     eventHandlers.removeAll()
     pendingEvents.removeAll()
     pendingErrors.removeAll()
@@ -231,34 +234,34 @@ internal actor EventSubClient {
 }
 
 extension EventSubClient {
-  private func hasFreeCapacity(on socketID: SocketID) -> Bool {
-    let subscribedEvents = connectionEvents[socketID]?.count ?? 0
-    let reserved = reservedSlots[socketID] ?? 0
+  private func hasFreeCapacity(on sessionID: SessionID) -> Bool {
+    let subscribedEvents = connectionSubscriptions[sessionID]?.count ?? 0
+    let reserved = reservedSlots[sessionID] ?? 0
     return subscribedEvents + reserved < Self.maxSubscriptionsPerConnection
   }
 
-  private func consumeReservation(for socketID: SocketID) {
-    guard let reserved = reservedSlots[socketID], reserved > 0 else { return }
+  private func consumeReservation(for sessionID: SessionID) {
+    guard let reserved = reservedSlots[sessionID], reserved > 0 else { return }
 
     let remaining = reserved - 1
     if remaining > 0 {
-      reservedSlots[socketID] = remaining
+      reservedSlots[sessionID] = remaining
     } else {
-      reservedSlots.removeValue(forKey: socketID)
+      reservedSlots.removeValue(forKey: sessionID)
     }
   }
 
-  private func socketID(for eventID: EventID) -> SocketID? {
-    connectionEvents.first(where: { $0.value.contains(eventID) })?.key
+  private func sessionID(for subscriptionID: SubscriptionID) -> SessionID? {
+    connectionSubscriptions.first(where: { $0.value.contains(subscriptionID) })?.key
   }
 
-  private func closeConnectionIfUnused(_ socketID: SocketID) async {
-    let hasEvents = !(connectionEvents[socketID]?.isEmpty ?? true)
-    let reserved = reservedSlots[socketID] ?? 0
+  private func closeConnectionIfUnused(_ sessionID: SessionID) async {
+    let hasEvents = !(connectionSubscriptions[sessionID]?.isEmpty ?? true)
+    let reserved = reservedSlots[sessionID] ?? 0
     guard !hasEvents, reserved == 0 else { return }
 
-    connectionEvents.removeValue(forKey: socketID)
-    if let connection = connections.removeValue(forKey: socketID) {
+    connectionSubscriptions.removeValue(forKey: sessionID)
+    if let connection = connections.removeValue(forKey: sessionID) {
       await connection.cancel()
     }
   }
@@ -274,10 +277,10 @@ extension EventSubClient {
     }
   }
 
-  private func waitForConnectionCreation() async throws -> SocketID {
+  private func waitForConnectionCreation() async throws -> SessionID {
     let waiterID = UUID()
 
-    let socketID = try await withTaskCancellationHandler {
+    let sessionID = try await withTaskCancellationHandler {
       try await withCheckedThrowingContinuation { continuation in
         connectionCreationWaiters[waiterID] = continuation
       }
@@ -288,11 +291,11 @@ extension EventSubClient {
     }
 
     if Task.isCancelled {
-      await releaseReservation(for: socketID)
+      await releaseReservation(for: sessionID)
       throw CancellationError()
     }
 
-    return socketID
+    return sessionID
   }
 
   private func cancelConnectionCreationWaiter(_ waiterID: UUID) async {
@@ -307,7 +310,7 @@ extension EventSubClient {
 
   private func finishConnectionCreation(
     id: UUID,
-    with result: Result<SocketID, Error>
+    with result: Result<SessionID, Error>
   ) async {
     guard let creation = connectionCreation, creation.id == id else { return }
 
@@ -317,18 +320,18 @@ extension EventSubClient {
     connectionCreationWaiters.removeAll()
 
     switch result {
-    case .success(let socketID):
+    case .success(let sessionID):
       if creation.isCancellationRequested || creation.task.isCancelled || isResetting {
-        await closeConnectionIfUnused(socketID)
+        await closeConnectionIfUnused(sessionID)
 
         for waiter in waiters {
           waiter.resume(throwing: CancellationError())
         }
       } else {
-        reservedSlots[socketID, default: 0] += waiters.count
+        reservedSlots[sessionID, default: 0] += waiters.count
 
         for waiter in waiters {
-          waiter.resume(returning: socketID)
+          waiter.resume(returning: sessionID)
         }
       }
     case .failure(let error):

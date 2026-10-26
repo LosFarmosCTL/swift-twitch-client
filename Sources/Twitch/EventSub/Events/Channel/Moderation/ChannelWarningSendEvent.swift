@@ -4,15 +4,15 @@ import MemberwiseInit
 public struct ChannelWarningSendEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let moderatorID: String
   public let moderatorLogin: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let reason: String?
   public let chatRulesCited: [String]?
@@ -20,15 +20,14 @@ public struct ChannelWarningSendEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case moderatorID = "moderatorUserId"
     case moderatorLogin = "moderatorUserLogin"
-    case moderatorName = "moderatorUserName"
-
+    case moderatorDisplayName = "moderatorUserName"
     case userID = "userId"
-    case userLogin, userName
-
-    case reason, chatRulesCited
+    case userLogin
+    case userDisplayName = "userName"
+    case reason
+    case chatRulesCited
   }
 }

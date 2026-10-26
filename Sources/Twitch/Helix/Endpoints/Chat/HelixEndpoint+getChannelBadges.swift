@@ -3,11 +3,11 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelBadges(
-    of channel: String
+    of broadcasterID: String
   ) -> HelixEndpoint<[BadgeSet], BadgeSet, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/badges",
-      queryItems: { _ in [("broadcaster_id", channel)] },
+      queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: { $0.data })
   }
 }
@@ -31,13 +31,17 @@ public struct Badge: Decodable, Sendable {
   public let description: String
 
   public let clickAction: String?
-  public let clickUrl: String?
+  public let clickURL: String?
 
   enum CodingKeys: String, CodingKey {
-    case id, title, description, clickAction, clickUrl
-    case imageUrl1x = "imageUrl1X"
-    case imageUrl2x = "imageUrl2X"
-    case imageUrl4x = "imageUrl4X"
+    case id
+    case title
+    case description
+    case clickAction
+    case clickURL = "clickUrl"
+    case imageURL1x = "imageUrl1X"
+    case imageURL2x = "imageUrl2X"
+    case imageURL4x = "imageUrl4X"
   }
 
   public init(from decoder: Decoder) throws {
@@ -45,14 +49,14 @@ public struct Badge: Decodable, Sendable {
 
     self.id = try container.decode(String.self, forKey: .id)
     self.images = BadgeImages(
-      url1x: try container.decode(URL.self, forKey: .imageUrl1x),
-      url2x: try container.decode(URL.self, forKey: .imageUrl2x),
-      url4x: try container.decode(URL.self, forKey: .imageUrl4x))
+      url1x: try container.decode(URL.self, forKey: .imageURL1x),
+      url2x: try container.decode(URL.self, forKey: .imageURL2x),
+      url4x: try container.decode(URL.self, forKey: .imageURL4x))
     self.title = try container.decode(String.self, forKey: .title)
     self.description = try container.decode(String.self, forKey: .description)
 
     self.clickAction = try container.decodeIfPresent(String.self, forKey: .clickAction)
-    self.clickUrl = try container.decodeIfPresent(String.self, forKey: .clickUrl)
+    self.clickURL = try container.decodeIfPresent(String.self, forKey: .clickURL)
   }
 
   public struct BadgeImages: Sendable {

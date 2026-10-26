@@ -19,7 +19,7 @@ extension IRCSessionTests {
 
     var client: TwitchIRCClient? = try await makeConnectedClient()
     let states = try #require(await client?.stateUpdates())
-    let messages = try #require(await client?.messages())
+    let messages = try #require(await client?.messageStream())
     let writer = try #require(await session.task(at: 0))
     let reader = try #require(await session.task(at: 1))
 

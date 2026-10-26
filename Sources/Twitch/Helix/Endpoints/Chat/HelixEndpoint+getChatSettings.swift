@@ -3,12 +3,12 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChatSettings(
-    of channel: String, moderatorID: String? = nil
+    of broadcasterID: String, moderatorID: String? = nil
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/settings",
       queryItems: { _ in
-        [("broadcaster_id", channel), ("moderator_id", moderatorID)]
+        [("broadcaster_id", broadcasterID), ("moderator_id", moderatorID)]
       },
       makeResponse: {
         let settings = try $0.requireFirst()

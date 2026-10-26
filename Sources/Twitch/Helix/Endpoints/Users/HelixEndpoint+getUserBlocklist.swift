@@ -2,17 +2,17 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
-  public static func getBlocklist(
+  public static func getUserBlocklist(
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<[BlockedUser], BlockedUser, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "users/blocks",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", auth.userID),
+          ("broadcaster_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       },
       makeResponse: {

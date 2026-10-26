@@ -3,21 +3,21 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getModerators(
-    filterUserIDs: [String] = [],
+    userIDs: [String] = [],
     limit: Int? = nil,
-    after startCursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    ([Moderator], String?), Moderator,
+    (moderators: [Moderator], cursor: String?), Moderator,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "moderation/moderators",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", auth.userID),
+          ("broadcaster_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", startCursor),
-        ] + filterUserIDs.map { ("user_id", $0) }
+          ("after", afterCursor),
+        ] + userIDs.map { ("user_id", $0) }
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }

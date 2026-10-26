@@ -5,15 +5,15 @@ import MemberwiseInit
 public struct ChannelShoutoutCreateEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let toBroadcasterID: String
   public let toBroadcasterLogin: String
-  public let toBroadcasterName: String
+  public let toBroadcasterDisplayName: String
 
   public let moderatorID: String
   public let moderatorLogin: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
 
   public let viewerCount: Int
   public let startedAt: Date
@@ -23,17 +23,16 @@ public struct ChannelShoutoutCreateEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case toBroadcasterID = "toBroadcasterUserId"
     case toBroadcasterLogin = "toBroadcasterUserLogin"
-    case toBroadcasterName = "toBroadcasterUserName"
-
+    case toBroadcasterDisplayName = "toBroadcasterUserName"
     case moderatorID = "moderatorUserId"
     case moderatorLogin = "moderatorUserLogin"
-    case moderatorName = "moderatorUserName"
-
+    case moderatorDisplayName = "moderatorUserName"
     case viewerCount
-    case startedAt, cooldownEndsAt, targetCooldownEndsAt
+    case startedAt
+    case cooldownEndsAt
+    case targetCooldownEndsAt
   }
 }

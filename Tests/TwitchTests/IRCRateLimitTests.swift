@@ -7,7 +7,7 @@ import Testing
 struct IRCRateLimitTests {
   private let session = MockNetworkSession()
   private let credentials = TwitchCredentials(
-    oAuth: "token", clientID: "id", userID: "123", userLogin: "tester")
+    accessToken: "token", clientID: "id", userID: "123", userLogin: "tester")
 
   private func handshake(_ socket: MockWebSocketTask) async {
     await socket.simulateIncoming(

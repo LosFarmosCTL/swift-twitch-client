@@ -1,0 +1,35 @@
+import Foundation
+import MemberwiseInit
+
+extension HelixEndpoint {
+  public static func createStreamMarker(
+    for userID: String? = nil,
+    description: String? = nil
+  ) -> HelixEndpoint<StreamMarker, StreamMarker, HelixEndpointResponseTypes.Normal> {
+    .init(
+      method: "POST", path: "streams/markers",
+      body: { credentials in
+        CreateStreamMarkerRequestBody(
+          userID: userID ?? credentials.userID,
+          description: description)
+      },
+      makeResponse: { response in
+        let marker = try response.requireFirst()
+
+        return marker
+      })
+  }
+}
+
+private struct CreateStreamMarkerRequestBody: Encodable, Sendable {
+  let userID: String
+  let description: String?
+}
+
+@MemberwiseInit(.public)
+public struct StreamMarker: Decodable, Sendable {
+  public let id: String
+  public let createdAt: Date
+  public let positionSeconds: Int
+  public let description: String
+}

@@ -3,21 +3,21 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBlockedTerms(
-    in channel: String,
+    in broadcasterID: String,
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    ([BlockedTerm], String?), BlockedTerm,
+    (terms: [BlockedTerm], cursor: String?), BlockedTerm,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "moderation/blocked_terms",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       },
       makeResponse: {

@@ -1,0 +1,86 @@
+import MemberwiseInit
+
+public enum AutoModHoldReason: Sendable {
+  case autoMod(AutoMod)
+  case blockedTerm(BlockedTerm)
+  case blockedLink(BlockedTerm)
+
+  @MemberwiseInit(.public)
+  public struct AutoMod: Decodable, Sendable {
+    public let category: String
+    public let level: Int
+    public let boundaries: [Boundary]
+  }
+
+  @MemberwiseInit(.public)
+  public struct BlockedTerm: Decodable, Sendable {
+    public let terms: [Term]
+
+    enum CodingKeys: String, CodingKey {
+      case terms = "termsFound"
+    }
+
+    @MemberwiseInit(.public)
+    public struct Term: Decodable, Sendable {
+      public let termID: String
+      public let boundary: Boundary
+      public let ownerBroadcasterID: String
+      public let ownerBroadcasterLogin: String
+      public let ownerBroadcasterDisplayName: String
+
+      enum CodingKeys: String, CodingKey {
+        case termID = "termId"
+        case boundary
+        case ownerBroadcasterID = "ownerBroadcasterUserId"
+        case ownerBroadcasterLogin = "ownerBroadcasterUserLogin"
+        case ownerBroadcasterDisplayName = "ownerBroadcasterUserName"
+      }
+    }
+  }
+
+  @MemberwiseInit(.public)
+  public struct Boundary: Decodable, Sendable {
+    public let startPosition: Int
+    public let endPosition: Int
+
+    enum CodingKeys: String, CodingKey {
+      case startPosition = "startPos"
+      case endPosition = "endPos"
+    }
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case reason
+    case autoMod = "automod"
+    case blockedTerm
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    let reason = try container.decode(HoldReason.self, forKey: .reason)
+    switch reason {
+    case .autoMod:
+      let autoModReason = try container.decode(
+        AutoModHoldReason.AutoMod.self, forKey: .autoMod)
+
+      self = .autoMod(autoModReason)
+    case .blockedTerm:
+      let blockedTermReason = try container.decode(
+        AutoModHoldReason.BlockedTerm.self, forKey: .blockedTerm)
+
+      self = .blockedTerm(blockedTermReason)
+    case .blockedLink:
+      let blockedLinkReason = try container.decode(
+        AutoModHoldReason.BlockedTerm.self, forKey: .blockedTerm)
+
+      self = .blockedLink(blockedLinkReason)
+    }
+  }
+
+  private enum HoldReason: String, Decodable, Sendable {
+    case autoMod = "automod"
+    case blockedTerm = "blocked_term"
+    case blockedLink = "blocked_link"
+  }
+}

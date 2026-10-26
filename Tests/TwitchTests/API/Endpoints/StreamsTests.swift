@@ -15,7 +15,7 @@ struct StreamsTests {
       body: MockedData.getStreamsJSON)
 
     let (streams, cursor) = try await harness.twitch.helix(
-      endpoint: .getStreams(limit: 1))
+      for: .getStreams(limit: 1))
 
     #expect(cursor == nil)
 
@@ -34,7 +34,7 @@ struct StreamsTests {
       body: MockedData.getFollowedStreamsJSON)
 
     let (streams, cursor) = try await harness.twitch.helix(
-      endpoint: .getFollowedStreams(limit: 1))
+      for: .getFollowedStreams(limit: 1))
 
     #expect(cursor == "eyJiIjp7IkN1cnNvciI6ImV5SnpJam8zT0RNMk5TNDBORFF4")
 
@@ -51,7 +51,7 @@ struct StreamsTests {
       url: url,
       body: MockedData.getStreamKeyJSON)
 
-    let key = try await harness.twitch.helix(endpoint: .getStreamKey())
+    let key = try await harness.twitch.helix(for: .getStreamKey())
 
     #expect(key == "live_44322889_a34ub37c8ajv98a0")
   }
@@ -66,7 +66,7 @@ struct StreamsTests {
       body: MockedData.createStreamMarkerJSON)
 
     let marker = try await harness.twitch.helix(
-      endpoint: .createStreamMarker(description: "hello, this is a marker!"))
+      for: .createStreamMarker(description: "hello, this is a marker!"))
 
     #expect(marker.id == "123")
     #expect(marker.positionSeconds == 244)
@@ -85,7 +85,7 @@ struct StreamsTests {
       body: MockedData.getStreamMarkersJSON)
 
     let (markers, cursor) = try await harness.twitch.helix(
-      endpoint: .getStreamMarkers(userID: "1234", limit: 1))
+      for: .getStreamMarkers(for: "1234", limit: 1))
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjoiMjk1MjA0Mzk3OjI1Mzpib29rbWFyazoxMDZiOGQ1Y")
 

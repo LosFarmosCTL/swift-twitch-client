@@ -4,18 +4,18 @@ import MemberwiseInit
 extension HelixEndpoint {
   public static func getModeratedChannels(
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    ([ModeratedChannel], String?), ModeratedChannel,
+    (channels: [ModeratedChannel], cursor: String?), ModeratedChannel,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "moderation/channels",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("user_id", auth.userID),
+          ("user_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) }
     )

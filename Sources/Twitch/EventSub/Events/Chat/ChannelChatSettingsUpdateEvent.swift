@@ -4,7 +4,7 @@ import MemberwiseInit
 public struct ChannelChatSettingsUpdateEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let emoteMode: Bool
   public let subscriberMode: Bool
@@ -16,9 +16,14 @@ public struct ChannelChatSettingsUpdateEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-    case emoteMode, followerMode, followerModeDurationMinutes, slowMode,
-      slowModeWaitTimeSeconds, subscriberMode, uniqueChatMode
+    case broadcasterDisplayName = "broadcasterUserName"
+    case emoteMode
+    case followerMode
+    case followerModeDurationMinutes
+    case slowMode
+    case slowModeWaitTimeSeconds
+    case subscriberMode
+    case uniqueChatMode
   }
 
   public init(from decoder: Decoder) throws {
@@ -26,7 +31,8 @@ public struct ChannelChatSettingsUpdateEvent: Event {
 
     self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     self.broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    self.broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    self.broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
 
     self.emoteMode = try container.decode(Bool.self, forKey: .emoteMode)
     self.subscriberMode = try container.decode(Bool.self, forKey: .subscriberMode)

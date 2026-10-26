@@ -14,7 +14,7 @@ struct UsersTests {
       url: url,
       body: MockedData.getUsersJSON)
 
-    let users = try await harness.twitch.helix(endpoint: .getUsers(ids: ["141981764"]))
+    let users = try await harness.twitch.helix(for: .getUsers(userIDs: ["141981764"]))
 
     #expect(users.count == 1)
 
@@ -34,7 +34,7 @@ struct UsersTests {
       body: MockedData.updateUserJSON)
 
     let user = try await harness.twitch.helix(
-      endpoint: .updateUser(description: "Hello world!"))
+      for: .updateUser(description: "Hello world!"))
 
     #expect(user.description == "Hello world!")
     #expect(user.email != nil)
@@ -50,7 +50,7 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserBlocklistJSON)
 
-    let blocks = try await harness.twitch.helix(endpoint: .getBlocklist(limit: 2))
+    let blocks = try await harness.twitch.helix(for: .getUserBlocklist(limit: 2))
 
     #expect(blocks.count == 2)
     #expect(blocks.contains(where: { $0.userID == "135093069" }))
@@ -65,7 +65,7 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserExtensionsJSON)
 
-    let extensions = try await harness.twitch.helix(endpoint: .getUserExtensions())
+    let extensions = try await harness.twitch.helix(for: .getUserExtensions())
 
     #expect(extensions.count == 5)
     #expect(extensions.contains(where: { $0.id == "wi08ebtatdc7oj83wtl9uxwz807l8b" }))
@@ -82,7 +82,7 @@ struct UsersTests {
       body: MockedData.getUserActiveExtensionsJSON)
 
     let activeExtensions = try await harness.twitch.helix(
-      endpoint: .getUserActiveExtensions())
+      for: .getUserActiveExtensions())
 
     #expect(activeExtensions.panel?["1"]?.name == "TopClip")
     #expect(activeExtensions.overlay?["1"]?.id == "zfh2irvx2jb4s60f02jq0ajm8vwgka")
@@ -100,7 +100,7 @@ struct UsersTests {
       body: MockedData.updateUserExtensionsJSON)
 
     let userExtensions = try await harness.twitch.helix(
-      endpoint: .updateUserExtensions(
+      for: .updateUserExtensions(
         panel: [
           "1": ExtensionSlotUpdate(
             isActive: true, id: "rh6jq1q334hqc2rr1qlzqbvwlfl3x0", version: "1.1.0")
@@ -132,7 +132,7 @@ struct UsersTests {
       method: "PUT",
       status: 204)
 
-    try await harness.twitch.helix(endpoint: .block("1234", reason: .spam))
+    try await harness.twitch.helix(for: .blockUser("1234", reason: .spam))
   }
 
   @Test
@@ -145,6 +145,6 @@ struct UsersTests {
       method: "DELETE",
       status: 204)
 
-    try await harness.twitch.helix(endpoint: .unblock("1234"))
+    try await harness.twitch.helix(for: .unblockUser("1234"))
   }
 }

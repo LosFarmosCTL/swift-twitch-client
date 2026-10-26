@@ -15,7 +15,7 @@ struct VideosTests {
       body: MockedData.getVideosJSON)
 
     let (videos, cursor) = try await harness.twitch.helix(
-      endpoint: .getVideos(ids: ["987654321"]))
+      for: .getVideos(videoIDs: ["987654321"]))
 
     #expect(cursor == nil)
 
@@ -26,7 +26,7 @@ struct VideosTests {
     #expect(video.streamID == "111222333")
     #expect(video.userID == "56789")
     #expect(video.userLogin == "zzzztopper")
-    #expect(video.userName == "zzzzTopper")
+    #expect(video.userDisplayName == "zzzzTopper")
     #expect(video.title == "The incredible artistry that is me.")
     #expect(video.description == "")
     #expect(video.createdAt.formatted(.iso8601) == "2022-07-08T16:58:46Z")
@@ -54,7 +54,7 @@ struct VideosTests {
       body: MockedData.deleteVideosJSON)
 
     let deletedIDs = try await harness.twitch.helix(
-      endpoint: .deleteVideos(ids: ["1535513785"]))
+      for: .deleteVideos(videoIDs: ["1535513785"]))
 
     #expect(deletedIDs == ["1535513785"])
   }

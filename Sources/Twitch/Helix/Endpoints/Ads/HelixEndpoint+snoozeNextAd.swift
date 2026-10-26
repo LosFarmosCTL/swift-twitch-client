@@ -7,7 +7,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "POST", path: "channels/ads/schedule/snooze",
-      queryItems: { auth in [("broadcaster_id", auth.userID)] },
+      queryItems: { credentials in [("broadcaster_id", credentials.userID)] },
       makeResponse: { result in
         let response = try result.requireFirst()
 

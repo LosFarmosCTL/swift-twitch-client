@@ -16,7 +16,7 @@ struct WebSocketClientTests {
 
   init() async {
     self.twitch = TwitchClient(
-      authentication: .init(oAuth: "", clientID: "", userID: "", userLogin: ""),
+      credentials: .init(accessToken: "", clientID: "", userID: "", userLogin: ""),
       network: session)
 
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
@@ -224,7 +224,7 @@ struct WebSocketClientTests {
   }
 
   @Test("Client reuses one websocket for parallel initial subscriptions")
-  func testParallelInitialSubscriptionsReuseOneWebsocket() async throws {
+  func testParallelInitialSubscriptionsReuseOneWebSocket() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage), queue: true)
 
     _ = try await withThrowingTaskGroup(

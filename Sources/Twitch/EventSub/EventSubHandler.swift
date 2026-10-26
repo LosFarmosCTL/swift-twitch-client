@@ -5,7 +5,7 @@ internal protocol EventSubHandler: Sendable {
 }
 
 internal struct EventSubCallbackHandler<T: Sendable>: EventSubHandler {
-  var callback: @Sendable (EventSubResult<T>) -> Void
+  var callback: @Sendable (EventSubListenerEvent<T>) -> Void
 
   func yield(_ event: Event) {
     if let event = event as? T {

@@ -3,22 +3,22 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func sendChatMessage(
-    in channel: String,
+    in broadcasterID: String,
     message: String,
-    replyParentMessageID: String? = nil,
-    forSourceOnly: Bool? = nil
+    replyTo replyToMessageID: String? = nil,
+    isSourceOnly: Bool? = nil
   ) -> HelixEndpoint<
     ChatMessageResponse, ChatMessageResponse, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "POST", path: "chat/messages",
-      body: { auth in
+      body: { credentials in
         SendChatMessageRequestBody(
-          broadcasterID: channel,
-          senderID: auth.userID,
+          broadcasterID: broadcasterID,
+          senderID: credentials.userID,
           message: message,
-          replyParentMessageID: replyParentMessageID,
-          forSourceOnly: forSourceOnly)
+          replyToMessageID: replyToMessageID,
+          isSourceOnly: isSourceOnly)
       },
       makeResponse: {
         let messageResponse = try $0.requireFirst()
@@ -53,16 +53,16 @@ private struct SendChatMessageRequestBody: Encodable, Sendable {
   let senderID: String
   let message: String
 
-  let replyParentMessageID: String?
+  let replyToMessageID: String?
 
-  let forSourceOnly: Bool?
+  let isSourceOnly: Bool?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case senderID = "senderId"
     case message
 
-    case replyParentMessageID = "replyParentMessageId"
-    case forSourceOnly
+    case replyToMessageID = "replyParentMessageId"
+    case isSourceOnly = "forSourceOnly"
   }
 }

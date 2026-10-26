@@ -17,7 +17,7 @@ struct ClipsTests {
       status: 202,
       body: MockedData.createClipJSON)
 
-    let clip = try await harness.twitch.helix(endpoint: .createClip())
+    let clip = try await harness.twitch.helix(for: .createClip())
 
     #expect(clip.id == "FiveWordsForClipSlug")
     #expect(clip.editURL == "https://www.twitch.tv/twitchdev/clip/FiveWordsForClipSlug")
@@ -35,7 +35,7 @@ struct ClipsTests {
       body: MockedData.getClipsJSON)
 
     let (clips, cursor) = try await harness.twitch.helix(
-      endpoint: .getClips(ids: ["AwkwardHelplessSalamanderSwiftRage"]))
+      for: .getClips(clipIDs: ["AwkwardHelplessSalamanderSwiftRage"]))
 
     #expect(cursor == nil)
     #expect(clips.count == 1)

@@ -2,16 +2,16 @@ import Foundation
 
 extension HelixEndpoint {
   public static func unbanUser(
-    _ user: String,
-    in channel: String
+    _ userID: String,
+    in broadcasterID: String
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "moderation/bans",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
-          ("user_id", user),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
+          ("user_id", userID),
         ]
       })
   }

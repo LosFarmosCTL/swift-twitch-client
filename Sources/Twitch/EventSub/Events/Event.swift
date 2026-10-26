@@ -1,12 +1,12 @@
 public protocol Event: Decodable, Sendable {}
 
 internal enum EventType: String, Decodable {
-  // MARK: - Automod
+  // MARK: - AutoMod
 
-  case automodMessageHold = "automod.message.hold"
-  case automodMessageUpdate = "automod.message.update"
-  case automodSettingsUpdate = "automod.settings.update"
-  case automodTermsUpdate = "automod.terms.update"
+  case autoModMessageHold = "automod.message.hold"
+  case autoModMessageUpdate = "automod.message.update"
+  case autoModSettingsUpdate = "automod.settings.update"
+  case autoModTermsUpdate = "automod.terms.update"
 
   // MARK: - Channel
 
@@ -118,17 +118,17 @@ internal enum EventType: String, Decodable {
   case userUpdate = "user.update"
 
   // MARK: - Whisper
-  case whisperReceived = "user.whisper.message"
+  case userWhisperMessage = "user.whisper.message"
 
   case mock = "mock"
 
   var event: Event.Type {
     switch self {
-    // Automod
-    case .automodMessageHold: return AutomodMessageHoldEvent.self
-    case .automodMessageUpdate: return AutomodMessageUpdateEvent.self
-    case .automodSettingsUpdate: return AutomodSettingsUpdateEvent.self
-    case .automodTermsUpdate: return AutomodTermsUpdateEvent.self
+    // AutoMod
+    case .autoModMessageHold: return AutoModMessageHoldEvent.self
+    case .autoModMessageUpdate: return AutoModMessageUpdateEvent.self
+    case .autoModSettingsUpdate: return AutoModSettingsUpdateEvent.self
+    case .autoModTermsUpdate: return AutoModTermsUpdateEvent.self
 
     //// Channel
 
@@ -245,7 +245,7 @@ internal enum EventType: String, Decodable {
 
     //// Whisper
 
-    case .whisperReceived: return WhisperReceivedEvent.self
+    case .userWhisperMessage: return UserWhisperMessageEvent.self
 
     case .mock: return MockEvent.self
     }

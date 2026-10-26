@@ -16,12 +16,12 @@ struct HypeTrainTests {
       url: url,
       body: MockedData.getHypeTrainStatusJSON)
 
-    let status = try await harness.twitch.helix(endpoint: .getHypeTrainStatus())
+    let status = try await harness.twitch.helix(for: .getHypeTrainStatus())
 
     #expect(status.current?.id == "1b0AsbInCHZW2SQFQkCzqN07Ib2")
     #expect(status.current?.broadcasterID == "1337")
     #expect(status.current?.broadcasterLogin == "cool_user")
-    #expect(status.current?.broadcasterName == "Cool_User")
+    #expect(status.current?.broadcasterDisplayName == "Cool_User")
     #expect(status.current?.level == 2)
     #expect(status.current?.total == 700)
     #expect(status.current?.progress == 200)

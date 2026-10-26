@@ -125,11 +125,11 @@ public final class MockedData {
   public static let getGuestStarInvitesJSON: Data = Bundle.module.url(
     forResource: "getGuestStarInvites", withExtension: "json")!.data
 
-  public static let checkAutomodStatusJSON: Data = Bundle.module.url(
+  public static let checkAutoModStatusJSON: Data = Bundle.module.url(
     forResource: "checkAutomodStatus", withExtension: "json")!.data
-  public static let getAutomodSettingsJSON: Data = Bundle.module.url(
+  public static let getAutoModSettingsJSON: Data = Bundle.module.url(
     forResource: "getAutomodSettings", withExtension: "json")!.data
-  public static let updateAutomodSettingsJSON: Data = Bundle.module.url(
+  public static let updateAutoModSettingsJSON: Data = Bundle.module.url(
     forResource: "updateAutomodSettings", withExtension: "json")!.data
   public static let getBannedUsersJSON: Data = Bundle.module.url(
     forResource: "getBannedUsers", withExtension: "json")!.data

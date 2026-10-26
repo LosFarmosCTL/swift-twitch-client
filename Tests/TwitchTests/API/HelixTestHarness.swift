@@ -5,8 +5,8 @@ struct HelixTestHarness {
   let twitch: TwitchClient
 
   init(
-    authentication: TwitchCredentials = .init(
-      oAuth: "1234567989",
+    credentials: TwitchCredentials = .init(
+      accessToken: "1234567989",
       clientID: "abcdefghijkl",
       userID: "1234",
       userLogin: "user")
@@ -15,7 +15,7 @@ struct HelixTestHarness {
 
     self.session = session
     self.twitch = TwitchClient(
-      authentication: authentication,
+      credentials: credentials,
       network: session)
   }
 }

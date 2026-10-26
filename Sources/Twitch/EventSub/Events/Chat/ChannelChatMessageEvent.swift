@@ -4,11 +4,11 @@ import MemberwiseInit
 public struct ChannelChatMessageEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let chatterID: String
   public let chatterLogin: String
-  public let chatterName: String
+  public let chatterDisplayName: String
 
   public let messageID: String
   public let message: Message
@@ -24,7 +24,7 @@ public struct ChannelChatMessageEvent: Event {
 
   public let sourceBroadcasterID: String?
   public let sourceBroadcasterLogin: String?
-  public let sourceBroadcasterName: String?
+  public let sourceBroadcasterDisplayName: String?
   public let sourceMessageID: String?
   public let sourceBadges: [Badge]?
   public let isSourceOnly: Bool?
@@ -32,24 +32,24 @@ public struct ChannelChatMessageEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case chatterID = "chatterUserId"
     case chatterLogin = "chatterUserLogin"
-    case chatterName = "chatterUserName"
-
+    case chatterDisplayName = "chatterUserName"
     case messageID = "messageId"
     case message
-
-    case color, badges, reply, messageType, cheer
-
+    case color
+    case badges
+    case reply
+    case messageType
+    case cheer
     case channelPointsCustomRewardID = "channelPointsCustomRewardId"
-
     case sourceBroadcasterID = "sourceBroadcasterUserId"
     case sourceBroadcasterLogin = "sourceBroadcasterUserLogin"
-    case sourceBroadcasterName = "sourceBroadcasterUserName"
+    case sourceBroadcasterDisplayName = "sourceBroadcasterUserName"
     case sourceMessageID = "sourceMessageId"
-    case sourceBadges, isSourceOnly
+    case sourceBadges
+    case isSourceOnly
   }
 
   public enum MessageType: String, Decodable, Sendable {
@@ -80,25 +80,23 @@ public struct ChannelChatMessageEvent: Event {
 
     public let parentUserID: String
     public let parentUserLogin: String
-    public let parentUserName: String
+    public let parentUserDisplayName: String
 
     public let threadID: String
     public let threadUserID: String
     public let threadUserLogin: String
-    public let threadUserName: String
+    public let threadUserDisplayName: String
 
     enum CodingKeys: String, CodingKey {
       case parentID = "parentMessageId"
       case parentBody = "parentMessageBody"
-
       case parentUserID = "parentUserId"
-      case parentUserLogin = "parentUserLogin"
-      case parentUserName = "parentUserName"
-
+      case parentUserLogin
+      case parentUserDisplayName = "parentUserName"
       case threadID = "threadMessageId"
       case threadUserID = "threadUserId"
-      case threadUserLogin = "threadUserLogin"
-      case threadUserName = "threadUserName"
+      case threadUserLogin
+      case threadUserDisplayName = "threadUserName"
     }
   }
 
@@ -213,11 +211,12 @@ public struct ChannelChatMessageEvent: Event {
       public struct Mention: Decodable, Sendable {
         public let userID: String
         public let userLogin: String
-        public let userName: String
+        public let userDisplayName: String
 
         enum CodingKeys: String, CodingKey {
           case userID = "userId"
-          case userLogin, userName
+          case userLogin
+          case userDisplayName = "userName"
         }
       }
     }

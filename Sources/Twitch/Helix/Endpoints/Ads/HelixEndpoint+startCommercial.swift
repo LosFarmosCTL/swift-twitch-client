@@ -7,8 +7,8 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Commercial, Commercial, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "channels/commercial",
-      body: { auth in
-        StartCommercialRequestBody(broadcasterID: auth.userID, length: length)
+      body: { credentials in
+        StartCommercialRequestBody(broadcasterID: credentials.userID, length: length)
       },
       makeResponse: { result in
         let response = try result.requireFirst()

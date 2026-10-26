@@ -197,7 +197,7 @@ public actor TwitchIRCClient {
   public func sendMessage(
     _ message: String,
     to channel: String,
-    replyTo replyMessageID: String? = nil,
+    replyTo replyToMessageID: String? = nil,
     clientNonce: String? = nil
   ) async throws {
     try throwIfDisconnected()
@@ -210,7 +210,7 @@ public actor TwitchIRCClient {
       .privateMessage(
         to: channel,
         message: message,
-        messageIdToReply: replyMessageID,
+        messageIdToReply: replyToMessageID,
         clientNonce: clientNonce
       )
     )

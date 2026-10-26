@@ -17,7 +17,7 @@ struct ContentClassificationLabelsTests {
       body: MockedData.getContentClassificationLabelsJSON)
 
     let labels = try await harness.twitch.helix(
-      endpoint: .getContentClassificationLabels())
+      for: .getContentClassificationLabels())
 
     #expect(labels.count == 6)
     #expect(labels.contains(where: { $0.id == "ViolentGraphic" }))

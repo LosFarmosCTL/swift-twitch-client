@@ -44,7 +44,7 @@ extension IRCConnection {
 
     if let credentials {
       try await socket.send(
-        .string(OutgoingMessage.pass(pass: credentials.oAuth).serialize()))
+        .string(OutgoingMessage.pass(pass: credentials.accessToken).serialize()))
     }
 
     let login = credentials?.userLogin.lowercased() ?? "justinfan12345"

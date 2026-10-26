@@ -4,7 +4,7 @@ import MemberwiseInit
 public struct ChannelUpdateEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let title: String
   public let language: String
@@ -17,11 +17,11 @@ public struct ChannelUpdateEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case categoryID = "categoryId"
     case categoryName
-
-    case title, language, contentClassificationLabels
+    case title
+    case language
+    case contentClassificationLabels
   }
 }

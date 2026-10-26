@@ -19,7 +19,7 @@ struct GuestStarTests {
       body: MockedData.getChannelGuestStarSettingsJSON)
 
     let settings = try await harness.twitch.helix(
-      endpoint: .getChannelGuestStarSettings())
+      for: .getChannelGuestStarSettings())
 
     #expect(settings.isModeratorSendLiveEnabled == true)
     #expect(settings.slotCount == 4)
@@ -42,7 +42,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .updateChannelGuestStarSettings(
+      for: .updateChannelGuestStarSettings(
         isModeratorSendLiveEnabled: false,
         slotCount: 6,
         isBrowserSourceAudioEnabled: true,
@@ -62,7 +62,7 @@ struct GuestStarTests {
       url: url,
       body: MockedData.getGuestStarSessionJSON)
 
-    let session = try await harness.twitch.helix(endpoint: .getGuestStarSession())
+    let session = try await harness.twitch.helix(for: .getGuestStarSession())
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 2)
@@ -90,7 +90,7 @@ struct GuestStarTests {
       method: "POST",
       body: MockedData.createGuestStarSessionJSON)
 
-    let session = try await harness.twitch.helix(endpoint: .createGuestStarSession())
+    let session = try await harness.twitch.helix(for: .createGuestStarSession())
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 1)
@@ -113,7 +113,7 @@ struct GuestStarTests {
       body: MockedData.endGuestStarSessionJSON)
 
     let session = try await harness.twitch.helix(
-      endpoint: .endGuestStarSession(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
+      for: .endGuestStarSession(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 1)
@@ -134,7 +134,7 @@ struct GuestStarTests {
       body: MockedData.getGuestStarInvitesJSON)
 
     let invites = try await harness.twitch.helix(
-      endpoint: .getGuestStarInvites(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
+      for: .getGuestStarInvites(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
 
     #expect(invites.count == 1)
     #expect(invites.first?.userID == "144601104")
@@ -160,7 +160,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .sendGuestStarInvite(
+      for: .sendGuestStarInvite(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104"))
   }
@@ -179,7 +179,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .deleteGuestStarInvite(
+      for: .deleteGuestStarInvite(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104"))
   }
@@ -198,7 +198,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .assignGuestStarSlot(
+      for: .assignGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104",
         slotID: "1"))
@@ -218,7 +218,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .updateGuestStarSlot(
+      for: .updateGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         sourceSlotID: "1",
         destinationSlotID: "2"))
@@ -238,7 +238,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .deleteGuestStarSlot(
+      for: .deleteGuestStarSlot(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         guestID: "144601104",
         slotID: "1",
@@ -259,7 +259,7 @@ struct GuestStarTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .updateGuestStarSlotSettings(
+      for: .updateGuestStarSlotSettings(
         sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI",
         slotID: "1",
         isAudioEnabled: false,

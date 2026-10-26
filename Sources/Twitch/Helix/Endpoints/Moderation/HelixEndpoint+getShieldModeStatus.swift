@@ -2,7 +2,7 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
-  public static func getShieldModeStatus(of channel: String)
+  public static func getShieldModeStatus(of broadcasterID: String)
     -> HelixEndpoint<
       ShieldModeStatus, ShieldModeStatus,
       HelixEndpointResponseTypes.Normal
@@ -10,10 +10,10 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "moderation/shield_mode",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       },
       makeResponse: {
@@ -28,7 +28,7 @@ extension HelixEndpoint {
 public struct ShieldModeStatus: Decodable, Sendable {
   public let isActive: Bool
   public let moderatorID: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
   public let moderatorLogin: String
 
   @InitRaw(default: nil, type: Date?.self)
@@ -36,7 +36,9 @@ public struct ShieldModeStatus: Decodable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case moderatorID = "moderatorId"
-    case moderatorName, moderatorLogin
-    case isActive, lastActivatedAt
+    case moderatorDisplayName = "moderatorName"
+    case moderatorLogin
+    case isActive
+    case lastActivatedAt
   }
 }

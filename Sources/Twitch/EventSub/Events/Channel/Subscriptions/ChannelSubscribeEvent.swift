@@ -4,23 +4,23 @@ import MemberwiseInit
 public struct ChannelSubscribeEvent: Event {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
-  public let tier: SubNotice.SubTier
+  public let tier: SubscriptionTier
   public let isGift: Bool
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case tier, isGift
+    case broadcasterDisplayName = "broadcasterUserName"
+    case tier
+    case isGift
   }
 }

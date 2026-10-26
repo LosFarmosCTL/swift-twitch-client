@@ -18,7 +18,7 @@ struct IRCRecoveryTests {
   func handshakeAcceptsReorderedMessages(grouped: Bool) async throws {
     let connection = IRCConnection(
       credentials: .init(
-        oAuth: "token", clientID: "id", userID: "123", userLogin: "tester"),
+        accessToken: "token", clientID: "id", userID: "123", userLogin: "tester"),
       network: session)
 
     let pending = Task { try await connection.connect() }
@@ -181,7 +181,7 @@ struct IRCRecoveryTests {
     await handshake(reader)
     let client = try await pending.value
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     try await client.requestJoin(to: "swift")
     var statuses = await client.channelStatusSnapshots().makeAsyncIterator()
     _ = await statuses.next()

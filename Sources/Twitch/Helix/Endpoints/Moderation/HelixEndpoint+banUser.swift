@@ -3,22 +3,22 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func banUser(
-    _ user: String,
-    in channel: String,
+    _ userID: String,
+    in broadcasterID: String,
     for duration: Duration? = nil,
     reason: String? = nil
   ) -> HelixEndpoint<Ban, Ban, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "moderation/bans",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       },
       body: { _ in
         BanUserBody(
-          userID: user,
+          userID: userID,
           reason: reason,
           duration: duration)
       },

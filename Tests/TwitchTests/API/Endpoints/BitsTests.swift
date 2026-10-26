@@ -17,7 +17,7 @@ struct BitsTests {
       body: MockedData.getBitsLeaderboardJSON)
 
     let leaderboard = try await harness.twitch.helix(
-      endpoint: .getBitsLeaderboard(
+      for: .getBitsLeaderboard(
         count: 2, period: .week,
         startedAt: nil))
 
@@ -40,7 +40,7 @@ struct BitsTests {
       url: url,
       body: MockedData.getCheermotesJSON)
 
-    let cheermotes = try await harness.twitch.helix(endpoint: .getCheermotes())
+    let cheermotes = try await harness.twitch.helix(for: .getCheermotes())
 
     #expect(cheermotes.count == 1)
 
@@ -78,7 +78,7 @@ struct BitsTests {
       body: MockedData.getExtensionPredictionsJSON)
 
     let (predictions, cursor) = try await harness.twitch.helix(
-      endpoint: .getExtensionPredictions(
+      for: .getExtensionPredictions(
         extensionID: "abcd1234", limit: 2, after: "cursor"))
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
@@ -88,7 +88,7 @@ struct BitsTests {
     #expect(prediction?.id == "d6676d5c-c86e-44d2-bfc4-100fb48f0656")
     #expect(prediction?.broadcasterID == "55696719")
     #expect(prediction?.broadcasterLogin == "twitchdev")
-    #expect(prediction?.broadcasterName == "TwitchDev")
+    #expect(prediction?.broadcasterDisplayName == "TwitchDev")
     #expect(prediction?.title == "Will there be any leaks today?")
     #expect(prediction?.predictionWindow == 600)
     #expect(prediction?.createdAt.formatted(.iso8601) == "2021-04-28T16:03:06Z")

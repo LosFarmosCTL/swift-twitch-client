@@ -7,7 +7,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "channels/ads",
-      queryItems: { auth in [("broadcaster_id", auth.userID)] },
+      queryItems: { credentials in [("broadcaster_id", credentials.userID)] },
       makeResponse: { $0.data }
     )
   }

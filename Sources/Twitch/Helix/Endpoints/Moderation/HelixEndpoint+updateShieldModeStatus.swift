@@ -2,7 +2,7 @@ import Foundation
 
 extension HelixEndpoint {
   public static func updateShieldModeStatus(
-    of channel: String,
+    of broadcasterID: String,
     isActive: Bool
   ) -> HelixEndpoint<
     ShieldModeStatus, ShieldModeStatus,
@@ -10,10 +10,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PUT", path: "moderation/shield_mode",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       }, body: { _ in ["is_active": isActive] },
       makeResponse: {

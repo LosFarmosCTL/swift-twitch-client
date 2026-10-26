@@ -6,19 +6,20 @@ extension HelixEndpoint {
     broadcasterLanguage: String? = nil,
     title: String? = nil,
     delay: Int? = nil,
-    tag: [String]? = nil,
-    contentClassificationLabels: [Label: Bool]? = nil,
+    tags: [String]? = nil,
+    contentClassificationLabels: [ContentClassificationLabelID: Bool]? = nil,
     isBrandedContent: Bool? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     let contentClassificationLabels =
       contentClassificationLabels?.map { (id, isEnabled) in
-        UpdateChannelRequestBody.Label(id: id.rawValue, isEnabled: isEnabled)
+        UpdateChannelRequestBody.ContentClassificationLabelUpdate(
+          id: id.rawValue, isEnabled: isEnabled)
       }
 
     return .init(
       method: "PATCH", path: "channels",
-      queryItems: { auth in
-        [("broadcaster_id", auth.userID)]
+      queryItems: { credentials in
+        [("broadcaster_id", credentials.userID)]
       },
       body: { _ in
         UpdateChannelRequestBody(
@@ -26,14 +27,14 @@ extension HelixEndpoint {
           broadcasterLanguage: broadcasterLanguage,
           title: title,
           delay: delay,
-          tags: tag,
+          tags: tags,
           contentClassificationLabels: contentClassificationLabels,
           isBrandedContent: isBrandedContent)
       })
   }
 }
 
-public enum Label: String, Codable, Sendable {
+public enum ContentClassificationLabelID: String, Codable, Sendable {
   case drugsIntoxication = "DrugsIntoxication"
   case sexualThemes = "SexualThemes"
   case violentGraphic = "ViolentGraphic"
@@ -48,10 +49,10 @@ internal struct UpdateChannelRequestBody: Encodable, Sendable {
   let title: String?
   let delay: Int?
   let tags: [String]?
-  let contentClassificationLabels: [Label]?
+  let contentClassificationLabels: [ContentClassificationLabelUpdate]?
   let isBrandedContent: Bool?
 
-  struct Label: Encodable, Sendable {
+  struct ContentClassificationLabelUpdate: Encodable, Sendable {
     let id: String
     let isEnabled: Bool
   }

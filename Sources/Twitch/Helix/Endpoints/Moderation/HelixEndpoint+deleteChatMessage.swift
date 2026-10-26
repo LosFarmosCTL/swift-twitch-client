@@ -2,15 +2,15 @@ import Foundation
 
 extension HelixEndpoint {
   public static func deleteChatMessage(
-    in channel: String,
+    in broadcasterID: String,
     messageID: String
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "moderation/chat",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
           ("message_id", messageID),
         ]
       })

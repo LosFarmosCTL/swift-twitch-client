@@ -3,18 +3,18 @@ import Foundation
 extension HelixEndpoint {
   public static func getFollowedStreams(
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    (streams: [Stream], paginationCursor: String?),
+    (streams: [Stream], cursor: String?),
     Stream, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "streams/followed",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("user_id", auth.userID),
+          ("user_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }

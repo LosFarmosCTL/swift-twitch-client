@@ -2,25 +2,25 @@ import Foundation
 
 extension HelixEndpoint {
   public static func updateChatSettings(
-    of channel: String,
-    _ chatModes: ChatSetting...
+    of broadcasterID: String,
+    settings: ChatSetting...
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
-    self.updateChatSettings(of: channel, chatModes)
+    self.updateChatSettings(of: broadcasterID, settings: settings)
   }
 
   public static func updateChatSettings(
-    of channel: String,
-    _ chatModes: [ChatSetting]
+    of broadcasterID: String,
+    settings: [ChatSetting]
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "chat/settings",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       },
-      body: { _ in UpdateChatSettingsRequestBody(chatModes) },
+      body: { _ in UpdateChatSettingsRequestBody(settings) },
       makeResponse: {
         let settings = try $0.requireFirst()
 

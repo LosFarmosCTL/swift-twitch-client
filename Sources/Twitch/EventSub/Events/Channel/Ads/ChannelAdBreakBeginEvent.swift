@@ -5,11 +5,11 @@ import MemberwiseInit
 public struct ChannelAdBreakBeginEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let requesterID: String
   public let requesterLogin: String
-  public let requesterName: String
+  public let requesterDisplayName: String
 
   public let durationSeconds: Int
   public let startedAt: Date
@@ -18,12 +18,12 @@ public struct ChannelAdBreakBeginEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case requesterID = "requesterUserId"
     case requesterLogin = "requesterUserLogin"
-    case requesterName = "requesterUserName"
-
-    case durationSeconds, isAutomatic, startedAt
+    case requesterDisplayName = "requesterUserName"
+    case durationSeconds
+    case isAutomatic
+    case startedAt
   }
 }

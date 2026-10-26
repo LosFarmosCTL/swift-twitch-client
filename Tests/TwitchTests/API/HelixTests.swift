@@ -9,8 +9,8 @@ import Testing
 
 struct HelixTests {
   private let harness = HelixTestHarness(
-    authentication: .init(
-      oAuth: "abcdefg",
+    credentials: .init(
+      accessToken: "abcdefg",
       clientID: "123456",
       userID: "1234",
       userLogin: "user"))
@@ -23,7 +23,7 @@ struct HelixTests {
       url: url,
       body: Data("{\"data\":[]}".utf8))
 
-    _ = try await harness.twitch.helix(endpoint: .getGlobalBadges())
+    _ = try await harness.twitch.helix(for: .getGlobalBadges())
 
     let request = try #require(await harness.session.lastRequest())
     #expect(request.value(forHTTPHeaderField: "Client-Id") == "123456")
@@ -39,7 +39,7 @@ struct HelixTests {
       body: Data("{\"data\":[\"forsen\"]}".utf8))
 
     _ = try await harness.twitch.helix(
-      endpoint: .custom(method: "POST", path: "test", body: ["test": "test"]))
+      for: .custom(method: "POST", path: "test", body: ["test": "test"]))
 
     let request = try #require(await harness.session.lastRequest())
     #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
@@ -60,7 +60,7 @@ struct HelixTests {
       makeResponse: { $0.data.first })
 
     do {
-      _ = try await harness.twitch.helix(endpoint: endpoint)
+      _ = try await harness.twitch.helix(for: endpoint)
       Issue.record("Expected body encoding to fail.")
     } catch HelixError.unexpectedError(let wrapped) {
       #expect(wrapped is BodyEncodingTestError)
@@ -81,7 +81,7 @@ struct HelixTests {
 
     let error = await #expect(throws: HelixError.self) {
       try await harness.twitch.helix(
-        endpoint: .custom(method: "GET", path: "invalid"))
+        for: .custom(method: "GET", path: "invalid"))
     }
 
     guard case .twitchError(let name, let status, let message) = error else {
@@ -101,7 +101,7 @@ struct HelixTests {
 
     let error = await #expect(throws: HelixError.self) {
       try await harness.twitch.helix(
-        endpoint: .custom(method: "GET", path: "invalid"))
+        for: .custom(method: "GET", path: "invalid"))
     }
 
     guard case .parsingResponseFailed = error else {
@@ -117,7 +117,7 @@ struct HelixTests {
 
     let error = await #expect(throws: HelixError.self) {
       try await harness.twitch.helix(
-        endpoint: .custom(method: "GET", path: "invalid"))
+        for: .custom(method: "GET", path: "invalid"))
     }
 
     guard case .parsingErrorFailed = error else {
@@ -133,15 +133,15 @@ struct HelixTests {
 
     await #expect(throws: CancellationError.self) {
       try await harness.twitch.helix(
-        endpoint: .custom(method: "GET", path: "cancel"))
+        for: .custom(method: "GET", path: "cancel"))
     }
   }
 
   @Test("Cancelling helixTask completes with a cancellation error")
   func callbackCancellation() async {
     let twitch = TwitchClient(
-      authentication: .init(
-        oAuth: "abcdefg",
+      credentials: .init(
+        accessToken: "abcdefg",
         clientID: "123456",
         userID: "1234",
         userLogin: "user"),

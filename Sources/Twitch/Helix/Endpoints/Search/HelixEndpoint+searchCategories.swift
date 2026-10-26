@@ -3,19 +3,19 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func searchCategories(
-    for searchQuery: String,
+    for query: String,
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    (categories: [Category], paginationCursor: String?),
+    (categories: [Category], cursor: String?),
     Category, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "search/categories",
       queryItems: { _ in
         [
-          ("query", searchQuery),
-          ("after", cursor),
+          ("query", query),
+          ("after", afterCursor),
           ("first", limit.map(String.init)),
         ]
       },
@@ -27,5 +27,11 @@ extension HelixEndpoint {
 public struct Category: Decodable, Sendable {
   public let id: String
   public let name: String
-  public let boxArtUrl: String
+  public let boxArtURL: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case name
+    case boxArtURL = "boxArtUrl"
+  }
 }

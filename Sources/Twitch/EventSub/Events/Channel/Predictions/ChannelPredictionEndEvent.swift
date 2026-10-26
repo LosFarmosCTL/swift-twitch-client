@@ -7,7 +7,7 @@ public struct ChannelPredictionEndEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let title: String
   public let outcomes: [ChannelPredictionBeginEvent.Outcome]
@@ -21,17 +21,17 @@ public struct ChannelPredictionEndEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case title
     case winningOutcomeID = "winningOutcomeId"
-
-    case outcomes, status
-
-    case startedAt, endedAt
+    case outcomes
+    case status
+    case startedAt
+    case endedAt
   }
 
   public enum Status: String, Decodable, Sendable {
-    case resolved, canceled
+    case resolved
+    case cancelled = "canceled"
   }
 }
