@@ -72,7 +72,7 @@ jobs:
           swift --version | grep -E "Swift version ${SWIFT_VERSION//./\\.}([.[:space:]]|$)"
 
       - name: Cache Swift build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .build
           key: build-${{ runner.os }}-${{ runner.arch }}-toolchain${{ matrix.swift-version || env.XCODE_VERSION }}-${{ hashFiles('Package.resolved') }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: Upload build diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-build-diagnostics
           path: artifacts/
