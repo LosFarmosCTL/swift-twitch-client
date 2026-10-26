@@ -4,6 +4,11 @@ import Foundation
   import FoundationNetworking
 #endif
 
+/// An actor that provides authenticated access to Twitch Helix and EventSub.
+///
+/// Create a client with ``TwitchCredentials``, then execute typed ``HelixEndpoint``
+/// requests or observe ``EventSubSubscription`` events. IRC sessions created by this
+/// client have independent lifetimes.
 public actor TwitchClient {
   internal var credentials: TwitchCredentials
   internal let network: NetworkSession
@@ -13,6 +18,12 @@ public actor TwitchClient {
 
   internal var eventSubClient: EventSubClient
 
+  /// Creates a client with the supplied credentials and network session.
+  ///
+  /// - Parameters:
+  ///   - credentials: The credentials used to authorize the request.
+  ///   - urlSession: The URL session used for network requests. Defaults to
+  ///     `URLSession(configuration: .default)`.
   public init(
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
@@ -40,6 +51,13 @@ public actor TwitchClient {
       decoder: self.decoder)
   }
 
+  /// Replaces the credentials used by this client’s Helix and EventSub operations.
+  ///
+  /// EventSub subscriptions are reset as part of the switch. Existing independently
+  /// created IRC sessions retain their captured credentials.
+  ///
+  /// - Parameters:
+  ///   - credentials: The credentials used to authorize the request.
   public func switchCredentials(to credentials: TwitchCredentials) async {
     await eventSubClient.switchCredentials(to: credentials)
     self.credentials = credentials

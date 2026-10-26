@@ -1,6 +1,22 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Rotates an extension’s signing secret.
+  ///
+  /// Twitch requires an Extension Backend Service JWT with the `external` role. See the
+  /// reference for the required claims and signing rules.
+  ///
+  /// Rotation creates a new secret and schedules retirement of existing secrets.
+  /// Coordinate the cutover using the returned activation and expiration timestamps.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#create-extension-secret
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - extensionID: The identifier of the extension.
+  ///   - delay: Seconds before the new secret becomes active. Twitch defaults to 300
+  ///     seconds when `nil`; the minimum is 300.
   public static func createExtensionSecret(
     extensionID: String,
     delay: Int? = nil

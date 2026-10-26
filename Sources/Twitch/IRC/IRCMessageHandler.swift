@@ -1,9 +1,13 @@
 import Foundation
 import TwitchIRC
 
+/// An IRC callback delivery containing a message or a terminal outcome.
 public enum IRCListenerEvent: Sendable {
+  /// A parsed incoming IRC message.
   case message(IncomingMessage)
+  /// Normal termination of the observer.
   case finished
+  /// A terminal error that ends delivery.
   case failure(Error)
 }
 

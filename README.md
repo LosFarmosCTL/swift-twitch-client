@@ -6,8 +6,6 @@
 > The developement of this library is still in progress and I am not commited to a stable release yet.
 >
 > While the overall API surface likely won't change, breaking changes are absolutely possible without notice!
->
-> Documentation is also still a work in progress, while I do think this README should get you started, there are no DocC strings to document the actual code yet. Definitely on the Radar, but I haven't gotten to it so far.
 
 Swift native client providing fully type- and threadsafe access to the Twitch API, IRC and EventSub in a convenient way.
 
@@ -39,6 +37,10 @@ Add the following dependency to your `Package.swift`:
 ```swift
 .package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", branch: "main")
 ```
+
+## Documentation
+
+See the [API reference](https://docs.chatless.app/swift-twitch-client/) for the available Helix endpoints, EventSub subscriptions and events, and IRC APIs. The examples below cover getting started with each.
 
 ## Usage
 

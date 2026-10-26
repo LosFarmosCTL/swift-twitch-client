@@ -1,16 +1,24 @@
 import MemberwiseInit
 
+/// An EventSub notification delivered when a user gifts channel subscriptions.
 @MemberwiseInit(.public)
 public struct ChannelSubscriptionGiftEvent: Event {
+  /// The gifter’s identity; `nil` means the gift was anonymous.
   public let gifter: Gifter?
 
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// The number of subscriptions included in this gift.
   public let total: Int
+  /// The cumulative contribution total, when provided.
   public let cumulativeTotal: Int?
 
+  /// The subscription tier.
   public let tier: String
 
   enum CodingKeys: String, CodingKey {
@@ -26,6 +34,7 @@ public struct ChannelSubscriptionGiftEvent: Event {
     case isAnonymous
   }
 
+  /// Decodes a subscription gift, mapping an anonymous gifter to `nil`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -52,10 +61,14 @@ public struct ChannelSubscriptionGiftEvent: Event {
     tier = try container.decode(String.self, forKey: .tier)
   }
 
+  /// The account identity of the user who gifted the subscriptions.
   @MemberwiseInit(.public)
   public struct Gifter: Sendable {
+    /// The Twitch user ID.
     public let userID: String
+    /// The user’s login name.
     public let userLogin: String
+    /// The user’s display name.
     public let userDisplayName: String
   }
 }

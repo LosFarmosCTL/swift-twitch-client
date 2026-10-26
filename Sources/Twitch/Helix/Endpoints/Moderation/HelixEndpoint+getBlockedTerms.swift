@@ -2,6 +2,27 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
+  /// Gets the terms blocked by a channel’s moderation settings.
+  ///
+  /// With a user access token, requires `moderator:read:blocked_terms` or
+  /// `moderator:manage:blocked_terms`. App tokens have additional grant requirements
+  /// described in the reference. The moderator ID must match the token’s user, who must
+  /// be the broadcaster or a moderator of the channel.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#get-blocked-terms
+  /// ) for request limits and account requirements.
+  ///
+  /// The request uses the executing client’s user ID for `moderator_id`.
+  ///
+  /// - Parameters:
+  ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
+  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///     after cursor.
+  ///
+  /// - Returns: An endpoint that yields `(terms: [BlockedTerm], cursor: String?)` when
+  ///   executed. The cursor is `nil` when there is no next page.
   public static func getBlockedTerms(
     in broadcasterID: String,
     limit: Int? = nil,
@@ -26,17 +47,25 @@ extension HelixEndpoint {
   }
 }
 
+/// A term blocked by a channel’s moderation settings.
 @MemberwiseInit(.public)
 public struct BlockedTerm: Decodable, Sendable {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The Twitch user ID of the moderator.
   public let moderatorID: String
 
+  /// The identifier assigned by Twitch.
   public let id: String
+  /// The text content.
   public let text: String
 
+  /// The time the resource was created.
   public let createdAt: Date
+  /// The time the resource was last updated.
   public let updatedAt: Date
 
+  /// The expiration time, when provided.
   public let expiresAt: Date?
 
   enum CodingKeys: String, CodingKey {

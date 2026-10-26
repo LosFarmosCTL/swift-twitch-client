@@ -1,6 +1,24 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Updates a broadcast segment in a channel’s schedule.
+  ///
+  /// With a user access token, requires `channel:manage:schedule`.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule-segment
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - segmentID: The identifier of the segment.
+  ///   - startTime: The scheduled start time, when provided.
+  ///   - duration: The schedule segment duration, in minutes.
+  ///   - categoryID: The category’s identifier.
+  ///   - title: The title shown to viewers, when provided.
+  ///   - isCancelled: Whether to cancel the schedule segment.
+  ///   - timezone: The IANA time zone identifier for the schedule.
+  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
+  ///     client’s authenticated user ID.
   public static func updateChannelStreamScheduleSegment(
     segmentID: String,
     startTime: Date? = nil,

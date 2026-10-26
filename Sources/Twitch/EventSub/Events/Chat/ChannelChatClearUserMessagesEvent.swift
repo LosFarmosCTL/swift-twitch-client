@@ -1,13 +1,20 @@
 import MemberwiseInit
 
+/// An EventSub notification delivered when a user’s chat messages are cleared.
 @MemberwiseInit(.public)
 public struct ChannelChatClearUserMessagesEvent: Event {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// The Twitch user ID of the target user.
   public let targetID: String
+  /// The login name of the target user.
   public let targetLogin: String
+  /// The display name of the target user.
   public let targetDisplayName: String
 
   enum CodingKeys: String, CodingKey {

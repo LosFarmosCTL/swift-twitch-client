@@ -9,6 +9,17 @@ import Foundation
 #endif
 
 extension TwitchClient {
+  /// Creates an EventSub subscription and returns its notification stream.
+  ///
+  /// Terminating the stream schedules removal of its subscription. Connection failures
+  /// and revocations finish the stream with an error.
+  ///
+  /// - Returns: A stream of decoded event payloads.
+  /// - Throws: A `HelixError` or `EventSubError` if subscription setup fails, or
+  ///   `CancellationError` when setup is cancelled.
+  ///
+  /// - Parameters:
+  ///   - subscription: The subscription details.
   public func eventStream<R: Decodable & Sendable>(
     for subscription: EventSubSubscription<R>
   ) async throws -> AsyncThrowingStream<R, any Error> {
@@ -27,6 +38,20 @@ extension TwitchClient {
     return stream
   }
 
+  /// Creates an EventSub subscription that delivers notifications to a callback.
+  ///
+  /// The callback receives event payloads and terminal outcomes. Call the returned
+  /// handle’s `cancel()` method to schedule unsubscription; releasing the handle alone
+  /// does not cancel.
+  ///
+  /// - Returns: An explicit cancellation handle for the subscription.
+  /// - Throws: A `HelixError` or `EventSubError` if subscription setup fails, or
+  ///   `CancellationError` when setup is cancelled.
+  ///
+  /// - Parameters:
+  ///   - subscription: The subscription details.
+  ///   - callback: The closure that receives decoded events or messages and terminal
+  ///     outcomes. Delivery is not guaranteed to run on the main actor.
   public func eventListener<R: Decodable & Sendable>(
     for subscription: EventSubSubscription<R>,
     callback: @escaping @Sendable (EventSubListenerEvent<R>) -> Void
@@ -44,6 +69,17 @@ extension TwitchClient {
   }
 
   #if canImport(Combine)
+    /// Creates an EventSub subscription and a publisher for its notifications.
+    ///
+    /// Subscription setup occurs before this method returns. Cancelling a downstream
+    /// subscription schedules unsubscription from Twitch.
+    ///
+    /// - Returns: A publisher of decoded events that fails with `EventSubError`.
+    /// - Throws: A `HelixError` or `EventSubError` if setup fails, or `CancellationError`
+    ///   when setup is cancelled.
+    ///
+    /// - Parameters:
+    ///   - subscription: The subscription details.
     public nonisolated func eventPublisher<R: Decodable & Sendable>(
       for subscription: EventSubSubscription<R>
     ) async throws -> AnyPublisher<R, EventSubError> {
@@ -63,6 +99,10 @@ extension TwitchClient {
     }
   #endif
 
+  /// Closes EventSub connections and clears the client’s active subscriptions.
+  ///
+  /// Existing event consumers finish. Create new subscriptions to resume receiving
+  /// events.
   public func resetEventSub() async {
     await self.eventSubClient.reset()
   }

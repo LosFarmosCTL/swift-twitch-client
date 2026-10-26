@@ -2,7 +2,11 @@ import Foundation
 
 extension TwitchIRCClient {
   /// Immediately yields current state, then the latest snapshots.
-  /// Slow consumers may skip intermediate states. Cancelling an observer leaves IRC active.
+  ///
+  /// Slow consumers may skip intermediate states. Cancelling an observer leaves IRC
+  /// active. The stream finishes when the session terminates.
+  ///
+  /// - Returns: A stream buffered to retain only the latest state snapshot.
   public func stateUpdates() -> AsyncStream<IRCState> {
     let id = UUID()
 

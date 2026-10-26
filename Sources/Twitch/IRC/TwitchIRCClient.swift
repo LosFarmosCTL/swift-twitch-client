@@ -5,22 +5,35 @@ import TwitchIRC
   import FoundationNetworking
 #endif
 
+/// An independently owned Twitch IRC session for receiving and optionally sending chat.
+///
+/// Register message observers before calling `connect()` so they can receive messages
+/// during startup. Configure membership with `setDesiredChannels(_:)`. The session
+/// manages connection pooling and recovery until `shutdown()` or a terminal failure. A
+/// terminated session cannot be restarted.
 public actor TwitchIRCClient {
   enum TerminalState {
     case finished
     case failed(Error)
   }
 
+  /// Whether an IRC session connects anonymously or with Twitch account credentials.
   public enum AuthenticationStyle: Sendable {
+    /// No authenticated user identity is supplied.
     case anonymous
+    /// Authenticates using the associated Twitch account credentials.
     case authenticated(_ credentials: TwitchCredentials)
   }
 
+  /// Whether an IRC session only receives messages or also has a write connection.
   public enum Mode: Sendable {
+    /// Creates read connections for incoming messages without a write connection.
     case receiveOnly
+    /// Creates read connections and a separate connection for sending messages.
     case readWrite
   }
 
+  /// The latest snapshot of connectivity, channel membership, and recovery progress.
   public var state: IRCState { currentState }
   private var currentState = IRCState() {
     didSet {
@@ -47,6 +60,16 @@ public actor TwitchIRCClient {
   private(set) var started = false
   var terminalState: TerminalState?
 
+  /// Creates an unconnected IRC session.
+  ///
+  /// Configure desired channels and observers, then call `connect()` to start the
+  /// session.
+  ///
+  /// - Parameters:
+  ///   - authenticationStyle: Whether to connect anonymously or with account credentials.
+  ///   - mode: Whether to create a receive-only session or also enable sending. Defaults
+  ///     to `.readWrite`.
+  ///   - urlSession: The URL session used for network requests. Defaults to `.shared`.
   public init(
     _ authenticationStyle: AuthenticationStyle,
     mode: Mode = .readWrite,
@@ -82,6 +105,14 @@ public actor TwitchIRCClient {
     Task { [weak self] in await self?.observeConnectionStates() }
   }
 
+  /// Starts the IRC session and waits for its initial connections to become ready.
+  ///
+  /// Configure desired channels and register observers before connecting. Healthy
+  /// connections may deliver messages while other connections are still starting.
+  /// Cancelling startup shuts down the session.
+  ///
+  /// - Throws: `IRCError.alreadyConnected` if startup has already begun, a terminal
+  ///   session error, a connection error, or `CancellationError`.
   public func connect() async throws {
     try throwIfDisconnected()
     try Task.checkCancellation()
@@ -155,6 +186,11 @@ public actor TwitchIRCClient {
     }
   }
 
+  /// Permanently shuts down the IRC session and finishes its observers.
+  ///
+  /// Disconnects read and write connections, clears channel and recovery state, and
+  /// finishes message consumers normally. Repeated calls have no effect. Create a new
+  /// session to connect again.
   public func shutdown() async {
     guard terminalState == nil else { return }
 
@@ -174,26 +210,84 @@ public actor TwitchIRCClient {
     await readConnectionPool.disconnect()
   }
 
+  /// Replaces the full set of channels the IRC session should receive.
+  ///
+  /// May be called before connecting. While active, the session joins new channels and
+  /// parts removed channels.
+  ///
+  /// Channel login names are lowercased and stripped of leading `#` characters. Duplicate
+  /// names are combined. Returning confirms the local membership request, before Twitch
+  /// acknowledges it. Observe `stateUpdates()` for channel progress and failures.
+  ///
+  /// - Throws: A terminal session error or an error updating channel membership.
+  ///
+  /// - Parameters:
+  ///   - channels: The complete list of desired channel login names.
   public func setDesiredChannels(_ channels: [String]) async throws {
     try throwIfDisconnected()
     try await readConnectionPool.setChannels(channels)
   }
 
+  /// Adds a channel to the IRC session’s desired membership.
+  ///
+  /// Channel login names are lowercased and stripped of leading `#` characters. Returning
+  /// confirms the local membership request, before Twitch acknowledges it. Observe
+  /// `stateUpdates()` for channel progress and failures.
+  ///
+  /// - Throws: A terminal session error or an error requesting membership.
+  ///
+  /// - Parameters:
+  ///   - channel: The channel’s login name.
   public func requestJoin(to channel: String) async throws {
     try throwIfDisconnected()
     try await readConnectionPool.join(to: channel)
   }
 
+  /// Removes a channel from the IRC session’s desired membership.
+  ///
+  /// Channel login names are lowercased and stripped of leading `#` characters. Returning
+  /// confirms the local membership request, before Twitch acknowledges it. Observe
+  /// `stateUpdates()` for channel progress and failures.
+  ///
+  /// - Throws: A terminal session error or an error updating membership.
+  ///
+  /// - Parameters:
+  ///   - channel: The channel’s login name.
   public func requestPart(from channel: String) async throws {
     try throwIfDisconnected()
     try await readConnectionPool.part(from: channel)
   }
 
+  /// Requests another join attempt for a channel that failed to join.
+  ///
+  /// Channel login names are lowercased and stripped of leading `#` characters. This is a
+  /// no-op unless the channel is currently in a failed state. Returning confirms the
+  /// local membership request, before Twitch acknowledges it. Observe `stateUpdates()`
+  /// for channel progress and failures.
+  ///
+  /// - Throws: A terminal session error or an error retrying channel membership.
+  ///
+  /// - Parameters:
+  ///   - channel: The channel’s login name.
   public func retryChannel(_ channel: String) async throws {
     try throwIfDisconnected()
     try await readConnectionPool.retryChannel(channel)
   }
 
+  /// Sends a chat message using the IRC session’s write connection.
+  ///
+  /// The channel name is lowercased and stripped of leading `#` characters. Successful
+  /// sending does not confirm that Twitch delivered the message to viewers.
+  ///
+  /// - Throws: `IRCError.writeConnectionNotEnabled` for a receive-only session, a
+  ///   terminal session error, or an error sending the message.
+  ///
+  /// - Parameters:
+  ///   - message: The chat text to send.
+  ///   - channel: The channel’s login name.
+  ///   - replyToMessageID: The ID of the message to reply to; `nil` sends a top-level
+  ///     message.
+  ///   - clientNonce: An optional nonce used to correlate the outgoing IRC message.
   public func sendMessage(
     _ message: String,
     to channel: String,

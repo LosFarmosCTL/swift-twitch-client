@@ -1,6 +1,17 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Changes an EventSub conduit’s shard count.
+  ///
+  /// Twitch requires an app access token for this endpoint.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#update-conduits
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - conduitID: The identifier of the conduit.
+  ///   - shardCount: The number of shards assigned to the conduit.
   public static func updateConduit(
     conduitID: String,
     shardCount: Int

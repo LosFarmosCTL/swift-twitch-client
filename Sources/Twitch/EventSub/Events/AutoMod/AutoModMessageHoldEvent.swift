@@ -1,20 +1,31 @@
 import Foundation
 import MemberwiseInit
 
+/// An EventSub notification delivered when AutoMod holds a message for review.
 @MemberwiseInit(.public)
 public struct AutoModMessageHoldEvent: Event {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// The Twitch user ID.
   public let userID: String
+  /// The user’s login name.
   public let userLogin: String
+  /// The user’s display name.
   public let userDisplayName: String
 
+  /// The identifier of the message.
   public let messageID: String
+  /// The message content or explanatory text supplied by Twitch.
   public let message: AutoModMessage
 
+  /// The time Twitch held the message for moderation.
   public let heldAt: Date
+  /// The reason supplied for this action.
   public let reason: AutoModHoldReason
 
   enum CodingKeys: String, CodingKey {
@@ -32,6 +43,7 @@ public struct AutoModMessageHoldEvent: Event {
     case blockedTerm
   }
 
+  /// Decodes a held message and its reason-specific payload.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)

@@ -2,6 +2,24 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
+  /// Checks whether the authenticated user subscribes to a broadcaster.
+  ///
+  /// With a user access token, requires `user:read:subscriptions`.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#check-user-subscription
+  /// ) for request limits and account requirements.
+  ///
+  /// The request uses the executing client’s user ID for `user_id`.
+  ///
+  /// A user who does not subscribe produces HTTP 404. Executing this endpoint throws
+  /// `HelixError.twitchError` for that response; it does not convert HTTP 404 to `nil`.
+  ///
+  /// - Parameters:
+  ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///
+  /// - Returns: An endpoint that yields subscription details when executed. The result is
+  ///   `nil` only if Twitch returns a successful response with an empty data array.
   public static func checkSubscription(to broadcasterID: String)
     -> HelixEndpoint<Subscription?, Subscription, HelixEndpointResponseTypes.Normal>
   {
@@ -19,14 +37,20 @@ extension HelixEndpoint {
   }
 }
 
+/// A user’s subscription to a broadcaster, including tier and gift details.
 @MemberwiseInit(.public)
 public struct Subscription: Decodable, Sendable {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// The gifter’s identity; `nil` means the subscription was not gifted.
   public let gifter: SubscriptionGifter?
 
+  /// The subscription tier.
   public let tier: SubscriptionTier
 
   enum CodingKeys: String, CodingKey {
@@ -40,6 +64,7 @@ public struct Subscription: Decodable, Sendable {
     case tier
   }
 
+  /// Decodes a subscription, including gifter details only for gifted subscriptions.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -61,16 +86,24 @@ public struct Subscription: Decodable, Sendable {
   }
 }
 
+/// The three paid subscription tiers, encoded as Twitch’s numeric tier strings.
 public enum SubscriptionTier: String, Decodable, Sendable {
+  /// A Tier 1 subscription. Encoded as `"1000"`.
   case tier1 = "1000"
+  /// A Tier 2 subscription. Encoded as `"2000"`.
   case tier2 = "2000"
+  /// A Tier 3 subscription. Encoded as `"3000"`.
   case tier3 = "3000"
 }
 
+/// The identity of the account that gifted a subscription.
 @MemberwiseInit(.public)
 public struct SubscriptionGifter: Decodable, Sendable {
+  /// The identifier assigned by Twitch.
   public let id: String
+  /// The account’s login name.
   public let login: String
+  /// The display name shown on Twitch.
   public let displayName: String
 
   enum CodingKeys: String, CodingKey {

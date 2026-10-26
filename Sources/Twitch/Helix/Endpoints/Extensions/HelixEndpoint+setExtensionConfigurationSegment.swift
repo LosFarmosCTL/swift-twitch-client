@@ -1,6 +1,22 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Stores an extension configuration segment.
+  ///
+  /// Twitch requires an Extension Backend Service JWT with the `external` role. See the
+  /// reference for the required claims and signing rules.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#set-extension-configuration-segment
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - extensionID: The identifier of the extension.
+  ///   - segment: The configuration segment.
+  ///   - broadcasterID: The Twitch user ID of the broadcaster, when provided.
+  ///   - content: The content to store or send.
+  ///   - version: A version label for the configuration content; this is separate from
+  ///     the extension’s release version.
   public static func setExtensionConfigurationSegment(
     extensionID: String,
     segment: ExtensionConfigurationSegmentType,

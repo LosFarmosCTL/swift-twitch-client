@@ -1,21 +1,32 @@
 import Foundation
 
+/// An HTTP, transport, or response-processing failure from a Helix request.
 public enum HelixError: Error, Sendable {
+  /// The operation was cancelled.
   case cancelled
+  /// The network request failed; carries the underlying error.
   case networkError(wrapped: Error)
+  /// The operation failed with an unexpected underlying error.
   case unexpectedError(wrapped: Error)
+  /// Twitch rejected the request; carries the error name, HTTP status, and message.
   case twitchError(name: String, status: Int, message: String)
 
+  /// The success response could not be decoded; carries the raw response body.
   case parsingResponseFailed(responseData: Data)
+  /// The error response could not be decoded; carries the HTTP status and raw body.
   case parsingErrorFailed(status: Int, responseData: Data)
 
+  /// The response contained no required data; carries the raw response body.
   case noDataInResponse(responseData: Data)
+  /// The response omitted required metadata; carries the raw response body.
   case missingDataInResponse(responseData: Data)
 
+  /// An endpoint requiring an empty response returned a body; carries that body.
   case nonEmptyResponse(responseData: Data)
 }
 
 extension HelixError: CustomStringConvertible {
+  /// A diagnostic description of the error, including associated response details.
   public var description: String {
     switch self {
     case .cancelled:
@@ -42,6 +53,7 @@ extension HelixError: CustomStringConvertible {
 
 #if !os(Linux)
   extension HelixError: CustomLocalizedStringResourceConvertible {
+    /// The localized string resource describing this error.
     public var localizedStringResource: LocalizedStringResource {
       let bundle = LocalizedStringResource.BundleDescription.atURL(
         Bundle.module.bundleURL)
@@ -71,6 +83,7 @@ extension HelixError: CustomStringConvertible {
 #endif
 
 extension HelixError: LocalizedError {
+  /// A localized description suitable for presenting this error.
   public var errorDescription: String? {
     #if !os(Linux)
       return String(localized: self.localizedStringResource)

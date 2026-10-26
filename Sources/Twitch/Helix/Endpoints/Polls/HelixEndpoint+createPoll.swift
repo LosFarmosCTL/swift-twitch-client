@@ -1,6 +1,24 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Starts a poll in the authenticated broadcaster’s channel.
+  ///
+  /// With a user access token, requires `channel:manage:polls`.
+  ///
+  /// For user-token requests, the broadcaster must be the token’s user.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#create-poll
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - title: The title shown to viewers.
+  ///   - choices: The titles of the poll choices.
+  ///   - duration: The poll duration, in seconds.
+  ///   - channelPointsVotingEnabled: Whether viewers can purchase additional votes with
+  ///     Channel Points, when provided.
+  ///   - channelPointsPerVote: The Channel Points required for each additional vote, when
+  ///     provided.
   public static func createPoll(
     title: String,
     choices: [String],
