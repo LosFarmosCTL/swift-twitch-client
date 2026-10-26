@@ -9,7 +9,7 @@ public struct ChannelPollBeginEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let title: String
   public let choices: [PollChoice]
@@ -22,12 +22,12 @@ public struct ChannelPollBeginEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case title, choices
+    case broadcasterDisplayName = "broadcasterUserName"
+    case title
+    case choices
     case channelPointsVoting
-
-    case startedAt, endsAt
+    case startedAt
+    case endsAt
   }
 
   public init(from decoder: Decoder) throws {
@@ -35,7 +35,8 @@ public struct ChannelPollBeginEvent: Event {
     id = try container.decode(String.self, forKey: .id)
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
     title = try container.decode(String.self, forKey: .title)
     choices = try container.decode([PollChoice].self, forKey: .choices)
     startedAt = try container.decode(Date.self, forKey: .startedAt)

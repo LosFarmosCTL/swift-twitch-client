@@ -5,11 +5,11 @@ import MemberwiseInit
 public struct ChannelSubscriptionMessageEvent: Event {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let tier: String
   public let durationMonths: Int
@@ -20,13 +20,15 @@ public struct ChannelSubscriptionMessageEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case tier, cumulativeMonths, streakMonths, durationMonths
+    case broadcasterDisplayName = "broadcasterUserName"
+    case tier
+    case cumulativeMonths
+    case streakMonths
+    case durationMonths
     case message
   }
 

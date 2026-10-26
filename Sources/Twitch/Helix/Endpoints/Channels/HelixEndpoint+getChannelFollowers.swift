@@ -3,42 +3,42 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelFollowers(
-    of channel: String? = nil,
+    of broadcasterID: String? = nil,
     limit: Int? = nil,
-    after cursor: String? = nil
-  ) -> HelixEndpoint<FollowerResponse, Follower, HelixEndpointResponseTypes.Normal> {
+    after afterCursor: String? = nil
+  ) -> HelixEndpoint<FollowersResponse, Follower, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "channels/followers",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel ?? auth.userID),
+          ("broadcaster_id", broadcasterID ?? credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       },
       makeResponse: {
         let total = try $0.require(\.total)
 
-        return FollowerResponse(
+        return FollowersResponse(
           total: total,
           followers: $0.data,
           cursor: $0.pagination?.cursor)
       })
   }
 
-  public static func checkFollower(_ user: String, follows channelID: String? = nil)
+  public static func checkFollower(_ userID: String, follows broadcasterID: String? = nil)
     -> HelixEndpoint<Follower?, Follower, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "GET", path: "channels/followers",
-      queryItems: { auth in
-        [("user_id", user), ("broadcaster_id", channelID ?? auth.userID)]
+      queryItems: { credentials in
+        [("user_id", userID), ("broadcaster_id", broadcasterID ?? credentials.userID)]
       },
       makeResponse: { $0.data.first })
   }
 }
 
-public struct FollowerResponse: Sendable {
+public struct FollowersResponse: Sendable {
   public let total: Int
 
   public let followers: [Follower]
@@ -50,11 +50,13 @@ public struct FollowerResponse: Sendable {
 public struct Follower: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
   public let followedAt: Date
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName, followedAt
+    case userLogin
+    case userDisplayName = "userName"
+    case followedAt
   }
 }

@@ -3,23 +3,23 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getBannedUsers(
-    filterUserIDs: [String] = [],
+    userIDs: [String] = [],
     limit: Int? = nil,
-    after startCursor: String? = nil,
-    before endCursor: String? = nil
+    after afterCursor: String? = nil,
+    before beforeCursor: String? = nil
   ) -> HelixEndpoint<
-    ([BannedUser], String?), BannedUser,
+    (users: [BannedUser], cursor: String?), BannedUser,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "moderation/banned",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", auth.userID),
+          ("broadcaster_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", startCursor),
-          ("before", endCursor),
-        ] + filterUserIDs.map { ("user_id", $0) }
+          ("after", afterCursor),
+          ("before", beforeCursor),
+        ] + userIDs.map { ("user_id", $0) }
       },
       makeResponse: {
         ($0.data, $0.pagination?.cursor)
@@ -31,7 +31,7 @@ extension HelixEndpoint {
 public struct BannedUser: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let expiresAt: Date
   public let createdAt: Date
@@ -40,15 +40,17 @@ public struct BannedUser: Decodable, Sendable {
 
   public let moderatorID: String
   public let moderatorLogin: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
-    case expiresAt, createdAt, reason
-
+    case userLogin
+    case userDisplayName = "userName"
+    case expiresAt
+    case createdAt
+    case reason
     case moderatorID = "moderatorId"
-    case moderatorLogin, moderatorName
+    case moderatorLogin
+    case moderatorDisplayName = "moderatorName"
   }
 }

@@ -51,7 +51,7 @@ struct IRCSessionTests {
     #expect(final?.channels.isEmpty == true)
     #expect(final?.recoveries.isEmpty == true)
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     #expect(try await messages.next() == nil)
     await #expect(throws: IRCError.self) { try await client.connect() }
   }
@@ -59,11 +59,11 @@ struct IRCSessionTests {
   @Test
   func observersRegisteredBeforeConnectReceiveAndRetainSetupState() async throws {
     let credentials = TwitchCredentials(
-      oAuth: "token", clientID: "id", userID: "setup-observer", userLogin: "tester")
+      accessToken: "token", clientID: "id", userID: "setup-observer", userLogin: "tester")
     let client = TwitchIRCClient(
       .authenticated(credentials), mode: .receiveOnly, network: session)
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     let updates = await client.stateUpdates()
     try await client.setDesiredChannels(["swift"])
 
@@ -165,7 +165,7 @@ struct IRCSessionTests {
     let client = TwitchIRCClient(.anonymous, mode: mode, network: session)
     try await client.setDesiredChannels(["swift"])
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     var states = await client.stateUpdates().makeAsyncIterator()
     _ = await states.next()
 
@@ -266,7 +266,7 @@ struct IRCSessionTests {
     let client = TwitchIRCClient(.anonymous, mode: .receiveOnly, network: session)
     try await client.setDesiredChannels(["swift"])
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     var states = await client.stateUpdates().makeAsyncIterator()
 
     let pending = Task { try await client.connect() }
@@ -314,8 +314,8 @@ extension IRCSessionTests {
     observer.cancel()
     await observer.value
 
-    var first = await client.messages().makeAsyncIterator()
-    var second = await client.messages().makeAsyncIterator()
+    var first = await client.messageStream().makeAsyncIterator()
+    var second = await client.messageStream().makeAsyncIterator()
 
     let pending = Task { try await client.connect() }
     let socket = await session.waitForTask(at: 0)
@@ -356,12 +356,14 @@ extension IRCSessionTests {
   @Test
   func factoryCapturesCredentialsWithoutStartingNetworking() async throws {
     let original = TwitchCredentials(
-      oAuth: "original-token", clientID: "id", userID: "original", userLogin: "tester")
-    let twitch = TwitchClient(authentication: original, network: session)
+      accessToken: "original-token", clientID: "id", userID: "original",
+      userLogin: "tester")
+    let twitch = TwitchClient(credentials: original, network: session)
     let client = await twitch.makeIRCClient(mode: .receiveOnly)
 
     await twitch.switchCredentials(
-      to: .init(oAuth: "new-token", clientID: "id", userID: "new", userLogin: "other"))
+      to: .init(
+        accessToken: "new-token", clientID: "id", userID: "new", userLogin: "other"))
     #expect(await session.taskCount() == 0)
 
     let pending = Task { try await client.connect() }

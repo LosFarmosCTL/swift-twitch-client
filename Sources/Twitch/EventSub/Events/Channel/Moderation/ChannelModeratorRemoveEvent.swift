@@ -4,19 +4,18 @@ import MemberwiseInit
 public struct ChannelModeratorRemoveEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case userID = "userId"
-    case userLogin = "userLogin"
-    case userName = "userName"
+    case userLogin
+    case userDisplayName = "userName"
   }
 }

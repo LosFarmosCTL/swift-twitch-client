@@ -14,7 +14,7 @@ internal actor IRCConnection {
 
   private var connectionAttemptID = UUID()
   private var connecting = false
-  private var websocket: WebSocketTask?
+  private var webSocket: WebSocketTask?
 
   init(
     credentials: TwitchCredentials? = nil,
@@ -32,13 +32,13 @@ internal actor IRCConnection {
     authenticationTask?.cancel()
     receiveTask?.cancel()
 
-    let websocket = websocket
-    Task.detached { await websocket?.cancel(with: .goingAway, reason: nil) }
+    let webSocket = webSocket
+    Task.detached { await webSocket?.cancel(with: .goingAway, reason: nil) }
   }
 
   func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
     guard !connecting else { throw IRCError.alreadyConnected }
-    guard websocket == nil else { throw IRCError.alreadyConnected }
+    guard webSocket == nil else { throw IRCError.alreadyConnected }
 
     connecting = true
     let attemptID = connectionAttemptID
@@ -50,7 +50,7 @@ internal actor IRCConnection {
       throw CancellationError()
     }
 
-    websocket = socket
+    webSocket = socket
 
     do {
       try Task.checkCancellation()
@@ -111,18 +111,18 @@ internal actor IRCConnection {
   func send(_ message: OutgoingMessage) async throws {
     try Task.checkCancellation()
 
-    guard let websocket else { throw IRCError.disconnected }
+    guard let webSocket else { throw IRCError.disconnected }
     guard !connecting else { throw IRCError.disconnected }
 
-    try await websocket.send(.string(message.serialize()))
+    try await webSocket.send(.string(message.serialize()))
   }
 
   func disconnect() async {
     connectionAttemptID = UUID()
     connecting = false
 
-    let socket = websocket
-    websocket = nil
+    let socket = webSocket
+    webSocket = nil
 
     authenticationTask?.cancel()
     authenticationTask = nil

@@ -1,0 +1,78 @@
+import Foundation
+import MemberwiseInit
+
+extension HelixEndpoint {
+  public static func getPolls(
+    pollIDs: [String] = [],
+    limit: Int? = nil,
+    after afterCursor: String? = nil
+  ) -> HelixEndpoint<
+    (polls: [Poll], cursor: String?),
+    Poll, HelixEndpointResponseTypes.Normal
+  > {
+    .init(
+      method: "GET", path: "polls",
+      queryItems: { credentials in
+        [
+          ("broadcaster_id", credentials.userID),
+          ("first", limit.map(String.init)),
+          ("after", afterCursor),
+        ] + pollIDs.map { ("id", $0) }
+      },
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
+  }
+}
+
+@MemberwiseInit(.public)
+public struct Poll: Decodable, Sendable {
+  public let id: String
+
+  public let broadcasterID: String
+  public let broadcasterLogin: String
+  public let broadcasterDisplayName: String
+
+  public let title: String
+  public let choices: [PollChoice]
+
+  public let channelPointsVotingEnabled: Bool
+  public let channelPointsPerVote: Int
+
+  public let status: PollStatus
+  public let duration: Int
+
+  public let startedAt: Date
+  public let endedAt: Date?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case broadcasterID = "broadcasterId"
+    case broadcasterLogin
+    case broadcasterDisplayName = "broadcasterName"
+    case title
+    case choices
+    case channelPointsVotingEnabled
+    case channelPointsPerVote
+    case status
+    case duration
+    case startedAt
+    case endedAt
+  }
+}
+
+@MemberwiseInit(.public)
+public struct PollChoice: Decodable, Sendable {
+  public let id: String
+  public let title: String
+  public let votes: Int
+  public let channelPointsVotes: Int
+  public let bitsVotes: Int
+}
+
+public enum PollStatus: String, Decodable, Sendable {
+  case active = "ACTIVE"
+  case completed = "COMPLETED"
+  case terminated = "TERMINATED"
+  case archived = "ARCHIVED"
+  case moderated = "MODERATED"
+  case invalid = "INVALID"
+}

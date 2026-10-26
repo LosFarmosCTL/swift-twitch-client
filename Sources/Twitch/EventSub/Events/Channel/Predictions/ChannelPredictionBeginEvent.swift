@@ -9,7 +9,7 @@ public struct ChannelPredictionBeginEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let title: String
   public let outcomes: [Outcome]
@@ -20,10 +20,11 @@ public struct ChannelPredictionBeginEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case title, outcomes
-    case startedAt, locksAt
+    case broadcasterDisplayName = "broadcasterUserName"
+    case title
+    case outcomes
+    case startedAt
+    case locksAt
   }
 
   @MemberwiseInit(.public)
@@ -44,16 +45,17 @@ public struct ChannelPredictionBeginEvent: Event {
     public struct TopPredictor: Decodable, Sendable {
       public let userID: String
       public let userLogin: String
-      public let userName: String
+      public let userDisplayName: String
 
       public let channelPointsUsed: Int
       public let channelPointsWon: Int?
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin, userName
-
-        case channelPointsUsed, channelPointsWon
+        case userLogin
+        case userDisplayName = "userName"
+        case channelPointsUsed
+        case channelPointsWon
       }
     }
   }

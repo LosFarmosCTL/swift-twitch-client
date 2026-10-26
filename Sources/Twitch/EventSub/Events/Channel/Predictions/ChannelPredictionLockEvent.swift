@@ -7,7 +7,7 @@ public struct ChannelPredictionLockEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let title: String
   public let outcomes: [ChannelPredictionBeginEvent.Outcome]
@@ -19,10 +19,10 @@ public struct ChannelPredictionLockEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case title, outcomes
-
-    case startedAt, lockedAt
+    case broadcasterDisplayName = "broadcasterUserName"
+    case title
+    case outcomes
+    case startedAt
+    case lockedAt
   }
 }

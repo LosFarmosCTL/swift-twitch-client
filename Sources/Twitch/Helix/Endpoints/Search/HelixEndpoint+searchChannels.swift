@@ -3,22 +3,22 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func searchChannels(
-    for searchQuery: String,
+    for query: String,
     liveOnly: Bool? = nil,
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    (channels: [Channel], paginationCursor: String?),
+    (channels: [Channel], cursor: String?),
     Channel, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "search/channels",
       queryItems: { _ in
         [
-          ("query", searchQuery),
+          ("query", query),
           ("live_only", liveOnly.map(String.init)),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })
@@ -29,7 +29,7 @@ extension HelixEndpoint {
 public struct Channel: Decodable, Sendable {
   public let id: String
   public let login: String
-  public let name: String
+  public let displayName: String
   public let language: String
 
   public let gameID: String
@@ -47,15 +47,14 @@ public struct Channel: Decodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case id
     case login = "broadcasterLogin"
-    case name = "displayName"
+    case displayName
     case language = "broadcasterLanguage"
-
     case gameID = "gameId"
     case gameName
-
-    case isLive, tags
-
+    case isLive
+    case tags
     case profileImageURL = "thumbnailUrl"
-    case title, startedAt
+    case title
+    case startedAt
   }
 }

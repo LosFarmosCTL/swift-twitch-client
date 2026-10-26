@@ -2,15 +2,15 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
-  public static func checkSubscription(to channel: String)
+  public static func checkSubscription(to broadcasterID: String)
     -> HelixEndpoint<Subscription?, Subscription, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "GET", path: "subscriptions/user",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("user_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("user_id", credentials.userID),
         ]
       },
       makeResponse: { response in
@@ -23,20 +23,20 @@ extension HelixEndpoint {
 public struct Subscription: Decodable, Sendable {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
-  public let gifter: SubGifter?
+  public let gifter: SubscriptionGifter?
 
-  public let tier: SubTier
+  public let tier: SubscriptionTier
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
-    case broadcasterLogin, broadcasterName
-
+    case broadcasterLogin
+    case broadcasterDisplayName = "broadcasterName"
     case isGift
     case gifterID = "gifterId"
-    case gifterLogin, gifterName
-
+    case gifterLogin
+    case gifterDisplayName = "gifterName"
     case tier
   }
 
@@ -45,30 +45,36 @@ public struct Subscription: Decodable, Sendable {
 
     self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     self.broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    self.broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    self.broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
 
     if try container.decode(Bool.self, forKey: .isGift) {
       self.gifter = .init(
         id: try container.decode(String.self, forKey: .gifterID),
         login: try container.decode(String.self, forKey: .gifterLogin),
-        name: try container.decode(String.self, forKey: .gifterName))
+        displayName: try container.decode(String.self, forKey: .gifterDisplayName))
     } else {
       self.gifter = nil
     }
 
-    self.tier = try container.decode(SubTier.self, forKey: .tier)
+    self.tier = try container.decode(SubscriptionTier.self, forKey: .tier)
   }
 }
 
-public enum SubTier: String, Decodable, Sendable {
+public enum SubscriptionTier: String, Decodable, Sendable {
   case tier1 = "1000"
   case tier2 = "2000"
   case tier3 = "3000"
 }
 
 @MemberwiseInit(.public)
-public struct SubGifter: Decodable, Sendable {
+public struct SubscriptionGifter: Decodable, Sendable {
   public let id: String
   public let login: String
-  public let name: String
+  public let displayName: String
+
+  enum CodingKeys: String, CodingKey {
+    case id, login
+    case displayName = "name"
+  }
 }

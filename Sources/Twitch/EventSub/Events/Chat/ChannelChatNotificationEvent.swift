@@ -4,7 +4,7 @@ import MemberwiseInit
 public struct ChannelChatNotificationEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let chatter: Chatter
 
@@ -19,37 +19,52 @@ public struct ChannelChatNotificationEvent: Event {
 
   public let sourceBroadcasterID: String?
   public let sourceBroadcasterLogin: String?
-  public let sourceBroadcasterName: String?
+  public let sourceBroadcasterDisplayName: String?
   public let sourceMessageID: String?
   public let sourceBadges: [ChannelChatMessageEvent.Badge]?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case chatterID = "chatterUserId"
     case chatterLogin = "chatterUserLogin"
-    case chatterName = "chatterUserName"
+    case chatterDisplayName = "chatterUserName"
     case chatterIsAnonymous
-
-    case color, badges
-
+    case color
+    case badges
     case messageID = "messageId"
-    case message, systemMessage
-
+    case message
+    case systemMessage
     case noticeType
-    case sub, resub, subGift, communitySubGift, giftPaidUpgrade, primePaidUpgrade,
-      payItForward, raid, unraid, announcement, bitsBadgeTier, charityDonation,
-      giftedDropsSummary
-    case sharedChatSub, sharedChatResub, sharedChatSubGift, sharedChatCommunitySubGift,
-      sharedChatGiftPaidUpgrade, sharedChatPrimePaidUpgrade, sharedChatPayItForward,
-      sharedChatRaid, sharedChatAnnouncement, sharedChatBitsBadgeTier,
-      sharedChatCharityDonation, sharedChatGiftedDropsSummary
-
+    case sub
+    case resub
+    case subGift
+    case communitySubGift
+    case giftPaidUpgrade
+    case primePaidUpgrade
+    case payItForward
+    case raid
+    case unraid
+    case announcement
+    case bitsBadgeTier
+    case charityDonation
+    case giftedDropsSummary
+    case sharedChatSub
+    case sharedChatResub
+    case sharedChatSubGift
+    case sharedChatCommunitySubGift
+    case sharedChatGiftPaidUpgrade
+    case sharedChatPrimePaidUpgrade
+    case sharedChatPayItForward
+    case sharedChatRaid
+    case sharedChatAnnouncement
+    case sharedChatBitsBadgeTier
+    case sharedChatCharityDonation
+    case sharedChatGiftedDropsSummary
     case sourceBroadcasterID = "sourceBroadcasterUserId"
     case sourceBroadcasterLogin = "sourceBroadcasterUserLogin"
-    case sourceBroadcasterName = "sourceBroadcasterUserName"
+    case sourceBroadcasterDisplayName = "sourceBroadcasterUserName"
     case sourceMessageID = "sourceMessageId"
     case sourceBadges
   }
@@ -59,7 +74,8 @@ public struct ChannelChatNotificationEvent: Event {
 
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
 
     chatter = try Chatter(from: decoder)
 
@@ -76,8 +92,8 @@ public struct ChannelChatNotificationEvent: Event {
       String.self, forKey: .sourceBroadcasterID)
     sourceBroadcasterLogin = try container.decodeIfPresent(
       String.self, forKey: .sourceBroadcasterLogin)
-    sourceBroadcasterName = try container.decodeIfPresent(
-      String.self, forKey: .sourceBroadcasterName)
+    sourceBroadcasterDisplayName = try container.decodeIfPresent(
+      String.self, forKey: .sourceBroadcasterDisplayName)
     sourceMessageID = try container.decodeIfPresent(String.self, forKey: .sourceMessageID)
     sourceBadges = try container.decodeIfPresent(
       [ChannelChatMessageEvent.Badge].self, forKey: .sourceBadges)
@@ -96,15 +112,18 @@ public struct ChannelChatNotificationEvent: Event {
       } else {
         let chatterID = try container.decode(String.self, forKey: .chatterID)
         let chatterLogin = try container.decode(String.self, forKey: .chatterLogin)
-        let chatterName = try container.decode(String.self, forKey: .chatterName)
+        let chatterDisplayName = try container.decode(
+          String.self, forKey: .chatterDisplayName)
         self = .chatter(
-          .init(userID: chatterID, userName: chatterName, userLogin: chatterLogin))
+          .init(
+            userID: chatterID, userDisplayName: chatterDisplayName,
+            userLogin: chatterLogin))
       }
     }
 
     public struct ChatterInfo: Sendable {
       public let userID: String
-      public let userName: String
+      public let userDisplayName: String
       public let userLogin: String
     }
   }
@@ -238,18 +257,14 @@ public struct ChannelChatNotificationEvent: Event {
 
 @MemberwiseInit(.public)
 public struct SubNotice: Decodable, Sendable {
-  public let subTier: SubTier
+  public let subscriptionTier: SubscriptionTier
   public let isPrime: Bool
   public let durationMonths: Int
 
   enum CodingKeys: String, CodingKey {
-    case subTier, isPrime, durationMonths
-  }
-
-  public enum SubTier: String, Decodable, Sendable {
-    case tier1 = "1000"
-    case tier2 = "2000"
-    case tier3 = "3000"
+    case subscriptionTier = "subTier"
+    case isPrime
+    case durationMonths
   }
 }
 
@@ -259,20 +274,21 @@ public struct ResubNotice: Decodable, Sendable {
   public let durationMonths: Int
   public let streakMonths: Int?
 
-  public let subTier: SubNotice.SubTier
+  public let subscriptionTier: SubscriptionTier
   public let isPrime: Bool
 
   public let gift: Gift?
 
   enum CodingKeys: String, CodingKey {
-    case cumulativeMonths, durationMonths, streakMonths
-
-    case subTier, isPrime
-
+    case cumulativeMonths
+    case durationMonths
+    case streakMonths
+    case subscriptionTier = "subTier"
+    case isPrime
     case isGift
     case gifterIsAnonymous
     case gifterID = "gifterUserId"
-    case gifterName = "gifterUserName"
+    case gifterDisplayName = "gifterUserName"
     case gifterLogin = "gifterUserLogin"
   }
 
@@ -282,7 +298,8 @@ public struct ResubNotice: Decodable, Sendable {
     cumulativeMonths = try container.decode(Int.self, forKey: .cumulativeMonths)
     durationMonths = try container.decode(Int.self, forKey: .durationMonths)
     streakMonths = try container.decodeIfPresent(Int.self, forKey: .streakMonths)
-    subTier = try container.decode(SubNotice.SubTier.self, forKey: .subTier)
+    subscriptionTier = try container.decode(
+      SubscriptionTier.self, forKey: .subscriptionTier)
     isPrime = try container.decode(Bool.self, forKey: .isPrime)
     gift = try? Gift(from: decoder)
   }
@@ -302,13 +319,15 @@ public struct ResubNotice: Decodable, Sendable {
           self = .anonymous
         } else {
           let gifterUserID = try container.decode(String.self, forKey: .gifterID)
-          let gifterUserName = try container.decode(String.self, forKey: .gifterName)
+          let gifterUserDisplayName = try container.decode(
+            String.self, forKey: .gifterDisplayName)
           let gifterUserLogin = try container.decode(
             String.self, forKey: .gifterLogin)
 
           self = .gifter(
             .init(
-              userID: gifterUserID, userName: gifterUserName, userLogin: gifterUserLogin))
+              userID: gifterUserID, userDisplayName: gifterUserDisplayName,
+              userLogin: gifterUserLogin))
         }
       } else {
         throw DecodingError.keyNotFound(
@@ -319,7 +338,7 @@ public struct ResubNotice: Decodable, Sendable {
 
     public struct Gifter: Sendable {
       public let userID: String
-      public let userName: String
+      public let userDisplayName: String
       public let userLogin: String
     }
   }
@@ -331,20 +350,19 @@ public struct SubGiftNotice: Decodable, Sendable {
   public let cumulativeTotal: Int?
 
   public let recipientID: String
-  public let recipientName: String
+  public let recipientDisplayName: String
   public let recipientLogin: String
 
-  public let subTier: SubNotice.SubTier
+  public let subscriptionTier: SubscriptionTier
   public let communityGiftID: String?
 
   enum CodingKeys: String, CodingKey {
     case durationMonths
     case cumulativeTotal
     case recipientID = "recipientUserId"
-    case recipientName = "recipientUserName"
+    case recipientDisplayName = "recipientUserName"
     case recipientLogin = "recipientUserLogin"
-
-    case subTier
+    case subscriptionTier = "subTier"
     case communityGiftID = "communityGiftId"
   }
 }
@@ -353,8 +371,15 @@ public struct SubGiftNotice: Decodable, Sendable {
 public struct CommunitySubGiftNotice: Decodable, Sendable {
   public let id: String
   public let total: Int
-  public let subTier: SubNotice.SubTier
+  public let subscriptionTier: SubscriptionTier
   public let cumulativeTotal: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case total
+    case subscriptionTier = "subTier"
+    case cumulativeTotal
+  }
 }
 
 @MemberwiseInit(.public)
@@ -364,7 +389,7 @@ public struct GiftPaidUpgradeNotice: Decodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case gifterIsAnonymous
     case gifterID = "gifterUserId"
-    case gifterName = "gifterUserName"
+    case gifterDisplayName = "gifterUserName"
     case gifterLogin = "gifterUserLogin"
   }
 
@@ -376,22 +401,28 @@ public struct GiftPaidUpgradeNotice: Decodable, Sendable {
       gifter = nil
     } else {
       let gifterID = try container.decode(String.self, forKey: .gifterID)
-      let gifterName = try container.decode(String.self, forKey: .gifterName)
+      let gifterDisplayName = try container.decode(
+        String.self, forKey: .gifterDisplayName)
       let gifterLogin = try container.decode(String.self, forKey: .gifterLogin)
-      gifter = .init(userID: gifterID, userName: gifterName, userLogin: gifterLogin)
+      gifter = .init(
+        userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
     }
   }
 
   public struct Gifter: Sendable {
     public let userID: String
-    public let userName: String
+    public let userDisplayName: String
     public let userLogin: String
   }
 }
 
 @MemberwiseInit(.public)
 public struct PrimePaidUpgradeNotice: Decodable, Sendable {
-  public let subTier: SubNotice.SubTier
+  public let subscriptionTier: SubscriptionTier
+
+  enum CodingKeys: String, CodingKey {
+    case subscriptionTier = "subTier"
+  }
 }
 
 @MemberwiseInit(.public)
@@ -401,7 +432,7 @@ public struct PayItForwardNotice: Decodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case gifterIsAnonymous
     case gifterID = "gifterUserId"
-    case gifterName = "gifterUserName"
+    case gifterDisplayName = "gifterUserName"
     case gifterLogin = "gifterUserLogin"
   }
 
@@ -413,15 +444,17 @@ public struct PayItForwardNotice: Decodable, Sendable {
       gifter = nil
     } else {
       let gifterID = try container.decode(String.self, forKey: .gifterID)
-      let gifterName = try container.decode(String.self, forKey: .gifterName)
+      let gifterDisplayName = try container.decode(
+        String.self, forKey: .gifterDisplayName)
       let gifterLogin = try container.decode(String.self, forKey: .gifterLogin)
-      gifter = .init(userID: gifterID, userName: gifterName, userLogin: gifterLogin)
+      gifter = .init(
+        userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
     }
   }
 
   public struct Gifter: Sendable {
     public let userID: String
-    public let userName: String
+    public let userDisplayName: String
     public let userLogin: String
   }
 }
@@ -429,14 +462,16 @@ public struct PayItForwardNotice: Decodable, Sendable {
 @MemberwiseInit(.public)
 public struct RaidNotice: Decodable, Sendable {
   public let userID: String
-  public let userName: String
+  public let userDisplayName: String
   public let userLogin: String
   public let viewerCount: Int
   public let profileImageURL: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userName, userLogin, viewerCount
+    case userDisplayName = "userName"
+    case userLogin
+    case viewerCount
     case profileImageURL = "profileImageUrl"
   }
 }

@@ -44,7 +44,7 @@ struct IRCTests {
     await completeAnonymousHandshake(for: socket)
     let client = try await clientTask.value
 
-    var messages = await client.messages().makeAsyncIterator()
+    var messages = await client.messageStream().makeAsyncIterator()
     try await client.requestJoin(to: "swift")
 
     let updates = await client.stateUpdates()
@@ -137,7 +137,7 @@ struct IRCTests {
     await completeAnonymousHandshake(for: readTask)
 
     let client = try await clientTask.value
-    let stream = await client.messages()
+    let stream = await client.messageStream()
     var iterator = stream.makeAsyncIterator()
 
     await client.shutdown()
@@ -185,7 +185,7 @@ struct IRCTests {
       let receivedMessage = AsyncStream<Void>.makeStream()
       let finished = AsyncStream<Void>.makeStream()
 
-      let cancellable = await client.listener { event in
+      let cancellable = await client.messageListener { event in
         switch event {
         case .message(.join(let join)):
           #expect(join.channel == "swift")
@@ -235,7 +235,7 @@ struct IRCTests {
     await confirmation("Listener should receive failure", expectedCount: 1) { received in
       let failed = AsyncStream<Void>.makeStream()
 
-      let cancellable = await client.listener { event in
+      let cancellable = await client.messageListener { event in
         guard case .failure(let error) = event else {
           return
         }
@@ -285,7 +285,7 @@ struct IRCTests {
         received in
         let receivedMessage = AsyncStream<Void>.makeStream()
 
-        let cancellable = await client.publisher().sink(
+        let cancellable = await client.messagePublisher().sink(
           receiveCompletion: { completion in
             guard case .finished = completion
             else {

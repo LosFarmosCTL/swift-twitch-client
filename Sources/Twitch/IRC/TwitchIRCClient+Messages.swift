@@ -2,7 +2,7 @@ import Foundation
 import TwitchIRC
 
 extension TwitchIRCClient {
-  public func messages() -> AsyncThrowingStream<IncomingMessage, Error> {
+  public func messageStream() -> AsyncThrowingStream<IncomingMessage, Error> {
     let (stream, continuation) =
       AsyncThrowingStream<IncomingMessage, Error>.makeStream()
 
@@ -29,7 +29,7 @@ extension TwitchIRCClient {
   }
 
   @discardableResult
-  public func listener(
+  public func messageListener(
     _ callback: @escaping @Sendable (IRCListenerEvent) -> Void
   ) -> TwitchCancellable {
     if let terminalState {
@@ -80,7 +80,9 @@ extension TwitchIRCClient {
   @preconcurrency import Combine
 
   extension TwitchIRCClient {
-    public nonisolated func publisher() async -> AnyPublisher<IncomingMessage, Error> {
+    public nonisolated func messagePublisher() async
+      -> AnyPublisher<IncomingMessage, Error>
+    {
       let subject = PassthroughSubject<IncomingMessage, Error>()
       let id = UUID()
 

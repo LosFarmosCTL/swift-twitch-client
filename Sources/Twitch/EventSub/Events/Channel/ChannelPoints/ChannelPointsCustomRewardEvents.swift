@@ -11,7 +11,7 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let isEnabled: Bool
   public let isPaused: Bool
@@ -38,17 +38,24 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case id
-
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
-    case isEnabled, isPaused, isInStock
-    case title, cost, prompt
-    case isUserInputRequired, shouldRedemptionsSkipRequestQueue
-    case maxPerStream, maxPerUserPerStream
-    case backgroundColor, image, defaultImage
-    case globalCooldown, cooldownExpiresAt
+    case broadcasterDisplayName = "broadcasterUserName"
+    case isEnabled
+    case isPaused
+    case isInStock
+    case title
+    case cost
+    case prompt
+    case isUserInputRequired
+    case shouldRedemptionsSkipRequestQueue
+    case maxPerStream
+    case maxPerUserPerStream
+    case backgroundColor
+    case image
+    case defaultImage
+    case globalCooldown
+    case cooldownExpiresAt
     case redemptionsRedeemedCurrentStream
   }
 
@@ -58,7 +65,8 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
     id = try container.decode(String.self, forKey: .id)
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
     isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
     isPaused = try container.decode(Bool.self, forKey: .isPaused)
     isInStock = try container.decode(Bool.self, forKey: .isInStock)

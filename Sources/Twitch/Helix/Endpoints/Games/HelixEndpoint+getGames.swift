@@ -4,11 +4,11 @@ import MemberwiseInit
 extension HelixEndpoint {
   public static func getGames(
     gameIDs: [String] = [],
-    names: [String] = [],
+    gameNames: [String] = [],
     igdbIDs: [String] = []
   ) -> HelixEndpoint<[Game], Game, HelixEndpointResponseTypes.Normal> {
     let idQueryItems = gameIDs.map { ("id", $0) }
-    let nameQueryItems = names.map { ("name", $0) }
+    let nameQueryItems = gameNames.map { ("name", $0) }
     let igdbQueryItems = igdbIDs.map { ("igdb_id", $0) }
 
     return .init(
@@ -26,11 +26,13 @@ extension HelixEndpoint {
 public struct Game: Decodable, Sendable {
   public let id: String
   public let name: String
-  public let boxArtUrl: String
+  public let boxArtURL: String
   public let igdbID: String
 
   enum CodingKeys: String, CodingKey {
-    case id, name, boxArtUrl
+    case id
+    case name
+    case boxArtURL = "boxArtUrl"
     case igdbID = "igdbId"
   }
 }

@@ -5,11 +5,11 @@ import MemberwiseInit
 public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let id: String
   public let reward: Reward
@@ -19,12 +19,14 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case userID = "userId"
-    case userLogin, userName
-
-    case id, reward, message, redeemedAt
+    case userLogin
+    case userDisplayName = "userName"
+    case id
+    case reward
+    case message
+    case redeemedAt
   }
 
   @MemberwiseInit(.public)

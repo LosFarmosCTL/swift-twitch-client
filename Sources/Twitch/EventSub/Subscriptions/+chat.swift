@@ -1,5 +1,5 @@
 extension EventSubSubscription {
-  public static func chatClear(
+  public static func channelChatClear(
     broadcasterID: String, userID: String, version: String = "1"
   ) -> EventSubSubscription<ChannelChatClearEvent> {
     .init(
@@ -10,7 +10,7 @@ extension EventSubSubscription {
       ])
   }
 
-  public static func chatClearUserMessages(
+  public static func channelChatClearUserMessages(
     broadcasterID: String, userID: String, version: String = "1"
   ) -> EventSubSubscription<ChannelChatClearUserMessagesEvent> {
     .init(
@@ -21,7 +21,7 @@ extension EventSubSubscription {
       ])
   }
 
-  public static func chatMessage(
+  public static func channelChatMessage(
     broadcasterID: String, userID: String, version: String = "1"
   ) -> EventSubSubscription<ChannelChatMessageEvent> {
     .init(

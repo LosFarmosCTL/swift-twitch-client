@@ -3,7 +3,7 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 public struct ChannelGuestStarSettingsUpdateEvent: Event {
   public let broadcasterID: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let broadcasterLogin: String
 
   public let isModeratorSendLiveEnabled: Bool
@@ -13,9 +13,12 @@ public struct ChannelGuestStarSettingsUpdateEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case broadcasterLogin = "broadcasterUserLogin"
-    case isModeratorSendLiveEnabled, isBrowserSourceAudioEnabled, slotCount, groupLayout
+    case isModeratorSendLiveEnabled
+    case isBrowserSourceAudioEnabled
+    case slotCount
+    case groupLayout
   }
 
   public enum GroupLayout: String, Codable, Sendable {

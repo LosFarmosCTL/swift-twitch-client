@@ -17,7 +17,7 @@ struct EventSubStreamTests {
     #expect(received.id == "9001")
     #expect(received.broadcasterID == "1337")
     #expect(received.broadcasterLogin == "cool_user")
-    #expect(received.broadcasterName == "Cool_User")
+    #expect(received.broadcasterDisplayName == "Cool_User")
     #expect(received.type == .live)
   }
 
@@ -31,6 +31,6 @@ struct EventSubStreamTests {
     let received = try #require(message)
     #expect(received.broadcasterID == "1337")
     #expect(received.broadcasterLogin == "cool_user")
-    #expect(received.broadcasterName == "Cool_User")
+    #expect(received.broadcasterDisplayName == "Cool_User")
   }
 }

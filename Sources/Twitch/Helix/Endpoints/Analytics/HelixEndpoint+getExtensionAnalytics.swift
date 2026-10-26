@@ -7,9 +7,10 @@ extension HelixEndpoint {
     type: String? = nil,
     range: DateInterval? = nil,
     limit: Int? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    ([ExtensionReport], String?), ExtensionReport, HelixEndpointResponseTypes.Normal
+    (reports: [ExtensionReport], cursor: String?),
+    ExtensionReport, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "analytics/extensions",
@@ -20,7 +21,7 @@ extension HelixEndpoint {
           ("started_at", range?.start.formatted(.iso8601)),
           ("ended_at", range?.end.formatted(.iso8601)),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }

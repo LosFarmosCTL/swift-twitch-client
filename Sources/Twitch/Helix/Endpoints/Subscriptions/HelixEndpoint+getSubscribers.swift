@@ -3,20 +3,20 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getSubscribers(
-    filterUserIDs: [String] = [],
+    userIDs: [String] = [],
     limit: Int? = nil,
-    after startCursor: String? = nil,
-    before endCursor: String? = nil
+    after afterCursor: String? = nil,
+    before beforeCursor: String? = nil
   ) -> HelixEndpoint<SubscribersResponse, Subscriber, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "subscriptions",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", auth.userID),
+          ("broadcaster_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", startCursor),
-          ("before", endCursor),
-        ] + filterUserIDs.map { ("user_id", $0) }
+          ("after", afterCursor),
+          ("before", beforeCursor),
+        ] + userIDs.map { ("user_id", $0) }
       },
       makeResponse: {
         let total = try $0.require(\.total)
@@ -44,29 +44,30 @@ public struct SubscribersResponse: Sendable {
 public struct Subscriber: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
-  public let gifter: SubGifter?
+  public let gifter: SubscriptionGifter?
 
   public let planName: String
-  public let tier: SubTier
+  public let tier: SubscriptionTier
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case broadcasterID = "broadcasterId"
-    case broadcasterLogin, broadcasterName
-
+    case broadcasterLogin
+    case broadcasterDisplayName = "broadcasterName"
     case isGift
     case gifterID = "gifterId"
-    case gifterLogin, gifterName
-
-    case planName, tier
+    case gifterLogin
+    case gifterDisplayName = "gifterName"
+    case planName
+    case tier
   }
 
   public init(from decoder: Decoder) throws {
@@ -74,22 +75,23 @@ public struct Subscriber: Decodable, Sendable {
 
     self.userID = try container.decode(String.self, forKey: .userID)
     self.userLogin = try container.decode(String.self, forKey: .userLogin)
-    self.userName = try container.decode(String.self, forKey: .userName)
+    self.userDisplayName = try container.decode(String.self, forKey: .userDisplayName)
 
     self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     self.broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    self.broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    self.broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
 
     if try container.decode(Bool.self, forKey: .isGift) {
       self.gifter = .init(
         id: try container.decode(String.self, forKey: .gifterID),
         login: try container.decode(String.self, forKey: .gifterLogin),
-        name: try container.decode(String.self, forKey: .gifterName))
+        displayName: try container.decode(String.self, forKey: .gifterDisplayName))
     } else {
       self.gifter = nil
     }
 
     self.planName = try container.decode(String.self, forKey: .planName)
-    self.tier = try container.decode(SubTier.self, forKey: .tier)
+    self.tier = try container.decode(SubscriptionTier.self, forKey: .tier)
   }
 }

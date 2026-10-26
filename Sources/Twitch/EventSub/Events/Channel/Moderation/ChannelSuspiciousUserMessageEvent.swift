@@ -3,11 +3,11 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 public struct ChannelSuspiciousUserMessageEvent: Event {
   public let broadcasterID: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let broadcasterLogin: String
 
   public let userID: String
-  public let userName: String
+  public let userDisplayName: String
   public let userLogin: String
 
   public let lowTrustStatus: LowTrustStatus
@@ -19,13 +19,14 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case broadcasterLogin = "broadcasterUserLogin"
-
     case userID = "userId"
-    case userName, userLogin
-
-    case types, banEvasionEvaluation, lowTrustStatus
+    case userDisplayName = "userName"
+    case userLogin
+    case types
+    case banEvasionEvaluation
+    case lowTrustStatus
     case sharedBanChannelIDs = "sharedBanChannelIds"
     case message
   }
@@ -103,11 +104,11 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
       @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         public let id: String
-        public let emoteSetID: String
+        public let setID: String
 
         enum CodingKeys: String, CodingKey {
           case id
-          case emoteSetID = "emoteSetId"
+          case setID = "emoteSetId"
         }
       }
 

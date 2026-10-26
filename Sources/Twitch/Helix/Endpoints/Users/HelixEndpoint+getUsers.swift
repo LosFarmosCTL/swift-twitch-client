@@ -3,11 +3,11 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getUsers(
-    ids: [String] = [],
-    names: [String] = []
+    userIDs: [String] = [],
+    userLogins: [String] = []
   ) -> HelixEndpoint<[User], User, HelixEndpointResponseTypes.Normal> {
-    let idQueryItems = ids.map { ("id", $0) }
-    let loginQueryItems = names.map { ("login", $0) }
+    let idQueryItems = userIDs.map { ("id", $0) }
+    let loginQueryItems = userLogins.map { ("login", $0) }
 
     return .init(
       method: "GET", path: "users",
@@ -26,8 +26,8 @@ public struct User: Decodable, Sendable {
   public let broadcasterType: BroadcasterType
 
   public let description: String
-  public let profileImageUrl: String
-  public let offlineImageUrl: String
+  public let profileImageURL: String
+  public let offlineImageURL: String
   public let createdAt: Date
 
   public let email: String?
@@ -36,5 +36,18 @@ public struct User: Decodable, Sendable {
     case partner
     case affiliate
     case none = ""
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case login
+    case displayName
+    case type
+    case broadcasterType
+    case description
+    case profileImageURL = "profileImageUrl"
+    case offlineImageURL = "offlineImageUrl"
+    case createdAt
+    case email
   }
 }

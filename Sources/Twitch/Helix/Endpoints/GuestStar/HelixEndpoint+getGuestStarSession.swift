@@ -1,0 +1,64 @@
+import Foundation
+import MemberwiseInit
+
+extension HelixEndpoint {
+  public static func getGuestStarSession(
+    broadcasterID: String? = nil,
+    moderatorID: String? = nil
+  ) -> HelixEndpoint<
+    GuestStarSession, GuestStarSession,
+    HelixEndpointResponseTypes.Normal
+  > {
+    .init(
+      method: "GET", path: "guest_star/session",
+      queryItems: { credentials in
+        [
+          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          ("moderator_id", moderatorID ?? credentials.userID),
+        ]
+      },
+      makeResponse: { response in
+        let session = try response.requireFirst()
+
+        return session
+      })
+  }
+}
+
+@MemberwiseInit(.public)
+public struct GuestStarSession: Decodable, Sendable {
+  public let id: String
+  public let guests: [GuestStarGuest]
+}
+
+@MemberwiseInit(.public)
+public struct GuestStarGuest: Decodable, Sendable {
+  public let slotID: String
+  public let userID: String
+  public let userDisplayName: String
+  public let userLogin: String
+  public let isLive: Bool
+  public let volume: Int
+  public let assignedAt: Date
+  public let audioSettings: GuestStarMediaSettings
+  public let videoSettings: GuestStarMediaSettings
+
+  enum CodingKeys: String, CodingKey {
+    case slotID = "slotId"
+    case userID = "userId"
+    case userDisplayName
+    case userLogin
+    case isLive
+    case volume
+    case assignedAt
+    case audioSettings
+    case videoSettings
+  }
+}
+
+@MemberwiseInit(.public)
+public struct GuestStarMediaSettings: Decodable, Sendable {
+  public let isHostEnabled: Bool?
+  public let isGuestEnabled: Bool?
+  public let isAvailable: Bool
+}

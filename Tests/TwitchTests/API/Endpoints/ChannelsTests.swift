@@ -17,7 +17,7 @@ struct ChannelsTests {
       body: MockedData.getChannelsJSON)
 
     let channels = try await harness.twitch.helix(
-      endpoint: .getChannels(["141981764"])
+      for: .getChannels(["141981764"])
     )
 
     #expect(channels.count == 1)
@@ -38,7 +38,7 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getChannelEditorsJSON)
 
-    let editors = try await harness.twitch.helix(endpoint: .getChannelEditors())
+    let editors = try await harness.twitch.helix(for: .getChannelEditors())
 
     #expect(editors.count == 2)
 
@@ -57,7 +57,7 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getFollowedChannelsJSON)
 
-    let result = try await harness.twitch.helix(endpoint: .getFollowedChannels())
+    let result = try await harness.twitch.helix(for: .getFollowedChannels())
 
     #expect(result.total == 8)
 
@@ -81,7 +81,7 @@ struct ChannelsTests {
       body: MockedData.checkFollowJSON)
 
     let follow = try await harness.twitch.helix(
-      endpoint: .checkFollow(to: "654321")
+      for: .checkFollow(to: "654321")
     )
 
     #expect(follow?.broadcasterID == "654321")
@@ -99,7 +99,7 @@ struct ChannelsTests {
       body: MockedData.getChannelFollowersJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getChannelFollowers(of: "1234")
+      for: .getChannelFollowers(of: "1234")
     )
 
     #expect(result.total == 8)
@@ -124,7 +124,7 @@ struct ChannelsTests {
       body: MockedData.checkChannelFollowerJSON)
 
     let follow = try await harness.twitch.helix(
-      endpoint: .checkFollower("654321", follows: "123456")
+      for: .checkFollower("654321", follows: "123456")
     )
 
     #expect(follow?.userID == "654321")
@@ -140,6 +140,6 @@ struct ChannelsTests {
       method: "PATCH",
       status: 204)
 
-    try await harness.twitch.helix(endpoint: .updateChannel(gameID: "1234"))
+    try await harness.twitch.helix(for: .updateChannel(gameID: "1234"))
   }
 }

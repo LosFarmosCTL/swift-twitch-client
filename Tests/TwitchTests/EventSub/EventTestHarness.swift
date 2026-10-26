@@ -8,10 +8,10 @@ struct EventTestHarness {
   let session: MockNetworkSession = MockNetworkSession()
 
   init(
-    authentication: TwitchCredentials = .init(
-      oAuth: "", clientID: "", userID: "", userLogin: "")
+    credentials: TwitchCredentials = .init(
+      accessToken: "", clientID: "", userID: "", userLogin: "")
   ) {
-    self.twitch = TwitchClient(authentication: authentication, network: session)
+    self.twitch = TwitchClient(credentials: credentials, network: session)
   }
 
   func testEvent<E>(

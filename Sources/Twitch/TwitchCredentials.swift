@@ -1,12 +1,12 @@
 public struct TwitchCredentials: Sendable {
-  public let oAuth: String
+  public let accessToken: String
   public let clientID: String
 
   public let userID: String
   public let userLogin: String
 
-  public init(oAuth: String, clientID: String, userID: String, userLogin: String) {
-    self.oAuth = String(oAuth.trimmingPrefix("oauth:"))
+  public init(accessToken: String, clientID: String, userID: String, userLogin: String) {
+    self.accessToken = String(accessToken.trimmingPrefix("oauth:"))
     self.clientID = clientID
 
     self.userID = userID
@@ -17,7 +17,7 @@ public struct TwitchCredentials: Sendable {
     var headers: [String: String] = [:]
 
     headers.updateValue(clientID, forKey: "Client-Id")
-    headers.updateValue("Bearer \(self.oAuth)", forKey: "Authorization")
+    headers.updateValue("Bearer \(self.accessToken)", forKey: "Authorization")
 
     return headers
   }

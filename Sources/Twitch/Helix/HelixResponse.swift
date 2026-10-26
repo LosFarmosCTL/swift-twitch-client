@@ -71,9 +71,9 @@ internal struct HelixResponsePayload<T: Decodable>: Decodable {
     {
       self.pagination = pagination
     } else if let paginationDecoder,
-      let paginationCursor = try? String(from: paginationDecoder)
+      let cursor = try? String(from: paginationDecoder)
     {
-      self.pagination = HelixResponse.Pagination(cursor: paginationCursor)
+      self.pagination = HelixResponse.Pagination(cursor: cursor)
     } else {
       self.pagination = nil
     }

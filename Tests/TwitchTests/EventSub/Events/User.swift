@@ -16,7 +16,7 @@ struct EventSubUserTests {
     let received = try #require(message)
     #expect(received.userID == "1337")
     #expect(received.userLogin == "cool_user")
-    #expect(received.userName == "Cool_User")
+    #expect(received.userDisplayName == "Cool_User")
     #expect(received.email == "user@email.com")
     #expect(received.emailVerified == true)
     #expect(received.description == "cool description")

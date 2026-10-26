@@ -6,7 +6,7 @@ import Foundation
 
 extension TwitchClient {
   public static func helix<R: Sendable, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>,
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws {
@@ -22,7 +22,7 @@ extension TwitchClient {
   }
 
   public static func helix<R: Sendable, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws -> R {
@@ -37,7 +37,7 @@ extension TwitchClient {
   }
 
   public static func helix<R: Sendable, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>,
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws -> R {
@@ -51,7 +51,7 @@ extension TwitchClient {
   }
 
   public func helix<R, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>
   ) async throws {
     let data = try await self.data(for: endpoint)
 
@@ -61,7 +61,7 @@ extension TwitchClient {
   }
 
   public func helix<R, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
   ) async throws -> R {
     let data = try await self.data(for: endpoint)
     let response = try Self.decode(data, decoder: self.decoder) as HelixResponse<H>
@@ -70,7 +70,7 @@ extension TwitchClient {
   }
 
   public func helix<R, H: Sendable & Decodable>(
-    endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>
   ) async throws -> R {
     let data = try await self.data(for: endpoint)
 

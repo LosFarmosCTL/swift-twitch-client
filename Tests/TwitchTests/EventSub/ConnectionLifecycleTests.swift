@@ -14,7 +14,7 @@ struct EventSubConnectionLifecycleTests {
 
   init() async {
     self.twitch = TwitchClient(
-      authentication: .init(oAuth: "", clientID: "", userID: "", userLogin: ""),
+      credentials: .init(accessToken: "", clientID: "", userID: "", userLogin: ""),
       network: session)
 
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
@@ -137,7 +137,7 @@ struct EventSubConnectionLifecycleTests {
   @Test("Client setup throws cancellation when EventSub listener setup is cancelled")
   func testEventSubListenerSetupCancellation() async throws {
     let setupTask = Task {
-      try await twitch.eventListener(on: .mock()) { _ in
+      try await twitch.eventListener(for: .mock()) { _ in
         Issue.record("Listener callback should not be called during setup cancellation")
       }
     }
@@ -157,7 +157,7 @@ struct EventSubConnectionLifecycleTests {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
 
     let finished = AsyncStream<Void>.makeStream()
-    let cancellable = try await twitch.eventListener(on: .mock()) { event in
+    let cancellable = try await twitch.eventListener(for: .mock()) { event in
       switch event {
       case .finished:
         finished.continuation.finish()

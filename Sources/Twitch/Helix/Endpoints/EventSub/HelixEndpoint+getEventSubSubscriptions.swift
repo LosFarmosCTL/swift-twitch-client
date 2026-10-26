@@ -4,10 +4,10 @@ import MemberwiseInit
 extension HelixEndpoint {
   public static func getEventSubSubscriptions(
     filter: EventSubSubscriptionFilter? = nil,
-    after cursor: String? = nil
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
     GetEventSubSubscriptionsResponse,
-    GetEventSubSubscriptionsResponse.EventSubSubscription,
+    GetEventSubSubscriptionsResponse.Subscription,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
@@ -19,7 +19,7 @@ extension HelixEndpoint {
           items.append(filter.queryItem)
         }
 
-        items.append(("after", cursor))
+        items.append(("after", afterCursor))
         return items
       },
       makeResponse: { response in
@@ -38,7 +38,7 @@ extension HelixEndpoint {
 }
 
 public struct GetEventSubSubscriptionsResponse: Sendable {
-  public let subscriptions: [EventSubSubscription]
+  public let subscriptions: [Subscription]
 
   public let total: Int
   public let totalCost: Int
@@ -47,19 +47,19 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
   public let cursor: String?
 
   @MemberwiseInit(.public)
-  public struct EventSubSubscription: Decodable, Sendable {
+  public struct Subscription: Decodable, Sendable {
     public let id: String
     public let status: String
     public let type: String
     public let version: String
     public let condition: [String: String]
     public let createdAt: Date
-    public let transport: TransportResponse
+    public let transport: Transport
     public let cost: Int
   }
 
   @MemberwiseInit(.public)
-  public struct TransportResponse: Decodable, Sendable {
+  public struct Transport: Decodable, Sendable {
     public let method: String
 
     public let callback: String?
@@ -117,12 +117,12 @@ public enum EventSubSubscriptionStatus: String, Sendable {
   case chatUserBanned = "chat_user_banned"
   case versionRemoved = "version_removed"
   case betaMaintenance = "beta_maintenance"
-  case websocketDisconnected = "websocket_disconnected"
-  case websocketFailedPingPong = "websocket_failed_ping_pong"
-  case websocketReceivedInboundTraffic = "websocket_received_inbound_traffic"
-  case websocketConnectionUnused = "websocket_connection_unused"
-  case websocketInternalError = "websocket_internal_error"
-  case websocketNetworkTimeout = "websocket_network_timeout"
-  case websocketNetworkError = "websocket_network_error"
-  case websocketFailedToReconnect = "websocket_failed_to_reconnect"
+  case webSocketDisconnected = "websocket_disconnected"
+  case webSocketFailedPingPong = "websocket_failed_ping_pong"
+  case webSocketReceivedInboundTraffic = "websocket_received_inbound_traffic"
+  case webSocketConnectionUnused = "websocket_connection_unused"
+  case webSocketInternalError = "websocket_internal_error"
+  case webSocketNetworkTimeout = "websocket_network_timeout"
+  case webSocketNetworkError = "websocket_network_error"
+  case webSocketFailedToReconnect = "websocket_failed_to_reconnect"
 }

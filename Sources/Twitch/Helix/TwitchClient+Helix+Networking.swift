@@ -14,7 +14,7 @@ extension TwitchClient {
   ) async throws -> Data {
     try await Self.data(
       for: endpoint,
-      credentials: self.authentication,
+      credentials: self.credentials,
       network: self.network,
       encoder: self.encoder,
       decoder: self.decoder)

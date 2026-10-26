@@ -3,20 +3,20 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getGlobalEmotes()
-    -> HelixEndpoint<GlobalEmotes, GlobalEmote, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<GlobalEmotesResponse, GlobalEmote, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "GET", path: "chat/emotes/global",
       makeResponse: {
         let template = try $0.require(\.template)
 
-        return GlobalEmotes(emotes: $0.data, template: template)
+        return GlobalEmotesResponse(emotes: $0.data, template: template)
 
       })
   }
 }
 
-public struct GlobalEmotes: Sendable {
+public struct GlobalEmotesResponse: Sendable {
   public let emotes: [GlobalEmote]
 
   public let template: String
@@ -31,11 +31,11 @@ public struct GlobalEmote: Decodable, Sendable {
   public let themeMode: [Emote.ThemeMode]
 
   public func getURL(
-    from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
+    from templateURL: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark
   ) -> URL? {
     return URL(
-      string: templateUrl.replacingOccurrences(of: "{{id}}", with: self.id)
+      string: templateURL.replacingOccurrences(of: "{{id}}", with: self.id)
         .replacingOccurrences(of: "{{scale}}", with: scale.rawValue).replacingOccurrences(
           of: "{{format}}", with: format.rawValue
         ).replacingOccurrences(of: "{{theme_mode}}", with: themeMode.rawValue))

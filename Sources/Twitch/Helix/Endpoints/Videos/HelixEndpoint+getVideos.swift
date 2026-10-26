@@ -1,0 +1,112 @@
+import Foundation
+import MemberwiseInit
+
+extension HelixEndpoint {
+  public static func getVideos(
+    videoIDs: [String] = [],
+    userID: String? = nil,
+    gameID: String? = nil,
+    language: String? = nil,
+    period: VideoPeriod? = nil,
+    sort: VideoSort? = nil,
+    type: VideoTypeFilter? = nil,
+    limit: Int? = nil,
+    after afterCursor: String? = nil,
+    before beforeCursor: String? = nil
+  ) -> HelixEndpoint<
+    (videos: [Video], cursor: String?),
+    Video, HelixEndpointResponseTypes.Normal
+  > {
+    let idQueryItems = videoIDs.map { ("id", $0) }
+
+    return .init(
+      method: "GET", path: "videos",
+      queryItems: { _ in
+        [
+          ("user_id", userID),
+          ("game_id", gameID),
+          ("language", language),
+          ("period", period?.rawValue),
+          ("sort", sort?.rawValue),
+          ("type", type?.rawValue),
+          ("first", limit.map(String.init)),
+          ("after", afterCursor),
+          ("before", beforeCursor),
+        ] + idQueryItems
+      },
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
+  }
+}
+
+public enum VideoPeriod: String, Sendable {
+  case all
+  case day
+  case week
+  case month
+}
+
+public enum VideoSort: String, Sendable {
+  case time
+  case trending
+  case views
+}
+
+public enum VideoTypeFilter: String, Sendable {
+  case all
+  case archive
+  case highlight
+  case upload
+}
+
+@MemberwiseInit(.public)
+public struct Video: Decodable, Sendable {
+  public let id: String
+  public let streamID: String?
+  public let userID: String
+  public let userLogin: String
+  public let userDisplayName: String
+  public let title: String
+  public let description: String
+  public let createdAt: Date
+  public let publishedAt: Date
+  public let url: String
+  public let thumbnailURL: String
+  public let viewable: String
+  public let viewCount: Int
+  public let language: String
+  public let type: VideoType
+  public let duration: String
+  public let mutedSegments: [MutedSegment]?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case streamID = "streamId"
+    case userID = "userId"
+    case userLogin
+    case userDisplayName = "userName"
+    case title
+    case description
+    case createdAt
+    case publishedAt
+    case url
+    case thumbnailURL = "thumbnailUrl"
+    case viewable
+    case viewCount
+    case language
+    case type
+    case duration
+    case mutedSegments
+  }
+}
+
+public enum VideoType: String, Decodable, Sendable {
+  case archive
+  case highlight
+  case upload
+}
+
+@MemberwiseInit(.public)
+public struct MutedSegment: Decodable, Sendable {
+  public let duration: Int
+  public let offset: Int
+}

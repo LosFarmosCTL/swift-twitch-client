@@ -7,7 +7,7 @@ struct ScheduleTests {
   private let harness = HelixTestHarness()
 
   @Test
-  func getChanneliCalendar() async throws {
+  func getChannelICalendar() async throws {
     let url = try #require(
       URL(
         string: "https://api.twitch.tv/helix/schedule/icalendar?broadcaster_id=141981764")
@@ -18,7 +18,7 @@ struct ScheduleTests {
       body: MockedData.getChanneliCalendarICS)
 
     let calendar = try await harness.twitch.helix(
-      endpoint: .getChanneliCalendar(broadcasterID: "141981764")
+      for: .getChannelICalendar(broadcasterID: "141981764")
     )
 
     #expect(calendar.contains("BEGIN:VCALENDAR"))
@@ -43,7 +43,7 @@ struct ScheduleTests {
     let endTime = try Date("2021-05-23T00:00:00Z", strategy: .iso8601)
 
     try await harness.twitch.helix(
-      endpoint: .updateChannelStreamSchedule(
+      for: .updateChannelStreamSchedule(
         isVacationEnabled: true,
         vacationStartTime: startTime,
         vacationEndTime: endTime,
@@ -66,7 +66,7 @@ struct ScheduleTests {
     let startTime = try Date("2021-07-01T18:00:00Z", strategy: .iso8601)
 
     let schedule = try await harness.twitch.helix(
-      endpoint: .createChannelStreamScheduleSegment(
+      for: .createChannelStreamScheduleSegment(
         startTime: startTime,
         timezone: "America/New_York",
         duration: 60,
@@ -87,7 +87,7 @@ struct ScheduleTests {
     #expect(segment.title == "TwitchDev Monthly Update // July 1, 2021")
     #expect(segment.startTime.formatted(.iso8601) == "2021-07-01T18:00:00Z")
     #expect(segment.endTime.formatted(.iso8601) == "2021-07-01T19:00:00Z")
-    #expect(segment.canceledUntil == nil)
+    #expect(segment.cancelledUntil == nil)
     #expect(segment.category?.id == "509670")
     #expect(segment.category?.name == "Science & Technology")
     #expect(segment.isRecurring == false)
@@ -109,7 +109,7 @@ struct ScheduleTests {
       body: MockedData.updateChannelStreamScheduleSegmentJSON)
 
     let schedule = try await harness.twitch.helix(
-      endpoint: .updateChannelStreamScheduleSegment(
+      for: .updateChannelStreamScheduleSegment(
         segmentID: segmentID,
         duration: 120
       ))
@@ -136,7 +136,7 @@ struct ScheduleTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .deleteChannelStreamScheduleSegment(
+      for: .deleteChannelStreamScheduleSegment(
         segmentID: segmentID
       ))
   }

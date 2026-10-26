@@ -19,7 +19,7 @@ struct ExtensionsTests {
       body: MockedData.getExtensionConfigurationSegmentJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getExtensionConfigurationSegment(
+      for: .getExtensionConfigurationSegment(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         segments: [.global]))
 
@@ -40,7 +40,7 @@ struct ExtensionsTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .setExtensionConfigurationSegment(
+      for: .setExtensionConfigurationSegment(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         segment: .global,
         content: "hello config!",
@@ -57,7 +57,7 @@ struct ExtensionsTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .sendExtensionPubSubMessage(
+      for: .sendExtensionPubSubMessage(
         target: [.broadcast],
         message: "hello world!",
         broadcasterID: "141981764"))
@@ -76,7 +76,7 @@ struct ExtensionsTests {
       body: MockedData.getExtensionLiveChannelsJSON)
 
     let (channels, cursor) = try await harness.twitch.helix(
-      endpoint: .getExtensionLiveChannels(
+      for: .getExtensionLiveChannels(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         limit: 1))
 
@@ -102,7 +102,7 @@ struct ExtensionsTests {
       body: MockedData.getExtensionSecretsJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getExtensionSecrets(extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2"))
+      for: .getExtensionSecrets(extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2"))
 
     #expect(result.formatVersion == 1)
     #expect(result.secrets.count == 1)
@@ -123,7 +123,7 @@ struct ExtensionsTests {
       body: MockedData.createExtensionSecretJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .createExtensionSecret(
+      for: .createExtensionSecret(
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
         delay: 600))
 
@@ -146,7 +146,7 @@ struct ExtensionsTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .sendExtensionChatMessage(
+      for: .sendExtensionChatMessage(
         in: "237757755",
         text: "Hello",
         extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
@@ -166,7 +166,7 @@ struct ExtensionsTests {
       body: MockedData.getExtensionJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getExtension(
+      for: .getExtension(
         extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
         version: "0.0.9"))
 
@@ -190,7 +190,7 @@ struct ExtensionsTests {
       body: MockedData.getReleasedExtensionJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getReleasedExtension(
+      for: .getReleasedExtension(
         extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
         version: "0.0.9"))
 
@@ -212,7 +212,7 @@ struct ExtensionsTests {
       body: MockedData.getExtensionBitsProductsJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .getExtensionBitsProducts(includeAll: true))
+      for: .getExtensionBitsProducts(includeAll: true))
 
     #expect(result.count == 1)
     #expect(result.first?.sku == "1010")
@@ -230,7 +230,7 @@ struct ExtensionsTests {
       body: MockedData.updateExtensionBitsProductJSON)
 
     let result = try await harness.twitch.helix(
-      endpoint: .updateExtensionBitsProduct(
+      for: .updateExtensionBitsProduct(
         sku: "1010",
         cost: .init(amount: 990, type: .bits),
         displayName: "Rusty Crate 2",

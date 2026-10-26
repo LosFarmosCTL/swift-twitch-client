@@ -6,9 +6,9 @@ extension HelixEndpoint {
   {
     .init(
       method: "DELETE", path: "moderation/moderators",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", auth.userID),
+          ("broadcaster_id", credentials.userID),
           ("user_id", userID),
         ]
       })

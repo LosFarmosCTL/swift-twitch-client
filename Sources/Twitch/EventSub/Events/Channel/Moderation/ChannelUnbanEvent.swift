@@ -4,26 +4,25 @@ import MemberwiseInit
 public struct ChannelUnbanEvent: Event {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let moderatorID: String
   public let moderatorLogin: String
-  public let moderatorName: String
+  public let moderatorDisplayName: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case moderatorID = "moderatorUserId"
     case moderatorLogin = "moderatorUserLogin"
-    case moderatorName = "moderatorUserName"
+    case moderatorDisplayName = "moderatorUserName"
   }
 }

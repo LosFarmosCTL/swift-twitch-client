@@ -6,13 +6,13 @@ extension HelixEndpoint {
     userIDs: [String] = [],
     userLogins: [String] = [],
     gameIDs: [String] = [],
-    type: StreamType? = nil,
+    type: StreamTypeFilter? = nil,
     languages: [String] = [],
     limit: Int? = nil,
-    before endCursor: String? = nil,
-    after startCursor: String? = nil
+    before beforeCursor: String? = nil,
+    after afterCursor: String? = nil
   ) -> HelixEndpoint<
-    (streams: [Stream], paginationCursor: String?),
+    (streams: [Stream], cursor: String?),
     Stream, HelixEndpointResponseTypes.Normal
   > {
     let userIDs = userIDs.compactMap { ("user_id", $0) }
@@ -26,14 +26,14 @@ extension HelixEndpoint {
         [
           ("type", type?.rawValue),
           ("first", limit.map(String.init)),
-          ("before", endCursor),
-          ("after", startCursor),
+          ("before", beforeCursor),
+          ("after", afterCursor),
         ] + userIDs + userLogins + gameIDs + languages
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 
-public enum StreamType: String, Sendable {
+public enum StreamTypeFilter: String, Sendable {
   case live
   case all
 }
@@ -44,7 +44,7 @@ public struct Stream: Decodable, Sendable {
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let gameID: String
   public let gameName: String
@@ -62,13 +62,15 @@ public struct Stream: Decodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case id
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case gameID = "gameId"
     case gameName
-
-    case type, title, language, tags, isMature
-
+    case type
+    case title
+    case language
+    case tags
+    case isMature
     case viewerCount
     case startedAt
     case thumbnailURL = "thumbnailUrl"

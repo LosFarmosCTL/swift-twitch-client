@@ -16,12 +16,12 @@ struct CharityTests {
       url: url,
       body: MockedData.getCharityCampaignJSON)
 
-    let campaign = try await harness.twitch.helix(endpoint: .getCharityCampaign())
+    let campaign = try await harness.twitch.helix(for: .getCharityCampaign())
 
     #expect(campaign?.id == "123-abc-456-def")
     #expect(campaign?.broadcasterID == "123456")
     #expect(campaign?.broadcasterLogin == "sunnysideup")
-    #expect(campaign?.broadcasterName == "SunnySideUp")
+    #expect(campaign?.broadcasterDisplayName == "SunnySideUp")
     #expect(campaign?.charityName == "Example name")
     #expect(campaign?.charityDescription == "Example description")
     #expect(campaign?.charityLogo == "https://abc.cloudfront.net/ppgf/1000/100.png")
@@ -46,7 +46,7 @@ struct CharityTests {
       body: MockedData.getCharityCampaignDonationsJSON)
 
     let (donations, cursor) = try await harness.twitch.helix(
-      endpoint: .getCharityCampaignDonations(limit: 2))
+      for: .getCharityCampaignDonations(limit: 2))
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
     #expect(donations.count == 2)
@@ -56,7 +56,7 @@ struct CharityTests {
     #expect(firstDonation?.campaignID == "123-abc-456-def")
     #expect(firstDonation?.userID == "5678")
     #expect(firstDonation?.userLogin == "cool_user")
-    #expect(firstDonation?.userName == "Cool_User")
+    #expect(firstDonation?.userDisplayName == "Cool_User")
     #expect(firstDonation?.amount.value == 500)
     #expect(firstDonation?.amount.decimalPlaces == 2)
     #expect(firstDonation?.amount.currency == "USD")

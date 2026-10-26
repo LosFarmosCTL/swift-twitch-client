@@ -9,7 +9,7 @@ struct EventSubChatTests {
   @Test("Should decode channelChatClear event")
   func testChannelChatClearEvent() async throws {
     let message = try await harness.testEvent(
-      .chatClear(broadcasterID: "111", userID: "222"),
+      .channelChatClear(broadcasterID: "111", userID: "222"),
       with: MockedMessages.channelChatClear,
       requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
 
@@ -19,7 +19,7 @@ struct EventSubChatTests {
   @Test("Should decode channelChatClearUserMessages event")
   func testChannelChatClearUserMessagesEvent() async throws {
     let message = try await harness.testEvent(
-      .chatClearUserMessages(broadcasterID: "111", userID: "222"),
+      .channelChatClearUserMessages(broadcasterID: "111", userID: "222"),
       with: MockedMessages.channelChatClearUserMessages,
       requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
 
@@ -30,7 +30,7 @@ struct EventSubChatTests {
   @Test("Should decode channelChatMessage event")
   func testChannelChatMessageEvent() async throws {
     let message = try await harness.testEvent(
-      .chatMessage(broadcasterID: "111", userID: "222"),
+      .channelChatMessage(broadcasterID: "111", userID: "222"),
       with: MockedMessages.channelChatMessage,
       requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
 
@@ -78,7 +78,7 @@ struct EventSubChatTests {
       return
     }
 
-    #expect(notice.subTier == .tier1)
+    #expect(notice.subscriptionTier == .tier1)
     #expect(notice.isPrime == false)
     #expect(notice.durationMonths == 1)
     #expect(notice.cumulativeMonths == 10)
@@ -99,7 +99,7 @@ struct EventSubChatTests {
       return
     }
 
-    #expect(notice.subTier == .tier1)
+    #expect(notice.subscriptionTier == .tier1)
     #expect(notice.isPrime == false)
     #expect(notice.durationMonths == 1)
     #expect(notice.cumulativeMonths == 10)

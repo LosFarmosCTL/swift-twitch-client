@@ -19,7 +19,7 @@ struct PollsTests {
       body: MockedData.getPollsJSON)
 
     let (polls, cursor) = try await harness.twitch.helix(
-      endpoint: .getPolls(filterIDs: ["ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"]))
+      for: .getPolls(pollIDs: ["ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"]))
 
     #expect(polls.count == 1)
     #expect(cursor == nil)
@@ -46,7 +46,7 @@ struct PollsTests {
       body: MockedData.createPollJSON)
 
     let poll = try await harness.twitch.helix(
-      endpoint: .createPoll(
+      for: .createPoll(
         title: "Heads or Tails?",
         choices: ["Heads", "Tails"],
         duration: 1800,
@@ -70,8 +70,8 @@ struct PollsTests {
       body: MockedData.endPollJSON)
 
     let poll = try await harness.twitch.helix(
-      endpoint: .endPoll(
-        id: "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a",
+      for: .endPoll(
+        pollID: "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a",
         status: .terminated))
 
     #expect(poll.id == "ed961efd-8a3f-4cf5-a9d0-e616c590cd2a")

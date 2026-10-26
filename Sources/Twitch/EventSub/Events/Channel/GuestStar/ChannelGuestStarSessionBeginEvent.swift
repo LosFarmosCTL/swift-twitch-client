@@ -4,7 +4,7 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 public struct ChannelGuestStarSessionBeginEvent: Event {
   public let broadcasterID: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
   public let broadcasterLogin: String
 
   public let sessionID: String
@@ -12,9 +12,8 @@ public struct ChannelGuestStarSessionBeginEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
-    case broadcasterName = "broadcasterUserName"
+    case broadcasterDisplayName = "broadcasterUserName"
     case broadcasterLogin = "broadcasterUserLogin"
-
     case sessionID = "sessionId"
     case startedAt
   }

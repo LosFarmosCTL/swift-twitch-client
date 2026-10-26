@@ -17,7 +17,7 @@ extension TwitchClient {
     makeHelixTask(
       operation: {
         try await Self.helix(
-          endpoint: endpoint,
+          for: endpoint,
           credentials: credentials,
           urlSession: urlSession)
       },
@@ -34,7 +34,7 @@ extension TwitchClient {
     makeHelixTask(
       operation: {
         try await Self.helix(
-          endpoint: endpoint,
+          for: endpoint,
           credentials: credentials,
           urlSession: urlSession)
       },
@@ -51,7 +51,7 @@ extension TwitchClient {
     makeHelixTask(
       operation: {
         try await Self.helix(
-          endpoint: endpoint,
+          for: endpoint,
           credentials: credentials,
           urlSession: urlSession)
       },
@@ -67,7 +67,7 @@ extension TwitchClient {
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
-        try await self.helix(endpoint: endpoint)
+        try await self.helix(for: endpoint)
       },
       completionHandler: completionHandler)
   }
@@ -79,7 +79,7 @@ extension TwitchClient {
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
-        try await self.helix(endpoint: endpoint)
+        try await self.helix(for: endpoint)
       },
       completionHandler: completionHandler)
   }
@@ -91,7 +91,7 @@ extension TwitchClient {
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
-        try await self.helix(endpoint: endpoint)
+        try await self.helix(for: endpoint)
       },
       completionHandler: completionHandler)
   }

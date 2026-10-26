@@ -3,17 +3,18 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func createEventSubSubscription(
-    using transport: EventSubTransport, type: EventSubSubscription<some Event>
+    using transport: EventSubTransport, for subscription: EventSubSubscription<some Event>
   ) -> HelixEndpoint<
-    CreateEventSubResponse,
-    CreateEventSubResponse.EventSubSubscription,
+    CreateEventSubSubscriptionResponse,
+    CreateEventSubSubscriptionResponse.Subscription,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "POST", path: "eventsub/subscriptions",
       body: { _ in
         CreateEventSubRequestBody(
-          type: type.type, version: type.version, condition: type.condition,
+          type: subscription.type, version: subscription.version,
+          condition: subscription.condition,
           transport: transport.transport)
       },
       makeResponse: {
@@ -23,7 +24,7 @@ extension HelixEndpoint {
         let totalCost = try $0.require(\.totalCost)
         let maxTotalCost = try $0.require(\.maxTotalCost)
 
-        return CreateEventSubResponse(
+        return CreateEventSubSubscriptionResponse(
           subscription: subscription, total: total, totalCost: totalCost,
           maxTotalCost: maxTotalCost)
       })
@@ -32,46 +33,48 @@ extension HelixEndpoint {
 
 public enum EventSubTransport: Sendable {
   case webhook(callback: String, secret: String)
-  case websocket(id: String)
+  case webSocket(id: String)
   case conduit(id: String)
 
-  fileprivate var transport: Transport {
+  fileprivate var transport: EventSubTransportPayload {
     switch self {
     case .webhook(let callback, let secret):
       return .init(
         method: "webhook", callback: callback, secret: secret, sessionID: nil,
         conduitID: nil)
-    case .websocket(let id):
+    case .webSocket(let sessionID):
       return .init(
-        method: "websocket", callback: nil, secret: nil, sessionID: id, conduitID: nil)
-    case .conduit(let id):
+        method: "websocket", callback: nil, secret: nil, sessionID: sessionID,
+        conduitID: nil)
+    case .conduit(let conduitID):
       return .init(
-        method: "conduit", callback: nil, secret: nil, sessionID: nil, conduitID: id)
+        method: "conduit", callback: nil, secret: nil, sessionID: nil,
+        conduitID: conduitID)
     }
   }
 }
 
-public struct CreateEventSubResponse: Sendable {
-  public let subscription: EventSubSubscription
+public struct CreateEventSubSubscriptionResponse: Sendable {
+  public let subscription: Subscription
 
   public let total: Int
   public let totalCost: Int
   public let maxTotalCost: Int
 
   @MemberwiseInit(.public)
-  public struct EventSubSubscription: Decodable, Sendable {
+  public struct Subscription: Decodable, Sendable {
     public let id: String
     public let status: String
     public let type: String
     public let version: String
     public let condition: [String: String]
     public let createdAt: Date
-    public let transport: TransportResponse
+    public let transport: Transport
     public let cost: Int
   }
 
   @MemberwiseInit(.public)
-  public struct TransportResponse: Decodable, Sendable {
+  public struct Transport: Decodable, Sendable {
     public let method: String
 
     // only included if method is "webhook"
@@ -104,10 +107,10 @@ struct CreateEventSubRequestBody: Codable, Sendable {
   let version: String
   let condition: [String: String]
 
-  let transport: Transport
+  let transport: EventSubTransportPayload
 }
 
-struct Transport: Codable, Sendable {
+struct EventSubTransportPayload: Codable, Sendable {
   let method: String
   let callback: String?
   let secret: String?

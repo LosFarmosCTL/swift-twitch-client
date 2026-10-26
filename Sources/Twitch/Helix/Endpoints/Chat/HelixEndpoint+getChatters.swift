@@ -3,24 +3,24 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChatters(
-    in channel: String,
+    in broadcasterID: String,
     limit: Int? = nil,
-    after cursor: String? = nil
-  ) -> HelixEndpoint<Chatters, Chatter, HelixEndpointResponseTypes.Normal> {
+    after afterCursor: String? = nil
+  ) -> HelixEndpoint<ChattersResponse, Chatter, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/chatters",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("broadcaster_id", channel),
-          ("moderator_id", auth.userID),
+          ("broadcaster_id", broadcasterID),
+          ("moderator_id", credentials.userID),
           ("first", limit.map(String.init)),
-          ("after", cursor),
+          ("after", afterCursor),
         ]
       },
       makeResponse: {
         let total = try $0.require(\.total)
 
-        return Chatters(
+        return ChattersResponse(
           total: total,
           chatters: $0.data,
           cursor: $0.pagination?.cursor)
@@ -28,7 +28,7 @@ extension HelixEndpoint {
   }
 }
 
-public struct Chatters: Sendable {
+public struct ChattersResponse: Sendable {
   public let total: Int
 
   public let chatters: [Chatter]
@@ -40,10 +40,11 @@ public struct Chatters: Sendable {
 public struct Chatter: Decodable, Sendable {
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
+    case userLogin
+    case userDisplayName = "userName"
   }
 }

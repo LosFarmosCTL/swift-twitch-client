@@ -15,12 +15,12 @@ struct GoalsTests {
       url: url,
       body: MockedData.getCreatorGoalsJSON)
 
-    let goals = try await harness.twitch.helix(endpoint: .getCreatorGoals())
+    let goals = try await harness.twitch.helix(for: .getCreatorGoals())
 
     #expect(goals.count == 1)
     #expect(goals.first?.id == "1woowvbkiNv8BRxEWSqmQz6Zk92")
     #expect(goals.first?.broadcasterID == "141981764")
-    #expect(goals.first?.broadcasterName == "TwitchDev")
+    #expect(goals.first?.broadcasterDisplayName == "TwitchDev")
     #expect(goals.first?.broadcasterLogin == "twitchdev")
     #expect(goals.first?.type == .follower)
     #expect(goals.first?.description == "Follow goal for Helix testing")

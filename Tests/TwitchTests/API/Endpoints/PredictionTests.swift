@@ -19,8 +19,8 @@ struct PredictionTests {
       body: MockedData.getPredictionsJSON)
 
     let (predictions, cursor) = try await harness.twitch.helix(
-      endpoint: .getPredictions(
-        filterIDs: ["d6676d5c-c86e-44d2-bfc4-100fb48f0656"],
+      for: .getPredictions(
+        predictionIDs: ["d6676d5c-c86e-44d2-bfc4-100fb48f0656"],
         limit: nil,
         after: nil)
     )
@@ -32,7 +32,7 @@ struct PredictionTests {
     #expect(prediction.id == "d6676d5c-c86e-44d2-bfc4-100fb48f0656")
     #expect(prediction.broadcasterID == "55696719")
     #expect(prediction.broadcasterLogin == "twitchdev")
-    #expect(prediction.broadcasterName == "TwitchDev")
+    #expect(prediction.broadcasterDisplayName == "TwitchDev")
     #expect(prediction.title == "Will there be any leaks today?")
     #expect(prediction.winningOutcomeID == nil)
     #expect(prediction.predictionWindow == 600)
@@ -60,7 +60,7 @@ struct PredictionTests {
       body: MockedData.createPredictionJSON)
 
     let prediction = try await harness.twitch.helix(
-      endpoint: .createPrediction(
+      for: .createPrediction(
         title: "Any leeks in the stream?",
         outcomes: ["Yes, give it time.", "Definitely not."],
         predictionWindow: 120))
@@ -68,7 +68,7 @@ struct PredictionTests {
     #expect(prediction.id == "bc637af0-7766-4525-9308-4112f4cbf178")
     #expect(prediction.broadcasterID == "141981764")
     #expect(prediction.broadcasterLogin == "twitchdev")
-    #expect(prediction.broadcasterName == "TwitchDev")
+    #expect(prediction.broadcasterDisplayName == "TwitchDev")
     #expect(prediction.title == "Any leeks in the stream?")
     #expect(prediction.winningOutcomeID == nil)
     #expect(prediction.predictionWindow == 120)
@@ -100,7 +100,7 @@ struct PredictionTests {
       body: MockedData.endPredictionJSON)
 
     let prediction = try await harness.twitch.helix(
-      endpoint: .endPrediction(
+      for: .endPrediction(
         predictionID: "bc637af0-7766-4525-9308-4112f4cbf178",
         status: .resolved,
         winningOutcomeID: "73085848-a94d-4040-9d21-2cb7a89374b7"))
@@ -108,7 +108,7 @@ struct PredictionTests {
     #expect(prediction.id == "bc637af0-7766-4525-9308-4112f4cbf178")
     #expect(prediction.broadcasterID == "141981764")
     #expect(prediction.broadcasterLogin == "twitchdev")
-    #expect(prediction.broadcasterName == "TwitchDev")
+    #expect(prediction.broadcasterDisplayName == "TwitchDev")
     #expect(prediction.title == "Will we win all the games?")
     #expect(prediction.winningOutcomeID == "73085848-a94d-4040-9d21-2cb7a89374b7")
     #expect(prediction.predictionWindow == 120)

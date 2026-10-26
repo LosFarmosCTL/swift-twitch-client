@@ -3,20 +3,22 @@ import MemberwiseInit
 
 extension HelixEndpoint {
   public static func getChannelEmotes(
-    of channel: String
-  ) -> HelixEndpoint<ChannelEmotes, ChannelEmote, HelixEndpointResponseTypes.Normal> {
+    of broadcasterID: String
+  ) -> HelixEndpoint<
+    ChannelEmotesResponse, ChannelEmote, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "chat/emotes",
-      queryItems: { _ in [("broadcaster_id", channel)] },
+      queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: {
         let template = try $0.require(\.template)
 
-        return ChannelEmotes(emotes: $0.data, template: template)
+        return ChannelEmotesResponse(emotes: $0.data, template: template)
       })
   }
 }
 
-public struct ChannelEmotes: Sendable {
+public struct ChannelEmotesResponse: Sendable {
   public let emotes: [ChannelEmote]
 
   public let template: String
@@ -41,11 +43,11 @@ public struct ChannelEmote: Decodable, Sendable {
   }
 
   public func getURL(
-    from templateUrl: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
+    from templateURL: String, format: Emote.Format = .png, scale: Emote.Scale = .large,
     themeMode: Emote.ThemeMode = .dark
   ) -> URL? {
     return URL(
-      string: templateUrl.replacingOccurrences(of: "{{id}}", with: self.id)
+      string: templateURL.replacingOccurrences(of: "{{id}}", with: self.id)
         .replacingOccurrences(of: "{{scale}}", with: scale.rawValue).replacingOccurrences(
           of: "{{format}}", with: format.rawValue
         ).replacingOccurrences(of: "{{theme_mode}}", with: themeMode.rawValue))

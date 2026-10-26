@@ -6,7 +6,7 @@ public struct ChannelSubscriptionGiftEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let total: Int
   public let cumulativeTotal: Int?
@@ -15,12 +15,15 @@ public struct ChannelSubscriptionGiftEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userLogin, userName
-
+    case userLogin
+    case userDisplayName = "userName"
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-    case total, cumulativeTotal, tier, isAnonymous
+    case broadcasterDisplayName = "broadcasterUserName"
+    case total
+    case cumulativeTotal
+    case tier
+    case isAnonymous
   }
 
   public init(from decoder: Decoder) throws {
@@ -32,14 +35,16 @@ public struct ChannelSubscriptionGiftEvent: Event {
     } else {
       let gifterID = try container.decode(String.self, forKey: .userID)
       let gifterLogin = try container.decode(String.self, forKey: .userLogin)
-      let gifterName = try container.decode(String.self, forKey: .userName)
+      let gifterDisplayName = try container.decode(String.self, forKey: .userDisplayName)
 
-      gifter = .init(userID: gifterID, userLogin: gifterLogin, userName: gifterName)
+      gifter = .init(
+        userID: gifterID, userLogin: gifterLogin, userDisplayName: gifterDisplayName)
     }
 
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
     broadcasterLogin = try container.decode(String.self, forKey: .broadcasterLogin)
-    broadcasterName = try container.decode(String.self, forKey: .broadcasterName)
+    broadcasterDisplayName = try container.decode(
+      String.self, forKey: .broadcasterDisplayName)
 
     total = try container.decode(Int.self, forKey: .total)
     cumulativeTotal = try container.decodeIfPresent(Int.self, forKey: .cumulativeTotal)
@@ -51,6 +56,6 @@ public struct ChannelSubscriptionGiftEvent: Event {
   public struct Gifter: Sendable {
     public let userID: String
     public let userLogin: String
-    public let userName: String
+    public let userDisplayName: String
   }
 }

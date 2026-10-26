@@ -6,15 +6,15 @@ public struct ChannelUnbanRequestResolveEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let moderatorID: String?
   public let moderatorLogin: String?
-  public let moderatorName: String?
+  public let moderatorDisplayName: String?
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let resolutionText: String?
   public let status: RequestStatus
@@ -23,21 +23,20 @@ public struct ChannelUnbanRequestResolveEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case moderatorID = "moderatorId"
-    case moderatorLogin = "moderatorLogin"
-    case moderatorName = "moderatorName"
-
+    case moderatorLogin
+    case moderatorDisplayName = "moderatorName"
     case userID = "userId"
-    case userLogin, userName
-
-    case resolutionText, status
+    case userLogin
+    case userDisplayName = "userName"
+    case resolutionText
+    case status
   }
 
   public enum RequestStatus: String, Codable, Sendable {
     case approved
     case denied
-    case canceled
+    case cancelled = "canceled"
   }
 }

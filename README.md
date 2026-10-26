@@ -44,25 +44,25 @@ Add the following dependency to your `Package.swift`:
 
 ### Creating credentials
 
-See the Twitch docs on how to obtain the necessary ClientID and OAuth token, this will depend a lot on what you want to do and where you want to do it, e.g. a mobile chat client can prompt a user to login via a Browser, if you're building a Chatbot you might want to obtain your token via completely different flow - you'll have to decide what works best for you. You can validate a token using the static function `TwitchClient.validateToken` that will return a struct containing the ClientID, user ID, user login, scopes and expiry date of the given token:
+See the Twitch docs on how to obtain the necessary ClientID and OAuth token, this will depend a lot on what you want to do and where you want to do it, e.g. a mobile chat client can prompt a user to login via a Browser, if you're building a Chatbot you might want to obtain your token via completely different flow - you'll have to decide what works best for you. You can validate a token using the static function `TwitchClient.validateAccessToken` that will return a struct containing the ClientID, user ID, user login, scopes and expiry date of the given token:
 
 ```swift
 let token = "<token>"
 
-let validatedToken = try await TwitchClient.validateToken(token: token)
+let validatedToken = try await TwitchClient.validateAccessToken(accessToken: token)
 ```
 
 You can then create a `TwitchClient` using the `TwitchCredentials` struct:
 
 ```swift
 let credentials = TwitchCredentials(
-  oAuth: token,
+  accessToken: token,
   clientID: validatedToken.clientID,
   userID: validatedToken.userID,
-  userLogin: validatedToken.userLogin
+  userLogin: validatedToken.login
 )
 
-let twitch = TwitchClient(authentication: credentials)
+let twitch = TwitchClient(credentials: credentials)
 ```
 
 Using the `TwitchClient` you can now access pretty much the full Twitch API surface:
@@ -72,7 +72,7 @@ Using the `TwitchClient` you can now access pretty much the full Twitch API surf
 ```swift
 // Using async/await
 
-let result = try await twitch.helix(endpoint: .someEndpoint(param1: "forsen"))
+let result = try await twitch.helix(for: .someEndpoint(param1: "forsen"))
 
 // Using completion Handlers
 
@@ -88,7 +88,7 @@ request.cancel()
 ### EventSub
 
 ```swift
-let twitch = TwitchClient(authentication: credentials)
+let twitch = TwitchClient(credentials: credentials)
 
 // Using AsyncStream
 
@@ -103,7 +103,7 @@ for try await event in stream {
 
 // Using callbacks
 
-try await twitch.eventListener(on: .streamOnline(broadcasterID: "1234")) { result in
+try await twitch.eventListener(for: .streamOnline(broadcasterID: "1234")) { result in
   switch result {
   case .event(let event): print(event)
   case .failure(let error): print(error)
@@ -131,7 +131,7 @@ later `TwitchClient.switchCredentials` calls do not update an existing IRC sessi
 
 ```swift
 let irc = await twitch.makeIRCClient(mode: .receiveOnly)
-let messages = await irc.messages()
+let messages = await irc.messageStream()
 let states = await irc.stateUpdates()
 
 try await irc.setDesiredChannels(["forsen", "twitchdev"])
@@ -171,7 +171,7 @@ IRC is accessible via listeners and combine publishers as well:
 ```swift
 let irc = await twitch.makeIRCClient()
 
-let listener = await irc.listener { event in
+let listener = await irc.messageListener { event in
   switch event {
   case .message(let message): print(message)
   case .finished: print("IRC session ended")
@@ -179,7 +179,7 @@ let listener = await irc.listener { event in
   }
 }
 
-let cancellable = await irc.publisher().sink(
+let cancellable = await irc.messagePublisher().sink(
   receiveCompletion: { completion in print(completion) },
   receiveValue: { message in print(message) })
 
@@ -194,11 +194,11 @@ await irc.shutdown()
 You can also use the static methods on `TwitchClient` to make one-off requests to the Twitch API by passing in `TwitchCredentials` to the `helix()` method directly:
 
 ```swift
-let result = try await TwitchClient.helix(endpoint: .someEndpoint(param1: "forsen"), authentication: credentials)
+let result = try await TwitchClient.helix(for: .someEndpoint(param1: "forsen"), credentials: credentials)
 ```
 
 ## Linux support
 
 This library will compile completely fine on Linux, minus the Combine support of course and normal HTTP requests to Helix will work as expected.
 
-However, `FoundationNetworking` uses libcurl for all networking on Linux and WebSocket support has only been included by default since version `8.11.0`, which is to my knowledge pretty rare to find on server distros. If an older version of libcurl without support is being used, connecting to a websocket will crash with a `fatalError`! For some more information you can see swiftlang/swift-corelibs-foundation#4730
+However, `FoundationNetworking` uses libcurl for all networking on Linux and WebSocket support has only been included by default since version `8.11.0`, which is to my knowledge pretty rare to find on server distros. If an older version of libcurl without support is being used, connecting to a webSocket will crash with a `fatalError`! For some more information you can see swiftlang/swift-corelibs-foundation#4730

@@ -7,11 +7,11 @@ public struct ChannelUnbanRequestCreateEvent: Event {
 
   public let broadcasterID: String
   public let broadcasterLogin: String
-  public let broadcasterName: String
+  public let broadcasterDisplayName: String
 
   public let userID: String
   public let userLogin: String
-  public let userName: String
+  public let userDisplayName: String
 
   public let text: String
   public let createdAt: Date
@@ -20,10 +20,11 @@ public struct ChannelUnbanRequestCreateEvent: Event {
     case id
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
-    case broadcasterName = "broadcasterUserName"
-
+    case broadcasterDisplayName = "broadcasterUserName"
     case userID = "userId"
-    case userLogin, userName
-    case text, createdAt
+    case userLogin
+    case userDisplayName = "userName"
+    case text
+    case createdAt
   }
 }

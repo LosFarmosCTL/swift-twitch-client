@@ -18,6 +18,6 @@ struct WhispersTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .sendWhisper(to: "4321", message: "Hello, world!"))
+      for: .sendWhisper(to: "4321", message: "Hello, world!"))
   }
 }

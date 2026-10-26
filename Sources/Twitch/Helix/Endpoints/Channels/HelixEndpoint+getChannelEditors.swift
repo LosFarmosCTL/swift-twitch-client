@@ -7,8 +7,8 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "channels/editors",
-      queryItems: { auth in
-        [("broadcaster_id", auth.userID)]
+      queryItems: { credentials in
+        [("broadcaster_id", credentials.userID)]
       },
       makeResponse: { $0.data })
   }
@@ -17,11 +17,12 @@ extension HelixEndpoint {
 @MemberwiseInit(.public)
 public struct Editor: Decodable, Sendable {
   public let userID: String
-  public let userName: String
+  public let userDisplayName: String
   public let createdAt: Date
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
-    case userName, createdAt
+    case userDisplayName = "userName"
+    case createdAt
   }
 }

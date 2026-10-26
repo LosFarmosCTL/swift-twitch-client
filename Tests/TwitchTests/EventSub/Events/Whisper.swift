@@ -9,17 +9,17 @@ struct EventSubWhisperTests {
   @Test("Should decode whisperReceived event")
   func testWhisperReceivedEvent() async throws {
     let message = try await harness.testEvent(
-      .whisperReceived(userID: "111"),
-      with: MockedMessages.whisperReceived,
+      .userWhisperMessage(userID: "111"),
+      with: MockedMessages.userWhisperMessage,
       requiringCondition: ["user_id": "111"])
 
     let received = try #require(message)
     #expect(received.fromUserID == "423374343")
     #expect(received.fromUserLogin == "glowillig")
-    #expect(received.fromUserName == "glowillig")
+    #expect(received.fromUserDisplayName == "glowillig")
     #expect(received.toUserID == "424596340")
     #expect(received.toUserLogin == "quotrok")
-    #expect(received.toUserName == "quotrok")
+    #expect(received.toUserDisplayName == "quotrok")
     #expect(received.whisperID == "some-whisper-id")
     #expect(received.whisper == "a secret")
   }

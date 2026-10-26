@@ -14,7 +14,7 @@ struct ConduitsTests {
       url: url,
       body: MockedData.getConduitsJSON)
 
-    let conduits = try await harness.twitch.helix(endpoint: .getConduits())
+    let conduits = try await harness.twitch.helix(for: .getConduits())
 
     #expect(conduits.count == 2)
     #expect(conduits.first?.id == "26b1c993-bfcf-44d9-b876-379dacafe75a")
@@ -30,7 +30,7 @@ struct ConduitsTests {
       method: "POST",
       body: MockedData.createConduitJSON)
 
-    let conduit = try await harness.twitch.helix(endpoint: .createConduit(shardCount: 5))
+    let conduit = try await harness.twitch.helix(for: .createConduit(shardCount: 5))
 
     #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
     #expect(conduit.shardCount == 5)
@@ -46,7 +46,8 @@ struct ConduitsTests {
       body: MockedData.updateConduitJSON)
 
     let conduit = try await harness.twitch.helix(
-      endpoint: .updateConduit(id: "bfcfc993-26b1-b876-44d9-afe75a379dac", shardCount: 5))
+      for: .updateConduit(
+        conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac", shardCount: 5))
 
     #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
     #expect(conduit.shardCount == 5)
@@ -66,7 +67,7 @@ struct ConduitsTests {
       status: 204)
 
     try await harness.twitch.helix(
-      endpoint: .deleteConduit(id: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
+      for: .deleteConduit(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
   }
 
   @Test
@@ -82,7 +83,7 @@ struct ConduitsTests {
       body: MockedData.getConduitShardsJSON)
 
     let (shards, cursor) = try await harness.twitch.helix(
-      endpoint: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
+      for: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
 
     #expect(cursor == nil)
     #expect(shards.count == 5)
@@ -111,7 +112,7 @@ struct ConduitsTests {
       body: MockedData.updateConduitShardsJSON)
 
     let response = try await harness.twitch.helix(
-      endpoint: .updateConduitShards(
+      for: .updateConduitShards(
         conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac",
         shards: [
           .init(

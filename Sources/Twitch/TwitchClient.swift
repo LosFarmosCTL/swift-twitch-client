@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 public actor TwitchClient {
-  internal var authentication: TwitchCredentials
+  internal var credentials: TwitchCredentials
   internal let network: NetworkSession
 
   internal let encoder: JSONEncoder
@@ -14,35 +14,35 @@ public actor TwitchClient {
   internal var eventSubClient: EventSubClient
 
   public init(
-    authentication: TwitchCredentials,
+    credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) {
     let network = URLSessionNetworkSession(session: urlSession)
 
     self.init(
-      authentication: authentication,
+      credentials: credentials,
       network: network)
   }
 
   internal init(
-    authentication: TwitchCredentials,
+    credentials: TwitchCredentials,
     network: NetworkSession
   ) {
-    self.authentication = authentication
+    self.credentials = credentials
     self.network = network
 
     self.encoder = Self.makeEncoder()
     self.decoder = Self.makeDecoder()
 
     self.eventSubClient = EventSubClient(
-      credentials: authentication,
+      credentials: credentials,
       network: network,
       decoder: self.decoder)
   }
 
   public func switchCredentials(to credentials: TwitchCredentials) async {
     await eventSubClient.switchCredentials(to: credentials)
-    authentication = credentials
+    self.credentials = credentials
   }
 
   internal static func makeEncoder() -> JSONEncoder {

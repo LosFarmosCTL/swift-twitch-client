@@ -2,16 +2,16 @@ import Foundation
 
 extension HelixEndpoint {
   public static func sendShoutout(
-    from sendingUser: String,
-    to receivingUser: String
+    from fromBroadcasterID: String,
+    to toBroadcasterID: String
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "chat/shoutouts",
-      queryItems: { auth in
+      queryItems: { credentials in
         [
-          ("from_broadcaster_id", sendingUser),
-          ("to_broadcaster_id", receivingUser),
-          ("moderator_id", auth.userID),
+          ("from_broadcaster_id", fromBroadcasterID),
+          ("to_broadcaster_id", toBroadcasterID),
+          ("moderator_id", credentials.userID),
         ]
       })
   }

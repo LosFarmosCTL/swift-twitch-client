@@ -19,7 +19,7 @@ struct RaidsTests {
       method: "POST",
       body: MockedData.startRaidJSON)
 
-    let raid = try await harness.twitch.helix(endpoint: .startRaid(to: "5678"))
+    let raid = try await harness.twitch.helix(for: .startRaid(to: "5678"))
 
     #expect(raid.createdAt.formatted(.iso8601) == "2022-02-18T07:20:50Z")
     #expect(raid.isMature == false)
@@ -35,6 +35,6 @@ struct RaidsTests {
       method: "DELETE",
       status: 204)
 
-    try await harness.twitch.helix(endpoint: .cancelRaid())
+    try await harness.twitch.helix(for: .cancelRaid())
   }
 }
