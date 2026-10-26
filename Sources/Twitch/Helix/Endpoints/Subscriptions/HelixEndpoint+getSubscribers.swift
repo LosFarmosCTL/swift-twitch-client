@@ -86,7 +86,7 @@ public struct Subscriber: Decodable, Sendable {
       self.gifter = .init(
         id: try container.decode(String.self, forKey: .gifterID),
         login: try container.decode(String.self, forKey: .gifterLogin),
-        name: try container.decode(String.self, forKey: .gifterDisplayName))
+        displayName: try container.decode(String.self, forKey: .gifterDisplayName))
     } else {
       self.gifter = nil
     }

@@ -356,12 +356,14 @@ extension IRCSessionTests {
   @Test
   func factoryCapturesCredentialsWithoutStartingNetworking() async throws {
     let original = TwitchCredentials(
-      accessToken: "original-token", clientID: "id", userID: "original", userLogin: "tester")
+      accessToken: "original-token", clientID: "id", userID: "original",
+      userLogin: "tester")
     let twitch = TwitchClient(credentials: original, network: session)
     let client = await twitch.makeIRCClient(mode: .receiveOnly)
 
     await twitch.switchCredentials(
-      to: .init(accessToken: "new-token", clientID: "id", userID: "new", userLogin: "other"))
+      to: .init(
+        accessToken: "new-token", clientID: "id", userID: "new", userLogin: "other"))
     #expect(await session.taskCount() == 0)
 
     let pending = Task { try await client.connect() }

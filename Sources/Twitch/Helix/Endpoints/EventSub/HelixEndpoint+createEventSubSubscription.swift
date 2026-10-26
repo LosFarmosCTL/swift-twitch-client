@@ -44,10 +44,12 @@ public enum EventSubTransport: Sendable {
         conduitID: nil)
     case .webSocket(let sessionID):
       return .init(
-        method: "websocket", callback: nil, secret: nil, sessionID: sessionID, conduitID: nil)
+        method: "websocket", callback: nil, secret: nil, sessionID: sessionID,
+        conduitID: nil)
     case .conduit(let conduitID):
       return .init(
-        method: "conduit", callback: nil, secret: nil, sessionID: nil, conduitID: conduitID)
+        method: "conduit", callback: nil, secret: nil, sessionID: nil,
+        conduitID: conduitID)
     }
   }
 }

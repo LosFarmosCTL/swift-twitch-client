@@ -50,7 +50,7 @@ struct NamingConsistencyTests {
 
     #expect(status == .cancelled)
     #expect(redemption == .cancelled)
-    #expect(String(decoding: encoded, as: UTF8.self) == "\"CANCELED\"")
+    #expect(String(data: encoded, encoding: .utf8) == "\"CANCELED\"")
   }
 
   @Test

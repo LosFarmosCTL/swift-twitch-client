@@ -184,8 +184,7 @@ internal actor EventSubClient {
 
   private func finishConnection(
     _ sessionID: SessionID, throwing error: EventSubError
-  ) async
-  {
+  ) async {
     if let connection = connections[sessionID] { await connection.cancel() }
 
     for (socket, events) in connectionSubscriptions where socket == sessionID {

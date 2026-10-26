@@ -96,8 +96,8 @@ public struct ChannelModerateEvent: Event {
     case unmod(User)
     case delete(Delete)
     case warn(Warn)
-    case addBlockedTerm(broadcasterID: AutoModTerm)
-    case removeBlockedTerm(broadcasterID: AutoModTerm)
+    case addBlockedTerm(AutoModTerm)
+    case removeBlockedTerm(AutoModTerm)
     case addPermittedTerm(AutoModTerm)
     case removePermittedTerm(AutoModTerm)
     case approveUnbanRequest(UnbanRequest)
@@ -248,9 +248,8 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
-        case reason
+        case userLogin, reason
       }
     }
 
@@ -264,10 +263,8 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
-        case reason
-        case expiresAt
+        case userLogin, reason, expiresAt
       }
     }
 
@@ -280,9 +277,8 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
-        case viewerCount
+        case userLogin, viewerCount
       }
     }
 
@@ -296,10 +292,9 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
         case messageID = "messageId"
-        case messageBody
+        case userLogin, messageBody
       }
     }
 
@@ -313,10 +308,8 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
-        case reason
-        case chatRulesCited
+        case userLogin, reason, chatRulesCited
       }
     }
 
@@ -340,9 +333,8 @@ public struct ChannelModerateEvent: Event {
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"
-        case userLogin
         case userDisplayName = "userName"
-        case moderatorMessage
+        case userLogin, moderatorMessage
       }
     }
 

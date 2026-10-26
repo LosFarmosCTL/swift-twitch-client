@@ -22,7 +22,8 @@ struct CredentialsTests {
   @Test
   func withOAuthPrefix() {
     let credentials = TwitchCredentials(
-      accessToken: "oauth:" + accessToken, clientID: clientID, userID: userID, userLogin: userLogin)
+      accessToken: "oauth:" + accessToken, clientID: clientID, userID: userID,
+      userLogin: userLogin)
 
     #expect(credentials.accessToken == accessToken)
   }
