@@ -8,6 +8,11 @@ disabled_rules:
 excluded:
   - .build
 
+line_length:
+  # DocC link destinations cannot be split; keep all surrounding prose wrapped.
+  excluded_lines_patterns:
+    - '^\s*/// https://\S+$'
+
 nesting:
   type_level:
     warning: 2

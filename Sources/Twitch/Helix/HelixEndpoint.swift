@@ -4,6 +4,22 @@ import Foundation
   import FoundationNetworking
 #endif
 
+/// A typed description of a Helix request and its response conversion.
+///
+/// Use the static endpoint factories to select an operation and provide request
+/// parameters. Creating an endpoint performs no network I/O. Execute it with a
+/// `helix(for:)` overload on ``TwitchClient``.
+///
+/// `ResponseType` is the caller-facing result, `HelixResponseType` is the decoded payload
+/// element, and `EndpointResponseType` selects empty, JSON, or raw response handling.
+///
+/// Factories document Twitch’s token and scope requirements; the client does not request
+/// additional scopes automatically. The request uses credentials at execution time.
+/// Twitch also enforces the linked reference’s account eligibility, parameter limits, and
+/// token ownership rules.
+///
+/// A successful HTTP response may still report an operation-specific failure, such as a
+/// chat message rejected for delivery. Check the returned model’s status fields.
 public struct HelixEndpoint<
   ResponseType, HelixResponseType: Sendable & Decodable,
   EndpointResponseType: HelixEndpointResponseType
@@ -106,9 +122,14 @@ extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes
   }
 }
 
+/// A marker protocol selecting how a Helix response is processed.
 public protocol HelixEndpointResponseType: SendableMetatype {}
+/// The response-processing markers used by ``HelixEndpoint``.
 public enum HelixEndpointResponseTypes {
+  /// A marker for endpoints that require an empty response body.
   public enum Void: HelixEndpointResponseType {}
+  /// A marker for endpoints that decode the Helix JSON response envelope.
   public enum Normal: HelixEndpointResponseType {}
+  /// A marker for endpoints that convert the response body without a Helix JSON envelope.
   public enum Raw: HelixEndpointResponseType {}
 }

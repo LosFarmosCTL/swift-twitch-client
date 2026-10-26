@@ -2,6 +2,13 @@ import Foundation
 import TwitchIRC
 
 extension TwitchIRCClient {
+  /// Registers a stream of incoming IRC messages.
+  ///
+  /// Cancelling the consumer removes this observer and leaves the IRC session running.
+  /// The stream finishes on shutdown or throws on terminal failure. Register before
+  /// connecting to receive startup messages.
+  ///
+  /// - Returns: A stream of parsed `TwitchIRC.IncomingMessage` values.
   public func messageStream() -> AsyncThrowingStream<IncomingMessage, Error> {
     let (stream, continuation) =
       AsyncThrowingStream<IncomingMessage, Error>.makeStream()
@@ -28,6 +35,17 @@ extension TwitchIRCClient {
     return stream
   }
 
+  /// Registers a callback for incoming IRC messages and terminal outcomes.
+  ///
+  /// Call the returned handle’s `cancel()` method to remove this observer. The session
+  /// continues running. If the session has already terminated, the callback receives its
+  /// terminal outcome immediately.
+  ///
+  /// - Returns: An explicit cancellation handle for this observer.
+  ///
+  /// - Parameters:
+  ///   - callback: The closure that receives decoded events or messages and terminal
+  ///     outcomes. Delivery is not guaranteed to run on the main actor.
   @discardableResult
   public func messageListener(
     _ callback: @escaping @Sendable (IRCListenerEvent) -> Void
@@ -80,6 +98,13 @@ extension TwitchIRCClient {
   @preconcurrency import Combine
 
   extension TwitchIRCClient {
+    /// Registers a publisher for incoming IRC messages.
+    ///
+    /// Cancelling the downstream subscription removes this observer and leaves the
+    /// session running. Register and subscribe before connecting to receive startup
+    /// messages.
+    ///
+    /// - Returns: A publisher of parsed `TwitchIRC.IncomingMessage` values.
     public nonisolated func messagePublisher() async
       -> AnyPublisher<IncomingMessage, Error>
     {

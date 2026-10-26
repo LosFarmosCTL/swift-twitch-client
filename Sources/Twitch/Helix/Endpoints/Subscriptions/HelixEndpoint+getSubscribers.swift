@@ -2,6 +2,24 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
+  /// Gets the authenticated broadcaster’s subscriptions and subscription points.
+  ///
+  /// With a user access token, requires `channel:read:subscriptions`.
+  ///
+  /// For user-token requests, the broadcaster must be the token’s user.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#get-broadcaster-subscriptions
+  /// ) for request limits and account requirements.
+  ///
+  /// The request uses the executing client’s user ID for `broadcaster_id`.
+  ///
+  /// - Parameters:
+  ///   - userIDs: The user IDs to include in the request. Defaults to `[]`.
+  ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
+  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///     after cursor.
+  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   public static func getSubscribers(
     userIDs: [String] = [],
     limit: Int? = nil,
@@ -31,28 +49,43 @@ extension HelixEndpoint {
   }
 }
 
+/// A page of channel subscribers, subscription totals, and the next cursor.
 public struct SubscribersResponse: Sendable {
+  /// The channel subscribers.
   public let subscribers: [Subscriber]
 
+  /// The number of subscriptions matching the request across all pages.
   public let total: Int
+  /// The total subscription points reported by Twitch.
   public let points: Int
 
+  /// The pagination cursor to pass when requesting another page.
   public let cursor: String?
 }
 
+/// A channel subscriber’s account, tier, and gift metadata.
 @MemberwiseInit(.public)
 public struct Subscriber: Decodable, Sendable {
+  /// The Twitch user ID.
   public let userID: String
+  /// The user’s login name.
   public let userLogin: String
+  /// The user’s display name.
   public let userDisplayName: String
 
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// The gifter’s identity; `nil` means the subscription was not gifted.
   public let gifter: SubscriptionGifter?
 
+  /// The subscription plan name.
   public let planName: String
+  /// The subscription tier.
   public let tier: SubscriptionTier
 
   enum CodingKeys: String, CodingKey {
@@ -70,6 +103,7 @@ public struct Subscriber: Decodable, Sendable {
     case tier
   }
 
+  /// Decodes a subscriber, including gifter details only for gifted subscriptions.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 

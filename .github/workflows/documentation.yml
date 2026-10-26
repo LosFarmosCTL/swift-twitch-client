@@ -1,0 +1,74 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Sources/**
+      - Package.swift
+      - Package.resolved
+      - Scripts/generate-documentation.sh
+      - .github/workflows/documentation.yml
+  pull_request:
+    paths:
+      - Sources/**
+      - Package.swift
+      - Package.resolved
+      - Scripts/generate-documentation.sh
+      - .github/workflows/documentation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-${{ github.event_name == 'pull_request' && github.ref || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build DocC site
+    runs-on: xcode-27
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select Xcode
+        run: sudo xcode-select --switch /Applications/Xcode_27.0.app/Contents/Developer
+
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+
+      - name: Build documentation for its public path
+        run: |
+          swift --version
+          ./Scripts/generate-documentation.sh \
+            .build/documentation/Twitch.doccarchive /swift-twitch-client
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .build/documentation/Twitch.doccarchive
+          retention-days: 1
+
+  deploy:
+    name: Publish documentation
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

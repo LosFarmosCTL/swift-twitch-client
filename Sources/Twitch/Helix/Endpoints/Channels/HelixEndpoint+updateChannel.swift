@@ -1,6 +1,27 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Updates the authenticated broadcaster’s channel information.
+  ///
+  /// With a user access token, requires `channel:manage:broadcast`.
+  ///
+  /// For user-token requests, the broadcaster must be the token’s user.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#modify-channel-information
+  /// ) for request limits and account requirements.
+  ///
+  /// The request uses the executing client’s user ID for `broadcaster_id`.
+  ///
+  /// - Parameters:
+  ///   - gameID: The identifier of the game, when provided.
+  ///   - broadcasterLanguage: The broadcaster’s language code, when provided.
+  ///   - title: The title shown to viewers, when provided.
+  ///   - delay: The broadcast delay in seconds, when provided.
+  ///   - tags: The stream tags, when provided.
+  ///   - contentClassificationLabels: The content classification labels, when provided.
+  ///   - isBrandedContent: Whether the stream is marked as branded content, when
+  ///     provided.
   public static func updateChannel(
     gameID: String? = nil,
     broadcasterLanguage: String? = nil,
@@ -34,12 +55,20 @@ extension HelixEndpoint {
   }
 }
 
+/// Content labels that identify sensitive topics in a stream.
 public enum ContentClassificationLabelID: String, Codable, Sendable {
+  /// Content depicting drugs or intoxication. Encoded as `"DrugsIntoxication"`.
   case drugsIntoxication = "DrugsIntoxication"
+  /// Content containing sexual themes. Encoded as `"SexualThemes"`.
   case sexualThemes = "SexualThemes"
+  /// Content containing graphic violence. Encoded as `"ViolentGraphic"`.
   case violentGraphic = "ViolentGraphic"
+  /// Content containing gambling. Encoded as `"Gambling"`.
   case gambling = "Gambling"
+  /// Content containing profanity or vulgarity. Encoded as `"ProfanityVulgarity"`.
   case profanityVulgarity = "ProfanityVulgarity"
+  /// Content discussing debated social issues or politics. Encoded as
+  /// `"DebatedSocialIssuesAndPolitics"`.
   case debatedSocialIssuesAndPolitics = "DebatedSocialIssuesAndPolitics"
 }
 

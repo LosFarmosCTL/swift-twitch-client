@@ -1,6 +1,36 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Creates a custom Channel Points reward.
+  ///
+  /// With a user access token, requires `channel:manage:redemptions`. The broadcaster ID
+  /// must match the token’s user. Reward management is limited to rewards created by the
+  /// same client ID.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#create-custom-rewards
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - title: The title shown to viewers.
+  ///   - cost: The Channel Points required for one redemption.
+  ///   - prompt: The prompt shown when viewers redeem the reward.
+  ///   - isEnabled: Whether the setting is enabled, when provided.
+  ///   - backgroundColor: The reward’s background color as a hexadecimal string.
+  ///   - isUserInputRequired: Whether redeeming the reward requires user input, when
+  ///     provided.
+  ///   - isMaxPerStreamEnabled: Whether to enforce the per-stream redemption limit.
+  ///   - maxPerStream: The maximum redemptions allowed per stream, when provided.
+  ///   - isMaxPerUserPerStreamEnabled: Whether to enforce the per-user, per-stream
+  ///     redemption limit.
+  ///   - maxPerUserPerStream: The maximum redemptions allowed per user per stream, when
+  ///     provided.
+  ///   - isGlobalCooldownEnabled: Whether to enforce the reward’s global cooldown.
+  ///   - globalCooldownSeconds: The reward’s global cooldown, in seconds, when provided.
+  ///   - shouldRedemptionsSkipRequestQueue: Whether redemptions bypass the request queue,
+  ///     when provided.
+  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
+  ///     client’s authenticated user ID.
   public static func createCustomReward(
     title: String,
     cost: Int,

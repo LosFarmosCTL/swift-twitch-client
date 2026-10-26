@@ -5,6 +5,15 @@ import Foundation
 #endif
 
 extension TwitchClient {
+  /// Validates an OAuth access token with Twitch.
+  ///
+  /// - Returns: The account identity, application client ID, granted scopes, and
+  ///   remaining lifetime.
+  /// - Throws: `AccessTokenValidationError.invalidToken` for a non-200 response, a
+  ///   transport or decoding error, or `CancellationError` when cancelled.
+  ///
+  /// - Parameters:
+  ///   - accessToken: The OAuth access token, without the `oauth:` prefix.
   public static func validateAccessToken(accessToken: String) async throws
     -> ValidatedAccessToken
   {
@@ -43,11 +52,17 @@ extension TwitchClient {
   }
 }
 
+/// The account, application, scopes, and lifetime returned by Twitch token validation.
 public struct ValidatedAccessToken: Decodable, Sendable {
+  /// The client ID of the Twitch application that issued the token.
   public let clientID: String
+  /// The account’s login name.
   public let login: String
+  /// The Twitch user ID.
   public let userID: String
+  /// The OAuth scopes granted to the access token.
   public let scopes: [String]
+  /// The remaining token lifetime in seconds; `nil` when Twitch omits it or reports zero.
   public let expiresIn: Int?
 
   enum CodingKeys: String, CodingKey {
@@ -56,6 +71,7 @@ public struct ValidatedAccessToken: Decodable, Sendable {
     case login, scopes, expiresIn
   }
 
+  /// Decodes token validation, mapping a zero expiration to `nil`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     clientID = try container.decode(String.self, forKey: .clientID)
@@ -72,6 +88,8 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   }
 }
 
+/// A failure reported when Twitch rejects an access token.
 public enum AccessTokenValidationError: Error, Sendable {
+  /// Twitch rejected the token validation request.
   case invalidToken
 }

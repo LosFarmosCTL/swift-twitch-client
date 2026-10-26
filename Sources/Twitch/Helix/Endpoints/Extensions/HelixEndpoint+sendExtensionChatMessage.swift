@@ -1,6 +1,20 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Sends a chat message on behalf of an extension.
+  ///
+  /// Twitch requires an Extension Backend Service JWT with the `external` role. See the
+  /// reference for the required claims and signing rules.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#send-extension-chat-message
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - text: The text content.
+  ///   - extensionID: The identifier of the extension.
+  ///   - extensionVersion: The extension release version.
   public static func sendExtensionChatMessage(
     in broadcasterID: String,
     text: String,

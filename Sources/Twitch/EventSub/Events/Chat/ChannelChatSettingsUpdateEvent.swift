@@ -1,16 +1,26 @@
 import MemberwiseInit
 
+/// An EventSub notification delivered when a channel’s chat settings change.
 @MemberwiseInit(.public)
 public struct ChannelChatSettingsUpdateEvent: Event {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// Whether chat is restricted to emotes.
   public let emoteMode: Bool
+  /// Whether chat is restricted to subscribers.
   public let subscriberMode: Bool
+  /// Whether duplicate chat messages are restricted.
   public let uniqueChatMode: Bool
 
+  /// The minimum time a viewer must follow before chatting; `nil` disables follower-only
+  /// mode.
   public let followerMode: Duration?
+  /// The minimum interval between a viewer’s messages; `nil` disables slow mode.
   public let slowMode: Duration?
 
   enum CodingKeys: String, CodingKey {
@@ -26,6 +36,8 @@ public struct ChannelChatSettingsUpdateEvent: Event {
     case uniqueChatMode
   }
 
+  /// Decodes chat settings, converting enabled follower and slow modes to durations and
+  /// disabled modes to `nil`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 

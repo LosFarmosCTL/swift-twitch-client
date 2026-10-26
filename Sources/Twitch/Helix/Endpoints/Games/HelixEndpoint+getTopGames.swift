@@ -1,6 +1,22 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Gets game categories ordered by viewer count.
+  ///
+  /// Accepts a user or app access token without an additional endpoint scope.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#get-top-games
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
+  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///     after cursor.
+  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
+  ///
+  /// - Returns: An endpoint that yields matching items and a pagination cursor when
+  ///   executed. The cursor is `nil` when there is no next page.
   public static func getTopGames(
     limit: Int? = nil,
     after afterCursor: String? = nil,

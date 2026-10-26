@@ -1,6 +1,20 @@
 import Foundation
 
 extension HelixEndpoint {
+  /// Starts a prediction in the authenticated broadcaster’s channel.
+  ///
+  /// With a user access token, requires `channel:manage:predictions`.
+  ///
+  /// For user-token requests, the broadcaster must be the token’s user.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#create-prediction
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - title: The title shown to viewers.
+  ///   - outcomes: The titles of the prediction outcomes.
+  ///   - predictionWindow: The prediction voting window, in seconds.
   public static func createPrediction(
     title: String,
     outcomes: [String],

@@ -2,6 +2,19 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
+  /// Starts a commercial break in the authenticated broadcaster’s stream.
+  ///
+  /// With a user access token, requires `channel:edit:commercial`. App tokens have
+  /// additional grant requirements described in the reference.
+  ///
+  /// For user-token requests, the broadcaster must be the token’s user.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/api/reference/#start-commercial
+  /// ) for request limits and account requirements.
+  ///
+  /// - Parameters:
+  ///   - length: The commercial length, in seconds.
   public static func startCommercial(
     length: Int
   ) -> HelixEndpoint<Commercial, Commercial, HelixEndpointResponseTypes.Normal> {
@@ -28,9 +41,13 @@ private struct StartCommercialRequestBody: Encodable, Sendable {
   }
 }
 
+/// The result of starting a commercial, including its length and retry delay.
 @MemberwiseInit(.public)
 public struct Commercial: Decodable, Sendable {
+  /// The commercial length, in seconds.
   public let length: Int
+  /// The message content or explanatory text supplied by Twitch.
   public let message: String
+  /// The number of seconds to wait before starting another commercial.
   public let retryAfter: Int
 }

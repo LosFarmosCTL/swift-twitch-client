@@ -9,5 +9,9 @@ import Foundation
     }
   }
 
-  @frozen public enum DateStyle { case iso8601 }
+  /// Date formats supported by the library’s Linux formatting helper.
+  @frozen public enum DateStyle {
+    /// Formats a date using an ISO 8601 timestamp.
+    case iso8601
+  }
 #endif

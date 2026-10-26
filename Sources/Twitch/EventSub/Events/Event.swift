@@ -1,3 +1,4 @@
+/// A decodable, sendable notification payload delivered by EventSub.
 public protocol Event: Decodable, Sendable {}
 
 internal enum EventType: String, Decodable {

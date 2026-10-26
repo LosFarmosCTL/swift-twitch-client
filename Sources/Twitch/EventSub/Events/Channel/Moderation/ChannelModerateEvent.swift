@@ -1,20 +1,31 @@
 import Foundation
 import MemberwiseInit
 
+/// An EventSub notification for channel moderate.
 @MemberwiseInit(.public)
 // swiftlint:disable:next type_body_length
 public struct ChannelModerateEvent: Event {
+  /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// The login name of the broadcaster.
   public let broadcasterLogin: String
+  /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
+  /// The Twitch user ID of the source broadcaster, when provided.
   public let sourceBroadcasterID: String?
+  /// The login name of the source broadcaster, when provided.
   public let sourceBroadcasterLogin: String?
+  /// The display name of the source broadcaster, when provided.
   public let sourceBroadcasterDisplayName: String?
 
+  /// The Twitch user ID of the moderator.
   public let moderatorID: String
+  /// The login name of the moderator.
   public let moderatorLogin: String
+  /// The display name of the moderator.
   public let moderatorDisplayName: String
 
+  /// The action and any associated details.
   public let action: Action
 
   enum CodingKeys: String, CodingKey {
@@ -51,6 +62,7 @@ public struct ChannelModerateEvent: Event {
     case sharedChatDelete
   }
 
+  /// Decodes a moderation event and its action-specific payload.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -72,40 +84,75 @@ public struct ChannelModerateEvent: Event {
     action = try Action(from: decoder)
   }
 
+  /// The moderation operation and any affected user, message, terms, or settings.
   public enum Action: Sendable {
+    /// Bans the associated user, with the moderator’s reason.
     case ban(Ban)
+    /// Times out the associated user until the supplied expiration.
     case timeout(Timeout)
+    /// Removes the associated user’s ban.
     case unban(User)
+    /// Ends the associated user’s timeout.
     case untimeout(User)
+    /// Clears all messages from the channel’s chat.
     case clear
+    /// Enables chat messages containing only emotes.
     case emoteOnly
+    /// Disables emote-only chat.
     case emoteOnlyOff
+    /// Enables follower-only chat with the required following duration.
     case followerMode(Duration)
+    /// Disables follower-only chat.
     case followerModeOff
+    /// Enables the restriction on duplicate chat messages.
     case uniqueChat
+    /// Disables the restriction on duplicate chat messages.
     case uniqueChatOff
+    /// Enables slow mode with the minimum interval between messages.
     case slow(Duration)
+    /// Disables slow mode.
     case slowOff
+    /// Restricts chat to subscribers.
     case subOnlyMode
+    /// Disables subscriber-only chat.
     case subOnlyModeOff
+    /// Starts a raid of the associated channel with the supplied viewer count.
     case raid(Raid)
+    /// Cancels the raid to the associated channel.
     case unraid(User)
+    /// Grants VIP status to the associated user.
     case vip(User)
+    /// Removes VIP status from the associated user.
     case unvip(User)
+    /// Grants moderator privileges to the associated user.
     case mod(User)
+    /// Removes moderator privileges from the associated user.
     case unmod(User)
+    /// Deletes the associated message; includes its author and original text.
     case delete(Delete)
+    /// Warns the associated user with a reason and any cited chat rules.
     case warn(Warn)
+    /// Adds the associated terms to the channel’s blocked list.
     case addBlockedTerm(AutoModTerm)
+    /// Removes the associated terms from the channel’s blocked list.
     case removeBlockedTerm(AutoModTerm)
+    /// Adds the associated terms to the channel’s permitted list.
     case addPermittedTerm(AutoModTerm)
+    /// Removes the associated terms from the channel’s permitted list.
     case removePermittedTerm(AutoModTerm)
+    /// Approves the associated user’s unban request, with the moderator’s response.
     case approveUnbanRequest(UnbanRequest)
+    /// Denies the associated user’s unban request, with the moderator’s response.
     case denyUnbanRequest(UnbanRequest)
+    /// Bans the associated user in the source channel during shared chat.
     case sharedChatBan(Ban)
+    /// Times out the associated user in the source channel during shared chat.
     case sharedChatTimeout(Timeout)
+    /// Removes the associated user’s ban in the source channel during shared chat.
     case sharedChatUnban(User)
+    /// Ends the associated user’s timeout in the source channel during shared chat.
     case sharedChatUntimeout(User)
+    /// Deletes the associated message from the source channel during shared chat.
     case sharedChatDelete(Delete)
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
@@ -226,10 +273,14 @@ public struct ChannelModerateEvent: Event {
       case sharedChatDelete = "shared_chat_delete"
     }
 
+    /// The account identity of a user affected by a moderation action.
     @MemberwiseInit(.public)
     public struct User: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
 
       enum CodingKeys: String, CodingKey {
@@ -239,11 +290,16 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The banned user’s account identity and the moderator’s reason.
     @MemberwiseInit(.public)
     public struct Ban: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The reason supplied for this action, when provided.
       public let reason: String?
 
       enum CodingKeys: String, CodingKey {
@@ -253,12 +309,18 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The timed-out user’s account identity, reason, and timeout expiration.
     @MemberwiseInit(.public)
     public struct Timeout: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The reason supplied for this action, when provided.
       public let reason: String?
+      /// The time the resource expires.
       public let expiresAt: Date
 
       enum CodingKeys: String, CodingKey {
@@ -268,11 +330,16 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The raid target’s account identity and the number of viewers joining the raid.
     @MemberwiseInit(.public)
     public struct Raid: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The number of viewers reported by Twitch.
       public let viewerCount: Int
 
       enum CodingKeys: String, CodingKey {
@@ -282,12 +349,18 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The deleted message’s author, identifier, and original text.
     @MemberwiseInit(.public)
     public struct Delete: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The identifier of the message.
       public let messageID: String
+      /// The body of the chat message.
       public let messageBody: String
 
       enum CodingKeys: String, CodingKey {
@@ -298,12 +371,18 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The warned user’s account identity, reason, and any cited chat rules.
     @MemberwiseInit(.public)
     public struct Warn: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The reason supplied for this action, when provided.
       public let reason: String?
+      /// The channel chat rules cited in the warning, when provided.
       public let chatRulesCited: [String]?
 
       enum CodingKeys: String, CodingKey {
@@ -313,9 +392,12 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// Terms added or removed and whether the change followed an AutoMod decision.
     @MemberwiseInit(.public)
     public struct AutoModTerm: Codable, Sendable {
+      /// The AutoMod terms affected by the action.
       public let terms: [String]
+      /// Whether AutoMod originated the action.
       public let fromAutoMod: Bool
 
       enum CodingKeys: String, CodingKey {
@@ -324,11 +406,16 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
+    /// The requesting user’s account identity and the moderator’s response message.
     @MemberwiseInit(.public)
     public struct UnbanRequest: Codable, Sendable {
+      /// The Twitch user ID.
       public let userID: String
+      /// The user’s login name.
       public let userLogin: String
+      /// The user’s display name.
       public let userDisplayName: String
+      /// The message supplied by the moderator.
       public let moderatorMessage: String
 
       enum CodingKeys: String, CodingKey {
