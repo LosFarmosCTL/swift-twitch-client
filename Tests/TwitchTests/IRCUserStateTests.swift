@@ -22,7 +22,8 @@ struct IRCUserStateTests {
 
   private var credentials: TwitchCredentials {
     .init(
-      accessToken: "token", clientID: "id", userID: UUID().uuidString, userLogin: "tester")
+      accessToken: "token", clientID: "id", userID: UUID().uuidString,
+      userLogin: "tester")
   }
 
   private func joinedChannels(on socket: MockWebSocketTask) async -> [String] {
