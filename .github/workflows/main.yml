@@ -158,3 +158,17 @@ jobs:
         run: |
           swift --version
           git ls-files -z -- '*.swift' | xargs -0 swift format lint --strict --configuration .swift-format
+
+  ci-passed:
+    name: CI passed
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: [build, ios, lint, format]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI job to succeed
+        env:
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$JOB_RESULTS" | jq .
+          echo "$JOB_RESULTS" | jq --exit-status 'all(.[]; .result == "success")'
