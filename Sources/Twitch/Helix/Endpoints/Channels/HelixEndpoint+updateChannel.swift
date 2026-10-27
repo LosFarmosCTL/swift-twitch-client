@@ -57,6 +57,9 @@ extension HelixEndpoint {
 
 /// Content labels that identify sensitive topics in a stream.
 public enum ContentClassificationLabelID: String, Codable, Sendable {
+  /// A mature-rated game. Twitch applies this label automatically from the category;
+  /// it cannot be toggled through the channel-update endpoint. Encoded as `"MatureGame"`.
+  case matureGame = "MatureGame"
   /// Content depicting drugs or intoxication. Encoded as `"DrugsIntoxication"`.
   case drugsIntoxication = "DrugsIntoxication"
   /// Content containing sexual themes. Encoded as `"SexualThemes"`.

@@ -45,8 +45,10 @@ public final class MockedData {
     forResource: "getBitsLeaderboard", withExtension: "json")!.data
   public static let getCheermotesJSON: Data = Bundle.module.url(
     forResource: "getCheermotes", withExtension: "json")!.data
-  public static let getExtensionPredictionsJSON: Data = Bundle.module.url(
-    forResource: "getExtensionPredictions", withExtension: "json")!.data
+  public static let getCustomPowerUpsJSON: Data = Bundle.module.url(
+    forResource: "getCustomPowerUps", withExtension: "json")!.data
+  public static let getExtensionTransactionsJSON: Data = Bundle.module.url(
+    forResource: "getExtensionTransactions", withExtension: "json")!.data
 
   public static let getChannelsJSON: Data = Bundle.module.url(
     forResource: "getChannels", withExtension: "json")!.data
@@ -88,6 +90,14 @@ public final class MockedData {
     forResource: "getChatSettings", withExtension: "json")!.data
   public static let getUserColorJSON: Data = Bundle.module.url(
     forResource: "getUserColor", withExtension: "json")!.data
+  public static let getSharedChatSessionJSON: Data = Bundle.module.url(
+    forResource: "getSharedChatSession", withExtension: "json")!.data
+  public static let getUserEmotesJSON: Data = Bundle.module.url(
+    forResource: "getUserEmotes", withExtension: "json")!.data
+  public static let getPinnedChatMessageJSON: Data = Bundle.module.url(
+    forResource: "getPinnedChatMessage", withExtension: "json")!.data
+  public static let sendChatMessageJSON: Data = Bundle.module.url(
+    forResource: "sendChatMessage", withExtension: "json")!.data
   public static let getContentClassificationLabelsJSON: Data = Bundle.module.url(
     forResource: "getContentClassificationLabels", withExtension: "json")!.data
 
@@ -100,6 +110,10 @@ public final class MockedData {
     forResource: "createClip", withExtension: "json")!.data
   public static let getClipsJSON: Data = Bundle.module.url(
     forResource: "getClips", withExtension: "json")!.data
+  public static let createClipFromVODJSON: Data = Bundle.module.url(
+    forResource: "createClipFromVOD", withExtension: "json")!.data
+  public static let getClipsDownloadJSON: Data = Bundle.module.url(
+    forResource: "getClipsDownload", withExtension: "json")!.data
 
   public static let getCharityCampaignJSON: Data = Bundle.module.url(
     forResource: "getCharityCampaign", withExtension: "json")!.data
@@ -145,6 +159,16 @@ public final class MockedData {
     forResource: "getVIPs", withExtension: "json")!.data
   public static let getShieldModeStatusJSON: Data = Bundle.module.url(
     forResource: "getShieldModeStatus", withExtension: "json")!.data
+  public static let getUnbanRequestsJSON: Data = Bundle.module.url(
+    forResource: "getUnbanRequests", withExtension: "json")!.data
+  public static let resolveUnbanRequestJSON: Data = Bundle.module.url(
+    forResource: "resolveUnbanRequest", withExtension: "json")!.data
+  public static let warnChatUserJSON: Data = Bundle.module.url(
+    forResource: "warnChatUser", withExtension: "json")!.data
+  public static let addSuspiciousStatusToChatUserJSON: Data = Bundle.module.url(
+    forResource: "addSuspiciousStatusToChatUser", withExtension: "json")!.data
+  public static let removeSuspiciousStatusFromChatUserJSON: Data = Bundle.module.url(
+    forResource: "removeSuspiciousStatusFromChatUser", withExtension: "json")!.data
 
   public static let searchCategoriesJSON: Data = Bundle.module.url(
     forResource: "searchCategories", withExtension: "json")!.data
@@ -211,6 +235,8 @@ public final class MockedData {
     forResource: "updateChannelStreamScheduleSegment", withExtension: "json")!.data
   public static let getChanneliCalendarICS: Data = Bundle.module.url(
     forResource: "getChanneliCalendar", withExtension: "ics")!.data
+  public static let getChannelStreamScheduleJSON: Data = Bundle.module.url(
+    forResource: "getChannelStreamSchedule", withExtension: "json")!.data
 
   public static let startRaidJSON: Data = Bundle.module.url(
     forResource: "startRaid", withExtension: "json")!.data
@@ -234,6 +260,8 @@ public final class MockedData {
     forResource: "getUserActiveExtensions", withExtension: "json")!.data
   public static let updateUserExtensionsJSON: Data = Bundle.module.url(
     forResource: "updateUserExtensions", withExtension: "json")!.data
+  public static let getAuthorizationByUserJSON: Data = Bundle.module.url(
+    forResource: "getAuthorizationByUser", withExtension: "json")!.data
 }
 
 extension URL {

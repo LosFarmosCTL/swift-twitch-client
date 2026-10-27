@@ -1,0 +1,27 @@
+{
+  "data": [{
+    "message_id": "abc-def-123-456",
+    "broadcaster_id": "197886470",
+    "sender_user_id": "12826",
+    "sender_user_login": "twitch",
+    "sender_user_name": "Twitch",
+    "pinned_by_user_id": "141981764",
+    "pinned_by_user_login": "twitchdev",
+    "pinned_by_user_name": "TwitchDev",
+    "message": {
+      "text": "Welcome! bleedPurple Type !rules",
+      "fragments": [
+        {"type": "text", "text": "Welcome! ", "cheermote": null, "emote": null, "mention": null},
+        {
+          "type": "emote", "text": "bleedPurple", "cheermote": null,
+          "emote": {"id": "62835", "emote_set_id": "0", "owner_id": "0", "format": ["static"]},
+          "mention": null
+        },
+        {"type": "text", "text": " Type !rules", "cheermote": null, "emote": null, "mention": null}
+      ]
+    },
+    "starts_at": "2026-05-06T12:30:00Z",
+    "ends_at": "2026-05-06T12:35:00Z",
+    "updated_at": "2026-05-06T12:30:00Z"
+  }]
+}

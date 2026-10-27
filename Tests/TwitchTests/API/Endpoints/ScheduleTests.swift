@@ -7,6 +7,31 @@ struct ScheduleTests {
   private let harness = HelixTestHarness()
 
   @Test
+  func getChannelStreamSchedule() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/schedule?broadcaster_id=141981764&start_time=2021-07-01T18:00:00Z&first=1"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getChannelStreamScheduleJSON)
+
+    let startTime = try Date("2021-07-01T18:00:00Z", strategy: .iso8601)
+    let (schedule, cursor) = try await harness.twitch.helix(
+      for: .getChannelStreamSchedule(for: "141981764", startTime: startTime, limit: 1))
+
+    #expect(cursor == nil)
+    #expect(schedule.broadcasterID == "141981764")
+    #expect(schedule.broadcasterLogin == "twitchdev")
+    #expect(schedule.vacation == nil)
+    #expect(schedule.segments.count == 1)
+    let segment = try #require(schedule.segments.first)
+    #expect(segment.startTime == startTime)
+    #expect(segment.title == "TwitchDev Monthly Update // July 1, 2021")
+    #expect(segment.category?.name == "Science & Technology")
+  }
+
+  @Test
   func getChannelICalendar() async throws {
     let url = try #require(
       URL(

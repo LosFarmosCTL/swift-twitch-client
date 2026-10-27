@@ -7,6 +7,57 @@ struct BitsTests {
   private let harness = HelixTestHarness()
 
   @Test
+  func getCustomPowerUps() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/bits/custom_power_ups?broadcaster_id=1234&id=reward"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getCustomPowerUpsJSON)
+
+    let powerUps = try await harness.twitch.helix(
+      for: .getCustomPowerUps(powerUpIDs: ["reward"]))
+
+    #expect(powerUps.count == 1)
+    let powerUp = try #require(powerUps.first)
+    #expect(powerUp.id == "92af127c-7326-4483-a52b-b0da0be61c02")
+    #expect(powerUp.broadcasterID == "274637212")
+    #expect(powerUp.title == "game analysis")
+    #expect(powerUp.bits == 100)
+    #expect(powerUp.image == nil)
+    #expect(powerUp.defaultImage.url4x.hasSuffix("112x112.png"))
+    #expect(powerUp.maxPerStreamSetting.isEnabled == false)
+  }
+
+  @Test
+  func getExtensionTransactions() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/transactions?extension_id=extension&id=one&id=two&first=2&after=next"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getExtensionTransactionsJSON)
+
+    let (transactions, cursor) = try await harness.twitch.helix(
+      for: .getExtensionTransactions(
+        extensionID: "extension", transactionIDs: ["one", "two"], limit: 2, after: "next")
+    )
+
+    #expect(cursor == "cursorString")
+    #expect(transactions.count == 2)
+    let transaction = try #require(transactions.first)
+    #expect(transaction.id == "74c52265-e214-48a6-91b9-23b6014e8041")
+    #expect(transaction.broadcasterID == "439964613")
+    #expect(transaction.userID == "424596340")
+    #expect(transaction.productType == "BITS_IN_EXTENSION")
+    #expect(transaction.productData.sku == "testSku100")
+    #expect(transaction.productData.cost.amount == 100)
+    #expect(transaction.productData.displayName == "Test Product 100")
+  }
+
+  @Test
   func getBitsLeaderboard() async throws {
     let url = try #require(
       URL(
@@ -65,40 +116,4 @@ struct BitsTests {
         == "https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/1/2.png")
   }
 
-  @Test
-  func getExtensionPredictions() async throws {
-    let url = try #require(
-      URL(
-        string:
-          "https://api.twitch.tv/helix/extensions/predictions?extension_id=abcd1234&first=2&after=cursor"
-      ))
-
-    await harness.session.stub(
-      url: url,
-      body: MockedData.getExtensionPredictionsJSON)
-
-    let (predictions, cursor) = try await harness.twitch.helix(
-      for: .getExtensionPredictions(
-        extensionID: "abcd1234", limit: 2, after: "cursor"))
-
-    #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
-    #expect(predictions.count == 1)
-
-    let prediction = predictions.first
-    #expect(prediction?.id == "d6676d5c-c86e-44d2-bfc4-100fb48f0656")
-    #expect(prediction?.broadcasterID == "55696719")
-    #expect(prediction?.broadcasterLogin == "twitchdev")
-    #expect(prediction?.broadcasterDisplayName == "TwitchDev")
-    #expect(prediction?.title == "Will there be any leaks today?")
-    #expect(prediction?.predictionWindow == 600)
-    #expect(prediction?.createdAt.formatted(.iso8601) == "2021-04-28T16:03:06Z")
-    #expect(prediction?.endedAt == nil)
-
-    let firstOutcome = prediction?.outcomes.first
-    #expect(firstOutcome?.id == "021e9234-5893-49b4-982e-cfe9a0aaddd9")
-    #expect(firstOutcome?.title == "Yes")
-    #expect(firstOutcome?.users == 0)
-    #expect(firstOutcome?.channelPoints == 0)
-    #expect(firstOutcome?.color == .blue)
-  }
 }

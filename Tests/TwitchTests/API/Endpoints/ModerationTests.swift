@@ -9,6 +9,111 @@ struct ModerationTests {
   private let harness = HelixTestHarness()
 
   @Test
+  func getUnbanRequests() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/unban_requests?broadcaster_id=274637212&moderator_id=1234&status=pending&first=20"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getUnbanRequestsJSON)
+
+    let (requests, cursor) = try await harness.twitch.helix(
+      for: .getUnbanRequests(in: "274637212", status: .pending, limit: 20))
+
+    #expect(cursor != nil)
+    #expect(requests.count == 1)
+    let request = try #require(requests.first)
+    #expect(request.id == "92af127c-7326-4483-a52b-b0da0be61c01")
+    #expect(request.userID == "424596340")
+    #expect(request.status == "pending")
+    #expect(request.resolvedAt == nil)
+    #expect(request.resolutionText == nil)
+  }
+
+  @Test
+  func resolveUnbanRequest() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/unban_requests?broadcaster_id=274637212&moderator_id=1234&unban_request_id=request&status=approved&resolution_text=Welcome%20back!"
+      ))
+
+    await harness.session.stub(
+      url: url, method: "PATCH", body: MockedData.resolveUnbanRequestJSON)
+
+    let request = try await harness.twitch.helix(
+      for: .resolveUnbanRequest(
+        "request", in: "274637212", status: .approved, resolutionText: "Welcome back!"))
+
+    #expect(request.id == "92af127c-7326-4483-a52b-b0da0be61c01")
+    #expect(request.userID == "424596340")
+    #expect(request.status == "approved")
+    #expect(request.resolvedAt?.formatted(.iso8601) == "2022-08-09T02:07:55Z")
+  }
+
+  @Test
+  func warnChatUser() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/warnings?broadcaster_id=404040&moderator_id=1234"
+      ))
+
+    await harness.session.stub(
+      url: url, method: "POST", body: MockedData.warnChatUserJSON)
+
+    let warning = try await harness.twitch.helix(
+      for: .warnChatUser("9876", in: "404040", reason: "stop doing that!"))
+
+    #expect(warning.broadcasterID == "404040")
+    #expect(warning.userID == "9876")
+    #expect(warning.moderatorID == "404041")
+    #expect(warning.reason == "stop doing that!")
+  }
+
+  @Test
+  func addSuspiciousStatusToChatUser() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/suspicious_users?broadcaster_id=141981764&moderator_id=1234"
+      ))
+
+    await harness.session.stub(
+      url: url, method: "POST", body: MockedData.addSuspiciousStatusToChatUserJSON)
+
+    let status = try await harness.twitch.helix(
+      for: .addSuspiciousStatusToChatUser("9876", in: "141981764", status: .restricted))
+
+    #expect(status.userID == "9876")
+    #expect(status.broadcasterID == "141981764")
+    #expect(status.status == "RESTRICTED")
+    #expect(status.types == ["MANUALLY_ADDED"])
+    #expect(status.updatedAt.formatted(.iso8601) == "2025-12-01T23:08:18Z")
+  }
+
+  @Test
+  func removeSuspiciousStatusFromChatUser() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/suspicious_users?broadcaster_id=141981764&moderator_id=1234&user_id=9876"
+      ))
+
+    await harness.session.stub(
+      url: url, method: "DELETE", body: MockedData.removeSuspiciousStatusFromChatUserJSON)
+
+    let status = try await harness.twitch.helix(
+      for: .removeSuspiciousStatusFromChatUser("9876", in: "141981764"))
+
+    #expect(status.userID == "9876")
+    #expect(status.broadcasterID == "141981764")
+    #expect(status.status == "NO_TREATMENT")
+    #expect(status.types == ["MANUALLY_ADDED"])
+  }
+
+  @Test
   func checkAutoModStatus() async throws {
     let url = try #require(
       URL(
@@ -45,6 +150,11 @@ struct ModerationTests {
       status: 204)
 
     try await harness.twitch.helix(for: .approveAutoModMessage(messageID: "123"))
+
+    let request = try #require(await harness.session.lastRequest())
+    let body = try #require(request.httpBody)
+    let fields = try JSONDecoder().decode([String: String].self, from: body)
+    #expect(fields == ["user_id": "1234", "msg_id": "123", "action": "ALLOW"])
   }
 
   @Test
@@ -58,6 +168,11 @@ struct ModerationTests {
       status: 204)
 
     try await harness.twitch.helix(for: .denyAutoModMessage(messageID: "123"))
+
+    let request = try #require(await harness.session.lastRequest())
+    let body = try #require(request.httpBody)
+    let fields = try JSONDecoder().decode([String: String].self, from: body)
+    #expect(fields == ["user_id": "1234", "msg_id": "123", "action": "DENY"])
   }
 
   @Test

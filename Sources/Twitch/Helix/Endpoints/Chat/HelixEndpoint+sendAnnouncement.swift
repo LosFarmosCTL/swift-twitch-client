@@ -17,10 +17,13 @@ extension HelixEndpoint {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - message: The text to send.
   ///   - color: The announcement highlight color; `nil` uses Twitch’s default.
+  ///   - isSourceOnly: With an app token, whether to send only to the source channel.
+  ///     Leave `nil` for user tokens; Twitch rejects this field with user tokens.
   public static func sendAnnouncement(
     in broadcasterID: String,
     message: String,
-    color: AnnouncementColor? = nil
+    color: AnnouncementColor? = nil,
+    isSourceOnly: Bool? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "chat/announcements",
@@ -29,13 +32,23 @@ extension HelixEndpoint {
           ("broadcaster_id", broadcasterID),
           ("moderator_id", credentials.userID),
         ]
-      }, body: { _ in SendAnnouncementRequestBody(message: message, color: color) })
+      },
+      body: { _ in
+        SendAnnouncementRequestBody(
+          message: message, color: color, isSourceOnly: isSourceOnly)
+      })
   }
 }
 
 internal struct SendAnnouncementRequestBody: Encodable, Sendable {
   let message: String
   let color: AnnouncementColor?
+  let isSourceOnly: Bool?
+
+  enum CodingKeys: String, CodingKey {
+    case message, color
+    case isSourceOnly = "forSourceOnly"
+  }
 }
 
 /// Highlight colors available for chat announcements.

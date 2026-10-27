@@ -34,10 +34,12 @@ extension HelixEndpoint {
         ]
       },
       body: { _ in
-        BanUserBody(
-          userID: userID,
-          reason: reason,
-          duration: duration)
+        [
+          "data": BanUserBody(
+            userID: userID,
+            reason: reason,
+            duration: duration?.components.seconds)
+        ]
       },
       makeResponse: {
         let ban = try $0.requireFirst()
@@ -50,7 +52,7 @@ extension HelixEndpoint {
 private struct BanUserBody: Encodable, Sendable {
   let userID: String
   let reason: String?
-  let duration: Duration?
+  let duration: Int64?
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

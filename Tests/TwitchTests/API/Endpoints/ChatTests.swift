@@ -3,8 +3,129 @@ import Testing
 
 @testable import Twitch
 
+// swiftlint:disable:next type_body_length
 struct ChatTests {
   private let harness = HelixTestHarness()
+
+  @Test
+  func getSharedChatSession() async throws {
+    let url = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/shared_chat/session?broadcaster_id=198704263"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getSharedChatSessionJSON)
+
+    let session = try #require(
+      await harness.twitch.helix(for: .getSharedChatSession(for: "198704263")))
+
+    #expect(session.sessionID == "359bce59-fa4e-41a5-bd6f-9bc0c8360485")
+    #expect(session.hostBroadcasterID == "198704263")
+    #expect(session.participants.map(\.broadcasterID) == ["198704263", "487263401"])
+    #expect(session.createdAt.formatted(.iso8601) == "2024-09-29T19:45:37Z")
+  }
+
+  @Test
+  func getUserEmotes() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/emotes/user?user_id=1234&broadcaster_id=channel&after=next"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getUserEmotesJSON)
+
+    let result = try await harness.twitch.helix(
+      for: .getUserEmotes(broadcasterID: "channel", after: "next"))
+
+    #expect(result.cursor == "eyJiIjpudWxsLJxhIjoiIn0gf5")
+    #expect(result.emotes.count == 1)
+    let emote = try #require(result.emotes.first)
+    #expect(emote.id == "304420818")
+    #expect(emote.ownerID == "477339272")
+    #expect(emote.type == "hypetrain")
+    #expect(
+      emote.getURL(from: result.template)?.absoluteString
+        == "https://static-cdn.jtvnw.net/emoticons/v2/304420818/static/dark/3.0")
+  }
+
+  @Test
+  func getPinnedChatMessage() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/pins?broadcaster_id=197886470&moderator_id=1234"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getPinnedChatMessageJSON)
+
+    let message = try #require(
+      await harness.twitch.helix(for: .getPinnedChatMessage(in: "197886470")))
+
+    #expect(message.messageID == "abc-def-123-456")
+    #expect(message.senderID == "12826")
+    #expect(message.pinnedByID == "141981764")
+    #expect(message.message.text == "Welcome! bleedPurple Type !rules")
+    #expect(message.message.fragments.count == 3)
+    #expect(message.startsAt.formatted(.iso8601) == "2026-05-06T12:30:00Z")
+    #expect(message.endsAt?.formatted(.iso8601) == "2026-05-06T12:35:00Z")
+  }
+
+  @Test
+  func pinChatMessage() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/pins?broadcaster_id=channel&moderator_id=1234&message_id=message&duration_seconds=300"
+      ))
+
+    await harness.session.stub(url: url, method: "PUT", status: 204)
+
+    try await harness.twitch.helix(
+      for: .pinChatMessage("message", in: "channel", durationSeconds: 300))
+  }
+
+  @Test
+  func updatePinnedChatMessage() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/pins?broadcaster_id=channel&moderator_id=1234&message_id=message&duration_seconds=600"
+      ))
+
+    await harness.session.stub(url: url, method: "PATCH", status: 204)
+
+    try await harness.twitch.helix(
+      for: .updatePinnedChatMessage("message", in: "channel", durationSeconds: 600))
+  }
+
+  @Test
+  func unpinChatMessage() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/pins?broadcaster_id=channel&moderator_id=1234&message_id=message"
+      ))
+
+    await harness.session.stub(url: url, method: "DELETE", status: 204)
+
+    try await harness.twitch.helix(for: .unpinChatMessage("message", in: "channel"))
+  }
+
+  @Test
+  func sendChatMessage() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))
+
+    await harness.session.stub(
+      url: url, method: "POST", body: MockedData.sendChatMessageJSON)
+
+    let message = try await harness.twitch.helix(
+      for: .sendChatMessage(in: "12826", message: "Hello, world! twitchdevHype"))
+
+    #expect(message.messageID == "abc-123-def")
+    #expect(message.isSent == true)
+    #expect(message.dropReason == nil)
+  }
 
   @Test
   func getChatters() async throws {

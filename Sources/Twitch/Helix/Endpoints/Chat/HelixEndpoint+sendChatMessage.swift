@@ -20,11 +20,15 @@ extension HelixEndpoint {
   ///   - isSourceOnly: With an app token, whether to send only to the source channel
   ///     during shared chat. Supplying this field with a user token causes Twitch to
   ///     reject the request with HTTP 400; leave it `nil` for user tokens.
+  ///   - pin: Whether to send and pin the message for 20 minutes. Requires
+  ///     `moderator:manage:chat_messages` and moderator or broadcaster status. Cannot be
+  ///     combined with `replyTo` or `isSourceOnly`; if pinning fails, no message is sent.
   public static func sendChatMessage(
     in broadcasterID: String,
     message: String,
     replyTo replyToMessageID: String? = nil,
-    isSourceOnly: Bool? = nil
+    isSourceOnly: Bool? = nil,
+    pin: Bool? = nil
   ) -> HelixEndpoint<
     ChatMessageResponse, ChatMessageResponse, HelixEndpointResponseTypes.Normal
   > {
@@ -36,7 +40,8 @@ extension HelixEndpoint {
           senderID: credentials.userID,
           message: message,
           replyToMessageID: replyToMessageID,
-          isSourceOnly: isSourceOnly)
+          isSourceOnly: isSourceOnly,
+          pin: pin)
       },
       makeResponse: {
         let messageResponse = try $0.requireFirst()
@@ -81,11 +86,12 @@ private struct SendChatMessageRequestBody: Encodable, Sendable {
   let replyToMessageID: String?
 
   let isSourceOnly: Bool?
+  let pin: Bool?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case senderID = "senderId"
-    case message
+    case message, pin
 
     case replyToMessageID = "replyParentMessageId"
     case isSourceOnly = "forSourceOnly"

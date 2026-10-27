@@ -14,7 +14,8 @@
       ],
       "content_classification_labels": [
         "DrugsIntoxication",
-        "SexualThemes"
+        "SexualThemes",
+        "MatureGame"
       ],
       "is_branded_content": false
     }

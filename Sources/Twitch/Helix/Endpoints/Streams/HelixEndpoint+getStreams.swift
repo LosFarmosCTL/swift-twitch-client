@@ -88,7 +88,7 @@ public struct Stream: Decodable, Sendable {
   public let language: String
   /// The stream tags.
   public let tags: [String]
-  /// Whether the content is marked as mature.
+  /// Twitch’s deprecated maturity flag, documented as always returning `false`.
   public let isMature: Bool
 
   /// The number of viewers reported by Twitch.

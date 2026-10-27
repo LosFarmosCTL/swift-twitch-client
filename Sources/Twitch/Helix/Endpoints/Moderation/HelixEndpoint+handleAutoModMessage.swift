@@ -7,7 +7,7 @@ extension HelixEndpoint {
     .init(
       method: "POST", path: "moderation/automod/message",
       body: { credentials in
-        ["data": ["user_id": credentials.userID, "msg_id": messageID, "action": action]]
+        ["user_id": credentials.userID, "msg_id": messageID, "action": action]
       }
     )
   }
@@ -26,7 +26,7 @@ extension HelixEndpoint {
   public static func approveAutoModMessage(messageID: String)
     -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
   {
-    self.handleAutoModMessage(messageID: messageID, action: "APPROVE")
+    self.handleAutoModMessage(messageID: messageID, action: "ALLOW")
   }
 
   /// Denies a message held by AutoMod.

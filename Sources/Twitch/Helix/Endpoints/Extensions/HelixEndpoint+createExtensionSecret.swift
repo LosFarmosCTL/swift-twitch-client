@@ -5,6 +5,8 @@ extension HelixEndpoint {
   ///
   /// Twitch requires an Extension Backend Service JWT with the `external` role. See the
   /// reference for the required claims and signing rules.
+  /// Supply the signed JWT as `TwitchCredentials.accessToken` and the extension’s client ID
+  /// as `clientID`. The client sends the JWT as a Bearer token; it does not sign JWTs.
   ///
   /// Rotation creates a new secret and schedules retirement of existing secrets.
   /// Coordinate the cutover using the returned activation and expiration timestamps.

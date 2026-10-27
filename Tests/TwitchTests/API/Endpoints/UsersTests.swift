@@ -7,6 +7,29 @@ struct UsersTests {
   private let harness = HelixTestHarness()
 
   @Test
+  func getAuthorizationByUser() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/authorization/users?user_id=141981764&user_id=197886470"
+      ))
+
+    await harness.session.stub(url: url, body: MockedData.getAuthorizationByUserJSON)
+
+    let users = try await harness.twitch.helix(
+      for: .getAuthorizationByUser(["141981764", "197886470"]))
+
+    #expect(users.count == 2)
+    #expect(users.first?.userID == "141981764")
+    #expect(users.first?.userDisplayName == "TwitchDev")
+    #expect(
+      users.first?.scopes == ["bits:read", "channel:bot", "channel:manage:predictions"])
+    #expect(users.first?.hasAuthorized == true)
+    #expect(users.last?.userID == "197886470")
+    #expect(users.last?.hasAuthorized == false)
+  }
+
+  @Test
   func getUsers() async throws {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/users?id=141981764"))
 

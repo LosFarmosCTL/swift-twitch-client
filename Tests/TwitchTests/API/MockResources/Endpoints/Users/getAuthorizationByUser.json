@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "user_id": "141981764", "user_name": "TwitchDev", "user_login": "twitchdev",
+      "scopes": ["bits:read", "channel:bot", "channel:manage:predictions"], "has_authorized": true
+    },
+    {
+      "user_id": "197886470", "user_name": "TwitchRivals", "user_login": "twitchrivals",
+      "scopes": [], "has_authorized": false
+    }
+  ]
+}

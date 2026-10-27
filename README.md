@@ -13,7 +13,7 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
 
 - [x] Works on all Apple platforms, as well as Linux ([with caveats due to libcurl](#linux-support))
 - [x] Compatible with Swift 6s new strict concurrency model
-- [x] Access the full Helix API using async/await or callbacks
+- [x] Access all documented, non-retired Helix endpoints using async/await or callbacks
 - [x] Access IRC chat _and_ EventSub using event listeners, `AsyncStream` or Combine
 - [x] Handles all annoying plumbing for you
   - [x] Connection pooling for IRC & EventSub

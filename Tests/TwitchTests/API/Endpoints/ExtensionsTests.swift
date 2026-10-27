@@ -7,6 +7,22 @@ struct ExtensionsTests {
   private let harness = HelixTestHarness()
 
   @Test
+  func setExtensionRequiredConfiguration() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/extensions/required_configuration?broadcaster_id=274637212"
+      ))
+
+    await harness.session.stub(url: url, method: "PUT", status: 204)
+
+    try await harness.twitch.helix(
+      for: .setExtensionRequiredConfiguration(
+        for: "274637212", extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
+        extensionVersion: "0.0.1", requiredConfiguration: "RCS"))
+  }
+
+  @Test
   func getExtensionConfigurationSegment() async throws {
     let url = try #require(
       URL(

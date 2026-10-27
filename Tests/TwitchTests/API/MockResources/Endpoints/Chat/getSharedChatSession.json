@@ -1,0 +1,9 @@
+{
+  "data": [{
+    "session_id": "359bce59-fa4e-41a5-bd6f-9bc0c8360485",
+    "host_broadcaster_id": "198704263",
+    "participants": [{"broadcaster_id": "198704263"}, {"broadcaster_id": "487263401"}],
+    "created_at": "2024-09-29T19:45:37Z",
+    "updated_at": "2024-09-29T19:45:37Z"
+  }]
+}

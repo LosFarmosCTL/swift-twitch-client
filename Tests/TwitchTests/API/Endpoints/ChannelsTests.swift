@@ -24,7 +24,10 @@ struct ChannelsTests {
     #expect(channels.contains(where: { $0.id == "141981764" }))
 
     let channel = channels.first!
-    #expect(channel.contentClassificationLabels == [.drugsIntoxication, .sexualThemes])
+    #expect(
+      channel.contentClassificationLabels == [
+        .drugsIntoxication, .sexualThemes, .matureGame,
+      ])
     #expect(channel.isBrandedContent == false)
   }
 

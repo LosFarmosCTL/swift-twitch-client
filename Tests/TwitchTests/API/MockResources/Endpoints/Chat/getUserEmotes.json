@@ -1,0 +1,14 @@
+{
+  "data": [{
+    "emote_set_id": "",
+    "emote_type": "hypetrain",
+    "format": ["static"],
+    "id": "304420818",
+    "name": "HypeLol",
+    "owner_id": "477339272",
+    "scale": ["1.0", "2.0", "3.0"],
+    "theme_mode": ["light", "dark"]
+  }],
+  "template": "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}",
+  "pagination": {"cursor": "eyJiIjpudWxsLJxhIjoiIn0gf5"}
+}
