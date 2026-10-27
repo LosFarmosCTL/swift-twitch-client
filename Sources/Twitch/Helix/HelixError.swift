@@ -12,6 +12,8 @@ public enum HelixError: Error, Sendable {
   case unexpectedError(wrapped: Error)
   /// Twitch rejected the request; carries the error name, HTTP status, and message.
   case twitchError(name: String, status: Int, message: String)
+  /// Twitch returned HTTP 429; carries response metadata and the original error body.
+  case rateLimited(HelixRateLimitError)
 
   /// The success response could not be decoded; carries the raw response body.
   case parsingResponseFailed(responseData: Data)
@@ -41,6 +43,8 @@ extension HelixError: CustomStringConvertible {
       return "Unexpected Error: \(error.localizedDescription)"
     case .twitchError(let name, let status, let message):
       return "Twitch Error: \(name) (\(status)): \(message)"
+    case .rateLimited(let error):
+      return "Rate Limited: \(error.message ?? "Too Many Requests")"
     case .parsingResponseFailed(let responseData):
       return "Parsing Response Failed: \(responseData.debugDescription)"
     case .parsingErrorFailed(let status, let responseData):
@@ -73,6 +77,8 @@ extension HelixError: CustomStringConvertible {
         .init("Unexpected Error: \(error.localizedDescription)", bundle: bundle)
       case .twitchError(let name, let status, let message):
         .init("Twitch Error: \(name) (\(status)): \(message)")
+      case .rateLimited(let error):
+        .init("Rate Limited: \(error.message ?? "Too Many Requests")")
       case .parsingResponseFailed(let responseData):
         .init("Parsing Response Failed: \(responseData.debugDescription)")
       case .parsingErrorFailed(let status, let responseData):

@@ -16,7 +16,7 @@ struct SubscriptionsTests {
       url: url,
       body: MockedData.getBroadcasterSubscriptionsJSON)
 
-    let result = try await harness.twitch.helix(for: .getSubscribers(limit: 2))
+    let result = (try await harness.twitch.helix(for: .getSubscribers(limit: 2))).value
     let subscribers = result.subscribers
 
     #expect(result.total == 13)
@@ -44,8 +44,9 @@ struct SubscriptionsTests {
       url: url,
       body: MockedData.checkUserSubscriptionJSON)
 
-    let subscription = try await harness.twitch.helix(
-      for: .checkSubscription(to: "1234"))
+    let subscription =
+      (try await harness.twitch.helix(
+        for: .checkSubscription(to: "1234"))).value
 
     #expect(subscription?.broadcasterID == "141981764")
     #expect(subscription?.gifter?.id == "12826")

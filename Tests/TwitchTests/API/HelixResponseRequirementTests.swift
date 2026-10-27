@@ -53,8 +53,8 @@ private func makeResponse<T: Decodable>(
   data: [T],
   total: Int? = nil,
   rawData: Data = Data()
-) -> HelixResponse<T> {
-  HelixResponse(
+) -> DecodedHelixResponse<T> {
+  DecodedHelixResponse(
     data: data,
     pagination: nil,
     points: nil,

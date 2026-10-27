@@ -19,9 +19,10 @@ struct EntitlementsTests {
       url: url,
       body: MockedData.getDropsEntitlementsJSON)
 
-    let (entitlements, cursor) = try await harness.twitch.helix(
-      for: .getDropsEntitlements(
-        userID: "25009227", gameID: "33214", limit: 3))
+    let (entitlements, cursor) =
+      (try await harness.twitch.helix(
+        for: .getDropsEntitlements(
+          userID: "25009227", gameID: "33214", limit: 3))).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6MX0")
 
@@ -45,15 +46,16 @@ struct EntitlementsTests {
       method: "PATCH",
       body: MockedData.updateDropsEntitlementsJSON)
 
-    let results = try await harness.twitch.helix(
-      for: .updateDropsEntitlements(
-        entitlementIDs: [
-          "fb78259e-fb81-4d1b-8333-34a06ffc24c0",
-          "862750a5-265e-4ab6-9f0a-c64df3d54dd0",
-          "d8879baa-3966-4d10-8856-15fdd62cce02",
-          "9a290126-7e3b-4f66-a9ae-551537893b65",
-        ],
-        fulfillmentStatus: .fulfilled))
+    let results =
+      (try await harness.twitch.helix(
+        for: .updateDropsEntitlements(
+          entitlementIDs: [
+            "fb78259e-fb81-4d1b-8333-34a06ffc24c0",
+            "862750a5-265e-4ab6-9f0a-c64df3d54dd0",
+            "d8879baa-3966-4d10-8856-15fdd62cce02",
+            "9a290126-7e3b-4f66-a9ae-551537893b65",
+          ],
+          fulfillmentStatus: .fulfilled))).value
 
     #expect(results.count == 3)
     #expect(results.first?.status == .success)

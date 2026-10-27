@@ -18,8 +18,9 @@ struct ModerationTests {
 
     await harness.session.stub(url: url, body: MockedData.getUnbanRequestsJSON)
 
-    let (requests, cursor) = try await harness.twitch.helix(
-      for: .getUnbanRequests(in: "274637212", status: .pending, limit: 20))
+    let (requests, cursor) =
+      (try await harness.twitch.helix(
+        for: .getUnbanRequests(in: "274637212", status: .pending, limit: 20))).value
 
     #expect(cursor != nil)
     #expect(requests.count == 1)
@@ -42,9 +43,11 @@ struct ModerationTests {
     await harness.session.stub(
       url: url, method: "PATCH", body: MockedData.resolveUnbanRequestJSON)
 
-    let request = try await harness.twitch.helix(
-      for: .resolveUnbanRequest(
-        "request", in: "274637212", status: .approved, resolutionText: "Welcome back!"))
+    let request =
+      (try await harness.twitch.helix(
+        for: .resolveUnbanRequest(
+          "request", in: "274637212", status: .approved, resolutionText: "Welcome back!")))
+      .value
 
     #expect(request.id == "92af127c-7326-4483-a52b-b0da0be61c01")
     #expect(request.userID == "424596340")
@@ -63,8 +66,9 @@ struct ModerationTests {
     await harness.session.stub(
       url: url, method: "POST", body: MockedData.warnChatUserJSON)
 
-    let warning = try await harness.twitch.helix(
-      for: .warnChatUser("9876", in: "404040", reason: "stop doing that!"))
+    let warning =
+      (try await harness.twitch.helix(
+        for: .warnChatUser("9876", in: "404040", reason: "stop doing that!"))).value
 
     #expect(warning.broadcasterID == "404040")
     #expect(warning.userID == "9876")
@@ -83,8 +87,10 @@ struct ModerationTests {
     await harness.session.stub(
       url: url, method: "POST", body: MockedData.addSuspiciousStatusToChatUserJSON)
 
-    let status = try await harness.twitch.helix(
-      for: .addSuspiciousStatusToChatUser("9876", in: "141981764", status: .restricted))
+    let status =
+      (try await harness.twitch.helix(
+        for: .addSuspiciousStatusToChatUser("9876", in: "141981764", status: .restricted)))
+      .value
 
     #expect(status.userID == "9876")
     #expect(status.broadcasterID == "141981764")
@@ -104,8 +110,9 @@ struct ModerationTests {
     await harness.session.stub(
       url: url, method: "DELETE", body: MockedData.removeSuspiciousStatusFromChatUserJSON)
 
-    let status = try await harness.twitch.helix(
-      for: .removeSuspiciousStatusFromChatUser("9876", in: "141981764"))
+    let status =
+      (try await harness.twitch.helix(
+        for: .removeSuspiciousStatusFromChatUser("9876", in: "141981764"))).value
 
     #expect(status.userID == "9876")
     #expect(status.broadcasterID == "141981764")
@@ -126,11 +133,12 @@ struct ModerationTests {
       method: "POST",
       body: MockedData.checkAutoModStatusJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .checkAutoModStatus(
-        messages: ("123", "This is a test message."),
-        ("393", "This is another test message."))
-    )
+    let result =
+      (try await harness.twitch.helix(
+        for: .checkAutoModStatus(
+          messages: ("123", "This is a test message."),
+          ("393", "This is another test message."))
+      )).value
 
     #expect(result.count == 2)
     #expect(result[0].messageID == "123")
@@ -187,7 +195,8 @@ struct ModerationTests {
       url: url,
       body: MockedData.getAutoModSettingsJSON)
 
-    let result = try await harness.twitch.helix(for: .getAutoModSettings(of: "5678"))
+    let result = (try await harness.twitch.helix(for: .getAutoModSettings(of: "5678")))
+      .value
 
     #expect(result.broadcasterID == "5678")
     #expect(result.moderatorID == "1234")
@@ -209,8 +218,9 @@ struct ModerationTests {
       method: "PUT",
       body: MockedData.updateAutoModSettingsJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .updateAutoModSettings(of: "5678", overall: 3))
+    let result =
+      (try await harness.twitch.helix(
+        for: .updateAutoModSettings(of: "5678", overall: 3))).value
 
     #expect(result.broadcasterID == "5678")
     #expect(result.moderatorID == "1234")
@@ -236,7 +246,7 @@ struct ModerationTests {
       url: url,
       body: MockedData.getBannedUsersJSON)
 
-    let (bans, cursor) = try await harness.twitch.helix(for: .getBannedUsers())
+    let (bans, cursor) = (try await harness.twitch.helix(for: .getBannedUsers())).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI")
 
@@ -257,7 +267,7 @@ struct ModerationTests {
       method: "POST",
       body: MockedData.banUserJSON)
 
-    let ban = try await harness.twitch.helix(for: .banUser("9876", in: "5678"))
+    let ban = (try await harness.twitch.helix(for: .banUser("9876", in: "5678"))).value
 
     #expect(ban.broadcasterID == "5678")
     #expect(ban.moderatorID == "1234")
@@ -293,8 +303,9 @@ struct ModerationTests {
       url: url,
       body: MockedData.getBlockedTermsJSON)
 
-    let (terms, cursor) = try await harness.twitch.helix(
-      for: .getBlockedTerms(in: "5678"))
+    let (terms, cursor) =
+      (try await harness.twitch.helix(
+        for: .getBlockedTerms(in: "5678"))).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 
@@ -316,8 +327,9 @@ struct ModerationTests {
       method: "POST",
       body: MockedData.getBlockedTermsJSON)
 
-    let term = try await harness.twitch.helix(
-      for: .addBlockedTerm(in: "5678", text: "A phrase I'm not fond of"))
+    let term =
+      (try await harness.twitch.helix(
+        for: .addBlockedTerm(in: "5678", text: "A phrase I'm not fond of"))).value
 
     #expect(term.broadcasterID == "5678")
     #expect(term.moderatorID == "1234")
@@ -368,8 +380,9 @@ struct ModerationTests {
       url: url,
       body: MockedData.getModeratedChannelsJSON)
 
-    let (channels, cursor) = try await harness.twitch.helix(
-      for: .getModeratedChannels())
+    let (channels, cursor) =
+      (try await harness.twitch.helix(
+        for: .getModeratedChannels())).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6")
 
@@ -388,7 +401,7 @@ struct ModerationTests {
       url: url,
       body: MockedData.getModeratorsJSON)
 
-    let (mods, cursor) = try await harness.twitch.helix(for: .getModerators())
+    let (mods, cursor) = (try await harness.twitch.helix(for: .getModerators())).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 
@@ -438,7 +451,7 @@ struct ModerationTests {
       url: url,
       body: MockedData.getVIPsJSON)
 
-    let (vips, cursor) = try await harness.twitch.helix(for: .getVIPs())
+    let (vips, cursor) = (try await harness.twitch.helix(for: .getVIPs())).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 
@@ -490,8 +503,9 @@ struct ModerationTests {
       url: url,
       body: MockedData.getShieldModeStatusJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getShieldModeStatus(of: "5678"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getShieldModeStatus(of: "5678"))).value
 
     #expect(result.isActive == true)
     #expect(result.moderatorID == "1234")
@@ -510,8 +524,9 @@ struct ModerationTests {
       method: "PUT",
       body: MockedData.getShieldModeStatusJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .updateShieldModeStatus(of: "5678", isActive: true))
+    let result =
+      (try await harness.twitch.helix(
+        for: .updateShieldModeStatus(of: "5678", isActive: true))).value
 
     #expect(result.isActive == true)
     #expect(result.moderatorID == "1234")

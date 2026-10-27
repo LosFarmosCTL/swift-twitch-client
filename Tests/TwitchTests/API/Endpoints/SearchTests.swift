@@ -15,8 +15,9 @@ struct SearchTests {
       url: url,
       body: MockedData.searchCategoriesJSON)
 
-    let (categories, cursor) = try await harness.twitch.helix(
-      for: .searchCategories(for: "fort"))
+    let (categories, cursor) =
+      (try await harness.twitch.helix(
+        for: .searchCategories(for: "fort"))).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN")
 
@@ -33,8 +34,9 @@ struct SearchTests {
       url: url,
       body: MockedData.searchChannelsJSON)
 
-    let (channels, cursor) = try await harness.twitch.helix(
-      for: .searchChannels(for: "loser"))
+    let (channels, cursor) =
+      (try await harness.twitch.helix(
+        for: .searchChannels(for: "loser"))).value
 
     #expect(cursor == nil)
 

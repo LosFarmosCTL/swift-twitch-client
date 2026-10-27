@@ -18,8 +18,9 @@ struct UsersTests {
 
     await harness.session.stub(url: url, body: MockedData.getAuthorizationByUserJSON)
 
-    let users = try await harness.twitch.helix(
-      for: .getAuthorizationByUser(["141981764", "197886470"]))
+    let users =
+      (try await harness.twitch.helix(
+        for: .getAuthorizationByUser(["141981764", "197886470"]))).value
 
     #expect(users.count == 2)
     #expect(users.first?.userID == "141981764")
@@ -39,7 +40,8 @@ struct UsersTests {
       url: url,
       body: MockedData.getUsersJSON)
 
-    let users = try await harness.twitch.helix(for: .getUsers(userIDs: ["141981764"]))
+    let users = (try await harness.twitch.helix(for: .getUsers(userIDs: ["141981764"])))
+      .value
 
     #expect(users.count == 1)
 
@@ -58,8 +60,9 @@ struct UsersTests {
       method: "PUT",
       body: MockedData.updateUserJSON)
 
-    let user = try await harness.twitch.helix(
-      for: .updateUser(description: "Hello world!"))
+    let user =
+      (try await harness.twitch.helix(
+        for: .updateUser(description: "Hello world!"))).value
 
     #expect(user.description == "Hello world!")
     #expect(user.email != nil)
@@ -75,7 +78,7 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserBlocklistJSON)
 
-    let blocks = try await harness.twitch.helix(for: .getUserBlocklist(limit: 2))
+    let blocks = (try await harness.twitch.helix(for: .getUserBlocklist(limit: 2))).value
 
     #expect(blocks.count == 2)
     #expect(blocks.contains(where: { $0.userID == "135093069" }))
@@ -90,7 +93,7 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserExtensionsJSON)
 
-    let extensions = try await harness.twitch.helix(for: .getUserExtensions())
+    let extensions = (try await harness.twitch.helix(for: .getUserExtensions())).value
 
     #expect(extensions.count == 5)
     #expect(extensions.contains(where: { $0.id == "wi08ebtatdc7oj83wtl9uxwz807l8b" }))
@@ -106,8 +109,9 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserActiveExtensionsJSON)
 
-    let activeExtensions = try await harness.twitch.helix(
-      for: .getUserActiveExtensions())
+    let activeExtensions =
+      (try await harness.twitch.helix(
+        for: .getUserActiveExtensions())).value
 
     #expect(activeExtensions.panel?["1"]?.name == "TopClip")
     #expect(activeExtensions.overlay?["1"]?.id == "zfh2irvx2jb4s60f02jq0ajm8vwgka")
@@ -124,22 +128,23 @@ struct UsersTests {
       method: "PUT",
       body: MockedData.updateUserExtensionsJSON)
 
-    let userExtensions = try await harness.twitch.helix(
-      for: .updateUserExtensions(
-        panel: [
-          "1": ExtensionSlotUpdate(
-            isActive: true, id: "rh6jq1q334hqc2rr1qlzqbvwlfl3x0", version: "1.1.0")
-        ],
-        overlay: [
-          "1": ExtensionSlotUpdate(
-            isActive: true, id: "zfh2irvx2jb4s60f02jq0ajm8vwgka", version: "1.0.19")
-        ],
-        component: [
-          "1": ExtensionSlotUpdate(
-            isActive: true, id: "lqnf3zxk0rv0g7gq92mtmnirjz2cjj", version: "0.0.1",
-            x: 0, y: 0),
-          "2": ExtensionSlotUpdate(isActive: false),
-        ]))
+    let userExtensions =
+      (try await harness.twitch.helix(
+        for: .updateUserExtensions(
+          panel: [
+            "1": ExtensionSlotUpdate(
+              isActive: true, id: "rh6jq1q334hqc2rr1qlzqbvwlfl3x0", version: "1.1.0")
+          ],
+          overlay: [
+            "1": ExtensionSlotUpdate(
+              isActive: true, id: "zfh2irvx2jb4s60f02jq0ajm8vwgka", version: "1.0.19")
+          ],
+          component: [
+            "1": ExtensionSlotUpdate(
+              isActive: true, id: "lqnf3zxk0rv0g7gq92mtmnirjz2cjj", version: "0.0.1",
+              x: 0, y: 0),
+            "2": ExtensionSlotUpdate(isActive: false),
+          ]))).value
 
     #expect(userExtensions.panel?["1"]?.version == "1.1.0")
     #expect(userExtensions.component?["1"]?.y == 0)

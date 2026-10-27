@@ -1,6 +1,6 @@
 import Foundation
 
-extension HelixResponse {
+extension DecodedHelixResponse {
   internal func requireFirst() throws -> T {
     guard let value = data.first else {
       throw HelixError.noDataInResponse(responseData: rawData)

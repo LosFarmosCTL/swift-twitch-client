@@ -17,7 +17,7 @@ struct ChatTests {
     await harness.session.stub(url: url, body: MockedData.getSharedChatSessionJSON)
 
     let session = try #require(
-      await harness.twitch.helix(for: .getSharedChatSession(for: "198704263")))
+      await harness.twitch.helix(for: .getSharedChatSession(for: "198704263")).value)
 
     #expect(session.sessionID == "359bce59-fa4e-41a5-bd6f-9bc0c8360485")
     #expect(session.hostBroadcasterID == "198704263")
@@ -35,8 +35,9 @@ struct ChatTests {
 
     await harness.session.stub(url: url, body: MockedData.getUserEmotesJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getUserEmotes(broadcasterID: "channel", after: "next"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getUserEmotes(broadcasterID: "channel", after: "next"))).value
 
     #expect(result.cursor == "eyJiIjpudWxsLJxhIjoiIn0gf5")
     #expect(result.emotes.count == 1)
@@ -60,7 +61,7 @@ struct ChatTests {
     await harness.session.stub(url: url, body: MockedData.getPinnedChatMessageJSON)
 
     let message = try #require(
-      await harness.twitch.helix(for: .getPinnedChatMessage(in: "197886470")))
+      await harness.twitch.helix(for: .getPinnedChatMessage(in: "197886470")).value)
 
     #expect(message.messageID == "abc-def-123-456")
     #expect(message.senderID == "12826")
@@ -95,8 +96,9 @@ struct ChatTests {
 
     await harness.session.stub(url: url, method: "PATCH", status: 204)
 
-    try await harness.twitch.helix(
-      for: .updatePinnedChatMessage("message", in: "channel", durationSeconds: 600))
+    (try await harness.twitch.helix(
+      for: .updatePinnedChatMessage("message", in: "channel", durationSeconds: 600)))
+      .value
   }
 
   @Test
@@ -109,7 +111,8 @@ struct ChatTests {
 
     await harness.session.stub(url: url, method: "DELETE", status: 204)
 
-    try await harness.twitch.helix(for: .unpinChatMessage("message", in: "channel"))
+    (try await harness.twitch.helix(for: .unpinChatMessage("message", in: "channel")))
+      .value
   }
 
   @Test
@@ -119,8 +122,9 @@ struct ChatTests {
     await harness.session.stub(
       url: url, method: "POST", body: MockedData.sendChatMessageJSON)
 
-    let message = try await harness.twitch.helix(
-      for: .sendChatMessage(in: "12826", message: "Hello, world! twitchdevHype"))
+    let message =
+      (try await harness.twitch.helix(
+        for: .sendChatMessage(in: "12826", message: "Hello, world! twitchdevHype"))).value
 
     #expect(message.messageID == "abc-123-def")
     #expect(message.isSent == true)
@@ -139,7 +143,7 @@ struct ChatTests {
       url: url,
       body: MockedData.getChattersJSON)
 
-    let result = try await harness.twitch.helix(for: .getChatters(in: "123"))
+    let result = (try await harness.twitch.helix(for: .getChatters(in: "123"))).value
 
     #expect(result.chatters.count == 1)
     #expect(result.total == 8)
@@ -157,8 +161,9 @@ struct ChatTests {
       url: url,
       body: MockedData.getChannelEmotesJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getChannelEmotes(of: "1234"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getChannelEmotes(of: "1234"))).value
 
     #expect(
       result.template
@@ -182,7 +187,7 @@ struct ChatTests {
       url: url,
       body: MockedData.getGlobalEmotesJSON)
 
-    let result = try await harness.twitch.helix(for: .getGlobalEmotes())
+    let result = (try await harness.twitch.helix(for: .getGlobalEmotes())).value
 
     #expect(
       result.template
@@ -210,8 +215,9 @@ struct ChatTests {
       url: url,
       body: MockedData.getEmoteSetsJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getEmoteSets(["123", "456"]))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getEmoteSets(["123", "456"]))).value
 
     #expect(
       result.template
@@ -236,9 +242,10 @@ struct ChatTests {
       url: url,
       body: MockedData.getChannelBadgesJSON)
 
-    let badgeSets = try await harness.twitch.helix(
-      for: .getChannelBadges(of: "1234")
-    )
+    let badgeSets =
+      (try await harness.twitch.helix(
+        for: .getChannelBadges(of: "1234")
+      )).value
 
     #expect(badgeSets.count == 2)
 
@@ -256,7 +263,7 @@ struct ChatTests {
       url: url,
       body: MockedData.getGlobalBadgesJSON)
 
-    let badgeSets = try await harness.twitch.helix(for: .getGlobalBadges())
+    let badgeSets = (try await harness.twitch.helix(for: .getGlobalBadges())).value
 
     #expect(badgeSets.count == 1)
 
@@ -278,8 +285,9 @@ struct ChatTests {
       url: url,
       body: MockedData.getChatSettingsJSON)
 
-    let settings = try await harness.twitch.helix(
-      for: .getChatSettings(of: "713936733", moderatorID: "1234"))
+    let settings =
+      (try await harness.twitch.helix(
+        for: .getChatSettings(of: "713936733", moderatorID: "1234"))).value
 
     #expect(settings.broadcasterID == "713936733")
     #expect(settings.slowModeWaitTime == 5)
@@ -303,9 +311,11 @@ struct ChatTests {
       method: "PATCH",
       body: MockedData.getChatSettingsJSON)
 
-    let settings = try await harness.twitch.helix(
-      for: .updateChatSettings(
-        of: "713936733", settings: .slowMode(5), .subscriberMode, .followerMode()))
+    let settings =
+      (try await harness.twitch.helix(
+        for: .updateChatSettings(
+          of: "713936733", settings: .slowMode(5), .subscriberMode, .followerMode())))
+      .value
 
     #expect(settings.broadcasterID == "713936733")
     #expect(settings.slowModeWaitTime == 5)
@@ -360,9 +370,10 @@ struct ChatTests {
       url: url,
       body: MockedData.getUserColorJSON)
 
-    let colors = try await harness.twitch.helix(
-      for: .getUserColors(of: ["11111", "44444"])
-    )
+    let colors =
+      (try await harness.twitch.helix(
+        for: .getUserColors(of: ["11111", "44444"])
+      )).value
 
     #expect(colors.count == 2)
 

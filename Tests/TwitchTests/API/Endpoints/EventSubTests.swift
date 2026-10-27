@@ -16,7 +16,8 @@ struct EventSubTests {
       url: url,
       body: MockedData.getEventSubSubscriptionsJSON)
 
-    let response = try await harness.twitch.helix(for: .getEventSubSubscriptions())
+    let response = (try await harness.twitch.helix(for: .getEventSubSubscriptions()))
+      .value
 
     #expect(response.total == 2)
     #expect(response.totalCost == 1)
@@ -47,10 +48,11 @@ struct EventSubTests {
       method: "POST",
       body: MockedData.createEventSubSubscriptionJSON)
 
-    let response = try await harness.twitch.helix(
-      for: .createEventSubSubscription(
-        using: .webhook(callback: "https://this-is-a-callback.com", secret: "s3cre7"),
-        for: .userUpdate(userID: "1234")))
+    let response =
+      (try await harness.twitch.helix(
+        for: .createEventSubSubscription(
+          using: .webhook(callback: "https://this-is-a-callback.com", secret: "s3cre7"),
+          for: .userUpdate(userID: "1234")))).value
 
     #expect(response.total == 1)
     #expect(response.totalCost == 1)

@@ -34,7 +34,8 @@ Choose a typed ``HelixEndpoint`` factory, then execute its request through the c
 For example, look up a Twitch user's profile:
 
 ```swift
-let users = try await twitch.helix(for: .getUsers(userIDs: [userID]))
+let response = try await twitch.helix(for: .getUsers(userIDs: [userID]))
+let users = response.value
 
 for user in users {
   print(user.displayName)
@@ -43,8 +44,8 @@ for user in users {
 
 Factories describe requests without performing network I/O. The result type depends
 on the endpoint. Request failures throw ``HelixError``, and cancellation throws
-`CancellationError`. Helix also supports completion handlers. Rate-limited requests
-are not automatically retried.
+`CancellationError`. Helix also supports completion handlers. Each Helix response includes HTTP and rate-limit metadata.
+Requests do not wait or retry automatically; see <doc:RateLimiting>.
 
 Some extension endpoints require an Extension Backend Service (EBS) JWT instead of a
 Twitch OAuth access token. Use `TwitchCredentials.extensionJWT(token:clientID:)` with
@@ -125,8 +126,13 @@ callbacks and Combine publishers where available.
 
 ### Helix requests
 
+- <doc:RateLimiting>
 - ``HelixEndpoint``
 - ``HelixError``
+- ``HelixResponse``
+- ``HelixResponseMetadata``
+- ``HelixRateLimit``
+- ``HelixRateLimitError``
 - ``HelixEndpointResponseType``
 - ``HelixEndpointResponseTypes``
 - ``EmptyResponse``

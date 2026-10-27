@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  internal static func data(
+  internal static func response(
     for endpoint: HelixEndpoint<
       some Any,
       some Sendable & Decodable,
@@ -15,7 +15,9 @@ extension TwitchClient {
     network: NetworkSession,
     encoder: JSONEncoder = TwitchClient.makeEncoder(),
     decoder: JSONDecoder = TwitchClient.makeDecoder()
-  ) async throws -> Data {
+  ) async throws -> (data: Data, metadata: HelixResponseMetadata) {
+    try Task.checkCancellation()
+
     let request: URLRequest
     do {
       request = try endpoint.makeRequest(using: credentials, encoder: encoder)
@@ -36,20 +38,29 @@ extension TwitchClient {
       throw HelixError.networkError(wrapped: error)
     }
 
-    try Self.validate(data: data, response: response, decoder: decoder)
+    try Task.checkCancellation()
 
-    return data
+    let metadata = HelixResponseMetadata(response: response)
+    try Self.validate(data: data, metadata: metadata, decoder: decoder)
+
+    return (data, metadata)
   }
 
   internal static func validate(
     data: Data,
-    response: HTTPURLResponse,
+    metadata: HelixResponseMetadata,
     decoder: JSONDecoder
   ) throws {
-    let statusCode = response.statusCode
+    let statusCode = metadata.statusCode
 
     guard (200..<300) ~= statusCode else {
       let errorResponse = try? decoder.decode(HelixErrorResponse.self, from: data)
+      if statusCode == 429 {
+        throw HelixError.rateLimited(
+          HelixRateLimitError(
+            metadata: metadata, name: errorResponse?.error,
+            message: errorResponse?.message, responseData: data))
+      }
 
       guard let errorResponse else {
         throw HelixError.parsingErrorFailed(status: statusCode, responseData: data)
@@ -64,7 +75,7 @@ extension TwitchClient {
   internal static func decode<R>(
     _ data: Data, decoder: JSONDecoder = TwitchClient.makeDecoder()
   ) throws
-    -> HelixResponse<R>
+    -> DecodedHelixResponse<R>
   {
     let decoded = try? decoder.decode(HelixResponsePayload<R>.self, from: data)
 
@@ -72,6 +83,6 @@ extension TwitchClient {
       throw HelixError.parsingResponseFailed(responseData: data)
     }
 
-    return HelixResponse(payload: decoded, rawData: data)
+    return DecodedHelixResponse(payload: decoded, rawData: data)
   }
 }

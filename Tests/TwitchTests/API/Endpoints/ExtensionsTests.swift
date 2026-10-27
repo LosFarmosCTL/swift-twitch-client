@@ -35,10 +35,11 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionConfigurationSegmentJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getExtensionConfigurationSegment(
-        extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
-        segments: [.global]))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getExtensionConfigurationSegment(
+          extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
+          segments: [.global]))).value
 
     #expect(result.count == 1)
     #expect(result.first?.segment == .global)
@@ -93,10 +94,11 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionLiveChannelsJSON)
 
-    let (channels, cursor) = try await harness.twitch.helix(
-      for: .getExtensionLiveChannels(
-        extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
-        limit: 1))
+    let (channels, cursor) =
+      (try await harness.twitch.helix(
+        for: .getExtensionLiveChannels(
+          extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
+          limit: 1))).value
 
     #expect(
       cursor
@@ -119,8 +121,9 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionSecretsJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getExtensionSecrets(extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getExtensionSecrets(extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2"))).value
 
     #expect(result.formatVersion == 1)
     #expect(result.secrets.count == 1)
@@ -140,10 +143,11 @@ struct ExtensionsTests {
       method: "POST",
       body: MockedData.createExtensionSecretJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .createExtensionSecret(
-        extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
-        delay: 600))
+    let result =
+      (try await harness.twitch.helix(
+        for: .createExtensionSecret(
+          extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
+          delay: 600))).value
 
     #expect(result.formatVersion == 1)
     #expect(result.secrets.count == 2)
@@ -183,10 +187,11 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getExtension(
-        extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
-        version: "0.0.9"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getExtension(
+          extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
+          version: "0.0.9"))).value
 
     #expect(result.id == "pgn0bjv51epi7eaekt53tovjnc82qo")
     #expect(result.name == "Official Developers Demo")
@@ -208,10 +213,11 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getReleasedExtensionJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getReleasedExtension(
-        extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
-        version: "0.0.9"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getReleasedExtension(
+          extensionID: "pgn0bjv51epi7eaekt53tovjnc82qo",
+          version: "0.0.9"))).value
 
     #expect(result.id == "pgn0bjv51epi7eaekt53tovjnc82qo")
     #expect(result.name == "Official Developer Experience Demo")
@@ -232,8 +238,9 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionBitsProductsJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getExtensionBitsProducts(includeAll: true))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getExtensionBitsProducts(includeAll: true))).value
 
     #expect(result.count == 1)
     #expect(result.first?.sku == "1010")
@@ -252,14 +259,15 @@ struct ExtensionsTests {
       method: "PUT",
       body: MockedData.updateExtensionBitsProductJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .updateExtensionBitsProduct(
-        sku: "1010",
-        cost: .init(amount: 990, type: .bits),
-        displayName: "Rusty Crate 2",
-        inDevelopment: true,
-        expiration: Date(timeIntervalSince1970: 1_621_329_013.397),
-        isBroadcast: true))
+    let result =
+      (try await harness.twitch.helix(
+        for: .updateExtensionBitsProduct(
+          sku: "1010",
+          cost: .init(amount: 990, type: .bits),
+          displayName: "Rusty Crate 2",
+          inDevelopment: true,
+          expiration: Date(timeIntervalSince1970: 1_621_329_013.397),
+          isBroadcast: true))).value
 
     #expect(result.count == 1)
     #expect(result.first?.sku == "1010")

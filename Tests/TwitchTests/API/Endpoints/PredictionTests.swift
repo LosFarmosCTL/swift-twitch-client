@@ -18,12 +18,13 @@ struct PredictionTests {
       url: url,
       body: MockedData.getPredictionsJSON)
 
-    let (predictions, cursor) = try await harness.twitch.helix(
-      for: .getPredictions(
-        predictionIDs: ["d6676d5c-c86e-44d2-bfc4-100fb48f0656"],
-        limit: nil,
-        after: nil)
-    )
+    let (predictions, cursor) =
+      (try await harness.twitch.helix(
+        for: .getPredictions(
+          predictionIDs: ["d6676d5c-c86e-44d2-bfc4-100fb48f0656"],
+          limit: nil,
+          after: nil)
+      )).value
 
     #expect(cursor == nil)
     #expect(predictions.count == 1)
@@ -59,11 +60,12 @@ struct PredictionTests {
       method: "POST",
       body: MockedData.createPredictionJSON)
 
-    let prediction = try await harness.twitch.helix(
-      for: .createPrediction(
-        title: "Any leeks in the stream?",
-        outcomes: ["Yes, give it time.", "Definitely not."],
-        predictionWindow: 120))
+    let prediction =
+      (try await harness.twitch.helix(
+        for: .createPrediction(
+          title: "Any leeks in the stream?",
+          outcomes: ["Yes, give it time.", "Definitely not."],
+          predictionWindow: 120))).value
 
     #expect(prediction.id == "bc637af0-7766-4525-9308-4112f4cbf178")
     #expect(prediction.broadcasterID == "141981764")
@@ -99,11 +101,12 @@ struct PredictionTests {
       method: "PATCH",
       body: MockedData.endPredictionJSON)
 
-    let prediction = try await harness.twitch.helix(
-      for: .endPrediction(
-        predictionID: "bc637af0-7766-4525-9308-4112f4cbf178",
-        status: .resolved,
-        winningOutcomeID: "73085848-a94d-4040-9d21-2cb7a89374b7"))
+    let prediction =
+      (try await harness.twitch.helix(
+        for: .endPrediction(
+          predictionID: "bc637af0-7766-4525-9308-4112f4cbf178",
+          status: .resolved,
+          winningOutcomeID: "73085848-a94d-4040-9d21-2cb7a89374b7"))).value
 
     #expect(prediction.id == "bc637af0-7766-4525-9308-4112f4cbf178")
     #expect(prediction.broadcasterID == "141981764")

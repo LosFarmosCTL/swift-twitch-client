@@ -16,7 +16,7 @@ struct CharityTests {
       url: url,
       body: MockedData.getCharityCampaignJSON)
 
-    let campaign = try await harness.twitch.helix(for: .getCharityCampaign())
+    let campaign = (try await harness.twitch.helix(for: .getCharityCampaign())).value
 
     #expect(campaign?.id == "123-abc-456-def")
     #expect(campaign?.broadcasterID == "123456")
@@ -45,8 +45,9 @@ struct CharityTests {
       url: url,
       body: MockedData.getCharityCampaignDonationsJSON)
 
-    let (donations, cursor) = try await harness.twitch.helix(
-      for: .getCharityCampaignDonations(limit: 2))
+    let (donations, cursor) =
+      (try await harness.twitch.helix(
+        for: .getCharityCampaignDonations(limit: 2))).value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
     #expect(donations.count == 2)

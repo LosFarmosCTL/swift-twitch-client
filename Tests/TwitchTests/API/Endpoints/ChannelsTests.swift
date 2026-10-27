@@ -16,9 +16,10 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getChannelsJSON)
 
-    let channels = try await harness.twitch.helix(
-      for: .getChannels(["141981764"])
-    )
+    let channels =
+      (try await harness.twitch.helix(
+        for: .getChannels(["141981764"])
+      )).value
 
     #expect(channels.count == 1)
     #expect(channels.contains(where: { $0.id == "141981764" }))
@@ -41,7 +42,7 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getChannelEditorsJSON)
 
-    let editors = try await harness.twitch.helix(for: .getChannelEditors())
+    let editors = (try await harness.twitch.helix(for: .getChannelEditors())).value
 
     #expect(editors.count == 2)
 
@@ -60,7 +61,7 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getFollowedChannelsJSON)
 
-    let result = try await harness.twitch.helix(for: .getFollowedChannels())
+    let result = (try await harness.twitch.helix(for: .getFollowedChannels())).value
 
     #expect(result.total == 8)
 
@@ -83,9 +84,10 @@ struct ChannelsTests {
       url: url,
       body: MockedData.checkFollowJSON)
 
-    let follow = try await harness.twitch.helix(
-      for: .checkFollow(to: "654321")
-    )
+    let follow =
+      (try await harness.twitch.helix(
+        for: .checkFollow(to: "654321")
+      )).value
 
     #expect(follow?.broadcasterID == "654321")
     #expect(follow?.followedAt.formatted(.iso8601) == "2022-05-24T22:22:08Z")
@@ -101,9 +103,10 @@ struct ChannelsTests {
       url: url,
       body: MockedData.getChannelFollowersJSON)
 
-    let result = try await harness.twitch.helix(
-      for: .getChannelFollowers(of: "1234")
-    )
+    let result =
+      (try await harness.twitch.helix(
+        for: .getChannelFollowers(of: "1234")
+      )).value
 
     #expect(result.total == 8)
 
@@ -126,9 +129,10 @@ struct ChannelsTests {
       url: url,
       body: MockedData.checkChannelFollowerJSON)
 
-    let follow = try await harness.twitch.helix(
-      for: .checkFollower("654321", follows: "123456")
-    )
+    let follow =
+      (try await harness.twitch.helix(
+        for: .checkFollower("654321", follows: "123456")
+      )).value
 
     #expect(follow?.userID == "654321")
     #expect(follow?.followedAt.formatted(.iso8601) == "2022-05-24T22:22:08Z")

@@ -15,7 +15,7 @@ struct ConduitsTests {
       url: url,
       body: MockedData.getConduitsJSON)
 
-    let conduits = try await harness.twitch.helix(for: .getConduits())
+    let conduits = (try await harness.twitch.helix(for: .getConduits())).value
 
     #expect(conduits.count == 2)
     #expect(conduits.first?.id == "26b1c993-bfcf-44d9-b876-379dacafe75a")
@@ -31,7 +31,8 @@ struct ConduitsTests {
       method: "POST",
       body: MockedData.createConduitJSON)
 
-    let conduit = try await harness.twitch.helix(for: .createConduit(shardCount: 5))
+    let conduit = (try await harness.twitch.helix(for: .createConduit(shardCount: 5)))
+      .value
 
     #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
     #expect(conduit.shardCount == 5)
@@ -46,9 +47,10 @@ struct ConduitsTests {
       method: "PATCH",
       body: MockedData.updateConduitJSON)
 
-    let conduit = try await harness.twitch.helix(
-      for: .updateConduit(
-        conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac", shardCount: 5))
+    let conduit =
+      (try await harness.twitch.helix(
+        for: .updateConduit(
+          conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac", shardCount: 5))).value
 
     #expect(conduit.id == "bfcfc993-26b1-b876-44d9-afe75a379dac")
     #expect(conduit.shardCount == 5)
@@ -83,8 +85,9 @@ struct ConduitsTests {
       url: url,
       body: MockedData.getConduitShardsJSON)
 
-    let (shards, cursor) = try await harness.twitch.helix(
-      for: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))
+    let (shards, cursor) =
+      (try await harness.twitch.helix(
+        for: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))).value
 
     #expect(cursor == nil)
     #expect(shards.count == 5)
@@ -112,19 +115,20 @@ struct ConduitsTests {
       method: "PATCH",
       body: MockedData.updateConduitShardsJSON)
 
-    let response = try await harness.twitch.helix(
-      for: .updateConduitShards(
-        conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac",
-        shards: [
-          .init(
-            id: "0",
-            transport: .webhook(
-              callback: "https://this-is-a-callback.com", secret: "s3cre7")),
-          .init(
-            id: "1",
-            transport: .webhook(
-              callback: "https://this-is-a-callback-2.com", secret: "s3cre7")),
-        ]))
+    let response =
+      (try await harness.twitch.helix(
+        for: .updateConduitShards(
+          conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac",
+          shards: [
+            .init(
+              id: "0",
+              transport: .webhook(
+                callback: "https://this-is-a-callback.com", secret: "s3cre7")),
+            .init(
+              id: "1",
+              transport: .webhook(
+                callback: "https://this-is-a-callback-2.com", secret: "s3cre7")),
+          ]))).value
 
     #expect(response.shards.count == 2)
     #expect(response.shards.first?.id == "0")

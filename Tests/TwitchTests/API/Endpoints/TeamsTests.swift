@@ -16,9 +16,10 @@ struct TeamsTests {
       url: url,
       body: MockedData.getChannelTeamsJSON)
 
-    let teams = try await harness.twitch.helix(
-      for: .getChannelTeams(for: "96909659")
-    )
+    let teams =
+      (try await harness.twitch.helix(
+        for: .getChannelTeams(for: "96909659")
+      )).value
 
     #expect(teams.count == 1)
     #expect(teams.first?.id == "6358")
@@ -34,7 +35,7 @@ struct TeamsTests {
       url: url,
       body: MockedData.getTeamsJSON)
 
-    let teams = try await harness.twitch.helix(for: .getTeams(teamID: "6358"))
+    let teams = (try await harness.twitch.helix(for: .getTeams(teamID: "6358"))).value
 
     #expect(teams.count == 1)
     #expect(teams.first?.teamName == "livecoders")

@@ -14,7 +14,7 @@ struct GamesTests {
       url: url,
       body: MockedData.getGamesJSON)
 
-    let games = try await harness.twitch.helix(for: .getGames(gameIDs: ["33214"]))
+    let games = (try await harness.twitch.helix(for: .getGames(gameIDs: ["33214"]))).value
 
     #expect(games.count == 1)
     #expect(games.contains(where: { $0.id == "33214" }))
@@ -28,7 +28,8 @@ struct GamesTests {
       url: url,
       body: MockedData.getTopGamesJSON)
 
-    let (games, cursor) = try await harness.twitch.helix(for: .getTopGames(limit: 1))
+    let (games, cursor) = (try await harness.twitch.helix(for: .getTopGames(limit: 1)))
+      .value
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6MjB9fQ==")
 
