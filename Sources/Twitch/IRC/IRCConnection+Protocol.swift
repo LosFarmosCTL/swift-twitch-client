@@ -47,7 +47,7 @@ extension IRCConnection {
         .string(OutgoingMessage.pass(pass: credentials.accessToken).serialize()))
     }
 
-    let login = credentials?.userLogin.lowercased() ?? "justinfan12345"
+    let login = credentials?.userLogin?.lowercased() ?? "justinfan12345"
     try await socket.send(.string(OutgoingMessage.nick(name: login).serialize()))
 
     var commandsAcknowledged = false

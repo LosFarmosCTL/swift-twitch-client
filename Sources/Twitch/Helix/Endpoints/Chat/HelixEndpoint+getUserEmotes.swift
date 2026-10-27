@@ -19,9 +19,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<UserEmotesResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/emotes/user",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", credentials.userID),
+          ("user_id", try credentials.requireUser().id),
           ("broadcaster_id", broadcasterID),
           ("after", afterCursor),
         ]

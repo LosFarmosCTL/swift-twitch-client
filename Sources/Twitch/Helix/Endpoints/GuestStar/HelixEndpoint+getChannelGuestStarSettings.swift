@@ -26,10 +26,17 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "guest_star/channel_settings",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
+          ),
         ]
       },
       makeResponse: { response in

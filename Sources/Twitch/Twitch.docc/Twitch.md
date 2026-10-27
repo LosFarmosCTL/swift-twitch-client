@@ -47,10 +47,11 @@ on the endpoint. Request failures throw ``HelixError``, and cancellation throws
 are not automatically retried.
 
 Some extension endpoints require an Extension Backend Service (EBS) JWT instead of a
-Twitch OAuth access token. For those Helix calls, create ``TwitchCredentials`` with the
-signed JWT as `accessToken`, the extension’s client ID as `clientID`, and the identity
-required by the endpoint. The client sends the JWT as a Bearer token; it does not sign
-JWTs. Do not pass an EBS JWT to `validateAccessToken`, which validates OAuth tokens.
+Twitch OAuth access token. Use `TwitchCredentials.extensionJWT(token:clientID:)` with
+an externally signed JWT and the extension’s client ID. The client sends the JWT as
+a Bearer token; it does not sign JWTs. Do not pass an EBS JWT to `validateAccessToken`,
+which validates OAuth tokens. JWT credentials cannot authorize OAuth-only endpoints,
+IRC, or EventSub.
 
 ### React to live activity with EventSub
 
@@ -114,10 +115,12 @@ callbacks and Combine publishers where available.
 
 ### Client and authentication
 
+- <doc:Authentication>
 - ``TwitchClient``
 - ``TwitchCredentials``
 - ``ValidatedAccessToken``
 - ``AccessTokenValidationError``
+- ``TwitchAuthenticationError``
 - ``TwitchCancellable``
 
 ### Helix requests

@@ -30,6 +30,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PUT", path: "bits/extensions",
+      authentication: .app,
       body: { _ in
         UpdateExtensionBitsProductRequestBody(
           sku: sku,

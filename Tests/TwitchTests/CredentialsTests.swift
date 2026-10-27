@@ -9,6 +9,27 @@ struct CredentialsTests {
   let userLogin = "user"
 
   @Test
+  func appCredentialsHaveNoUserIdentity() {
+    let credentials = TwitchCredentials.app(
+      accessToken: "oauth:app-token", clientID: clientID)
+    #expect(credentials.kind == .app)
+    #expect(credentials.user == nil)
+    #expect(credentials.userID == nil)
+    #expect(credentials.userLogin == nil)
+    #expect(credentials.httpHeaders()["Authorization"] == "Bearer app-token")
+    #expect(credentials.httpHeaders()["Client-Id"] == clientID)
+  }
+
+  @Test
+  func userIdentityIsNormalized() {
+    let credentials = TwitchCredentials(
+      accessToken: accessToken, clientID: clientID, userID: userID, userLogin: "Some_User"
+    )
+    #expect(credentials.kind == .user(.init(id: userID, login: "some_user")))
+    #expect(credentials.user?.login == "some_user")
+  }
+
+  @Test
   func initialization() {
     let credentials = TwitchCredentials(
       accessToken: accessToken, clientID: clientID, userID: userID, userLogin: userLogin)

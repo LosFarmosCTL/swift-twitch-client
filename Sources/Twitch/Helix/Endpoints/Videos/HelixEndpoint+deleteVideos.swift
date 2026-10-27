@@ -16,6 +16,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[String], String, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "DELETE", path: "videos",
+      authentication: .user,
       queryItems: { _ in
         videoIDs.map { ("id", $0) }
       },

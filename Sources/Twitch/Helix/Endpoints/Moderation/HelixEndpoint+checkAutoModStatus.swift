@@ -12,11 +12,16 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - broadcasterID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - messages: The message IDs and text to check with AutoMod.
-  public static func checkAutoModStatus(messages: (id: String, message: String)...)
+  public static func checkAutoModStatus(
+    messages: (id: String, message: String)...,
+    broadcasterID: String? = nil
+  )
     -> HelixEndpoint<[AutoModStatus], AutoModStatus, HelixEndpointResponseTypes.Normal>
   {
-    return self.checkAutoModStatus(messages: messages)
+    return self.checkAutoModStatus(messages: messages, broadcasterID: broadcasterID)
   }
 
   /// Checks messages against a channel’s AutoMod settings.
@@ -28,17 +33,28 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#check-automod-status
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `broadcaster_id`.
+  /// Omit `broadcasterID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - broadcasterID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - messages: The message IDs and text to check with AutoMod.
-  public static func checkAutoModStatus(messages: [(id: String, message: String)])
+  public static func checkAutoModStatus(
+    messages: [(id: String, message: String)], broadcasterID: String? = nil
+  )
     -> HelixEndpoint<[AutoModStatus], AutoModStatus, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "POST", path: "moderation/enforcements/status",
+      authentication: .either,
       queryItems: { credentials in
-        [("broadcaster_id", credentials.userID)]
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(
+              broadcasterID, parameter: "broadcaster_id", matchingToken: true)
+          )
+        ]
       },
       body: { _ in
         [

@@ -11,21 +11,29 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#delete-chat-messages
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - messageID: The identifier of the message.
   public static func deleteChatMessage(
     in broadcasterID: String,
-    messageID: String
+    messageID: String,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "moderation/chat",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("message_id", messageID),
         ]
       })

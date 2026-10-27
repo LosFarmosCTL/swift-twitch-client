@@ -27,6 +27,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "eventsub/subscriptions",
+      authentication: .either,
       queryItems: { _ in
         var items: [(String, String?)] = []
 

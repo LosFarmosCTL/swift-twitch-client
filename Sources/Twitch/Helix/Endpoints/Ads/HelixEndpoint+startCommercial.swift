@@ -14,14 +14,21 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - broadcasterID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - length: The commercial length, in seconds.
   public static func startCommercial(
-    length: Int
+    length: Int,
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<Commercial, Commercial, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "channels/commercial",
+      authentication: .either,
       body: { credentials in
-        StartCommercialRequestBody(broadcasterID: credentials.userID, length: length)
+        StartCommercialRequestBody(
+          broadcasterID: try credentials.resolveUserID(
+            broadcasterID, parameter: "broadcaster_id", matchingToken: true),
+          length: length)
       },
       makeResponse: { result in
         let response = try result.requireFirst()

@@ -17,6 +17,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "authorization/users",
+      authentication: .app,
       queryItems: { _ in userIDs.map { ("user_id", $0) } },
       makeResponse: { $0.data })
   }

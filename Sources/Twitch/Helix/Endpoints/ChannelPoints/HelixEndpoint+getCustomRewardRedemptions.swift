@@ -42,9 +42,13 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "channel_points/custom_rewards/redemptions",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("reward_id", rewardID),
           ("status", status?.rawValue),
           ("sort", sort?.rawValue),

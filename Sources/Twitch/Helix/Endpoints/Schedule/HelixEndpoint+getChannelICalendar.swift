@@ -16,6 +16,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<String, EmptyResponse, HelixEndpointResponseTypes.Raw> {
     .init(
       method: "GET", path: "schedule/icalendar",
+      authentication: .none,
       queryItems: { _ in
         [("broadcaster_id", broadcasterID)]
       },

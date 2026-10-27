@@ -30,8 +30,14 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<StreamSchedule, StreamSchedule, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "schedule/segment",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", broadcasterID ?? credentials.userID)]
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          )
+        ]
       },
       body: { _ in
         CreateChannelStreamScheduleSegmentRequestBody(

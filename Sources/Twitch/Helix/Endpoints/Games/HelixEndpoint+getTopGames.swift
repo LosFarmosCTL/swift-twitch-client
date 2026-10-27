@@ -27,6 +27,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "games/top",
+      authentication: .either,
       queryItems: { _ in
         [
           ("after", afterCursor),

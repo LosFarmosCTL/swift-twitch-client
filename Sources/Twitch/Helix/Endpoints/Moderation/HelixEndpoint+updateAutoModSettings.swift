@@ -3,6 +3,7 @@ import Foundation
 extension HelixEndpoint {
   private static func updateAutoModSettings(
     of broadcasterID: String,
+    moderatorID: String?,
     body: Encodable & Sendable
   ) -> HelixEndpoint<
     AutoModSettings, AutoModSettings,
@@ -10,10 +11,15 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PUT", path: "moderation/automod/settings",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       }, body: { _ in body },
       makeResponse: {
@@ -34,13 +40,15 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - settings: The settings to apply.
   public static func updateAutoModSettings(
-    of broadcasterID: String, settings: AutoModConfiguration
+    of broadcasterID: String, settings: AutoModConfiguration, moderatorID: String? = nil
   ) -> HelixEndpoint<AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal>
   {
-    self.updateAutoModSettings(of: broadcasterID, body: settings)
+    self.updateAutoModSettings(
+      of: broadcasterID, moderatorID: moderatorID, body: settings)
   }
 
   /// Updates a channel’s AutoMod configuration.
@@ -54,17 +62,18 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - overallLevel: The overall AutoMod filtering level.
   public static func updateAutoModSettings(
-    of broadcasterID: String, overall overallLevel: Int
+    of broadcasterID: String, overall overallLevel: Int, moderatorID: String? = nil
   )
     -> HelixEndpoint<
       AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal
     >
   {
     self.updateAutoModSettings(
-      of: broadcasterID, body: ["overall_level": overallLevel])
+      of: broadcasterID, moderatorID: moderatorID, body: ["overall_level": overallLevel])
   }
 }
 

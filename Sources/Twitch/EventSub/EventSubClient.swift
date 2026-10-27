@@ -17,7 +17,6 @@ internal actor EventSubClient {
   private static let eventSubURL = URL(string: "wss://eventsub.wss.twitch.tv/ws")!
   private static let maxSubscriptionsPerConnection = 300
 
-  private var credentials: TwitchCredentials
   private let network: NetworkSession
   private let decoder: JSONDecoder
 
@@ -34,20 +33,20 @@ internal actor EventSubClient {
     [UUID: CheckedContinuation<SessionID, Error>]()
 
   private var isResetting = false
+  private var isRetired = false
 
   internal init(
-    credentials: TwitchCredentials,
     network: NetworkSession,
     decoder: JSONDecoder
   ) {
-    self.credentials = credentials
     self.network = network
     self.decoder = decoder
   }
 
   internal func addHandler(
     _ handler: EventSubHandler, for subscriptionID: String, on sessionID: String
-  ) {
+  ) -> Bool {
+    guard !isRetired, !isResetting, connections[sessionID] != nil else { return false }
     consumeReservation(for: sessionID)
 
     eventHandlers[subscriptionID] = handler
@@ -63,6 +62,7 @@ internal actor EventSubClient {
     if let pendingError = pendingErrors.removeValue(forKey: subscriptionID) {
       handler.finish(throwing: pendingError)
     }
+    return true
   }
 
   internal func removeHandler(for subscriptionID: String) async {
@@ -82,7 +82,7 @@ internal actor EventSubClient {
   internal func reserveWebSocketSessionID() async throws -> String {
     while true {
       try Task.checkCancellation()
-      guard !isResetting else { throw CancellationError() }
+      guard !isResetting, !isRetired else { throw CancellationError() }
 
       let sessionID = connections.keys.first(where: hasFreeCapacity)
       if let sessionID {
@@ -114,6 +114,7 @@ internal actor EventSubClient {
   }
 
   private func createConnection(url: URL = eventSubURL) async throws -> SessionID {
+    guard !isRetired else { throw CancellationError() }
     let connection = EventSubConnection(
       network: network,
       decoder: decoder,
@@ -121,6 +122,11 @@ internal actor EventSubClient {
       onMessage: receiveMessage)
 
     let sessionID = try await connection.resume()
+
+    guard !isRetired else {
+      await connection.cancel()
+      throw CancellationError()
+    }
 
     connections[sessionID] = connection
     return sessionID
@@ -131,6 +137,7 @@ internal actor EventSubClient {
   private func receiveMessage(
     _ result: Result<EventSubNotification, EventSubConnectionError>
   ) async {
+    guard !isRetired else { return }
     switch result {
     case .success(let notification):
       // buffer events until the handler is registered
@@ -226,9 +233,10 @@ internal actor EventSubClient {
     reservedSlots.removeAll()
   }
 
-  internal func switchCredentials(to credentials: TwitchCredentials) async {
+  /// Permanently rejects new setup and registration before closing the old context.
+  internal func retire() async {
+    isRetired = true
     await reset()
-    self.credentials = credentials
   }
 }
 

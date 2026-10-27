@@ -20,8 +20,14 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "goals",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", broadcasterID ?? credentials.userID)]
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          )
+        ]
       },
       makeResponse: { $0.data })
   }

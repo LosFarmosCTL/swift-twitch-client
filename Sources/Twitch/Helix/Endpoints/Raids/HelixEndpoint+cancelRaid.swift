@@ -15,8 +15,9 @@ extension HelixEndpoint {
   {
     .init(
       method: "DELETE", path: "raids",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", credentials.userID)]
+        [("broadcaster_id", try credentials.requireUser().id)]
       })
   }
 }

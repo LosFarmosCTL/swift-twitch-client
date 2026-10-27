@@ -43,6 +43,7 @@ extension HelixEndpoint {
 
     return .init(
       method: "GET", path: "streams",
+      authentication: .either,
       queryItems: { _ in
         [
           ("type", type?.rawValue),

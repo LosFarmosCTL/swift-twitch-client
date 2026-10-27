@@ -28,6 +28,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "eventsub/conduits/shards",
+      authentication: .app,
       queryItems: { _ in
         [
           ("conduit_id", conduitID),

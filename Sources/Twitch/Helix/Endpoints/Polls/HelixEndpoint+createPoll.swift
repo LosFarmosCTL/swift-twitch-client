@@ -28,9 +28,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "polls",
+      authentication: .user,
       body: { credentials in
         CreatePollRequestBody(
-          broadcasterID: credentials.userID,
+          broadcasterID: try credentials.requireUser().id,
           title: title,
           choices: choices.map { .init(title: $0) },
           duration: duration,

@@ -21,6 +21,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PATCH", path: "eventsub/conduits/shards",
+      authentication: .app,
       body: { _ in
         UpdateConduitShardsRequest(
           conduitID: conduitID,

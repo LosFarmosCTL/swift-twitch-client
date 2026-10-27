@@ -46,7 +46,6 @@ public actor TwitchClient {
     self.decoder = Self.makeDecoder()
 
     self.eventSubClient = EventSubClient(
-      credentials: credentials,
       network: network,
       decoder: self.decoder)
   }
@@ -59,8 +58,12 @@ public actor TwitchClient {
   /// - Parameters:
   ///   - credentials: The credentials used to authorize the request.
   public func switchCredentials(to credentials: TwitchCredentials) async {
-    await eventSubClient.switchCredentials(to: credentials)
+    // Install the new context before suspending. Concurrent switches cannot restore
+    // older credentials, and in-flight setup retains its original EventSub context.
+    let previous = eventSubClient
     self.credentials = credentials
+    eventSubClient = EventSubClient(network: network, decoder: decoder)
+    await previous.retire()
   }
 
   internal static func makeEncoder() -> JSONEncoder {

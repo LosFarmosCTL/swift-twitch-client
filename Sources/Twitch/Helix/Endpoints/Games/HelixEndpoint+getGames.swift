@@ -29,6 +29,7 @@ extension HelixEndpoint {
 
     return .init(
       method: "GET", path: "games",
+      authentication: .either,
       queryItems: { _ in
         idQueryItems + nameQueryItems + igdbQueryItems
       },

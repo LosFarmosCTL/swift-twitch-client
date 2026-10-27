@@ -14,6 +14,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "eventsub/conduits",
+      authentication: .app,
       makeResponse: { $0.data })
   }
 }

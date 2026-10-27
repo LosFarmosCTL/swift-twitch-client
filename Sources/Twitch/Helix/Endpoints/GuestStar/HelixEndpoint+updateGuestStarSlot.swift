@@ -27,10 +27,17 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PATCH", path: "guest_star/slot",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
+          ),
           ("session_id", sessionID),
           ("source_slot_id", sourceSlotID),
           ("destination_slot_id", destinationSlotID),

@@ -20,6 +20,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmoteSetsResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/emotes/set",
+      authentication: .either,
       queryItems: { _ in
         setIDs.map { ("emote_set_id", $0) }
       },

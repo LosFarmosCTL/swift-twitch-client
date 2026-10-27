@@ -20,6 +20,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "content_classification_labels",
+      authentication: .either,
       queryItems: { _ in
         [("locale", locale)]
       }, makeResponse: { $0.data })

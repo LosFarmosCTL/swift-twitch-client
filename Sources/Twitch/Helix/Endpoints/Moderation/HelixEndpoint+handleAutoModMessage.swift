@@ -1,13 +1,21 @@
 import Foundation
 
 extension HelixEndpoint {
-  private static func handleAutoModMessage(messageID: String, action: String)
+  private static func handleAutoModMessage(
+    messageID: String, action: String, userID: String?
+  )
     -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
   {
     .init(
       method: "POST", path: "moderation/automod/message",
+      authentication: .either,
       body: { credentials in
-        ["user_id": credentials.userID, "msg_id": messageID, "action": action]
+        [
+          "user_id": try credentials.resolveUserID(
+            userID, parameter: "user_id", matchingToken: true),
+          "msg_id": messageID,
+          "action": action,
+        ]
       }
     )
   }
@@ -22,11 +30,12 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - userID: The acting user; required for app tokens, otherwise defaults to the token’s user.
   ///   - messageID: The identifier of the message.
-  public static func approveAutoModMessage(messageID: String)
+  public static func approveAutoModMessage(messageID: String, userID: String? = nil)
     -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
   {
-    self.handleAutoModMessage(messageID: messageID, action: "ALLOW")
+    self.handleAutoModMessage(messageID: messageID, action: "ALLOW", userID: userID)
   }
 
   /// Denies a message held by AutoMod.
@@ -39,10 +48,11 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - userID: The acting user; required for app tokens, otherwise defaults to the token’s user.
   ///   - messageID: The identifier of the message.
-  public static func denyAutoModMessage(messageID: String)
+  public static func denyAutoModMessage(messageID: String, userID: String? = nil)
     -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
   {
-    self.handleAutoModMessage(messageID: messageID, action: "DENY")
+    self.handleAutoModMessage(messageID: messageID, action: "DENY", userID: userID)
   }
 }

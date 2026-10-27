@@ -21,6 +21,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/settings",
+      authentication: .either,
       queryItems: { _ in
         [("broadcaster_id", broadcasterID), ("moderator_id", moderatorID)]
       },

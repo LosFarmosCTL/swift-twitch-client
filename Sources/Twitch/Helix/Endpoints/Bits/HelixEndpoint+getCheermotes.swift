@@ -17,6 +17,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[Cheermote], Cheermote, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "bits/cheermotes",
+      authentication: .either,
       queryItems: { _ in
         [("broadcaster_id", broadcasterID)]
       },

@@ -18,6 +18,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "shared_chat/session",
+      authentication: .either,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: { $0.data.first })
   }

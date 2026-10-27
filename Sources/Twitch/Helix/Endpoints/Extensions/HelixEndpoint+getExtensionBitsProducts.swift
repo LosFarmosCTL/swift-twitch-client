@@ -21,6 +21,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "bits/extensions",
+      authentication: .app,
       queryItems: { _ in
         [("should_include_all", includeAll.map(String.init))]
       },

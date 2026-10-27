@@ -2,24 +2,26 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
-  /// Sends a chat message as the authenticated user.
+  /// Sends a chat message as the token’s user or an explicitly authorized app-token sender.
   ///
   /// With a user access token, requires `user:write:chat`. App tokens have additional
-  /// grant requirements described in the reference. The sender is the user in the
-  /// executing client’s credentials. Messages may contain at most 500 characters.
+  /// grant requirements described in the reference. Messages may contain at most
+  /// 500 characters.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - senderID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - message: The text to send. Maximum 500 characters.
   ///   - replyToMessageID: The ID of the message to reply to; `nil` sends a top-level
   ///     message.
   ///   - isSourceOnly: With an app token, whether to send only to the source channel
-  ///     during shared chat. Supplying this field with a user token causes Twitch to
-  ///     reject the request with HTTP 400; leave it `nil` for user tokens.
+  ///     during shared chat. Supplying this field with a user token is rejected before
+  ///     sending the request; leave it `nil` for user tokens.
   ///   - pin: Whether to send and pin the message for 20 minutes. Requires
   ///     `moderator:manage:chat_messages` and moderator or broadcaster status. Cannot be
   ///     combined with `replyTo` or `isSourceOnly`; if pinning fails, no message is sent.
@@ -28,16 +30,29 @@ extension HelixEndpoint {
     message: String,
     replyTo replyToMessageID: String? = nil,
     isSourceOnly: Bool? = nil,
-    pin: Bool? = nil
+    pin: Bool? = nil,
+    senderID: String? = nil
   ) -> HelixEndpoint<
     ChatMessageResponse, ChatMessageResponse, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "POST", path: "chat/messages",
+      authentication: .either,
       body: { credentials in
-        SendChatMessageRequestBody(
+        if isSourceOnly != nil, credentials.user != nil {
+          throw TwitchAuthenticationError.invalidParameter(
+            parameter: "for_source_only",
+            reason: "This field is only supported with app access tokens.")
+        }
+        if pin == true, replyToMessageID != nil || isSourceOnly != nil {
+          throw TwitchAuthenticationError.invalidParameter(
+            parameter: "pin",
+            reason: "Pinning cannot be combined with replies or for_source_only.")
+        }
+        return SendChatMessageRequestBody(
           broadcasterID: broadcasterID,
-          senderID: credentials.userID,
+          senderID: try credentials.resolveUserID(
+            senderID, parameter: "sender_id", matchingToken: true),
           message: message,
           replyToMessageID: replyToMessageID,
           isSourceOnly: isSourceOnly,

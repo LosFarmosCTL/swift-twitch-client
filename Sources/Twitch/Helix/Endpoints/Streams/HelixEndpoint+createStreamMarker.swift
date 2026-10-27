@@ -20,9 +20,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<StreamMarker, StreamMarker, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "streams/markers",
+      authentication: .user,
       body: { credentials in
         CreateStreamMarkerRequestBody(
-          userID: userID ?? credentials.userID,
+          userID: try credentials.resolveUserID(userID, parameter: "user_id"),
           description: description)
       },
       makeResponse: { response in

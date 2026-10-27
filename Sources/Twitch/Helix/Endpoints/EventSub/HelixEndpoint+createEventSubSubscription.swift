@@ -27,6 +27,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "POST", path: "eventsub/subscriptions",
+      authentication: transport.authentication,
       body: { _ in
         CreateEventSubRequestBody(
           type: subscription.type, version: subscription.version,
@@ -55,6 +56,13 @@ public enum EventSubTransport: Sendable {
   case webSocket(id: String)
   /// Delivers notifications through the associated conduit ID.
   case conduit(id: String)
+
+  internal var authentication: HelixAuthentication {
+    switch self {
+    case .webSocket: .user
+    case .webhook, .conduit: .app
+    }
+  }
 
   fileprivate var transport: EventSubTransportPayload {
     switch self {

@@ -49,6 +49,7 @@ extension HelixEndpoint {
 
     return .init(
       method: "GET", path: "videos",
+      authentication: .either,
       queryItems: { _ in
         [
           ("user_id", userID),

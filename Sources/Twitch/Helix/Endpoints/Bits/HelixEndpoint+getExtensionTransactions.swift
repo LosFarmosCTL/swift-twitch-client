@@ -27,6 +27,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "extensions/transactions",
+      authentication: .app,
       queryItems: { _ in
         [
           ("extension_id", extensionID),

@@ -13,12 +13,15 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   ///   - settings: The settings to apply.
   public static func updateChatSettings(
     of broadcasterID: String,
+    moderatorID: String? = nil,
     settings: ChatSetting...
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
-    self.updateChatSettings(of: broadcasterID, settings: settings)
+    self.updateChatSettings(
+      of: broadcasterID, moderatorID: moderatorID, settings: settings)
   }
 
   /// Updates a channel’s chat restrictions.
@@ -31,21 +34,28 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#update-chat-settings
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// App tokens require an explicitly authorized moderator ID.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   ///   - settings: The settings to apply.
   public static func updateChatSettings(
     of broadcasterID: String,
+    moderatorID: String? = nil,
     settings: [ChatSetting]
   ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "chat/settings",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       },
       body: { _ in UpdateChatSettingsRequestBody(settings) },

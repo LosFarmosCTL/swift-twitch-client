@@ -56,6 +56,7 @@ struct HelixTests {
     >(
       method: "POST",
       path: "encoding-failure",
+      authentication: .either,
       body: { _ in UnencodableBody() },
       makeResponse: { $0.data.first })
 
@@ -176,6 +177,7 @@ struct HelixTests {
     >(
       method: "GET",
       path: "unexpected",
+      authentication: .either,
       makeResponse: { _ in throw HelixCallbackTestError.unexpected })
 
     let result: Result<String?, HelixError> = await withCheckedContinuation {

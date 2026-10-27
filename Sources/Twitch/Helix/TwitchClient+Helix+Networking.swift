@@ -5,21 +5,6 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  internal func data(
-    for endpoint: HelixEndpoint<
-      some Any,
-      some Sendable & Decodable,
-      some HelixEndpointResponseType
-    >
-  ) async throws -> Data {
-    try await Self.data(
-      for: endpoint,
-      credentials: self.credentials,
-      network: self.network,
-      encoder: self.encoder,
-      decoder: self.decoder)
-  }
-
   internal static func data(
     for endpoint: HelixEndpoint<
       some Any,
@@ -34,6 +19,8 @@ extension TwitchClient {
     let request: URLRequest
     do {
       request = try endpoint.makeRequest(using: credentials, encoder: encoder)
+    } catch let error as TwitchAuthenticationError {
+      throw HelixError.authenticationError(error)
     } catch {
       throw HelixError.unexpectedError(wrapped: error)
     }

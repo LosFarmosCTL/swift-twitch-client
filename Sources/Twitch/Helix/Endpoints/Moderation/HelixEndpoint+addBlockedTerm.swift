@@ -11,21 +11,29 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#add-blocked-term
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - text: The text content.
   public static func addBlockedTerm(
     in broadcasterID: String,
-    text: String
+    text: String,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<BlockedTerm, BlockedTerm, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "moderation/blocked_terms",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       },
       body: { _ in ["text": text] },

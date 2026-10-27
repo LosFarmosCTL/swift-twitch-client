@@ -24,9 +24,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "DELETE", path: "guest_star/session",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           ("session_id", sessionID),
         ]
       },

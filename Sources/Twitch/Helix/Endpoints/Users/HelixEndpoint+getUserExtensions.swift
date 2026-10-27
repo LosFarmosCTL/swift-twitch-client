@@ -15,6 +15,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "users/extensions/list",
+      authentication: .user,
       makeResponse: { $0.data })
   }
 }

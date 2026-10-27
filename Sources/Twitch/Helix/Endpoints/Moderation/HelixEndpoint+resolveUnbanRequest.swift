@@ -13,17 +13,23 @@ extension HelixEndpoint {
   ///   - broadcasterID: The channel broadcaster’s ID.
   ///   - status: Whether to approve or deny the request.
   ///   - resolutionText: An optional explanation, at most 500 characters.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func resolveUnbanRequest(
     _ requestID: String, in broadcasterID: String, status: UnbanRequestResolution,
     resolutionText: String? = nil, moderatorID: String? = nil
   ) -> HelixEndpoint<UnbanRequest, UnbanRequest, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "moderation/unban_requests",
+      authentication: .user,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("unban_request_id", requestID), ("status", status.rawValue),
           ("resolution_text", resolutionText),
         ]

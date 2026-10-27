@@ -11,30 +11,43 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#send-chat-announcement
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - message: The text to send.
   ///   - color: The announcement highlight color; `nil` uses Twitch’s default.
   ///   - isSourceOnly: With an app token, whether to send only to the source channel.
-  ///     Leave `nil` for user tokens; Twitch rejects this field with user tokens.
+  ///     Leave `nil` for user tokens; incompatible fields are rejected before sending.
   public static func sendAnnouncement(
     in broadcasterID: String,
     message: String,
     color: AnnouncementColor? = nil,
-    isSourceOnly: Bool? = nil
+    isSourceOnly: Bool? = nil,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "chat/announcements",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       },
-      body: { _ in
-        SendAnnouncementRequestBody(
+      body: { credentials in
+        if isSourceOnly != nil, credentials.user != nil {
+          throw TwitchAuthenticationError.invalidParameter(
+            parameter: "for_source_only",
+            reason: "This field is only supported with app access tokens.")
+        }
+        return SendAnnouncementRequestBody(
           message: message, color: color, isSourceOnly: isSourceOnly)
       })
   }

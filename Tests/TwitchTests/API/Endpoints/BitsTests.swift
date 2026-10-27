@@ -32,6 +32,8 @@ struct BitsTests {
 
   @Test
   func getExtensionTransactions() async throws {
+    let harness = HelixTestHarness(
+      credentials: .app(accessToken: "app-token", clientID: "client-id"))
     let url = try #require(
       URL(
         string:

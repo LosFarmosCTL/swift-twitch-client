@@ -22,9 +22,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[BlockedUser], BlockedUser, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "users/blocks",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ]

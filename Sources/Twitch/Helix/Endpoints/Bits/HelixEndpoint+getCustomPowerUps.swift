@@ -12,7 +12,8 @@ extension HelixEndpoint {
   /// ) for account requirements and request limits.
   ///
   /// - Parameters:
-  ///   - broadcasterID: The broadcaster’s user ID; `nil` uses the authenticated user.
+  ///   - broadcasterID: The broadcaster’s user ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   ///   - powerUpIDs: IDs to filter by; an empty array requests all custom Power-ups.
   public static func getCustomPowerUps(
     for broadcasterID: String? = nil,
@@ -20,8 +21,14 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[CustomPowerUp], CustomPowerUp, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "bits/custom_power_ups",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", broadcasterID ?? credentials.userID)]
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          )
+        ]
           + powerUpIDs.map { ("id", $0) }
       },
       makeResponse: { $0.data })

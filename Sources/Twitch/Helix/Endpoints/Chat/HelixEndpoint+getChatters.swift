@@ -12,9 +12,11 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-chatters
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
   ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
@@ -22,14 +24,20 @@ extension HelixEndpoint {
   public static func getChatters(
     in broadcasterID: String,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after afterCursor: String? = nil,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<ChattersResponse, Chatter, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/chatters",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ]

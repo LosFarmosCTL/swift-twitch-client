@@ -15,6 +15,8 @@ extension HelixEndpoint {
   /// The request uses the executing client’s user ID for `broadcaster_id`.
   ///
   /// - Parameters:
+  ///   - broadcasterID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - userIDs: The user IDs to include in the request. Defaults to `[]`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
   ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
@@ -24,13 +26,19 @@ extension HelixEndpoint {
     userIDs: [String] = [],
     limit: Int? = nil,
     after afterCursor: String? = nil,
-    before beforeCursor: String? = nil
+    before beforeCursor: String? = nil,
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<SubscribersResponse, Subscriber, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "subscriptions",
+      authentication: .either,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(
+              broadcasterID, parameter: "broadcaster_id", matchingToken: true)
+          ),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
           ("before", beforeCursor),

@@ -16,8 +16,9 @@ extension HelixEndpoint {
   > {
     .init(
       method: "POST", path: "guest_star/session",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", credentials.userID)]
+        [("broadcaster_id", try credentials.requireUser().id)]
       },
       makeResponse: { response in
         let session = try response.requireFirst()

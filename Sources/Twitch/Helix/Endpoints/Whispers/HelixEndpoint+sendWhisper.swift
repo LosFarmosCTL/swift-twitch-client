@@ -20,9 +20,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "whispers",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("from_user_id", credentials.userID),
+          ("from_user_id", try credentials.requireUser().id),
           ("to_user_id", toUserID),
         ]
       },

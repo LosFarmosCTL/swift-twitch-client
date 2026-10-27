@@ -2,6 +2,8 @@ import Foundation
 
 /// An HTTP, transport, or response-processing failure from a Helix request.
 public enum HelixError: Error, Sendable {
+  /// The credential kind or a token-dependent parameter is incompatible with the endpoint.
+  case authenticationError(TwitchAuthenticationError)
   /// The operation was cancelled.
   case cancelled
   /// The network request failed; carries the underlying error.
@@ -29,6 +31,8 @@ extension HelixError: CustomStringConvertible {
   /// A diagnostic description of the error, including associated response details.
   public var description: String {
     switch self {
+    case .authenticationError(let error):
+      return error.description
     case .cancelled:
       return "Cancelled"
     case .networkError(let error):
@@ -59,6 +63,8 @@ extension HelixError: CustomStringConvertible {
         Bundle.module.bundleURL)
 
       return switch self {
+      case .authenticationError(let error):
+        .init("Authentication Error: \(error.description)", bundle: bundle)
       case .cancelled:
         .init("Cancelled", bundle: bundle)
       case .networkError(let error):

@@ -4,7 +4,8 @@ import Testing
 @testable import Twitch
 
 struct ConduitsTests {
-  private let harness = HelixTestHarness()
+  private let harness = HelixTestHarness(
+    credentials: .app(accessToken: "app-token", clientID: "client-id"))
 
   @Test
   func getConduits() async throws {

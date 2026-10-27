@@ -44,6 +44,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "clips",
+      authentication: .either,
       queryItems: { _ in
         [
           ("broadcaster_id", broadcasterID),

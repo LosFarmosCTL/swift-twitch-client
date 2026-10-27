@@ -28,6 +28,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "extensions/live",
+      authentication: .either,
       queryItems: { _ in
         [
           ("extension_id", extensionID),

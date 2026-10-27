@@ -19,6 +19,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "DELETE", path: "eventsub/subscriptions",
+      authentication: .either,
       queryItems: { _ in
         [("id", subscriptionID)]
       })

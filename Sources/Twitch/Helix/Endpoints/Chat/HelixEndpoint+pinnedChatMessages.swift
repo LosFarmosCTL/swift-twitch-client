@@ -13,7 +13,8 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - broadcasterID: The channel broadcaster’s user ID.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func getPinnedChatMessage(
     in broadcasterID: String, moderatorID: String? = nil
   ) -> HelixEndpoint<
@@ -21,10 +22,15 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "chat/pins",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       }, makeResponse: { $0.data.first })
   }
@@ -41,17 +47,23 @@ extension HelixEndpoint {
   ///   - messageID: The message to pin.
   ///   - broadcasterID: The channel broadcaster’s user ID.
   ///   - durationSeconds: A duration from 30 through 1800 seconds; `nil` pins until stream end.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func pinChatMessage(
     _ messageID: String, in broadcasterID: String,
     durationSeconds: Int? = nil, moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "chat/pins",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("message_id", messageID),
           ("duration_seconds", durationSeconds.map(String.init)),
         ]
@@ -70,17 +82,23 @@ extension HelixEndpoint {
   ///   - messageID: The pinned message to update.
   ///   - broadcasterID: The channel broadcaster’s user ID.
   ///   - durationSeconds: A duration from 30 through 1800 seconds; `nil` pins until stream end.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func updatePinnedChatMessage(
     _ messageID: String, in broadcasterID: String,
     durationSeconds: Int? = nil, moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PATCH", path: "chat/pins",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("message_id", messageID),
           ("duration_seconds", durationSeconds.map(String.init)),
         ]
@@ -98,16 +116,22 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - messageID: The message to unpin.
   ///   - broadcasterID: The channel broadcaster’s user ID.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func unpinChatMessage(
     _ messageID: String, in broadcasterID: String, moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "chat/pins",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("message_id", messageID),
         ]
       })

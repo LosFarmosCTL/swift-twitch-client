@@ -33,9 +33,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "predictions",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ] + predictionIDs.map { ("id", $0) }

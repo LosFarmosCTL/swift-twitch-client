@@ -5,8 +5,8 @@ extension HelixEndpoint {
   ///
   /// Twitch requires an Extension Backend Service JWT with the `external` role. See the
   /// reference for the required claims and signing rules.
-  /// Supply the signed JWT as `TwitchCredentials.accessToken` and the extension’s client ID
-  /// as `clientID`. The client sends the JWT as a Bearer token; it does not sign JWTs.
+  /// Use `TwitchCredentials.extensionJWT(token:clientID:)` with the signed JWT and the
+  /// extension’s client ID. The client sends it as a Bearer token; it does not sign JWTs.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#send-extension-pubsub-message
@@ -25,6 +25,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "extensions/pubsub",
+      authentication: .extensionJWT,
       body: { _ in
         SendExtensionPubSubMessageRequestBody(
           target: target,
