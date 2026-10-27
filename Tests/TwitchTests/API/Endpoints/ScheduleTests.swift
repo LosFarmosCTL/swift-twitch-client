@@ -17,8 +17,10 @@ struct ScheduleTests {
     await harness.session.stub(url: url, body: MockedData.getChannelStreamScheduleJSON)
 
     let startTime = try Date("2021-07-01T18:00:00Z", strategy: .iso8601)
-    let (schedule, cursor) = try await harness.twitch.helix(
-      for: .getChannelStreamSchedule(for: "141981764", startTime: startTime, limit: 1))
+    let (schedule, cursor) =
+      (try await harness.twitch.helix(
+        for: .getChannelStreamSchedule(for: "141981764", startTime: startTime, limit: 1)))
+      .value
 
     #expect(cursor == nil)
     #expect(schedule.broadcasterID == "141981764")
@@ -42,9 +44,10 @@ struct ScheduleTests {
       url: url,
       body: MockedData.getChanneliCalendarICS)
 
-    let calendar = try await harness.twitch.helix(
-      for: .getChannelICalendar(broadcasterID: "141981764")
-    )
+    let calendar =
+      (try await harness.twitch.helix(
+        for: .getChannelICalendar(broadcasterID: "141981764")
+      )).value
 
     #expect(calendar.contains("BEGIN:VCALENDAR"))
     #expect(calendar.contains("NAME:TwitchDev"))
@@ -90,15 +93,16 @@ struct ScheduleTests {
 
     let startTime = try Date("2021-07-01T18:00:00Z", strategy: .iso8601)
 
-    let schedule = try await harness.twitch.helix(
-      for: .createChannelStreamScheduleSegment(
-        startTime: startTime,
-        timezone: "America/New_York",
-        duration: 60,
-        isRecurring: false,
-        categoryID: "509670",
-        title: "TwitchDev Monthly Update // July 1, 2021"
-      ))
+    let schedule =
+      (try await harness.twitch.helix(
+        for: .createChannelStreamScheduleSegment(
+          startTime: startTime,
+          timezone: "America/New_York",
+          duration: 60,
+          isRecurring: false,
+          categoryID: "509670",
+          title: "TwitchDev Monthly Update // July 1, 2021"
+        ))).value
 
     #expect(schedule.broadcasterID == "141981764")
     #expect(schedule.broadcasterLogin == "twitchdev")
@@ -133,11 +137,12 @@ struct ScheduleTests {
       method: "PATCH",
       body: MockedData.updateChannelStreamScheduleSegmentJSON)
 
-    let schedule = try await harness.twitch.helix(
-      for: .updateChannelStreamScheduleSegment(
-        segmentID: segmentID,
-        duration: 120
-      ))
+    let schedule =
+      (try await harness.twitch.helix(
+        for: .updateChannelStreamScheduleSegment(
+          segmentID: segmentID,
+          duration: 120
+        ))).value
 
     let segment = try #require(schedule.segments.first)
     #expect(segment.endTime.formatted(.iso8601) == "2021-07-01T20:00:00Z")

@@ -18,7 +18,7 @@ struct ChannelPointsTests {
       url: url,
       body: MockedData.getCustomRewardsJSON)
 
-    let rewards = try await harness.twitch.helix(for: .getCustomRewards())
+    let rewards = (try await harness.twitch.helix(for: .getCustomRewards())).value
 
     #expect(rewards.count == 1)
     #expect(rewards.first?.id == "92af127c-7326-4483-a52b-b0da0be61c01")
@@ -42,8 +42,9 @@ struct ChannelPointsTests {
       method: "POST",
       body: MockedData.createCustomRewardJSON)
 
-    let reward = try await harness.twitch.helix(
-      for: .createCustomReward(title: "game analysis 1v1", cost: 50000))
+    let reward =
+      (try await harness.twitch.helix(
+        for: .createCustomReward(title: "game analysis 1v1", cost: 50000))).value
 
     #expect(reward.broadcasterID == "274637212")
     #expect(reward.id == "afaa7e34-6b17-49f0-a19a-d1e76eaaf673")
@@ -64,10 +65,11 @@ struct ChannelPointsTests {
       method: "PATCH",
       body: MockedData.updateCustomRewardJSON)
 
-    let reward = try await harness.twitch.helix(
-      for: .updateCustomReward(
-        "92af127c-7326-4483-a52b-b0da0be61c01",
-        isEnabled: false))
+    let reward =
+      (try await harness.twitch.helix(
+        for: .updateCustomReward(
+          "92af127c-7326-4483-a52b-b0da0be61c01",
+          isEnabled: false))).value
 
     #expect(reward.id == "92af127c-7326-4483-a52b-b0da0be61c01")
     #expect(reward.isEnabled == false)
@@ -105,10 +107,11 @@ struct ChannelPointsTests {
       url: url,
       body: MockedData.getCustomRewardRedemptionsJSON)
 
-    let (redemptions, cursor) = try await harness.twitch.helix(
-      for: .getCustomRewardRedemptions(
-        rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
-        status: .cancelled))
+    let (redemptions, cursor) =
+      (try await harness.twitch.helix(
+        for: .getCustomRewardRedemptions(
+          rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
+          status: .cancelled))).value
 
     #expect(redemptions.count == 1)
     #expect(redemptions.first?.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
@@ -133,11 +136,12 @@ struct ChannelPointsTests {
       method: "PATCH",
       body: MockedData.updateRedemptionStatusJSON)
 
-    let redemption = try await harness.twitch.helix(
-      for: .updateCustomRewardRedemptionStatus(
-        ["17fa2df1-ad76-4804-bfa5-a40ef63efe63"],
-        rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
-        status: .cancelled))
+    let redemption =
+      (try await harness.twitch.helix(
+        for: .updateCustomRewardRedemptionStatus(
+          ["17fa2df1-ad76-4804-bfa5-a40ef63efe63"],
+          rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
+          status: .cancelled))).value
 
     #expect(redemption.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
     #expect(redemption.status == .cancelled)

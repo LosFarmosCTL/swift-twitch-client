@@ -13,7 +13,7 @@ struct AppTokenTests {
     let harness = HelixTestHarness(credentials: app)
     let streamsURL = try #require(URL(string: "https://api.twitch.tv/helix/streams"))
     await harness.session.stub(url: streamsURL, body: Data("{\"data\":[]}".utf8))
-    let streams = try await harness.twitch.helix(for: .getStreams())
+    let streams = (try await harness.twitch.helix(for: .getStreams())).value
     #expect(streams.streams.isEmpty)
 
     let deletedURL = try #require(
@@ -24,8 +24,9 @@ struct AppTokenTests {
     let calendarURL = try #require(
       URL(string: "https://api.twitch.tv/helix/schedule/icalendar?broadcaster_id=1234"))
     await harness.session.stub(url: calendarURL, body: Data("BEGIN:VCALENDAR".utf8))
-    let calendar = try await harness.twitch.helix(
-      for: .getChannelICalendar(broadcasterID: "1234"))
+    let calendar =
+      (try await harness.twitch.helix(
+        for: .getChannelICalendar(broadcasterID: "1234"))).value
     #expect(calendar == "BEGIN:VCALENDAR")
 
     try await confirmation { completed in
@@ -35,7 +36,7 @@ struct AppTokenTests {
           continuation.resume(returning: result)
         }
       }
-      let response = try result.get()
+      let response = try result.get().value
       #expect(response.streams.isEmpty)
     }
     for request in await harness.session.requests() {
@@ -98,7 +99,8 @@ struct AppTokenTests {
     let url = try #require(
       URL(string: "https://api.twitch.tv/helix/users?login=twitchdev"))
     await harness.session.stub(url: url, body: Data("{\"data\":[]}".utf8))
-    let users = try await harness.twitch.helix(for: .getUsers(userLogins: ["twitchdev"]))
+    let users =
+      (try await harness.twitch.helix(for: .getUsers(userLogins: ["twitchdev"]))).value
     #expect(users.isEmpty)
   }
 
@@ -106,11 +108,15 @@ struct AppTokenTests {
   func chatSourceOnlyAndDropsFilterAreTokenDependent() async throws {
     let userHarness = HelixTestHarness(credentials: user)
     let sourceError = await #expect(throws: HelixError.self) {
-      _ = try await userHarness.twitch.helix(
-        for: .sendChatMessage(in: "channel", message: "hello", isSourceOnly: false))
+      _ =
+        (try await userHarness.twitch.helix(
+          for: .sendChatMessage(in: "channel", message: "hello", isSourceOnly: false)))
+        .value
     }
     let dropsError = await #expect(throws: HelixError.self) {
-      _ = try await userHarness.twitch.helix(for: .getDropsEntitlements(userID: "target"))
+      _ =
+        (try await userHarness.twitch.helix(for: .getDropsEntitlements(userID: "target")))
+        .value
     }
     guard
       case .authenticationError(
@@ -128,9 +134,10 @@ struct AppTokenTests {
     await harness.session.stub(
       url: url, method: "POST",
       body: Data("{\"data\":[{\"message_id\":\"sent\",\"is_sent\":true}]}".utf8))
-    let sent = try await harness.twitch.helix(
-      for: .sendChatMessage(
-        in: "channel", message: "hello", isSourceOnly: true, senderID: "bot"))
+    let sent =
+      (try await harness.twitch.helix(
+        for: .sendChatMessage(
+          in: "channel", message: "hello", isSourceOnly: true, senderID: "bot"))).value
     #expect(sent.isSent)
     let body = try #require(await harness.session.lastRequest()?.httpBody)
     let payload = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
@@ -161,8 +168,9 @@ struct AppTokenTests {
         "{\"error\":\"Unauthorized\",\"status\":401,\"message\":\"Missing prior grant\"}"
           .utf8))
     let error = await #expect(throws: HelixError.self) {
-      _ = try await harness.twitch.helix(
-        for: .sendChatMessage(in: "channel", message: "hello", senderID: "bot"))
+      _ =
+        (try await harness.twitch.helix(
+          for: .sendChatMessage(in: "channel", message: "hello", senderID: "bot"))).value
     }
     guard
       case .twitchError(

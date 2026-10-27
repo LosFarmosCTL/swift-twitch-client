@@ -14,8 +14,9 @@ struct VideosTests {
       url: url,
       body: MockedData.getVideosJSON)
 
-    let (videos, cursor) = try await harness.twitch.helix(
-      for: .getVideos(videoIDs: ["987654321"]))
+    let (videos, cursor) =
+      (try await harness.twitch.helix(
+        for: .getVideos(videoIDs: ["987654321"]))).value
 
     #expect(cursor == nil)
 
@@ -53,8 +54,9 @@ struct VideosTests {
       method: "DELETE",
       body: MockedData.deleteVideosJSON)
 
-    let deletedIDs = try await harness.twitch.helix(
-      for: .deleteVideos(videoIDs: ["1535513785"]))
+    let deletedIDs =
+      (try await harness.twitch.helix(
+        for: .deleteVideos(videoIDs: ["1535513785"]))).value
 
     #expect(deletedIDs == ["1535513785"])
   }

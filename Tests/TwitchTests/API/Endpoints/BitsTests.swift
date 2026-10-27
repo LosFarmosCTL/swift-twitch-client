@@ -16,8 +16,9 @@ struct BitsTests {
 
     await harness.session.stub(url: url, body: MockedData.getCustomPowerUpsJSON)
 
-    let powerUps = try await harness.twitch.helix(
-      for: .getCustomPowerUps(powerUpIDs: ["reward"]))
+    let powerUps =
+      (try await harness.twitch.helix(
+        for: .getCustomPowerUps(powerUpIDs: ["reward"]))).value
 
     #expect(powerUps.count == 1)
     let powerUp = try #require(powerUps.first)
@@ -42,10 +43,12 @@ struct BitsTests {
 
     await harness.session.stub(url: url, body: MockedData.getExtensionTransactionsJSON)
 
-    let (transactions, cursor) = try await harness.twitch.helix(
-      for: .getExtensionTransactions(
-        extensionID: "extension", transactionIDs: ["one", "two"], limit: 2, after: "next")
-    )
+    let (transactions, cursor) =
+      (try await harness.twitch.helix(
+        for: .getExtensionTransactions(
+          extensionID: "extension", transactionIDs: ["one", "two"], limit: 2,
+          after: "next")
+      )).value
 
     #expect(cursor == "cursorString")
     #expect(transactions.count == 2)
@@ -69,10 +72,11 @@ struct BitsTests {
       url: url,
       body: MockedData.getBitsLeaderboardJSON)
 
-    let leaderboard = try await harness.twitch.helix(
-      for: .getBitsLeaderboard(
-        count: 2, period: .week,
-        startedAt: nil))
+    let leaderboard =
+      (try await harness.twitch.helix(
+        for: .getBitsLeaderboard(
+          count: 2, period: .week,
+          startedAt: nil))).value
 
     #expect(leaderboard.total == 2)
     #expect(leaderboard.leaders.count == 2)
@@ -93,7 +97,7 @@ struct BitsTests {
       url: url,
       body: MockedData.getCheermotesJSON)
 
-    let cheermotes = try await harness.twitch.helix(for: .getCheermotes())
+    let cheermotes = (try await harness.twitch.helix(for: .getCheermotes())).value
 
     #expect(cheermotes.count == 1)
 

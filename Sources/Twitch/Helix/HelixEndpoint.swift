@@ -34,7 +34,7 @@ public struct HelixEndpoint<
   private let makeQueryItems: @Sendable (TwitchCredentials) throws -> [(String, String?)]
   private let makeBody: @Sendable (TwitchCredentials) throws -> Encodable?
   private let makeResponse:
-    @Sendable (HelixResponse<HelixResponseType>) throws -> ResponseType
+    @Sendable (DecodedHelixResponse<HelixResponseType>) throws -> ResponseType
   private let makeRawResponse: @Sendable (Data) throws -> ResponseType
 
   internal init(
@@ -45,7 +45,7 @@ public struct HelixEndpoint<
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil },
     makeResponse:
-      @escaping @Sendable (HelixResponse<HelixResponseType>) throws -> ResponseType
+      @escaping @Sendable (DecodedHelixResponse<HelixResponseType>) throws -> ResponseType
   ) {
     self.authentication = authentication
     self.method = method
@@ -106,7 +106,8 @@ public struct HelixEndpoint<
     return urlRequest
   }
 
-  internal func makeResponse(from response: HelixResponse<HelixResponseType>) throws
+  internal func makeResponse(from response: DecodedHelixResponse<HelixResponseType>)
+    throws
     -> ResponseType
   {
     try makeResponse(response)

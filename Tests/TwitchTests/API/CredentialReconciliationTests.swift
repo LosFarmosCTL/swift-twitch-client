@@ -15,8 +15,9 @@ struct CredentialReconciliationTests {
     let url = try #require(
       URL(string: "https://api.twitch.tv/helix/extensions?extension_id=extension"))
     await harness.session.stub(url: url, body: MockedData.getExtensionJSON)
-    let result = try await harness.twitch.helix(
-      for: .getExtension(extensionID: "extension"))
+    let result =
+      (try await harness.twitch.helix(
+        for: .getExtension(extensionID: "extension"))).value
     #expect(result.name == "Official Developers Demo")
     let request = try #require(await harness.session.lastRequest())
     #expect(
@@ -76,9 +77,10 @@ struct CredentialReconciliationTests {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))
     await harness.session.stub(
       url: url, method: "POST", body: MockedData.sendChatMessageJSON)
-    _ = try await harness.twitch.helix(
-      for: .sendChatMessage(
-        in: "channel", message: "hello", pin: true, senderID: "bot"))
+    _ =
+      (try await harness.twitch.helix(
+        for: .sendChatMessage(
+          in: "channel", message: "hello", pin: true, senderID: "bot"))).value
     let data = try #require(await harness.session.lastRequest()?.httpBody)
     let body = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     #expect(body["pin"] as? Bool == true)
@@ -108,10 +110,11 @@ struct CredentialReconciliationTests {
     let harness = HelixTestHarness(
       credentials: .app(accessToken: "app", clientID: "client"))
     let error = await #expect(throws: HelixError.self) {
-      _ = try await harness.twitch.helix(
-        for: .sendChatMessage(
-          in: "channel", message: "hello", replyTo: useReply ? "parent" : nil,
-          isSourceOnly: useReply ? nil : true, pin: true, senderID: "bot"))
+      _ =
+        (try await harness.twitch.helix(
+          for: .sendChatMessage(
+            in: "channel", message: "hello", replyTo: useReply ? "parent" : nil,
+            isSourceOnly: useReply ? nil : true, pin: true, senderID: "bot"))).value
     }
     guard
       case .authenticationError(.invalidParameter(parameter: "pin", reason: _)) = error

@@ -23,9 +23,10 @@ struct EventSubAuthenticationTests {
       URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
     await harness.session.stub(
       url: url, method: "POST", body: MockedData.createEventSubSubscriptionJSON)
-    _ = try await harness.twitch.helix(
-      for: .createEventSubSubscription(
-        using: transport, for: .streamOnline(broadcasterID: "channel")))
+    _ =
+      (try await harness.twitch.helix(
+        for: .createEventSubSubscription(
+          using: transport, for: .streamOnline(broadcasterID: "channel")))).value
     #expect(
       await harness.session.lastRequest()?.value(forHTTPHeaderField: "Authorization")
         == (usesUser ? "Bearer user-token" : "Bearer app-token"))
@@ -33,9 +34,10 @@ struct EventSubAuthenticationTests {
 
     let wrong = HelixTestHarness(credentials: usesUser ? app : user)
     let error = await #expect(throws: HelixError.self) {
-      _ = try await wrong.twitch.helix(
-        for: .createEventSubSubscription(
-          using: transport, for: .streamOnline(broadcasterID: "channel")))
+      _ =
+        (try await wrong.twitch.helix(
+          for: .createEventSubSubscription(
+            using: transport, for: .streamOnline(broadcasterID: "channel")))).value
     }
     if case .authenticationError(let reason) = error {
       #expect(reason == (usesUser ? .userAccessTokenRequired : .appAccessTokenRequired))

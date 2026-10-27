@@ -26,7 +26,7 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
   - [x] Typed error models
   - [x] Typed event models
 - [x] Support for user and app access tokens in Helix
-- [ ] **Planned**: Automatic Helix Rate Limit handling
+- [x] Helix response metadata and typed rate-limit errors
 
 ## Installation
 
@@ -100,6 +100,19 @@ let sent = try await app.helix(for: .sendChatMessage(
   in: "1234", message: "Hello chat!", senderID: "5678"
 ))
 ```
+
+#### Rate limiting
+
+Helix returns rate-limit headers with each response and throws `HelixError.rateLimited` for HTTP 429.
+
+```swift
+let response = try await twitch.helix(for: .getUsers(userLogins: ["forsen"]))
+let users = response.value
+// Inspect Twitch's rate-limit headers for this response.
+let rateLimit = response.metadata.rateLimit
+```
+
+See the [rate-limiting guide](Sources/Twitch/Twitch.docc/RateLimiting.md) for details.
 
 ### EventSub
 

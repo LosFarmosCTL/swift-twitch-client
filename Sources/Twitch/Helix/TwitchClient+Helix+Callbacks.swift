@@ -17,7 +17,7 @@ extension TwitchClient {
   ///   - credentials: The credentials used to authorize the request.
   ///   - urlSession: The URL session used for network requests. Defaults to
   ///     `URLSession(configuration: .default)`.
-  ///   - completionHandler: Receives `nil` on success or the request error on failure.
+  ///   - completionHandler: Receives response metadata on success or the request error on failure.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
@@ -27,7 +27,8 @@ extension TwitchClient {
     >,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default),
-    completionHandler: @escaping @Sendable (HelixError?) -> Void
+    completionHandler:
+      @escaping @Sendable (Result<HelixResponse<Void>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -50,7 +51,7 @@ extension TwitchClient {
   ///   - credentials: The credentials used to authorize the request.
   ///   - urlSession: The URL session used for network requests. Defaults to
   ///     `URLSession(configuration: .default)`.
-  ///   - completionHandler: Receives the endpoint result or a `HelixError`.
+  ///   - completionHandler: Receives the endpoint result with response metadata or a `HelixError`.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
@@ -58,7 +59,7 @@ extension TwitchClient {
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default),
-    completionHandler: @escaping @Sendable (Result<R, HelixError>) -> Void
+    completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -82,7 +83,7 @@ extension TwitchClient {
   ///   - credentials: The credentials used to authorize the request.
   ///   - urlSession: The URL session used for network requests. Defaults to
   ///     `URLSession(configuration: .default)`.
-  ///   - completionHandler: Receives the endpoint result or a `HelixError`.
+  ///   - completionHandler: Receives the endpoint result with response metadata or a `HelixError`.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
@@ -90,7 +91,7 @@ extension TwitchClient {
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default),
-    completionHandler: @escaping @Sendable (Result<R, HelixError>) -> Void
+    completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -111,7 +112,7 @@ extension TwitchClient {
   ///
   /// - Parameters:
   ///   - endpoint: The typed request to execute.
-  ///   - completionHandler: Receives `nil` on success or the request error on failure.
+  ///   - completionHandler: Receives response metadata on success or the request error on failure.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
@@ -119,7 +120,8 @@ extension TwitchClient {
     for endpoint: HelixEndpoint<
       R, H, HelixEndpointResponseTypes.Void
     >,
-    completionHandler: @escaping @Sendable (HelixError?) -> Void
+    completionHandler:
+      @escaping @Sendable (Result<HelixResponse<Void>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -136,13 +138,13 @@ extension TwitchClient {
   ///
   /// - Parameters:
   ///   - endpoint: The typed request to execute.
-  ///   - completionHandler: Receives the endpoint result or a `HelixError`.
+  ///   - completionHandler: Receives the endpoint result with response metadata or a `HelixError`.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
   public nonisolated func helixTask<R: Sendable, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
-    completionHandler: @escaping @Sendable (Result<R, HelixError>) -> Void
+    completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -160,13 +162,13 @@ extension TwitchClient {
   ///
   /// - Parameters:
   ///   - endpoint: The typed request to execute.
-  ///   - completionHandler: Receives the endpoint result or a `HelixError`.
+  ///   - completionHandler: Receives the endpoint result with response metadata or a `HelixError`.
   ///
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
   public nonisolated func helixTask<R: Sendable, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>,
-    completionHandler: @escaping @Sendable (Result<R, HelixError>) -> Void
+    completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
@@ -194,19 +196,5 @@ private func makeHelixTask<Success: Sendable>(
 
   return TwitchCancellable {
     task.cancel()
-  }
-}
-
-private func makeHelixTask(
-  operation: @escaping @Sendable () async throws -> Void,
-  completionHandler: @escaping @Sendable (HelixError?) -> Void
-) -> TwitchCancellable {
-  makeHelixTask(operation: operation) { (result: Result<Void, HelixError>) in
-    switch result {
-    case .success:
-      completionHandler(nil)
-    case .failure(let error):
-      completionHandler(error)
-    }
   }
 }

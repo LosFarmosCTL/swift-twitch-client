@@ -38,8 +38,9 @@ struct HelixTests {
       method: "POST",
       body: Data("{\"data\":[\"forsen\"]}".utf8))
 
-    _ = try await harness.twitch.helix(
-      for: .custom(method: "POST", path: "test", body: ["test": "test"]))
+    _ =
+      (try await harness.twitch.helix(
+        for: .custom(method: "POST", path: "test", body: ["test": "test"]))).value
 
     let request = try #require(await harness.session.lastRequest())
     #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
@@ -148,7 +149,8 @@ struct HelixTests {
         userLogin: "user"),
       network: SuspendingNetworkSession())
 
-    let result: Result<String?, HelixError> = await withCheckedContinuation {
+    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation
+    {
       continuation in
       let cancellable = twitch.helixTask(
         for: .custom(method: "GET", path: "cancel"),
@@ -180,7 +182,8 @@ struct HelixTests {
       authentication: .either,
       makeResponse: { _ in throw HelixCallbackTestError.unexpected })
 
-    let result: Result<String?, HelixError> = await withCheckedContinuation {
+    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation
+    {
       continuation in
       harness.twitch.helixTask(
         for: endpoint,

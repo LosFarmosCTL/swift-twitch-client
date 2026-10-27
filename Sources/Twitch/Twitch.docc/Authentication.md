@@ -99,7 +99,8 @@ let userSent = try await user.helix(for: .sendChatMessage(
 Public lookups such as `getUsers` also need an explicit target with an app token:
 
 ```swift
-let users = try await app.helix(for: .getUsers(userLogins: ["twitchdev"]))
+let response = try await app.helix(for: .getUsers(userLogins: ["twitchdev"]))
+let users = response.value
 ```
 
 Factories document their token and scope requirements. Twitch checks scopes, prior

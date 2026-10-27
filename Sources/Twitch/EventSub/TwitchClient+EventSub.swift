@@ -142,7 +142,8 @@ extension TwitchClient {
         for: .createEventSubSubscription(using: .webSocket(id: sessionID), for: event),
         credentials: credentials, network: network, encoder: encoder, decoder: decoder)
       let created = EventSubRegistration(
-        subscriptionID: response.subscription.id, client: client, credentials: credentials
+        subscriptionID: response.value.subscription.id, client: client,
+        credentials: credentials
       )
       registration = created
 
@@ -174,7 +175,7 @@ extension TwitchClient {
   private func unsubscribe(_ registration: EventSubRegistration) async {
     // Cleanup belongs to the original credential and connection context, even after
     // the parent client has switched to another account or to an app token.
-    try? await Self.helix(
+    _ = try? await Self.helix(
       for: .deleteEventSubSubscription(subscriptionID: registration.subscriptionID),
       credentials: registration.credentials, network: network, encoder: encoder,
       decoder: decoder)

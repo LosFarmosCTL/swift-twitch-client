@@ -18,8 +18,9 @@ struct GuestStarTests {
       url: url,
       body: MockedData.getChannelGuestStarSettingsJSON)
 
-    let settings = try await harness.twitch.helix(
-      for: .getChannelGuestStarSettings())
+    let settings =
+      (try await harness.twitch.helix(
+        for: .getChannelGuestStarSettings())).value
 
     #expect(settings.isModeratorSendLiveEnabled == true)
     #expect(settings.slotCount == 4)
@@ -62,7 +63,7 @@ struct GuestStarTests {
       url: url,
       body: MockedData.getGuestStarSessionJSON)
 
-    let session = try await harness.twitch.helix(for: .getGuestStarSession())
+    let session = (try await harness.twitch.helix(for: .getGuestStarSession())).value
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 2)
@@ -90,7 +91,7 @@ struct GuestStarTests {
       method: "POST",
       body: MockedData.createGuestStarSessionJSON)
 
-    let session = try await harness.twitch.helix(for: .createGuestStarSession())
+    let session = (try await harness.twitch.helix(for: .createGuestStarSession())).value
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 1)
@@ -112,8 +113,9 @@ struct GuestStarTests {
       method: "DELETE",
       body: MockedData.endGuestStarSessionJSON)
 
-    let session = try await harness.twitch.helix(
-      for: .endGuestStarSession(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
+    let session =
+      (try await harness.twitch.helix(
+        for: .endGuestStarSession(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))).value
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 1)
@@ -133,8 +135,9 @@ struct GuestStarTests {
       url: url,
       body: MockedData.getGuestStarInvitesJSON)
 
-    let invites = try await harness.twitch.helix(
-      for: .getGuestStarInvites(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))
+    let invites =
+      (try await harness.twitch.helix(
+        for: .getGuestStarInvites(sessionID: "2KFRQbFtpmfyD3IevNRnCzOPRJI"))).value
 
     #expect(invites.count == 1)
     #expect(invites.first?.userID == "144601104")

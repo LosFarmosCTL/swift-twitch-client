@@ -17,10 +17,11 @@ struct ClipsTests {
     await harness.session.stub(
       url: url, method: "POST", status: 202, body: MockedData.createClipFromVODJSON)
 
-    let clip = try await harness.twitch.helix(
-      for: .createClipFromVOD(
-        "2277656159", broadcasterID: "141981764", vodOffset: 434,
-        title: "Standard Output", duration: 12.5))
+    let clip =
+      (try await harness.twitch.helix(
+        for: .createClipFromVOD(
+          "2277656159", broadcasterID: "141981764", vodOffset: 434,
+          title: "Standard Output", duration: 12.5))).value
 
     #expect(clip.id == "FiveWordsForClipSlug")
     #expect(clip.editURL == "https://www.twitch.tv/twitchdev/clip/FiveWordsForClipSlug")
@@ -36,10 +37,11 @@ struct ClipsTests {
 
     await harness.session.stub(url: url, body: MockedData.getClipsDownloadJSON)
 
-    let clips = try await harness.twitch.helix(
-      for: .getClipsDownload(
-        ["InexpensiveDistinctFoxChefFrank", "SpinelessCloudyLeopardMcaT"],
-        broadcasterID: "141981764"))
+    let clips =
+      (try await harness.twitch.helix(
+        for: .getClipsDownload(
+          ["InexpensiveDistinctFoxChefFrank", "SpinelessCloudyLeopardMcaT"],
+          broadcasterID: "141981764"))).value
 
     #expect(clips.count == 2)
     #expect(clips.first?.clipID == "InexpensiveDistinctFoxChefFrank")
@@ -60,7 +62,7 @@ struct ClipsTests {
       status: 202,
       body: MockedData.createClipJSON)
 
-    let clip = try await harness.twitch.helix(for: .createClip())
+    let clip = (try await harness.twitch.helix(for: .createClip())).value
 
     #expect(clip.id == "FiveWordsForClipSlug")
     #expect(clip.editURL == "https://www.twitch.tv/twitchdev/clip/FiveWordsForClipSlug")
@@ -77,8 +79,9 @@ struct ClipsTests {
       url: url,
       body: MockedData.getClipsJSON)
 
-    let (clips, cursor) = try await harness.twitch.helix(
-      for: .getClips(clipIDs: ["AwkwardHelplessSalamanderSwiftRage"]))
+    let (clips, cursor) =
+      (try await harness.twitch.helix(
+        for: .getClips(clipIDs: ["AwkwardHelplessSalamanderSwiftRage"]))).value
 
     #expect(cursor == nil)
     #expect(clips.count == 1)

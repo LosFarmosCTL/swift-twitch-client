@@ -13,7 +13,7 @@ struct AdsTests {
 
     await harness.session.stub(url: url, body: MockedData.getAdScheduleJSON)
 
-    let ads = try await harness.twitch.helix(for: .getAdSchedule())
+    let ads = (try await harness.twitch.helix(for: .getAdSchedule())).value
 
     #expect(ads.count == 1)
 
@@ -31,9 +31,10 @@ struct AdsTests {
       method: "POST",
       body: MockedData.startCommercialJSON)
 
-    let commercial = try await harness.twitch.helix(
-      for: .startCommercial(length: 60)
-    )
+    let commercial =
+      (try await harness.twitch.helix(
+        for: .startCommercial(length: 60)
+      )).value
 
     #expect(commercial.length == 60)
     #expect(commercial.message == "")
@@ -52,7 +53,7 @@ struct AdsTests {
       method: "POST",
       body: MockedData.snoozeNextAdJSON)
 
-    let snoozeResult = try await harness.twitch.helix(for: .snoozeNextAd())
+    let snoozeResult = (try await harness.twitch.helix(for: .snoozeNextAd())).value
 
     #expect(snoozeResult.snoozeCount == 1)
     #expect(

@@ -19,7 +19,7 @@ struct RaidsTests {
       method: "POST",
       body: MockedData.startRaidJSON)
 
-    let raid = try await harness.twitch.helix(for: .startRaid(to: "5678"))
+    let raid = (try await harness.twitch.helix(for: .startRaid(to: "5678"))).value
 
     #expect(raid.createdAt.formatted(.iso8601) == "2022-02-18T07:20:50Z")
     #expect(raid.isMature == false)
