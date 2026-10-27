@@ -24,9 +24,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "channels/followed",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", credentials.userID),
+          ("user_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ]
@@ -61,8 +62,12 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "channels/followed",
+      authentication: .user,
       queryItems: { credentials in
-        [("user_id", credentials.userID), ("broadcaster_id", broadcasterID)]
+        [
+          ("user_id", try credentials.requireUser().id),
+          ("broadcaster_id", broadcasterID),
+        ]
       },
       makeResponse: { $0.data.first })
   }

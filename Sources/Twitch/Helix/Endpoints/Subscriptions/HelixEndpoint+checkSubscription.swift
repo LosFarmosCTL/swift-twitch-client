@@ -25,10 +25,11 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "subscriptions/user",
+      authentication: .user,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("user_id", credentials.userID),
+          ("user_id", try credentials.requireUser().id),
         ]
       },
       makeResponse: { response in

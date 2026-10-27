@@ -25,7 +25,7 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
   - [x] Typed response models
   - [x] Typed error models
   - [x] Typed event models
-- [ ] **Planned**: Support for app access tokens in Helix
+- [x] Support for user and app access tokens in Helix
 - [ ] **Planned**: Automatic Helix Rate Limit handling
 
 ## Installation
@@ -46,28 +46,33 @@ See the [API reference](https://docs.chatless.app/swift-twitch-client/) for the 
 
 ### Creating credentials
 
-See the Twitch docs on how to obtain the necessary ClientID and OAuth token, this will depend a lot on what you want to do and where you want to do it, e.g. a mobile chat client can prompt a user to login via a Browser, if you're building a Chatbot you might want to obtain your token via completely different flow - you'll have to decide what works best for you. You can validate a token using the static function `TwitchClient.validateAccessToken` that will return a struct containing the ClientID, user ID, user login, scopes and expiry date of the given token:
+See the [Twitch docs](https://dev.twitch.tv/docs/authentication/) on how to obtain a Client ID and OAuth token. The flow you choose depends on your application, e.g. a mobile chat client can prompt a user to log in through a browser, while a server-side bot might use a different flow.
+
+You can validate a user or app access token and use the result to create a `TwitchClient`:
 
 ```swift
 let token = "<token>"
-
 let validatedToken = try await TwitchClient.validateAccessToken(accessToken: token)
-```
-
-You can then create a `TwitchClient` using the `TwitchCredentials` struct:
-
-```swift
-let credentials = TwitchCredentials(
-  accessToken: token,
-  clientID: validatedToken.clientID,
-  userID: validatedToken.userID,
-  userLogin: validatedToken.login
-)
-
+let credentials = validatedToken.credentials(accessToken: token)
 let twitch = TwitchClient(credentials: credentials)
 ```
 
-Using the `TwitchClient` you can now access pretty much the full Twitch API surface:
+You can also create credentials directly:
+
+```swift
+let credentials = TwitchCredentials(
+  accessToken: "<user token>",
+  clientID: "<client ID>",
+  userID: "<user ID>",
+  userLogin: "<login>"
+)
+
+let appCredentials = TwitchCredentials.app(
+  accessToken: "<app token>", clientID: "<client ID>"
+)
+```
+
+See the [authentication guide](Sources/Twitch/Twitch.docc/Authentication.md) for token requirements, Extension JWTs, and credential management.
 
 ### Helix
 
@@ -87,7 +92,18 @@ let request = twitch.helixTask(
 request.cancel()
 ```
 
+App tokens use the same Helix API. For endpoints that act on a user, supply that user's ID explicitly:
+
+```swift
+let app = TwitchClient(credentials: appCredentials)
+let sent = try await app.helix(for: .sendChatMessage(
+  in: "1234", message: "Hello chat!", senderID: "5678"
+))
+```
+
 ### EventSub
+
+EventSub streams, listeners and publishers use WebSockets and require user credentials.
 
 ```swift
 let twitch = TwitchClient(credentials: credentials)
@@ -128,7 +144,7 @@ publisher.sink(
 
 ### Chat (IRC)
 
-IRC has its own session lifetime, separate from Helix and EventSub. The factory captures the current credentials;
+Authenticated IRC requires a user access token. IRC has its own session lifetime, separate from Helix and EventSub. The factory captures the current credentials;
 later `TwitchClient.switchCredentials` calls do not update an existing IRC session.
 
 ```swift

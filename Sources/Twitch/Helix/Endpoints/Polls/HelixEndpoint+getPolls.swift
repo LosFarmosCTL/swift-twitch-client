@@ -32,9 +32,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "polls",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ] + pollIDs.map { ("id", $0) }

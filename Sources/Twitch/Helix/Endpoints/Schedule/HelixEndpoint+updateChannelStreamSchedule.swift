@@ -25,9 +25,13 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PATCH", path: "schedule/settings",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("is_vacation_enabled", isVacationEnabled.map(String.init)),
           ("vacation_start_time", vacationStartTime?.formatted(.iso8601)),
           ("vacation_end_time", vacationEndTime?.formatted(.iso8601)),

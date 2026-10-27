@@ -21,9 +21,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<PendingRaid, PendingRaid, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "raids",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("from_broadcaster_id", credentials.userID),
+          ("from_broadcaster_id", try credentials.requireUser().id),
           ("to_broadcaster_id", toBroadcasterID),
         ]
       },

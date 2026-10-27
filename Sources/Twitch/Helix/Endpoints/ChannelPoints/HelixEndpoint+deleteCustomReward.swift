@@ -21,9 +21,13 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "channel_points/custom_rewards",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("id", rewardID),
         ]
       })

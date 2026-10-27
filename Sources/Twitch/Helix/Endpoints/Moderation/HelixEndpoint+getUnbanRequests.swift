@@ -17,7 +17,8 @@ extension HelixEndpoint {
   ///   - userID: An optional requestor ID to filter by.
   ///   - limit: The page size; `nil` uses Twitch’s default.
   ///   - afterCursor: The next-page cursor, if any.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   /// - Returns: Requests and the next-page cursor.
   public static func getUnbanRequests(
     in broadcasterID: String, status: UnbanRequestStatus, userID: String? = nil,
@@ -28,10 +29,15 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "moderation/unban_requests",
+      authentication: .user,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("status", status.rawValue), ("user_id", userID),
           ("first", limit.map(String.init)), ("after", afterCursor),
         ]

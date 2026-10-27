@@ -16,6 +16,7 @@ extension HelixEndpoint {
   {
     return .init(
       method: "DELETE", path: "users/blocks",
+      authentication: .user,
       queryItems: { _ in [("target_user_id", userID)] })
   }
 }

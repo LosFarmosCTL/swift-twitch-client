@@ -15,7 +15,8 @@ extension TwitchClient {
   /// and revocations finish the stream with an error.
   ///
   /// - Returns: A stream of decoded event payloads.
-  /// - Throws: A `HelixError` or `EventSubError` if subscription setup fails, or
+  /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
+  ///   a `HelixError` or `EventSubError` if subscription setup fails, or
   ///   `CancellationError` when setup is cancelled.
   ///
   /// - Parameters:
@@ -23,17 +24,20 @@ extension TwitchClient {
   public func eventStream<R: Decodable & Sendable>(
     for subscription: EventSubSubscription<R>
   ) async throws -> AsyncThrowingStream<R, any Error> {
-    let (response, sessionID) = try await self.subscribe(to: subscription)
-    let subscriptionID = response.subscription.id
-
     let (stream, continuation) = AsyncThrowingStream<R, any Error>.makeStream()
+    let handler = EventSubContinuationHandler(continuation: continuation)
+    let registration: EventSubRegistration
 
-    continuation.onTermination = { [weak self] _ in
-      Task { await self?.unsubscribe(from: subscriptionID) }
+    do {
+      registration = try await subscribe(to: subscription, handler: handler)
+    } catch {
+      continuation.finish(throwing: error)
+      throw error
     }
 
-    let handler = EventSubContinuationHandler(continuation: continuation)
-    await self.eventSubClient.addHandler(handler, for: subscriptionID, on: sessionID)
+    continuation.onTermination = { [weak self] _ in
+      Task { await self?.unsubscribe(registration) }
+    }
 
     return stream
   }
@@ -45,7 +49,8 @@ extension TwitchClient {
   /// does not cancel.
   ///
   /// - Returns: An explicit cancellation handle for the subscription.
-  /// - Throws: A `HelixError` or `EventSubError` if subscription setup fails, or
+  /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
+  ///   a `HelixError` or `EventSubError` if subscription setup fails, or
   ///   `CancellationError` when setup is cancelled.
   ///
   /// - Parameters:
@@ -56,15 +61,11 @@ extension TwitchClient {
     for subscription: EventSubSubscription<R>,
     callback: @escaping @Sendable (EventSubListenerEvent<R>) -> Void
   ) async throws -> TwitchCancellable {
-    let (response, sessionID) = try await self.subscribe(to: subscription)
-    let subscriptionID = response.subscription.id
-
     let handler = EventSubCallbackHandler(callback: callback)
-
-    await self.eventSubClient.addHandler(handler, for: subscriptionID, on: sessionID)
+    let registration = try await subscribe(to: subscription, handler: handler)
 
     return TwitchCancellable { [weak self] in
-      Task { await self?.unsubscribe(from: subscriptionID) }
+      Task { await self?.unsubscribe(registration) }
     }
   }
 
@@ -75,7 +76,8 @@ extension TwitchClient {
     /// subscription schedules unsubscription from Twitch.
     ///
     /// - Returns: A publisher of decoded events that fails with `EventSubError`.
-    /// - Throws: A `HelixError` or `EventSubError` if setup fails, or `CancellationError`
+    /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
+    ///   a `HelixError` or `EventSubError` if setup fails, or `CancellationError`
     ///   when setup is cancelled.
     ///
     /// - Parameters:
@@ -83,17 +85,13 @@ extension TwitchClient {
     public nonisolated func eventPublisher<R: Decodable & Sendable>(
       for subscription: EventSubSubscription<R>
     ) async throws -> AnyPublisher<R, EventSubError> {
-      let (response, sessionID) = try await self.subscribe(to: subscription)
-      let subscriptionID = response.subscription.id
-
       let subject = PassthroughSubject<R, EventSubError>()
       let handler = EventSubSubjectHandler(subject: subject)
-
-      await self.eventSubClient.addHandler(handler, for: subscriptionID, on: sessionID)
+      let registration = try await subscribe(to: subscription, handler: handler)
 
       return
         subject.handleEvents(receiveCancel: { @Sendable [weak self] in
-          Task { await self?.unsubscribe(from: subscriptionID) }
+          Task { await self?.unsubscribe(registration) }
         })
         .eraseToAnyPublisher()
     }
@@ -104,18 +102,29 @@ extension TwitchClient {
   /// Existing event consumers finish. Create new subscriptions to resume receiving
   /// events.
   public func resetEventSub() async {
-    await self.eventSubClient.reset()
+    let previous = eventSubClient
+    eventSubClient = EventSubClient(network: network, decoder: decoder)
+    await previous.retire()
+  }
+
+  private struct EventSubRegistration: Sendable {
+    let subscriptionID: String
+    // A handler owns its stream termination closure; do not retain its owning client.
+    weak var client: EventSubClient?
+    let credentials: TwitchCredentials
   }
 
   private func subscribe(
-    to event: EventSubSubscription<some Decodable & Sendable>
-  ) async throws
-    -> (response: CreateEventSubSubscriptionResponse, sessionID: String)
-  {
+    to event: EventSubSubscription<some Decodable & Sendable>,
+    handler: EventSubHandler
+  ) async throws -> EventSubRegistration {
+    let credentials = self.credentials
+    _ = try credentials.requireUser()
+    let client = eventSubClient
     let sessionID: String
 
     do {
-      sessionID = try await self.eventSubClient.reserveWebSocketSessionID()
+      sessionID = try await client.reserveWebSocketSessionID()
     } catch is CancellationError {
       throw CancellationError()
     } catch let error as EventSubError {
@@ -124,36 +133,51 @@ extension TwitchClient {
       throw EventSubError.disconnected(with: error)
     }
 
+    var registration: EventSubRegistration?
     do {
-      let response = try await self.helix(
-        for: .createEventSubSubscription(
-          using: .webSocket(id: sessionID), for: event))
+      try Task.checkCancellation()
+      guard eventSubClient === client else { throw CancellationError() }
 
-      return (response, sessionID)
-    } catch is CancellationError {
-      await self.eventSubClient.releaseReservation(for: sessionID)
-      throw CancellationError()
-    } catch let error as HelixError {
-      await self.eventSubClient.releaseReservation(for: sessionID)
-      throw error
-    } catch let error as EventSubError {
-      await self.eventSubClient.releaseReservation(for: sessionID)
-      throw error
+      let response = try await Self.helix(
+        for: .createEventSubSubscription(using: .webSocket(id: sessionID), for: event),
+        credentials: credentials, network: network, encoder: encoder, decoder: decoder)
+      let created = EventSubRegistration(
+        subscriptionID: response.subscription.id, client: client, credentials: credentials
+      )
+      registration = created
+
+      try Task.checkCancellation()
+      guard eventSubClient === client else { throw CancellationError() }
+
+      let added = await client.addHandler(
+        handler, for: created.subscriptionID, on: sessionID)
+      guard added, eventSubClient === client else { throw CancellationError() }
+
+      try Task.checkCancellation()
+      return created
     } catch {
-      await self.eventSubClient.releaseReservation(for: sessionID)
-      throw EventSubError.disconnected(with: error)
+      if let registration { await unsubscribe(registration) }
+      await client.releaseReservation(for: sessionID)
+      throw subscriptionSetupError(error)
     }
   }
 
-  private func unsubscribe(from subscriptionID: String) async {
-    do {
-      try await self.helix(
-        for: .deleteEventSubSubscription(subscriptionID: subscriptionID))
-    } catch {
-      // ignore network errors on unsubscribe, if a simple HTTP request fails, it's
-      // fair to assume that the webSocket connection is already gone anyways
+  private func subscriptionSetupError(_ error: any Error) -> any Error {
+    switch error {
+    case is CancellationError: CancellationError()
+    case let error as HelixError: error
+    case let error as EventSubError: error
+    default: EventSubError.disconnected(with: error)
     }
+  }
 
-    await self.eventSubClient.removeHandler(for: subscriptionID)
+  private func unsubscribe(_ registration: EventSubRegistration) async {
+    // Cleanup belongs to the original credential and connection context, even after
+    // the parent client has switched to another account or to an app token.
+    try? await Self.helix(
+      for: .deleteEventSubSubscription(subscriptionID: registration.subscriptionID),
+      credentials: registration.credentials, network: network, encoder: encoder,
+      decoder: decoder)
+    await registration.client?.removeHandler(for: registration.subscriptionID)
   }
 }

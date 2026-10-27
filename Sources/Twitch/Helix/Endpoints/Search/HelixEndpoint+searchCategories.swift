@@ -28,6 +28,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "search/categories",
+      authentication: .either,
       queryItems: { _ in
         [
           ("query", query),

@@ -11,20 +11,28 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#remove-blocked-term
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - termID: The identifier of the term.
   public static func removeBlockedTerm(
-    in broadcasterID: String, termID: String
+    in broadcasterID: String, termID: String,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "moderation/blocked_terms",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("id", termID),
         ]
       })

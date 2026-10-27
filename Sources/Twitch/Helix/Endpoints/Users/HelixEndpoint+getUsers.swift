@@ -14,7 +14,7 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - userIDs: User IDs to look up. When both IDs and logins are empty, Twitch returns
-  ///     the authenticated user.
+  ///     the authenticated user. App tokens require at least one ID or login.
   ///   - userLogins: The user logins to include in the request. Defaults to `[]`.
   public static func getUsers(
     userIDs: [String] = [],
@@ -25,7 +25,13 @@ extension HelixEndpoint {
 
     return .init(
       method: "GET", path: "users",
-      queryItems: { _ in idQueryItems + loginQueryItems },
+      authentication: .either,
+      queryItems: { credentials in
+        if credentials.kind == .app, userIDs.isEmpty, userLogins.isEmpty {
+          throw TwitchAuthenticationError.missingUserID(parameter: "id or login")
+        }
+        return idQueryItems + loginQueryItems
+      },
       makeResponse: { $0.data })
   }
 }

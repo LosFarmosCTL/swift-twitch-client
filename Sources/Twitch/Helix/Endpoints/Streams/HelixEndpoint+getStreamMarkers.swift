@@ -35,8 +35,11 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "streams/markers",
+      authentication: .user,
       queryItems: { credentials in
-        let resolvedUserID = videoID == nil ? (userID ?? credentials.userID) : nil
+        let resolvedUserID =
+          videoID == nil
+          ? (try credentials.resolveUserID(userID, parameter: "user_id")) : nil
 
         return [
           ("user_id", resolvedUserID),

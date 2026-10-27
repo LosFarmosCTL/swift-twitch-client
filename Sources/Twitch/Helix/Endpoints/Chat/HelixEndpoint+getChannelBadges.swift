@@ -17,6 +17,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[BadgeSet], BadgeSet, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/badges",
+      authentication: .either,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: { $0.data })
   }

@@ -39,8 +39,9 @@ extension HelixEndpoint {
 
     return .init(
       method: "PATCH", path: "channels",
+      authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", credentials.userID)]
+        [("broadcaster_id", try credentials.requireUser().id)]
       },
       body: { _ in
         UpdateChannelRequestBody(

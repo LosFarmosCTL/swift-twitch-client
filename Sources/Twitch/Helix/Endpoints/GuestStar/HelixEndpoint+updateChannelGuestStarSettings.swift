@@ -31,9 +31,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "guest_star/channel_settings",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           (
             "is_moderator_send_live_enabled",
             isModeratorSendLiveEnabled.map(String.init)

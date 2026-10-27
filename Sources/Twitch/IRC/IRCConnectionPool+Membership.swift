@@ -118,7 +118,8 @@ extension IRCConnectionPool {
 
     do {
       if let credentials {
-        try await rateLimiter.acquire(account: credentials.userID, operation: .join)
+        try await rateLimiter.acquire(
+          account: try credentials.requireUser().id, operation: .join)
       }
 
       guard state.entries[id]?.ready == true else { return }
@@ -157,7 +158,7 @@ extension IRCConnectionPool {
   func handle(_ message: IncomingMessage, id: UUID) async {
     guard let entry = state.entries[id] else { return }
 
-    let login = credentials?.userLogin.lowercased() ?? "justinfan12345"
+    let login = credentials?.userLogin?.lowercased() ?? "justinfan12345"
 
     switch message {
     case .join(let join) where join.userLogin == login:

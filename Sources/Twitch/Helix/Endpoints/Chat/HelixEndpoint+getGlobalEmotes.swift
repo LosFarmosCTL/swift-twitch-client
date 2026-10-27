@@ -14,6 +14,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "chat/emotes/global",
+      authentication: .either,
       makeResponse: {
         let template = try $0.require(\.template)
 

@@ -20,9 +20,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "polls",
+      authentication: .user,
       body: { credentials in
         EndPollRequestBody(
-          broadcasterID: credentials.userID,
+          broadcasterID: try credentials.requireUser().id,
           id: pollID,
           status: status)
       },

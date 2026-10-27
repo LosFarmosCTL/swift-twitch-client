@@ -23,6 +23,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[Team], Team, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "teams",
+      authentication: .either,
       queryItems: { _ in
         [
           ("name", teamName),

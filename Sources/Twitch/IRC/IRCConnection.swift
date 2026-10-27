@@ -40,6 +40,7 @@ internal actor IRCConnection {
     guard !connecting else { throw IRCError.alreadyConnected }
     guard webSocket == nil else { throw IRCError.alreadyConnected }
 
+    if let credentials { _ = try credentials.requireUser() }
     connecting = true
     let attemptID = connectionAttemptID
 
@@ -142,7 +143,8 @@ internal actor IRCConnection {
     guard let credentials else { return }
 
     let task = Task { [rateLimiter] in
-      try await rateLimiter.acquire(account: credentials.userID, operation: .authenticate)
+      try await rateLimiter.acquire(
+        account: try credentials.requireUser().id, operation: .authenticate)
     }
 
     authenticationTask = task

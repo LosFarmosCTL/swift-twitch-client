@@ -18,6 +18,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Extension, Extension, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "extensions/released",
+      authentication: .either,
       queryItems: { _ in
         [
           ("extension_id", extensionID),

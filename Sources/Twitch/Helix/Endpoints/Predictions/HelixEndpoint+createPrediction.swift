@@ -22,9 +22,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Prediction, Prediction, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "predictions",
+      authentication: .user,
       body: { credentials in
         CreatePredictionRequestBody(
-          broadcasterID: credentials.userID,
+          broadcasterID: try credentials.requireUser().id,
           title: title,
           outcomes: outcomes.map { .init(title: $0) },
           predictionWindow: predictionWindow)

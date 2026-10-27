@@ -19,6 +19,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "chat/emotes",
+      authentication: .either,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: {
         let template = try $0.require(\.template)

@@ -14,6 +14,8 @@ extension HelixEndpoint {
   /// The request uses the executing client’s user ID for `user_id`.
   ///
   /// - Parameters:
+  ///   - userID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
   ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
@@ -22,16 +24,22 @@ extension HelixEndpoint {
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getModeratedChannels(
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after afterCursor: String? = nil,
+    userID: String? = nil
   ) -> HelixEndpoint<
     (channels: [ModeratedChannel], cursor: String?), ModeratedChannel,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "moderation/channels",
+      authentication: .either,
       queryItems: { credentials in
         [
-          ("user_id", credentials.userID),
+          (
+            "user_id",
+            try credentials.resolveUserID(
+              userID, parameter: "user_id", matchingToken: true)
+          ),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ]

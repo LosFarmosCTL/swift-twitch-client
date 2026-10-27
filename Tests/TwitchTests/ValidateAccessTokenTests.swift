@@ -25,12 +25,52 @@ struct ValidateAccessTokenTests {
     #expect(token.userID == "1234")
     #expect(token.scopes == ["chat:read", "user:read:email"])
     #expect(token.expiresIn == 3600)
+    #expect(token.kind == .user(.init(id: "1234", login: "some_login")))
+    #expect(token.credentials(accessToken: "oauth-token").user == token.user)
 
     let request = try #require(await session.lastRequest())
     #expect(request.url == url)
     #expect(request.httpMethod == "GET")
     #expect(
       request.value(forHTTPHeaderField: "Authorization") == "OAuth oauth-token")
+  }
+
+  @Test(arguments: ["", "\"user_id\": null, \"login\": null,"])
+  func appValidationAcceptsAbsentOrNullIdentity(identity: String) async throws {
+    let session = MockNetworkSession()
+    let url = try #require(URL(string: "https://id.twitch.tv/oauth2/validate"))
+    let response = Data(
+      "{\"client_id\":\"client-id\",\(identity)\"scopes\":[],\"expires_in\":3600}".utf8)
+    await session.stub(url: url, body: response)
+    let validated = try await TwitchClient.validateAccessToken(
+      accessToken: "oauth:app-token", network: session)
+    #expect(validated.kind == .app)
+    #expect(validated.user == nil)
+    #expect(validated.userID == nil)
+    #expect(validated.login == nil)
+    #expect(validated.expiresIn == 3600)
+    #expect(validated.scopes.isEmpty)
+    let credentials = validated.credentials(accessToken: "oauth:app-token")
+    #expect(credentials.kind == .app)
+    #expect(credentials.accessToken == "app-token")
+    #expect(credentials.clientID == "client-id")
+    #expect(
+      await session.lastRequest()?.value(forHTTPHeaderField: "Authorization")
+        == "OAuth app-token")
+  }
+
+  @Test(arguments: [
+    "\"user_id\":\"1234\"", "\"login\":\"user\"",
+    "\"user_id\":\"\",\"login\":\"user\"", "\"user_id\":null,\"login\":\"user\"",
+  ])
+  func validationRejectsIncompleteUserIdentity(identity: String) async throws {
+    let session = MockNetworkSession()
+    let url = try #require(URL(string: "https://id.twitch.tv/oauth2/validate"))
+    await session.stub(
+      url: url, body: Data("{\"client_id\":\"client\",\(identity),\"scopes\":[]}".utf8))
+    await #expect(throws: DecodingError.self) {
+      try await TwitchClient.validateAccessToken(accessToken: "token", network: session)
+    }
   }
 
   @Test

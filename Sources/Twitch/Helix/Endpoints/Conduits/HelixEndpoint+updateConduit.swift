@@ -18,6 +18,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Conduit, Conduit, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "eventsub/conduits",
+      authentication: .app,
       body: { _ in
         UpdateConduitRequest(id: conduitID, shardCount: shardCount)
       },

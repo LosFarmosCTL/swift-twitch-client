@@ -12,13 +12,20 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
+  /// App tokens require an explicit target ID.
   public static func getChannelTeams(
     for broadcasterID: String? = nil
   ) -> HelixEndpoint<[Team], Team, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "teams/channel",
+      authentication: .either,
       queryItems: { credentials in
-        [("broadcaster_id", broadcasterID ?? credentials.userID)]
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          )
+        ]
       },
       makeResponse: { $0.data })
   }

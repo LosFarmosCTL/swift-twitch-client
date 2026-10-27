@@ -25,9 +25,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<Prediction, Prediction, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "predictions",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", credentials.userID),
+          ("broadcaster_id", try credentials.requireUser().id),
           ("id", predictionID),
           ("status", status.rawValue),
           ("winning_outcome_id", winningOutcomeID),

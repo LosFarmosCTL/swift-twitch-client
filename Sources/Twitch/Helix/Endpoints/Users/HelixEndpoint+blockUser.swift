@@ -20,6 +20,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "users/blocks",
+      authentication: .user,
       queryItems: { _ in
         [
           ("target_user_id", userID),

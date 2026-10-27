@@ -22,9 +22,13 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<ClipCreation, ClipCreation, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "clips",
+      authentication: .user,
       queryItems: { credentials in
         return [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("title", title),
           ("duration", duration.map(String.init(describing:))),
         ]

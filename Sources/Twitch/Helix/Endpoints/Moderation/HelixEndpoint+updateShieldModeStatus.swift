@@ -11,24 +11,32 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#update-shield-mode-status
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - isActive: Whether the resource is active.
   public static func updateShieldModeStatus(
     of broadcasterID: String,
-    isActive: Bool
+    isActive: Bool,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<
     ShieldModeStatus, ShieldModeStatus,
     HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "PUT", path: "moderation/shield_mode",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       }, body: { _ in ["is_active": isActive] },
       makeResponse: {

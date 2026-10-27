@@ -27,9 +27,10 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "streams/followed",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", credentials.userID),
+          ("user_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
           ("after", afterCursor),
         ]

@@ -14,16 +14,22 @@ extension HelixEndpoint {
   ///   - userID: The viewer to warn.
   ///   - broadcasterID: The channel broadcaster’s ID.
   ///   - reason: The warning reason, at most 500 characters.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func warnChatUser(
     _ userID: String, in broadcasterID: String, reason: String, moderatorID: String? = nil
   ) -> HelixEndpoint<ChatWarning, ChatWarning, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "moderation/warnings",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       },
       body: { _ in ["data": ["user_id": userID, "reason": reason]] },

@@ -18,9 +18,10 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "chat/color",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", credentials.userID),
+          ("user_id", try credentials.requireUser().id),
           ("color", color.rawValue),
         ]
       })

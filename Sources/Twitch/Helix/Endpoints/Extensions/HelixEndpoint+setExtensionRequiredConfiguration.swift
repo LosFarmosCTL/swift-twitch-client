@@ -2,8 +2,8 @@ extension HelixEndpoint {
   /// Sets the configuration version required before a broadcaster can activate an extension.
   ///
   /// Requires an EBS-signed JWT with the `external` role and the extension owner’s user ID.
-  /// Supply the signed JWT as `TwitchCredentials.accessToken` and the extension’s client ID
-  /// as `clientID`. The client sends the JWT as a Bearer token; it does not sign JWTs.
+  /// Use `TwitchCredentials.extensionJWT(token:clientID:)` with the signed JWT and the
+  /// extension’s client ID. The client sends it as a Bearer token; it does not sign JWTs.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#set-extension-required-configuration
@@ -20,6 +20,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "PUT", path: "extensions/required_configuration",
+      authentication: .extensionJWT,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       body: { _ in
         [

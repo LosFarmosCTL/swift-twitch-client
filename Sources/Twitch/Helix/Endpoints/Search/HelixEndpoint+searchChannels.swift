@@ -30,6 +30,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "search/channels",
+      authentication: .either,
       queryItems: { _ in
         [
           ("query", query),

@@ -17,16 +17,22 @@ extension HelixEndpoint {
   ///   - title: The clip title.
   ///   - duration: The duration, from 5 through 60 seconds in 0.1-second increments.
   ///     `nil` uses Twitch’s default of 30 seconds.
-  ///   - editorID: The acting editor’s user ID; `nil` uses the authenticated user.
+  ///   - editorID: The acting editor’s user ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func createClipFromVOD(
     _ vodID: String, broadcasterID: String, vodOffset: Int, title: String,
     duration: Double? = nil, editorID: String? = nil
   ) -> HelixEndpoint<ClipCreation, ClipCreation, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "videos/clips",
+      authentication: .either,
       queryItems: { credentials in
         [
-          ("editor_id", editorID ?? credentials.userID),
+          (
+            "editor_id",
+            try credentials.resolveUserID(
+              editorID, parameter: "editor_id", matchingToken: true)
+          ),
           ("broadcaster_id", broadcasterID), ("vod_id", vodID),
           ("vod_offset", String(vodOffset)), ("title", title),
           ("duration", duration.map(String.init(describing:))),

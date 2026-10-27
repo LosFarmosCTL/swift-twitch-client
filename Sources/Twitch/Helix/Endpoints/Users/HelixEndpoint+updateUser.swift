@@ -16,6 +16,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "PUT", path: "users",
+      authentication: .user,
       queryItems: { _ in
         [("description", description)]
       },

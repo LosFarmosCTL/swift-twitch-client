@@ -35,8 +35,14 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "entitlements/drops",
-      queryItems: { _ in
-        [
+      authentication: .either,
+      queryItems: { credentials in
+        if userID != nil, credentials.user != nil {
+          throw TwitchAuthenticationError.invalidParameter(
+            parameter: "user_id",
+            reason: "Drops user filtering requires an app access token.")
+        }
+        return [
           ("user_id", userID),
           ("game_id", gameID),
           ("fulfillment_status", fulfillmentStatus?.rawValue),

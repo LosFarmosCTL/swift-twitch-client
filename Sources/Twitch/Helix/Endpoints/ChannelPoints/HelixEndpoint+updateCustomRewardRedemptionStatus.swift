@@ -33,9 +33,13 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PATCH", path: "channel_points/custom_rewards/redemptions",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("reward_id", rewardID),
         ] + redemptionIDs.map { ("id", $0) }
       },

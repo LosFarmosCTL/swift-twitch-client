@@ -4,7 +4,8 @@ import Testing
 @testable import Twitch
 
 struct ExtensionsTests {
-  private let harness = HelixTestHarness()
+  private let harness = HelixTestHarness(
+    credentials: .extensionJWT(token: "signed-jwt", clientID: "extension-id"))
 
   @Test
   func setExtensionRequiredConfiguration() async throws {
@@ -81,6 +82,7 @@ struct ExtensionsTests {
 
   @Test
   func getExtensionLiveChannels() async throws {
+    let harness = HelixTestHarness()
     let url = try #require(
       URL(
         string:
@@ -195,6 +197,7 @@ struct ExtensionsTests {
 
   @Test
   func getReleasedExtension() async throws {
+    let harness = HelixTestHarness()
     let url = try #require(
       URL(
         string:
@@ -218,6 +221,8 @@ struct ExtensionsTests {
 
   @Test
   func getExtensionBitsProducts() async throws {
+    let harness = HelixTestHarness(
+      credentials: .app(accessToken: "app-token", clientID: "client-id"))
     let url = try #require(
       URL(
         string:
@@ -238,6 +243,8 @@ struct ExtensionsTests {
 
   @Test
   func updateExtensionBitsProduct() async throws {
+    let harness = HelixTestHarness(
+      credentials: .app(accessToken: "app-token", clientID: "client-id"))
     let url = try #require(URL(string: "https://api.twitch.tv/helix/bits/extensions"))
 
     await harness.session.stub(

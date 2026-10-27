@@ -12,9 +12,11 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#ban-user
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - userID: The Twitch user ID.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - duration: The timeout duration in seconds; `nil` requests a permanent ban.
@@ -23,14 +25,20 @@ extension HelixEndpoint {
     _ userID: String,
     in broadcasterID: String,
     for duration: Duration? = nil,
-    reason: String? = nil
+    reason: String? = nil,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<Ban, Ban, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "POST", path: "moderation/bans",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       },
       body: { _ in

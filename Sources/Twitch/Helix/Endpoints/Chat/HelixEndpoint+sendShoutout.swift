@@ -11,22 +11,30 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#send-a-shoutout
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `moderator_id`.
+  /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.
   ///
   /// - Parameters:
+  ///   - moderatorID: The acting user ID. Required with app tokens; otherwise defaults
+  ///     to the user token’s identity.
   ///   - fromBroadcasterID: The Twitch user ID of the source broadcaster.
   ///   - toBroadcasterID: The Twitch user ID of the destination broadcaster.
   public static func sendShoutout(
     from fromBroadcasterID: String,
-    to toBroadcasterID: String
+    to toBroadcasterID: String,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "POST", path: "chat/shoutouts",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("from_broadcaster_id", fromBroadcasterID),
           ("to_broadcaster_id", toBroadcasterID),
-          ("moderator_id", credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       })
   }

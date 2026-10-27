@@ -15,7 +15,8 @@ extension HelixEndpoint {
   ///   - userID: The viewer to monitor or restrict.
   ///   - broadcasterID: The channel broadcaster’s ID.
   ///   - status: The treatment to apply.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func addSuspiciousStatusToChatUser(
     _ userID: String, in broadcasterID: String, status: SuspiciousUserTreatment,
     moderatorID: String? = nil
@@ -24,10 +25,15 @@ extension HelixEndpoint {
   > {
     .init(
       method: "POST", path: "moderation/suspicious_users",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
         ]
       }, body: { _ in ["user_id": userID, "status": status.rawValue] },
       makeResponse: { try $0.requireFirst() })
@@ -45,7 +51,8 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - userID: The viewer whose treatment should be removed.
   ///   - broadcasterID: The channel broadcaster’s ID.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the authenticated user.
+  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func removeSuspiciousStatusFromChatUser(
     _ userID: String, in broadcasterID: String, moderatorID: String? = nil
   ) -> HelixEndpoint<
@@ -53,10 +60,15 @@ extension HelixEndpoint {
   > {
     .init(
       method: "DELETE", path: "moderation/suspicious_users",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", moderatorID ?? credentials.userID),
+          (
+            "moderator_id",
+            try credentials.resolveUserID(
+              moderatorID, parameter: "moderator_id", matchingToken: true)
+          ),
           ("user_id", userID),
         ]
       }, makeResponse: { try $0.requireFirst() })

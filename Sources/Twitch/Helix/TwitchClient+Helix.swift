@@ -23,15 +23,9 @@ extension TwitchClient {
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws {
-    let network = URLSessionNetworkSession(session: urlSession)
-    let data = try await Self.data(
-      for: endpoint,
-      credentials: credentials,
-      network: network)
-
-    guard data.isEmpty else {
-      throw HelixError.nonEmptyResponse(responseData: data)
-    }
+    try await Self.helix(
+      for: endpoint, credentials: credentials,
+      network: URLSessionNetworkSession(session: urlSession))
   }
 
   /// Executes a Helix request using explicit credentials.
@@ -53,14 +47,9 @@ extension TwitchClient {
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws -> R {
-    let network = URLSessionNetworkSession(session: urlSession)
-    let data = try await Self.data(
-      for: endpoint,
-      credentials: credentials,
-      network: network)
-
-    let response = try Self.decode(data) as HelixResponse<H>
-    return try endpoint.makeResponse(from: response)
+    try await Self.helix(
+      for: endpoint, credentials: credentials,
+      network: URLSessionNetworkSession(session: urlSession))
   }
 
   /// Executes a Helix request using explicit credentials.
@@ -83,13 +72,9 @@ extension TwitchClient {
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default)
   ) async throws -> R {
-    let network = URLSessionNetworkSession(session: urlSession)
-    let data = try await Self.data(
-      for: endpoint,
-      credentials: credentials,
-      network: network)
-
-    return try endpoint.makeResponse(from: data)
+    try await Self.helix(
+      for: endpoint, credentials: credentials,
+      network: URLSessionNetworkSession(session: urlSession))
   }
 
   /// Executes a Helix request using this client’s credentials.
@@ -105,11 +90,9 @@ extension TwitchClient {
   public func helix<R, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>
   ) async throws {
-    let data = try await self.data(for: endpoint)
-
-    guard data.isEmpty else {
-      throw HelixError.nonEmptyResponse(responseData: data)
-    }
+    try await Self.helix(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
   }
 
   /// Executes a Helix request using this client’s credentials.
@@ -126,10 +109,9 @@ extension TwitchClient {
   public func helix<R, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>
   ) async throws -> R {
-    let data = try await self.data(for: endpoint)
-    let response = try Self.decode(data, decoder: self.decoder) as HelixResponse<H>
-
-    return try endpoint.makeResponse(from: response)
+    try await Self.helix(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
   }
 
   /// Executes a Helix request using this client’s credentials.
@@ -147,7 +129,53 @@ extension TwitchClient {
   public func helix<R, H: Sendable & Decodable>(
     for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>
   ) async throws -> R {
-    let data = try await self.data(for: endpoint)
+    try await Self.helix(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
+  }
+
+  // All entry points share response handling and can use an injected transport.
+  internal nonisolated(nonsending) static func helix<R, H: Sendable & Decodable>(
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Void>,
+    credentials: TwitchCredentials,
+    network: NetworkSession,
+    encoder: JSONEncoder = TwitchClient.makeEncoder(),
+    decoder: JSONDecoder = TwitchClient.makeDecoder()
+  ) async throws {
+    let data = try await Self.data(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
+
+    guard data.isEmpty else {
+      throw HelixError.nonEmptyResponse(responseData: data)
+    }
+  }
+
+  internal nonisolated(nonsending) static func helix<R, H: Sendable & Decodable>(
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Normal>,
+    credentials: TwitchCredentials,
+    network: NetworkSession,
+    encoder: JSONEncoder = TwitchClient.makeEncoder(),
+    decoder: JSONDecoder = TwitchClient.makeDecoder()
+  ) async throws -> R {
+    let data = try await Self.data(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
+    let response = try Self.decode(data, decoder: decoder) as HelixResponse<H>
+
+    return try endpoint.makeResponse(from: response)
+  }
+
+  internal nonisolated(nonsending) static func helix<R, H: Sendable & Decodable>(
+    for endpoint: HelixEndpoint<R, H, HelixEndpointResponseTypes.Raw>,
+    credentials: TwitchCredentials,
+    network: NetworkSession,
+    encoder: JSONEncoder = TwitchClient.makeEncoder(),
+    decoder: JSONDecoder = TwitchClient.makeDecoder()
+  ) async throws -> R {
+    let data = try await Self.data(
+      for: endpoint, credentials: credentials, network: network,
+      encoder: encoder, decoder: decoder)
 
     return try endpoint.makeResponse(from: data)
   }

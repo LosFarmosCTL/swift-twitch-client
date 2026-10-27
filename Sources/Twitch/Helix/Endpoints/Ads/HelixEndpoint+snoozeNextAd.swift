@@ -12,12 +12,23 @@ extension HelixEndpoint {
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#snooze-next-ad
   /// ) for request limits and account requirements.
-  public static func snoozeNextAd()
+  /// - Parameter broadcasterID: The acting user ID. Required with app tokens; otherwise
+  ///   defaults to the user token’s identity.
+  public static func snoozeNextAd(broadcasterID: String? = nil)
     -> HelixEndpoint<SnoozeResult, SnoozeResult, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "POST", path: "channels/ads/schedule/snooze",
-      queryItems: { credentials in [("broadcaster_id", credentials.userID)] },
+      authentication: .either,
+      queryItems: { credentials in
+        [
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(
+              broadcasterID, parameter: "broadcaster_id", matchingToken: true)
+          )
+        ]
+      },
       makeResponse: { result in
         let response = try result.requireFirst()
 

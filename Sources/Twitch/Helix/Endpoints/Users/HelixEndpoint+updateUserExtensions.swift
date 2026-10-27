@@ -23,6 +23,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PUT", path: "users/extensions",
+      authentication: .user,
       body: { _ in
         UpdateUserExtensionsRequestBody(
           data: ExtensionSlotsUpdate(

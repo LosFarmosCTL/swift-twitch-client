@@ -23,6 +23,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "PATCH", path: "entitlements/drops",
+      authentication: .either,
       body: { _ in
         UpdateDropsEntitlementsRequestBody(
           entitlementIDs: entitlementIDs,

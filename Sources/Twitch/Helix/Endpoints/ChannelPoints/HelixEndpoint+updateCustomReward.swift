@@ -53,9 +53,13 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<CustomReward, CustomReward, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "PATCH", path: "channel_points/custom_rewards",
+      authentication: .user,
       queryItems: { credentials in
         [
-          ("broadcaster_id", broadcasterID ?? credentials.userID),
+          (
+            "broadcaster_id",
+            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
+          ),
           ("id", rewardID),
         ]
       },

@@ -30,7 +30,9 @@ extension TwitchClient {
     let url = URL(string: "https://id.twitch.tv/oauth2/validate")!
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
-    request.addValue("OAuth \(accessToken)", forHTTPHeaderField: "Authorization")
+    request.addValue(
+      "OAuth \(String(accessToken.trimmingPrefix("oauth:")))",
+      forHTTPHeaderField: "Authorization")
 
     let (data, response): (Data, HTTPURLResponse)
     do {
@@ -52,15 +54,29 @@ extension TwitchClient {
   }
 }
 
-/// The account, application, scopes, and lifetime returned by Twitch token validation.
+/// The token kind, optional account, application, scopes, and lifetime verified by Twitch.
 public struct ValidatedAccessToken: Decodable, Sendable {
   /// The client ID of the Twitch application that issued the token.
   public let clientID: String
-  /// The account’s login name.
-  public let login: String
-  /// The Twitch user ID.
-  public let userID: String
-  /// The OAuth scopes granted to the access token.
+  /// The account’s login name, or `nil` for app access tokens.
+  public var login: String? { user?.login }
+  /// The Twitch user ID, or `nil` for app access tokens.
+  public var userID: String? { user?.id }
+  /// The token kind, including the account identity for user tokens.
+  public let kind: TwitchCredentials.Kind
+  /// The validated account identity, or `nil` for app access tokens.
+  public var user: TwitchCredentials.UserIdentity? {
+    if case .user(let identity) = kind { identity } else { nil }
+  }
+
+  /// Creates credentials using the identity verified by Twitch.
+  ///
+  /// Supply the same access token that was submitted for validation.
+  public func credentials(accessToken: String) -> TwitchCredentials {
+    .init(accessToken: accessToken, clientID: clientID, kind: kind)
+  }
+
+  /// The scopes returned by validation; this does not enumerate prior app user grants.
   public let scopes: [String]
   /// The remaining token lifetime in seconds; `nil` when Twitch omits it or reports zero.
   public let expiresIn: Int?
@@ -75,8 +91,19 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     clientID = try container.decode(String.self, forKey: .clientID)
-    userID = try container.decode(String.self, forKey: .userID)
-    login = try container.decode(String.self, forKey: .login)
+    let userID = try container.decodeIfPresent(String.self, forKey: .userID)
+    let login = try container.decodeIfPresent(String.self, forKey: .login)
+    switch (userID, login) {
+    case (nil, nil): kind = .app
+    case (.some(let id), .some(let login)) where !id.isEmpty && !login.isEmpty:
+      kind = .user(.init(id: id, login: login))
+    default:
+      throw DecodingError.dataCorrupted(
+        .init(
+          codingPath: decoder.codingPath,
+          debugDescription:
+            "Token validation must include both user_id and login, or neither."))
+    }
     scopes = try container.decode([String].self, forKey: .scopes)
 
     let expiresIn = try container.decodeIfPresent(Int.self, forKey: .expiresIn)

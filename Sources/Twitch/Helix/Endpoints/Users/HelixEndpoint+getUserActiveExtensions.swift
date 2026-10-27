@@ -13,6 +13,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - userID: The user’s Twitch user ID; `nil` uses the executing client’s
   ///     authenticated user ID.
+  /// App tokens require an explicit target ID.
   public static func getUserActiveExtensions(
     userID: String? = nil
   ) -> HelixEndpoint<
@@ -21,8 +22,9 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "users/extensions",
+      authentication: .either,
       queryItems: { credentials in
-        [("user_id", userID ?? credentials.userID)]
+        [("user_id", try credentials.resolveUserID(userID, parameter: "user_id"))]
       },
       makeResponse: {
         let activeExtensions = try $0.requireFirst()

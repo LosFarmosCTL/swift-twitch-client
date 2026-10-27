@@ -16,6 +16,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
       method: "DELETE", path: "eventsub/conduits",
+      authentication: .app,
       queryItems: { _ in
         [
           ("id", conduitID)

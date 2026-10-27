@@ -17,6 +17,7 @@ extension HelixEndpoint {
   ) -> HelixEndpoint<[UserColor], UserColor, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/color",
+      authentication: .either,
       queryItems: { _ in
         userIDs.map { ("user_id", $0) }
       }, makeResponse: { $0.data })

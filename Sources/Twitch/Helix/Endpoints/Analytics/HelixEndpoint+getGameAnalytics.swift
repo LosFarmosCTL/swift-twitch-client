@@ -33,6 +33,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "analytics/games",
+      authentication: .user,
       queryItems: { _ in
         [
           ("game_id", gameID),

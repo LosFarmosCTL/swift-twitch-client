@@ -17,6 +17,7 @@ extension HelixEndpoint {
   {
     .init(
       method: "GET", path: "channels",
+      authentication: .either,
       queryItems: { _ in
         broadcasterIDs.map { ("broadcaster_id", $0) }
       }, makeResponse: { $0.data })

@@ -13,16 +13,22 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - clipIDs: The IDs of one through ten clips to download.
   ///   - broadcasterID: The clips’ broadcaster ID.
-  ///   - editorID: The acting editor’s user ID; `nil` uses the authenticated user.
+  ///   - editorID: The acting editor’s user ID; `nil` uses the user token’s identity.
+  ///     Required for app tokens.
   public static func getClipsDownload(
     _ clipIDs: [String], broadcasterID: String, editorID: String? = nil
   ) -> HelixEndpoint<[ClipDownload], ClipDownload, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "clips/downloads",
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("editor_id", editorID ?? credentials.userID),
+          (
+            "editor_id",
+            try credentials.resolveUserID(
+              editorID, parameter: "editor_id", matchingToken: true)
+          ),
         ]
           + clipIDs.map { ("clip_id", $0) }
       }, makeResponse: { $0.data })

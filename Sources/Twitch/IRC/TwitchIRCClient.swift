@@ -57,6 +57,8 @@ public actor TwitchIRCClient {
   private var messageTask: Task<Void, Never>?
   private var writeTask: Task<Void, Never>?
 
+  private let authenticationStyle: AuthenticationStyle
+
   private(set) var started = false
   var terminalState: TerminalState?
 
@@ -86,6 +88,7 @@ public actor TwitchIRCClient {
     mode: Mode = .readWrite,
     network: NetworkSession
   ) {
+    self.authenticationStyle = authenticationStyle
     let credentials: TwitchCredentials? =
       switch authenticationStyle {
       case .authenticated(let credentials): credentials
@@ -111,12 +114,16 @@ public actor TwitchIRCClient {
   /// connections may deliver messages while other connections are still starting.
   /// Cancelling startup shuts down the session.
   ///
-  /// - Throws: `IRCError.alreadyConnected` if startup has already begun, a terminal
+  /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
+  ///   `IRCError.alreadyConnected` if startup has already begun, a terminal
   ///   session error, a connection error, or `CancellationError`.
   public func connect() async throws {
     try throwIfDisconnected()
     try Task.checkCancellation()
     guard !started else { throw IRCError.alreadyConnected }
+    if case .authenticated(let credentials) = authenticationStyle {
+      _ = try credentials.requireUser()
+    }
 
     started = true
     updateState { state in state.status = .connecting }

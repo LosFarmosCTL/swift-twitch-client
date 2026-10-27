@@ -13,6 +13,7 @@ where
   ) -> Self {
     return .init(
       method: method, path: path,
+      authentication: .either,
       queryItems: { _ in
         queryItems.map {
           $0.map { ($0.name, $0.value) }

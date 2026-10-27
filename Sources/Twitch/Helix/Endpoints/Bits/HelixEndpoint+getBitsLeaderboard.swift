@@ -27,6 +27,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "bits/leaderboard",
+      authentication: .user,
       queryItems: { _ in
         [
           ("count", count.map(String.init)),
