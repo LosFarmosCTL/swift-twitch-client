@@ -115,10 +115,12 @@ struct PredictionTests {
     let request = try #require(await harness.session.lastRequest())
     let body = try #require(request.httpBody)
     let fields = try JSONDecoder().decode([String: String].self, from: body)
-    #expect(fields == [
-      "broadcaster_id": "1234", "id": "bc637af0-7766-4525-9308-4112f4cbf178",
-      "status": "RESOLVED", "winning_outcome_id": "73085848-a94d-4040-9d21-2cb7a89374b7",
-    ])
+    #expect(
+      fields == [
+        "broadcaster_id": "1234", "id": "bc637af0-7766-4525-9308-4112f4cbf178",
+        "status": "RESOLVED",
+        "winning_outcome_id": "73085848-a94d-4040-9d21-2cb7a89374b7",
+      ])
     #expect(prediction.title == "Will we win all the games?")
     #expect(prediction.winningOutcomeID == "73085848-a94d-4040-9d21-2cb7a89374b7")
     #expect(prediction.predictionWindow == 120)

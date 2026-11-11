@@ -128,21 +128,25 @@ internal struct UpdateChatSettingsRequestBody: Encodable, Sendable {
         self.nonModeratorChatDelay = true
         self.nonModeratorChatDelayDuration = duration
       case .disable(let mode):
-        switch mode {
-        case .slowMode:
-          self.slowMode = false
-          self.slowModeWaitTime = nil
-        case .followerMode:
-          self.followerMode = false
-          self.followerModeDuration = nil
-        case .subscriberMode: self.subscriberMode = false
-        case .emoteMode: self.emoteMode = false
-        case .uniqueChatMode: self.uniqueChatMode = false
-        case .nonModeratorChatDelay:
-          self.nonModeratorChatDelay = false
-          self.nonModeratorChatDelayDuration = nil
-        }
+        disable(mode)
       }
+    }
+  }
+
+  private mutating func disable(_ mode: ChatSetting.Mode) {
+    switch mode {
+    case .slowMode:
+      slowMode = false
+      slowModeWaitTime = nil
+    case .followerMode:
+      followerMode = false
+      followerModeDuration = nil
+    case .subscriberMode: subscriberMode = false
+    case .emoteMode: emoteMode = false
+    case .uniqueChatMode: uniqueChatMode = false
+    case .nonModeratorChatDelay:
+      nonModeratorChatDelay = false
+      nonModeratorChatDelayDuration = nil
     }
   }
 }

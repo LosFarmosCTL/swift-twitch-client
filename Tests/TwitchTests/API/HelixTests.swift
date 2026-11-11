@@ -205,7 +205,8 @@ struct HelixTests {
   func missingOrMalformedDataIsRejected() throws {
     let decoder = TwitchClient.makeDecoder()
     #expect(throws: DecodingError.self) {
-      try decoder.decode(HelixResponsePayload<UserColor>.self, from: Data(#"{"data":42}"#.utf8))
+      try decoder.decode(
+        HelixResponsePayload<UserColor>.self, from: Data(#"{"data":42}"#.utf8))
     }
     #expect(throws: DecodingError.self) {
       try decoder.decode(HelixResponsePayload<UserColor>.self, from: Data(#"{}"#.utf8))

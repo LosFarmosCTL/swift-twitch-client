@@ -22,7 +22,8 @@ extension HelixEndpoint {
   /// - Returns: An endpoint that yields `CreateEventSubSubscriptionResponse` when
   ///   executed.
   public static func createEventSubSubscription(
-    using transport: EventSubTransport, for subscription: EventSubSubscription<some Event>,
+    using transport: EventSubTransport,
+    for subscription: EventSubSubscription<some Event>,
     isBatchingEnabled: Bool? = nil
   ) -> HelixEndpoint<
     CreateEventSubSubscriptionResponse,

@@ -10,7 +10,8 @@ struct EventSubTests {
   @Test
   func getEventSubSubscriptions() async throws {
     let url = try #require(
-      URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions?conduit_id=conduit"))
+      URL(
+        string: "https://api.twitch.tv/helix/eventsub/subscriptions?conduit_id=conduit"))
 
     await harness.session.stub(
       url: url,

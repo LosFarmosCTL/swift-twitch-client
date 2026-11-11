@@ -22,7 +22,8 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> HelixEndpoint<
-    (users: [BlockedUser], cursor: String?), BlockedUser, HelixEndpointResponseTypes.Normal
+    (users: [BlockedUser], cursor: String?),
+    BlockedUser, HelixEndpointResponseTypes.Normal
   > {
     .init(
       method: "GET", path: "users/blocks",

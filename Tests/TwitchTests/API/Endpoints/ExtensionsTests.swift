@@ -184,11 +184,10 @@ struct ExtensionsTests {
           "https://api.twitch.tv/helix/extensions?extension_id=pgn0bjv51epi7eaekt53tovjnc82qo&extension_version=0.0.9"
       ))
 
+    let json = try #require(String(bytes: MockedData.getExtensionJSON, encoding: .utf8))
     await harness.session.stub(
       url: url,
-      body: Data(
-        String(decoding: MockedData.getExtensionJSON, as: UTF8.self)
-          .replacingOccurrences(of: "In Review", with: state).utf8))
+      body: Data(json.replacingOccurrences(of: "In Review", with: state).utf8))
 
     let result =
       (try await harness.twitch.helix(
