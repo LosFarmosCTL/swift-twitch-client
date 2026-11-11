@@ -61,6 +61,13 @@ struct AppTokenTests {
       Issue.record("Unexpected token kind errors")
       return
     }
+    let sharedChatError = await #expect(throws: HelixError.self) {
+      _ = try await appHarness.twitch.helix(for: .getSharedChatSession(for: "channel"))
+    }
+    guard case .authenticationError(.userAccessTokenRequired) = sharedChatError else {
+      Issue.record("Expected shared chat to require a user token")
+      return
+    }
     #expect(await appHarness.session.requestCount() == 0)
     #expect(await userHarness.session.requestCount() == 0)
   }

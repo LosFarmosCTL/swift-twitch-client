@@ -97,7 +97,7 @@ public struct StreamScheduleSegment: Decodable, Sendable {
   /// The scheduled start time.
   public let startTime: Date
   /// The scheduled end time.
-  public let endTime: Date
+  public let endTime: Date?
   /// The title shown to viewers.
   public let title: String
   /// The end of the schedule cancellation period, when set.

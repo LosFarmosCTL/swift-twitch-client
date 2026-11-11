@@ -11,7 +11,7 @@ struct GuestStarTests {
     let url = try #require(
       URL(
         string:
-          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&moderator_id=1234"
+          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=channel&moderator_id=1234"
       ))
 
     await harness.session.stub(
@@ -20,13 +20,13 @@ struct GuestStarTests {
 
     let settings =
       (try await harness.twitch.helix(
-        for: .getChannelGuestStarSettings())).value
+        for: .getChannelGuestStarSettings(broadcasterID: "channel"))).value
 
     #expect(settings.isModeratorSendLiveEnabled == true)
     #expect(settings.slotCount == 4)
     #expect(settings.isBrowserSourceAudioEnabled == true)
     #expect(settings.groupLayout == .tiledLayout)
-    #expect(settings.browserSourceToken == "eihq8rew7q3hgierufhi3q")
+    #expect(settings.browserSourceToken == nil)
   }
 
   @Test
@@ -34,12 +34,12 @@ struct GuestStarTests {
     let url = try #require(
       URL(
         string:
-          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234&is_moderator_send_live_enabled=false&slot_count=6&is_browser_source_audio_enabled=true&group_layout=HORIZONTAL_LAYOUT&regenerate_browser_sources=true"
+          "https://api.twitch.tv/helix/guest_star/channel_settings?broadcaster_id=1234"
       ))
 
     await harness.session.stub(
       url: url,
-      method: "PUT",
+      method: "PATCH",
       status: 204)
 
     try await harness.twitch.helix(
@@ -47,8 +47,16 @@ struct GuestStarTests {
         isModeratorSendLiveEnabled: false,
         slotCount: 6,
         isBrowserSourceAudioEnabled: true,
-        groupLayout: .horizontalLayout,
+        groupLayout: .screenshareLayout,
         regenerateBrowserSources: true))
+
+    let request = try #require(await harness.session.lastRequest())
+    let body = try #require(request.httpBody)
+    let fields = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
+    #expect(fields["group_layout"] as? String == "SCREENSHARE")
+    #expect(fields["is_moderator_send_live_enabled"] as? Bool == false)
+    #expect(fields["slot_count"] as? Int == 6)
+    #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
   }
 
   @Test
@@ -70,8 +78,6 @@ struct GuestStarTests {
 
     #expect(session.guests.first?.slotID == "0")
     #expect(session.guests.first?.userID == "9321049")
-    #expect(session.guests.first?.userDisplayName == "Cool_User")
-    #expect(session.guests.first?.userLogin == "cool_user")
     #expect(session.guests.first?.isLive == true)
     #expect(session.guests.first?.volume == 100)
     #expect(
@@ -120,7 +126,6 @@ struct GuestStarTests {
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 1)
     #expect(session.guests.first?.slotID == "0")
-    #expect(session.guests.first?.userLogin == "cool_user")
   }
 
   @Test
@@ -253,7 +258,7 @@ struct GuestStarTests {
     let url = try #require(
       URL(
         string:
-          "https://api.twitch.tv/helix/guest_star/slot_settings?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&slot_id=1&is_audio_enabled=false&is_video_enabled=true&is_live=true&volume=40"
+          "https://api.twitch.tv/helix/guest_star/slot_settings?broadcaster_id=1234&moderator_id=1234&session_id=2KFRQbFtpmfyD3IevNRnCzOPRJI&slot_id=1&is_audio_enabled=false&is_video_enabled=true&is_live=true"
       ))
 
     await harness.session.stub(
@@ -267,7 +272,6 @@ struct GuestStarTests {
         slotID: "1",
         isAudioEnabled: false,
         isVideoEnabled: true,
-        isLive: true,
-        volume: 40))
+        isLive: true))
   }
 }

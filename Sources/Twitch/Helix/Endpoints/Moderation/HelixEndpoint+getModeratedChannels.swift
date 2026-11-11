@@ -17,14 +17,14 @@ extension HelixEndpoint {
   ///   - userID: The acting user ID. Required with app tokens; otherwise defaults
   ///     to the user token’s identity.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getModeratedChannels(
     limit: Int? = nil,
-    after afterCursor: String? = nil,
+    after cursor: String? = nil,
     userID: String? = nil
   ) -> HelixEndpoint<
     (channels: [ModeratedChannel], cursor: String?), ModeratedChannel,
@@ -41,7 +41,7 @@ extension HelixEndpoint {
               userID, parameter: "user_id", matchingToken: true)
           ),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) }
     )

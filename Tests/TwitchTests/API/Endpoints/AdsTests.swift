@@ -18,7 +18,8 @@ struct AdsTests {
     #expect(ads.count == 1)
 
     #expect(ads.first?.duration == 60)
-    #expect(ads.first?.nextAdAt.formatted(.iso8601) == "2023-08-01T23:08:18Z")
+    #expect(ads.first?.lastAdAt == nil)
+    #expect(ads.first?.nextAdAt?.formatted(.iso8601) == "2023-08-01T23:08:18Z")
   }
 
   @Test
@@ -56,7 +57,8 @@ struct AdsTests {
     let snoozeResult = (try await harness.twitch.helix(for: .snoozeNextAd())).value
 
     #expect(snoozeResult.snoozeCount == 1)
+    #expect(snoozeResult.nextAdAt == nil)
     #expect(
-      snoozeResult.snoozeRefreshAt.formatted(.iso8601) == "2023-08-01T23:08:18Z")
+      snoozeResult.snoozeRefreshAt?.formatted(.iso8601) == "2023-08-01T23:08:18Z")
   }
 }

@@ -157,8 +157,8 @@ public struct PinnedChatMessage: Decodable, Sendable {
   public let pinnedByLogin: String
   /// The pinning moderator’s display name.
   public let pinnedByDisplayName: String
-  /// The message text and typed fragments.
-  public let message: ChannelChatMessageEvent.Message
+  /// The text and fragments, or `nil` when Twitch reports that content is unavailable.
+  public let message: ChannelChatMessageEvent.Message?
   /// When the message was pinned.
   public let startsAt: Date
   /// When the pin expires; `nil` means the end of the stream.

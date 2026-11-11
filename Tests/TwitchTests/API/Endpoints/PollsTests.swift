@@ -37,14 +37,17 @@ struct PollsTests {
     #expect(poll?.endedAt == nil)
   }
 
-  @Test
-  func createPoll() async throws {
+  @Test(arguments: [PollStatus.active, .moderated])
+  func createPoll(status: PollStatus) async throws {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/polls"))
 
+    var payload = try #require(
+      JSONSerialization.jsonObject(with: MockedData.createPollJSON) as? [String: Any])
+    var rows = try #require(payload["data"] as? [[String: Any]])
+    rows[0]["status"] = status.rawValue
+    payload["data"] = rows
     await harness.session.stub(
-      url: url,
-      method: "POST",
-      body: MockedData.createPollJSON)
+      url: url, method: "POST", body: try JSONSerialization.data(withJSONObject: payload))
 
     let poll =
       (try await harness.twitch.helix(
@@ -59,7 +62,7 @@ struct PollsTests {
     #expect(poll.broadcasterID == "141981764")
     #expect(poll.channelPointsVotingEnabled == true)
     #expect(poll.channelPointsPerVote == 100)
-    #expect(poll.status == .active)
+    #expect(poll.status == status)
   }
 
   @Test

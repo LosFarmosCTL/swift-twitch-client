@@ -17,12 +17,13 @@ struct GoalsTests {
 
     let goals = (try await harness.twitch.helix(for: .getCreatorGoals())).value
 
-    #expect(goals.count == 1)
-    #expect(goals.first?.id == "1woowvbkiNv8BRxEWSqmQz6Zk92")
+    #expect(goals.count == 2)
+    #expect(goals.first?.id == "0")
     #expect(goals.first?.broadcasterID == "141981764")
     #expect(goals.first?.broadcasterDisplayName == "TwitchDev")
     #expect(goals.first?.broadcasterLogin == "twitchdev")
-    #expect(goals.first?.type == .follower)
+    #expect(goals.first?.type == .newBit)
+    #expect(goals.last?.type == .newCheerer)
     #expect(goals.first?.description == "Follow goal for Helix testing")
     #expect(goals.first?.currentAmount == 27062)
     #expect(goals.first?.targetAmount == 30000)

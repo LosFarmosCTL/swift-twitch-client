@@ -13,7 +13,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - query: The search text.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields `(categories: [Category], cursor: String?)` when
@@ -21,7 +21,7 @@ extension HelixEndpoint {
   public static func searchCategories(
     for query: String,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (categories: [Category], cursor: String?),
     Category, HelixEndpointResponseTypes.Normal
@@ -32,7 +32,7 @@ extension HelixEndpoint {
       queryItems: { _ in
         [
           ("query", query),
-          ("after", afterCursor),
+          ("after", cursor),
           ("first", limit.map(String.init)),
         ]
       },

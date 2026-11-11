@@ -17,7 +17,7 @@ extension HelixEndpoint {
   ///   - gameID: The identifier of the game, when provided.
   ///   - fulfillmentStatus: The Drops entitlement’s fulfillment status, when provided.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
@@ -28,7 +28,7 @@ extension HelixEndpoint {
     gameID: String? = nil,
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (entitlements: [DropsEntitlement], cursor: String?), DropsEntitlement,
     HelixEndpointResponseTypes.Normal
@@ -47,7 +47,7 @@ extension HelixEndpoint {
           ("game_id", gameID),
           ("fulfillment_status", fulfillmentStatus?.rawValue),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ] + entitlementIDs.map { ("id", $0) }
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })

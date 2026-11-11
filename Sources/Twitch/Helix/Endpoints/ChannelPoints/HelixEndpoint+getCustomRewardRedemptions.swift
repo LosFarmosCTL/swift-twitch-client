@@ -22,7 +22,7 @@ extension HelixEndpoint {
   ///   - redemptionIDs: The redemption IDs to include in the request. Defaults to `[]`.
   ///   - sort: The order of the returned results.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
@@ -34,7 +34,7 @@ extension HelixEndpoint {
     redemptionIDs: [String] = [],
     sort: CustomRewardRedemptionSort? = nil,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (redemptions: [CustomRewardRedemption], cursor: String?),
     CustomRewardRedemption,
@@ -53,7 +53,7 @@ extension HelixEndpoint {
           ("status", status?.rawValue),
           ("sort", sort?.rawValue),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ] + redemptionIDs.map { ("id", $0) }
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })

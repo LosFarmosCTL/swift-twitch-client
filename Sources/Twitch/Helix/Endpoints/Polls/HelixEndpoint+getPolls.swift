@@ -17,7 +17,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - pollIDs: The poll IDs to include in the request. Defaults to `[]`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
@@ -25,7 +25,7 @@ extension HelixEndpoint {
   public static func getPolls(
     pollIDs: [String] = [],
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (polls: [Poll], cursor: String?),
     Poll, HelixEndpointResponseTypes.Normal
@@ -37,7 +37,7 @@ extension HelixEndpoint {
         [
           ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ] + pollIDs.map { ("id", $0) }
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })
@@ -104,8 +104,6 @@ public struct PollChoice: Decodable, Sendable {
   public let votes: Int
   /// The number of votes purchased using Channel Points.
   public let channelPointsVotes: Int
-  /// The number of votes purchased using Bits.
-  public let bitsVotes: Int
 }
 
 /// A poll’s voting, completion, moderation, or archival state.
@@ -118,7 +116,7 @@ public enum PollStatus: String, Decodable, Sendable {
   case terminated = "TERMINATED"
   /// The poll was archived. Encoded as `"ARCHIVED"`.
   case archived = "ARCHIVED"
-  /// The poll was removed by moderation. Encoded as `"MODERATED"`.
+  /// The poll was deleted. Still documented for Create Poll and End Poll responses.
   case moderated = "MODERATED"
   /// The poll is not valid. Encoded as `"INVALID"`.
   case invalid = "INVALID"

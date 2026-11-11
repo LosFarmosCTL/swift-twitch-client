@@ -58,18 +58,14 @@ public struct GuestStarChannelSettings: Decodable, Sendable {
   public let isBrowserSourceAudioEnabled: Bool
   /// The layout used to arrange Guest Star participants.
   public let groupLayout: GuestStarGroupLayout
-  /// The token used to access Guest Star browser sources.
-  public let browserSourceToken: String
+  /// The browser source token; `nil` when the requester is not the broadcaster.
+  public let browserSourceToken: String?
 }
 
 /// Layouts used to arrange Guest Star participants in the browser source.
 public enum GuestStarGroupLayout: String, Codable, Sendable {
-  /// Arranges guests in a tiled layout. Encoded as `"TILED_LAYOUT"`.
-  case tiledLayout = "TILED_LAYOUT"
-  /// Arranges guests around a shared screen. Encoded as `"SCREENSHARE_LAYOUT"`.
-  case screenshareLayout = "SCREENSHARE_LAYOUT"
-  /// Arranges guests horizontally. Encoded as `"HORIZONTAL_LAYOUT"`.
-  case horizontalLayout = "HORIZONTAL_LAYOUT"
-  /// Arranges guests vertically. Encoded as `"VERTICAL_LAYOUT"`.
-  case verticalLayout = "VERTICAL_LAYOUT"
+  /// Arranges guests in a tiled layout. Encoded as `"TILED"`.
+  case tiledLayout = "TILED"
+  /// Arranges guests around a shared screen. Encoded as `"SCREENSHARE"`.
+  case screenshareLayout = "SCREENSHARE"
 }

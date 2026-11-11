@@ -43,6 +43,7 @@ struct ExtensionsTests {
 
     #expect(result.count == 1)
     #expect(result.first?.segment == .global)
+    #expect(result.first?.broadcasterID == "")
     #expect(result.first?.content == "hello config!")
     #expect(result.first?.version == "0.0.1")
   }
@@ -175,8 +176,8 @@ struct ExtensionsTests {
         extensionVersion: "0.0.9"))
   }
 
-  @Test
-  func getExtension() async throws {
+  @Test(arguments: ["Assets Uploaded", "In Review", "Pending Action", "Testing"])
+  func getExtension(state: String) async throws {
     let url = try #require(
       URL(
         string:
@@ -185,7 +186,9 @@ struct ExtensionsTests {
 
     await harness.session.stub(
       url: url,
-      body: MockedData.getExtensionJSON)
+      body: Data(
+        String(decoding: MockedData.getExtensionJSON, as: UTF8.self)
+          .replacingOccurrences(of: "In Review", with: state).utf8))
 
     let result =
       (try await harness.twitch.helix(
@@ -195,7 +198,8 @@ struct ExtensionsTests {
 
     #expect(result.id == "pgn0bjv51epi7eaekt53tovjnc82qo")
     #expect(result.name == "Official Developers Demo")
-    #expect(result.state == .released)
+    #expect(result.state.rawValue == state)
+    #expect(result.views?.liveConfig?.viewerURL == "https://example.com/live.html")
     #expect(result.subscriptionsSupportLevel == .optional)
     #expect(result.views?.panel?.height == 300)
   }
@@ -244,7 +248,7 @@ struct ExtensionsTests {
 
     #expect(result.count == 1)
     #expect(result.first?.sku == "1010")
-    #expect(result.first?.cost.amount == 990)
+    #expect(result.first?.cost == nil)
     #expect(result.first?.displayName == "Rusty Crate 2")
   }
 

@@ -70,10 +70,6 @@ public struct GuestStarGuest: Decodable, Sendable {
   public let slotID: String
   /// The Twitch user ID.
   public let userID: String
-  /// The user’s display name.
-  public let userDisplayName: String
-  /// The user’s login name.
-  public let userLogin: String
   /// Whether the guest is visible in the host’s browser source.
   public let isLive: Bool
   /// The host’s volume setting for the guest, from 0 to 100.
@@ -88,13 +84,11 @@ public struct GuestStarGuest: Decodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case slotID = "slotId"
     case userID = "userId"
-    case userDisplayName
-    case userLogin
     case isLive
     case volume
     case assignedAt
-    case audioSettings
-    case videoSettings
+    case audioSettings = "audio"
+    case videoSettings = "video"
   }
 }
 

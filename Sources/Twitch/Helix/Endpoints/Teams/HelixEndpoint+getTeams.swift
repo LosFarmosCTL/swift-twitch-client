@@ -47,15 +47,15 @@ public struct Team: Decodable, Sendable {
   /// The team’s description, which may contain HTML.
   public let info: String
   /// The URL for thumbnail.
-  public let thumbnailURL: String
+  public let thumbnailURL: String?
   /// The URL for background image, when provided.
   public let backgroundImageURL: String?
   /// The team banner image, when provided.
   public let banner: String?
   /// The time the resource was created.
-  public let createdAt: Date
+  public let createdAt: Date?
   /// The time the resource was last updated.
-  public let updatedAt: Date
+  public let updatedAt: Date?
 
   /// The team’s member broadcasters; omitted by the channel-teams endpoint.
   public let users: [TeamMember]?

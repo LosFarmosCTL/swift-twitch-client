@@ -16,8 +16,8 @@
     }
   ],
   "date_range": {
-    "started_at": "2018-02-05T08:00:00Z",
-    "ended_at": "2018-02-12T08:00:00Z"
+    "started_at": "",
+    "ended_at": ""
   },
   "total": 2
 }

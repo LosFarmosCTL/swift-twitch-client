@@ -11,11 +11,11 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - broadcasterID: A broadcaster whose follower emotes should be included.
-  ///   - afterCursor: The next-page cursor, if any.
+  ///   - cursor: The next-page cursor, if any.
   /// - Returns: Emotes, their image URL template, and the next-page cursor.
   public static func getUserEmotes(
     broadcasterID: String? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<UserEmotesResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "chat/emotes/user",
@@ -24,7 +24,7 @@ extension HelixEndpoint {
         [
           ("user_id", try credentials.requireUser().id),
           ("broadcaster_id", broadcasterID),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

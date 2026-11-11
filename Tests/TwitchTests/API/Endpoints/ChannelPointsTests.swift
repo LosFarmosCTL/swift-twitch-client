@@ -123,29 +123,36 @@ struct ChannelPointsTests {
     )
   }
 
-  @Test
-  func updateCustomRewardRedemptionStatus() async throws {
+  @Test(arguments: [false, true])
+  func updateCustomRewardRedemptionStatus(noMatches: Bool) async throws {
     let url = try #require(
       URL(
         string:
-          "https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions?broadcaster_id=1234&reward_id=92af127c-7326-4483-a52b-b0da0be61c01&id=17fa2df1-ad76-4804-bfa5-a40ef63efe63"
+          "https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions?broadcaster_id=1234&reward_id=92af127c-7326-4483-a52b-b0da0be61c01&id=17fa2df1-ad76-4804-bfa5-a40ef63efe63&id=second-redemption"
       ))
 
     await harness.session.stub(
       url: url,
       method: "PATCH",
-      body: MockedData.updateRedemptionStatusJSON)
+      body: noMatches
+        ? Data(#"{"data":[]}"#.utf8) : MockedData.updateRedemptionStatusJSON)
 
     let redemption =
       (try await harness.twitch.helix(
         for: .updateCustomRewardRedemptionStatus(
-          ["17fa2df1-ad76-4804-bfa5-a40ef63efe63"],
+          ["17fa2df1-ad76-4804-bfa5-a40ef63efe63", "second-redemption"],
           rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
           status: .cancelled))).value
 
-    #expect(redemption.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
-    #expect(redemption.status == .cancelled)
-    #expect(redemption.userID == "274637212")
-    #expect(redemption.reward.cost == 50000)
+    if noMatches {
+      #expect(redemption.isEmpty)
+    } else {
+      #expect(redemption.count == 2)
+      #expect(redemption.last?.id == "second-redemption")
+      #expect(redemption.first?.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")
+      #expect(redemption.first?.status == .cancelled)
+      #expect(redemption.first?.userID == "274637212")
+      #expect(redemption.first?.reward.cost == 50000)
+    }
   }
 }

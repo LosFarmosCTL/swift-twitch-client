@@ -15,11 +15,15 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - transport: The EventSub delivery transport.
   ///   - subscription: The subscription details.
+  ///   - isBatchingEnabled: Allows one notification to contain multiple events.
+  ///     Currently required to be true only for `drop.entitlement.grant`; all other
+  ///     subscription types require false or omission. It does not batch subscriptions.
   ///
   /// - Returns: An endpoint that yields `CreateEventSubSubscriptionResponse` when
   ///   executed.
   public static func createEventSubSubscription(
-    using transport: EventSubTransport, for subscription: EventSubSubscription<some Event>
+    using transport: EventSubTransport, for subscription: EventSubSubscription<some Event>,
+    isBatchingEnabled: Bool? = nil
   ) -> HelixEndpoint<
     CreateEventSubSubscriptionResponse,
     CreateEventSubSubscriptionResponse.Subscription,
@@ -32,7 +36,7 @@ extension HelixEndpoint {
         CreateEventSubRequestBody(
           type: subscription.type, version: subscription.version,
           condition: subscription.condition,
-          transport: transport.transport)
+          transport: transport.transport, isBatchingEnabled: isBatchingEnabled)
       },
       makeResponse: {
         let subscription = try $0.requireFirst()
@@ -113,6 +117,8 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     public let transport: Transport
     /// The subscription’s contribution to the application’s EventSub cost limit.
     public let cost: Int
+    /// Present when notification batching is enabled; omission means false.
+    public let isBatchingEnabled: Bool?
   }
 
   /// The destination assigned to a newly created EventSub subscription.
@@ -157,6 +163,7 @@ struct CreateEventSubRequestBody: Codable, Sendable {
   let condition: [String: String]
 
   let transport: EventSubTransportPayload
+  let isBatchingEnabled: Bool?
 }
 
 struct EventSubTransportPayload: Codable, Sendable {

@@ -13,13 +13,17 @@ extension HelixEndpoint {
   /// The request uses the executing client’s user ID for `broadcaster_id`.
   ///
   /// - Parameters:
+  ///   - userIDs: Specific users to check against the block list. Defaults to `[]`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getUserBlocklist(
+    userIDs: [String] = [],
     limit: Int? = nil,
-    after afterCursor: String? = nil
-  ) -> HelixEndpoint<[BlockedUser], BlockedUser, HelixEndpointResponseTypes.Normal> {
+    after cursor: String? = nil
+  ) -> HelixEndpoint<
+    (users: [BlockedUser], cursor: String?), BlockedUser, HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "GET", path: "users/blocks",
       authentication: .user,
@@ -27,12 +31,10 @@ extension HelixEndpoint {
         [
           ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
-        ]
+          ("after", cursor),
+        ] + userIDs.map { ("user_id", $0) }
       },
-      makeResponse: {
-        $0.data
-      })
+      makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
 }
 

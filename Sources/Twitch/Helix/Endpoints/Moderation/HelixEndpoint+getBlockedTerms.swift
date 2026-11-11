@@ -20,7 +20,7 @@ extension HelixEndpoint {
   ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields `(terms: [BlockedTerm], cursor: String?)` when
@@ -28,7 +28,7 @@ extension HelixEndpoint {
   public static func getBlockedTerms(
     in broadcasterID: String,
     limit: Int? = nil,
-    after afterCursor: String? = nil,
+    after cursor: String? = nil,
     moderatorID: String? = nil
   ) -> HelixEndpoint<
     (terms: [BlockedTerm], cursor: String?), BlockedTerm,
@@ -46,7 +46,7 @@ extension HelixEndpoint {
               moderatorID, parameter: "moderator_id", matchingToken: true)
           ),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

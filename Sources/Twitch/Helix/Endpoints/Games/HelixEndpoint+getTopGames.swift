@@ -11,16 +11,14 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
-  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getTopGames(
     limit: Int? = nil,
-    after afterCursor: String? = nil,
-    before beforeCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (games: [Game], cursor: String?),
     Game, HelixEndpointResponseTypes.Normal
@@ -30,8 +28,7 @@ extension HelixEndpoint {
       authentication: .either,
       queryItems: { _ in
         [
-          ("after", afterCursor),
-          ("before", beforeCursor),
+          ("after", cursor),
           ("first", limit.map(String.init)),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })

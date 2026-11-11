@@ -13,7 +13,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - conduitID: The identifier of the conduit.
   ///   - status: The requested status or status filter.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields `(shards: [ConduitShard], cursor: String?)` when
@@ -21,7 +21,7 @@ extension HelixEndpoint {
   public static func getConduitShards(
     conduitID: String,
     status: ConduitShardStatus? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (shards: [ConduitShard], cursor: String?),
     ConduitShard, HelixEndpointResponseTypes.Normal
@@ -33,7 +33,7 @@ extension HelixEndpoint {
         [
           ("conduit_id", conduitID),
           ("status", status?.rawValue),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })
@@ -44,6 +44,8 @@ extension HelixEndpoint {
 public enum ConduitShardStatus: String, Sendable {
   /// The subscription or shard is enabled and can deliver notifications.
   case enabled
+  /// The WebSocket connection has not been used for subscriptions.
+  case webSocketConnectionUnused = "websocket_connection_unused"
   /// Twitch is waiting to verify the webhook callback. Encoded as
   /// `"webhook_callback_verification_pending"`.
   case webhookCallbackVerificationPending = "webhook_callback_verification_pending"

@@ -84,7 +84,7 @@ enum IdentityOperation: CaseIterable, Sendable {
   case updateAutoMod, updateShield, subscribers, channelTeams, activeExtensions
 
   case pinnedMessage, pinMessage, updatePin, unpinMessage, vodClip, clipDownloads
-  case addSuspicious, removeSuspicious, warnUser
+  case addSuspicious, removeSuspicious, warnUser, checkSubscription
 
   func request(credentials: TwitchCredentials, actorID: String?) throws -> URLRequest {
     let make = try #require(Self.requests[self])
@@ -93,6 +93,10 @@ enum IdentityOperation: CaseIterable, Sendable {
 
   private static let requests:
     [Self: @Sendable (TwitchCredentials, String?) throws -> URLRequest] = [
+      .checkSubscription: { credentials, actorID in
+        try makeIdentityRequest(
+          .checkSubscription(to: "channel", userID: actorID), credentials)
+      },
       .adSchedule: { credentials, actorID in
         try makeIdentityRequest(.getAdSchedule(broadcasterID: actorID), credentials)
       },

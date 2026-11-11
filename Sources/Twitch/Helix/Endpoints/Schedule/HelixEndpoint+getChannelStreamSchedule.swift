@@ -14,11 +14,11 @@ extension HelixEndpoint {
   ///   - segmentIDs: Up to 100 segment IDs; an empty array requests all segments.
   ///   - startTime: The time from which to return segments; `nil` uses the current time.
   ///   - limit: The page size, from 1 through 25; `nil` uses Twitch’s default.
-  ///   - afterCursor: The next-page cursor, if any.
+  ///   - cursor: The next-page cursor, if any.
   /// - Returns: A schedule and the next-page cursor.
   public static func getChannelStreamSchedule(
     for broadcasterID: String, segmentIDs: [String] = [], startTime: Date? = nil,
-    limit: Int? = nil, after afterCursor: String? = nil
+    limit: Int? = nil, after cursor: String? = nil
   ) -> HelixEndpoint<
     (schedule: StreamSchedule, cursor: String?), StreamSchedule,
     HelixEndpointResponseTypes.Normal
@@ -30,7 +30,7 @@ extension HelixEndpoint {
         [
           ("broadcaster_id", broadcasterID),
           ("start_time", startTime?.formatted(.iso8601)),
-          ("first", limit.map(String.init)), ("after", afterCursor),
+          ("first", limit.map(String.init)), ("after", cursor),
         ] + segmentIDs.map { ("id", $0) }
       }, makeResponse: { (try $0.requireFirst(), $0.pagination?.cursor) })
   }

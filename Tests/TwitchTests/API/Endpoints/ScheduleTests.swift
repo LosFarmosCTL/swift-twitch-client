@@ -29,6 +29,7 @@ struct ScheduleTests {
     #expect(schedule.segments.count == 1)
     let segment = try #require(schedule.segments.first)
     #expect(segment.startTime == startTime)
+    #expect(segment.endTime == nil)
     #expect(segment.title == "TwitchDev Monthly Update // July 1, 2021")
     #expect(segment.category?.name == "Science & Technology")
   }
@@ -115,7 +116,7 @@ struct ScheduleTests {
     )
     #expect(segment.title == "TwitchDev Monthly Update // July 1, 2021")
     #expect(segment.startTime.formatted(.iso8601) == "2021-07-01T18:00:00Z")
-    #expect(segment.endTime.formatted(.iso8601) == "2021-07-01T19:00:00Z")
+    #expect(segment.endTime?.formatted(.iso8601) == "2021-07-01T19:00:00Z")
     #expect(segment.cancelledUntil == nil)
     #expect(segment.category?.id == "509670")
     #expect(segment.category?.name == "Science & Technology")
@@ -145,7 +146,7 @@ struct ScheduleTests {
         ))).value
 
     let segment = try #require(schedule.segments.first)
-    #expect(segment.endTime.formatted(.iso8601) == "2021-07-01T20:00:00Z")
+    #expect(segment.endTime?.formatted(.iso8601) == "2021-07-01T20:00:00Z")
     #expect(segment.category?.name == "Science & Technology")
     #expect(segment.isRecurring == false)
   }

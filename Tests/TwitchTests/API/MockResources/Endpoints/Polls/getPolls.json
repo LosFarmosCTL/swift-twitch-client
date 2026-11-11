@@ -11,19 +11,15 @@
           "id": "4c123012-1351-4f33-84b7-43856e7a0f47",
           "title": "Heads",
           "votes": 0,
-          "channel_points_votes": 0,
-          "bits_votes": 0
+          "channel_points_votes": 0
         },
         {
           "id": "279087e3-54a7-467e-bcd0-c1393fcea4f0",
           "title": "Tails",
           "votes": 0,
-          "channel_points_votes": 0,
-          "bits_votes": 0
+          "channel_points_votes": 0
         }
       ],
-      "bits_voting_enabled": false,
-      "bits_per_vote": 0,
       "channel_points_voting_enabled": false,
       "channel_points_per_vote": 0,
       "status": "ACTIVE",

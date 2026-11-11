@@ -72,13 +72,19 @@ struct UsersTests {
   func getUserBlocklist() async throws {
     let url = try #require(
       URL(
-        string: "https://api.twitch.tv/helix/users/blocks?broadcaster_id=1234&first=2"))
+        string:
+          "https://api.twitch.tv/helix/users/blocks?broadcaster_id=1234&first=2&user_id=135093069&user_id=27419011"
+      ))
 
     await harness.session.stub(
       url: url,
       body: MockedData.getUserBlocklistJSON)
 
-    let blocks = (try await harness.twitch.helix(for: .getUserBlocklist(limit: 2))).value
+    let (blocks, cursor) =
+      (try await harness.twitch.helix(
+        for: .getUserBlocklist(userIDs: ["135093069", "27419011"], limit: 2))).value
+
+    #expect(cursor == "next-blocks")
 
     #expect(blocks.count == 2)
     #expect(blocks.contains(where: { $0.userID == "135093069" }))

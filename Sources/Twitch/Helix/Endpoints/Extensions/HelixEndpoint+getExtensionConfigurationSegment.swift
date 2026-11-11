@@ -62,4 +62,9 @@ public struct ExtensionConfigurationSegment: Decodable, Sendable {
   public let content: String?
   /// The version label assigned to this configuration segment.
   public let version: String
+
+  enum CodingKeys: String, CodingKey {
+    case segment, content, version
+    case broadcasterID = "broadcasterId"
+  }
 }

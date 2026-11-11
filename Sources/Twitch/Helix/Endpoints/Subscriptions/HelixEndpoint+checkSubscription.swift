@@ -2,34 +2,40 @@ import Foundation
 import MemberwiseInit
 
 extension HelixEndpoint {
-  /// Checks whether the authenticated user subscribes to a broadcaster.
+  /// Checks whether a user subscribes to a broadcaster.
   ///
-  /// With a user access token, requires `user:read:subscriptions`.
+  /// With a user access token, requires `user:read:subscriptions`. App tokens require
+  /// the user’s prior authorization with that scope and an explicit `userID`.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#check-user-subscription
   /// ) for request limits and account requirements.
   ///
-  /// The request uses the executing client’s user ID for `user_id`.
+  /// With user tokens, `userID` defaults to the token’s user and must match it.
   ///
   /// A user who does not subscribe produces HTTP 404. Executing this endpoint throws
   /// `HelixError.twitchError` for that response; it does not convert HTTP 404 to `nil`.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - userID: Required for app tokens; otherwise defaults to the token’s user.
   ///
   /// - Returns: An endpoint that yields subscription details when executed. The result is
   ///   `nil` only if Twitch returns a successful response with an empty data array.
-  public static func checkSubscription(to broadcasterID: String)
+  public static func checkSubscription(to broadcasterID: String, userID: String? = nil)
     -> HelixEndpoint<Subscription?, Subscription, HelixEndpointResponseTypes.Normal>
   {
     .init(
       method: "GET", path: "subscriptions/user",
-      authentication: .user,
+      authentication: .either,
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("user_id", try credentials.requireUser().id),
+          (
+            "user_id",
+            try credentials.resolveUserID(
+              userID, parameter: "user_id", matchingToken: true)
+          ),
         ]
       },
       makeResponse: { response in

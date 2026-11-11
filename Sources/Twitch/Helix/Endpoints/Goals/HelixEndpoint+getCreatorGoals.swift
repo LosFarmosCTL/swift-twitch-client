@@ -70,6 +70,10 @@ public struct CreatorGoal: Decodable, Sendable {
 
 /// The follower or subscription metric used to measure a creator goal.
 public enum CreatorGoalType: String, Decodable, Sendable {
+  /// Increases the number of Bits used on the channel.
+  case newBit = "new_bit"
+  /// Increases the number of unique Cheerers.
+  case newCheerer = "new_cheerer"
   /// Tracks the channel’s follower count.
   case follower
   /// Tracks subscription points.

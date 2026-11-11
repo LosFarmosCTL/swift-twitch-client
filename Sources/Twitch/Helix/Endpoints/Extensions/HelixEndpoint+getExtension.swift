@@ -92,6 +92,8 @@ public struct Extension: Decodable, Sendable {
   /// The extension’s mobile, panel, video overlay, and component view configurations.
   @MemberwiseInit(.public)
   public struct ExtensionViews: Decodable, Sendable {
+    /// The broadcaster’s live configuration view, when supported.
+    public let liveConfig: ExtensionView?
     /// The mobile view settings, when provided.
     public let mobile: ExtensionView?
     /// The panel extension slots, when provided.
@@ -176,19 +178,19 @@ public struct Extension: Decodable, Sendable {
   public enum ExtensionState: String, Decodable, Sendable {
     /// Twitch approved the extension. Encoded as `"Approved"`.
     case approved = "Approved"
-    /// The extension’s assets have been uploaded. Encoded as `"AssetsUploaded"`.
-    case assetsUploaded = "AssetsUploaded"
+    /// The extension’s assets have been uploaded. Encoded as `"Assets Uploaded"`.
+    case assetsUploaded = "Assets Uploaded"
     /// The extension has been deleted. Encoded as `"Deleted"`.
     case deleted = "Deleted"
     /// The extension version is deprecated. Encoded as `"Deprecated"`.
     case deprecated = "Deprecated"
-    /// The extension is undergoing review. Encoded as `"InReview"`.
-    case inReview = "InReview"
-    /// The extension is being tested. Encoded as `"InTest"`.
-    case inTest = "InTest"
+    /// The extension is undergoing review. Encoded as `"In Review"`.
+    case inReview = "In Review"
+    /// The extension is being tested. Encoded as `"Testing"`.
+    case inTest = "Testing"
     /// The extension requires further action from its developer. Encoded as
-    /// `"PendingAction"`.
-    case pendingAction = "PendingAction"
+    /// `"Pending Action"`.
+    case pendingAction = "Pending Action"
     /// The extension was rejected. Encoded as `"Rejected"`.
     case rejected = "Rejected"
     /// The extension version has been released. Encoded as `"Released"`.

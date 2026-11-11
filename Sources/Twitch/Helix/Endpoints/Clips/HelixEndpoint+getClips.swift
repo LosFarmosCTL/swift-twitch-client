@@ -21,8 +21,7 @@ extension HelixEndpoint {
   ///   - startedAt: The beginning of the requested time range.
   ///   - endedAt: The end of the requested time range.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///   - isFeatured: Whether the resource is featured, when provided.
   ///
@@ -35,8 +34,7 @@ extension HelixEndpoint {
     startedAt: Date? = nil,
     endedAt: Date? = nil,
     limit: Int? = nil,
-    before beforeCursor: String? = nil,
-    after afterCursor: String? = nil,
+    after cursor: String? = nil,
     isFeatured: Bool? = nil
   ) -> HelixEndpoint<
     (clips: [Clip], cursor: String?),
@@ -52,8 +50,7 @@ extension HelixEndpoint {
           ("started_at", startedAt?.formatted(.iso8601)),
           ("ended_at", endedAt?.formatted(.iso8601)),
           ("first", limit.map(String.init)),
-          ("before", beforeCursor),
-          ("after", afterCursor),
+          ("after", cursor),
           ("is_featured", isFeatured.map(String.init)),
         ] + clipIDs.map { ("id", $0) }
       },

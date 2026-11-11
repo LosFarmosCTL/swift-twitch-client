@@ -67,11 +67,10 @@ extension HelixEndpoint {
   }
 }
 
-/// A chat setting to enable or configure in an update request.
+/// A chat setting to enable, configure, or disable in an update request.
 ///
-/// Supplied settings are enabled in the request. Omitted settings are left out of the
-/// request body, so this API does not explicitly disable them. Duration-bearing cases
-/// include the configured duration when supplied.
+/// Omitted settings are left out of the request body. Use `disable` to explicitly turn
+/// a mode off. If a mode appears more than once, the last setting wins.
 public enum ChatSetting: Equatable, Sendable {
   /// Enables slow mode with an optional wait time in seconds.
   case slowMode(Int? = nil)
@@ -86,6 +85,19 @@ public enum ChatSetting: Equatable, Sendable {
 
   /// Enables non-moderator chat delay with an optional delay in seconds.
   case nonModeratorChatDelay(Int? = nil)
+
+  /// Explicitly disables a mode, without sending its duration.
+  case disable(Mode)
+
+  /// The chat restrictions that may be explicitly disabled.
+  public enum Mode: Equatable, Sendable {
+    case slowMode
+    case followerMode
+    case subscriberMode
+    case emoteMode
+    case uniqueChatMode
+    case nonModeratorChatDelay
+  }
 }
 
 internal struct UpdateChatSettingsRequestBody: Encodable, Sendable {
@@ -115,6 +127,21 @@ internal struct UpdateChatSettingsRequestBody: Encodable, Sendable {
       case .nonModeratorChatDelay(let duration):
         self.nonModeratorChatDelay = true
         self.nonModeratorChatDelayDuration = duration
+      case .disable(let mode):
+        switch mode {
+        case .slowMode:
+          self.slowMode = false
+          self.slowModeWaitTime = nil
+        case .followerMode:
+          self.followerMode = false
+          self.followerModeDuration = nil
+        case .subscriberMode: self.subscriberMode = false
+        case .emoteMode: self.emoteMode = false
+        case .uniqueChatMode: self.uniqueChatMode = false
+        case .nonModeratorChatDelay:
+          self.nonModeratorChatDelay = false
+          self.nonModeratorChatDelayDuration = nil
+        }
       }
     }
   }

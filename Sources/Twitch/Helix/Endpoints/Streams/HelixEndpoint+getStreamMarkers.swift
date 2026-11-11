@@ -17,8 +17,7 @@ extension HelixEndpoint {
   ///   - videoID: A video to inspect instead of the broadcaster’s latest stream; `nil`
   ///     uses `userID`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
@@ -27,8 +26,7 @@ extension HelixEndpoint {
     for userID: String? = nil,
     videoID: String? = nil,
     limit: Int? = nil,
-    before beforeCursor: String? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (users: [StreamMarkersByUser], cursor: String?), StreamMarkersByUser,
     HelixEndpointResponseTypes.Normal
@@ -45,8 +43,7 @@ extension HelixEndpoint {
           ("user_id", resolvedUserID),
           ("video_id", videoID),
           ("first", limit.map(String.init)),
-          ("before", beforeCursor),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })
@@ -99,5 +96,10 @@ public struct StreamMarkersVideo: Decodable, Sendable {
     public let description: String
     /// The URL associated with this resource.
     public let url: String
+
+    enum CodingKeys: String, CodingKey {
+      case id, createdAt, positionSeconds, description
+      case url = "URL"
+    }
   }
 }

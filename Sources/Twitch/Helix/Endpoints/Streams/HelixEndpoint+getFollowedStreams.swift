@@ -13,14 +13,14 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields `(streams: [Stream], cursor: String?)` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getFollowedStreams(
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (streams: [Stream], cursor: String?),
     Stream, HelixEndpointResponseTypes.Normal
@@ -32,7 +32,7 @@ extension HelixEndpoint {
         [
           ("user_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }

@@ -11,8 +11,8 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#update-redemption-status
   /// ) for request limits and account requirements.
   ///
-  /// Although multiple redemption IDs can be updated, executing this endpoint yields
-  /// only the first redemption in Twitch’s response.
+  /// Returns every updated redemption. The list may be empty if no requested
+  /// redemption qualifies for the update.
   ///
   /// - Parameters:
   ///   - redemptionIDs: The redemption IDs to include in the request.
@@ -27,7 +27,7 @@ extension HelixEndpoint {
     status: CustomRewardRedemptionStatus,
     broadcasterID: String? = nil
   ) -> HelixEndpoint<
-    CustomRewardRedemption,
+    [CustomRewardRedemption],
     CustomRewardRedemption,
     HelixEndpointResponseTypes.Normal
   > {
@@ -46,11 +46,7 @@ extension HelixEndpoint {
       body: { _ in
         UpdateRedemptionStatusBody(status: status)
       },
-      makeResponse: {
-        let redemption = try $0.requireFirst()
-
-        return redemption
-      })
+      makeResponse: { $0.data })
   }
 }
 

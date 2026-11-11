@@ -43,8 +43,19 @@ extension HelixEndpoint {
 public struct SnoozeResult: Decodable, Sendable {
   /// The number of ad snoozes remaining.
   public let snoozeCount: Int
-  /// The time ad snoozes become available again.
-  public let snoozeRefreshAt: Date
-  /// The scheduled start time of the next ad break.
-  public let nextAdAt: Date
+  /// When snoozes become available again, or `nil` when Twitch returns zero.
+  public let snoozeRefreshAt: Date?
+  /// The next ad start time, or `nil` when Twitch returns zero.
+  public let nextAdAt: Date?
+
+  enum CodingKeys: String, CodingKey {
+    case snoozeCount, snoozeRefreshAt, nextAdAt
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.snoozeCount = try container.decode(Int.self, forKey: .snoozeCount)
+    self.snoozeRefreshAt = try container.decodeAdDate(forKey: .snoozeRefreshAt)
+    self.nextAdAt = try container.decodeAdDate(forKey: .nextAdAt)
+  }
 }

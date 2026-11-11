@@ -24,7 +24,7 @@ struct TeamsTests {
     #expect(teams.count == 1)
     #expect(teams.first?.id == "6358")
     #expect(teams.first?.teamDisplayName == "Live Coders")
-    #expect(teams.first?.createdAt.formatted(.iso8601) == "2019-02-11T12:09:22Z")
+    #expect(teams.first?.createdAt?.formatted(.iso8601) == "2019-02-11T12:09:22Z")
   }
 
   @Test
@@ -39,6 +39,9 @@ struct TeamsTests {
 
     #expect(teams.count == 1)
     #expect(teams.first?.teamName == "livecoders")
+    #expect(teams.first?.thumbnailURL == nil)
+    #expect(teams.first?.createdAt == nil)
+    #expect(teams.first?.updatedAt == nil)
     #expect(teams.first?.users?.count == 2)
     #expect(teams.first?.users?.first?.userID == "278217731")
   }

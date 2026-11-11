@@ -16,14 +16,14 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getCharityCampaignDonations(
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (donations: [CharityDonation], cursor: String?),
     CharityDonation, HelixEndpointResponseTypes.Normal
@@ -35,7 +35,7 @@ extension HelixEndpoint {
         [
           ("broadcaster_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })

@@ -121,7 +121,7 @@ public struct Video: Decodable, Sendable {
   /// The time the resource was created.
   public let createdAt: Date
   /// The time the content was published.
-  public let publishedAt: Date
+  public let publishedAt: Date?
   /// The URL associated with this resource.
   public let url: String
   /// The URL for thumbnail.
@@ -162,6 +162,10 @@ public struct Video: Decodable, Sendable {
 
 /// Whether a video is a past broadcast, highlight, or upload.
 public enum VideoType: String, Decodable, Sendable {
+  /// A past Premiere, returned when querying by video ID.
+  case pastPremiere = "past_premiere"
+  /// A Premiere upload, returned when querying by video ID.
+  case premiereUpload = "premiere_upload"
   /// A past broadcast.
   case archive
   /// A highlighted section of a broadcast.

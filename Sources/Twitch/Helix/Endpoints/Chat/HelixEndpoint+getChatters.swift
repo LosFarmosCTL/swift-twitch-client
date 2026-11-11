@@ -19,12 +19,12 @@ extension HelixEndpoint {
   ///     to the user token’s identity.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getChatters(
     in broadcasterID: String,
     limit: Int? = nil,
-    after afterCursor: String? = nil,
+    after cursor: String? = nil,
     moderatorID: String? = nil
   ) -> HelixEndpoint<ChattersResponse, Chatter, HelixEndpointResponseTypes.Normal> {
     .init(
@@ -39,7 +39,7 @@ extension HelixEndpoint {
               moderatorID, parameter: "moderator_id", matchingToken: true)
           ),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

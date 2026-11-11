@@ -23,8 +23,9 @@ internal struct DecodedHelixResponse<T: Decodable> {
   }
 
   internal struct DateRange: Decodable {
-    let startedAt: Date?
-    let endedAt: Date?
+    // Twitch uses empty strings when there is no reporting window.
+    @NilOnTypeMismatch var startedAt: Date?
+    @NilOnTypeMismatch var endedAt: Date?
   }
 }
 
@@ -55,7 +56,11 @@ internal struct HelixResponsePayload<T: Decodable>: Decodable {
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    if let data = try? container.decode([T].self, forKey: .data) {
+    // An explicit null is Twitch's empty-result sentinel for some operations
+    // (for example, Get User Chat Color). Missing or malformed data still fails.
+    if try container.decodeNil(forKey: .data) {
+      self.data = []
+    } else if let data = try? container.decode([T].self, forKey: .data) {
       self.data = data
     } else if let single = try? container.decode(T.self, forKey: .data) {
       self.data = [single]

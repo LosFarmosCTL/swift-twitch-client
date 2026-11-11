@@ -1,7 +1,7 @@
 import Foundation
 
 extension HelixEndpoint {
-  /// Updates a Guest Star slot’s visibility, media, or volume settings.
+  /// Updates a Guest Star slot’s visibility or media settings.
   ///
   /// With a user access token, requires `channel:manage:guest_star` or
   /// `moderator:manage:guest_star`. The moderator ID must match the token’s user.
@@ -17,7 +17,6 @@ extension HelixEndpoint {
   ///   - isVideoEnabled: Whether video is enabled, when provided.
   ///   - isLive: Whether the slot is visible and audible to viewers; `nil` leaves the
   ///     setting unchanged.
-  ///   - volume: The audio volume setting, when provided.
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
   ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
@@ -28,7 +27,6 @@ extension HelixEndpoint {
     isAudioEnabled: Bool? = nil,
     isVideoEnabled: Bool? = nil,
     isLive: Bool? = nil,
-    volume: Int? = nil,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
@@ -50,7 +48,6 @@ extension HelixEndpoint {
           ("is_audio_enabled", isAudioEnabled.map(String.init)),
           ("is_video_enabled", isVideoEnabled.map(String.init)),
           ("is_live", isLive.map(String.init)),
-          ("volume", volume.map(String.init)),
         ]
       })
   }

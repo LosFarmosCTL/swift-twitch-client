@@ -50,15 +50,24 @@ struct ChatTests {
         == "https://static-cdn.jtvnw.net/emoticons/v2/304420818/static/dark/3.0")
   }
 
-  @Test
-  func getPinnedChatMessage() async throws {
+  @Test(arguments: [false, true])
+  func getPinnedChatMessage(contentUnavailable: Bool) async throws {
     let url = try #require(
       URL(
         string:
           "https://api.twitch.tv/helix/chat/pins?broadcaster_id=197886470&moderator_id=1234"
       ))
 
-    await harness.session.stub(url: url, body: MockedData.getPinnedChatMessageJSON)
+    var payload = try #require(
+      JSONSerialization.jsonObject(with: MockedData.getPinnedChatMessageJSON)
+        as? [String: Any])
+    if contentUnavailable {
+      var rows = try #require(payload["data"] as? [[String: Any]])
+      rows[0]["message"] = NSNull()
+      payload["data"] = rows
+    }
+    await harness.session.stub(
+      url: url, body: try JSONSerialization.data(withJSONObject: payload))
 
     let message = try #require(
       await harness.twitch.helix(for: .getPinnedChatMessage(in: "197886470")).value)
@@ -66,8 +75,12 @@ struct ChatTests {
     #expect(message.messageID == "abc-def-123-456")
     #expect(message.senderID == "12826")
     #expect(message.pinnedByID == "141981764")
-    #expect(message.message.text == "Welcome! bleedPurple Type !rules")
-    #expect(message.message.fragments.count == 3)
+    if contentUnavailable {
+      #expect(message.message == nil)
+    } else {
+      #expect(message.message?.text == "Welcome! bleedPurple Type !rules")
+      #expect(message.message?.fragments.count == 3)
+    }
     #expect(message.startsAt.formatted(.iso8601) == "2026-05-06T12:30:00Z")
     #expect(message.endsAt?.formatted(.iso8601) == "2026-05-06T12:35:00Z")
   }
@@ -327,6 +340,38 @@ struct ChatTests {
   }
 
   @Test
+  func disablingChatModesClearsDurationsAndLeavesOmittedSettingsOut() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/chat/settings?broadcaster_id=channel&moderator_id=1234"))
+    await harness.session.stub(
+      url: url, method: "PATCH", body: MockedData.getChatSettingsJSON)
+
+    _ = try await harness.twitch.helix(
+      for: .updateChatSettings(of: "channel", settings: [
+        .slowMode(10), .disable(.slowMode),
+        .followerMode(20), .disable(.followerMode),
+        .disable(.subscriberMode), .disable(.emoteMode), .disable(.uniqueChatMode),
+        .nonModeratorChatDelay(4), .disable(.nonModeratorChatDelay),
+      ]))
+    let disabledBody = try #require(await harness.session.lastRequest()?.httpBody)
+    #expect(try JSONDecoder().decode([String: Bool].self, from: disabledBody) == [
+      "slow_mode": false, "follower_mode": false, "subscriber_mode": false,
+      "emote_mode": false, "unique_chat_mode": false, "non_moderator_chat_delay": false,
+    ])
+
+    _ = try await harness.twitch.helix(
+      for: .updateChatSettings(of: "channel", settings: .disable(.slowMode), .slowMode(5)))
+    let enabledBody = try #require(await harness.session.lastRequest()?.httpBody)
+    let fields = try #require(
+      JSONSerialization.jsonObject(with: enabledBody) as? [String: Any])
+    #expect(fields.count == 2)
+    #expect(fields["slow_mode"] as? Bool == true)
+    #expect(fields["slow_mode_wait_time"] as? Int == 5)
+  }
+
+  @Test
   func sendAnnouncement() async throws {
     let url = try #require(
       URL(
@@ -360,24 +405,23 @@ struct ChatTests {
       for: .sendShoutout(from: "1234", to: "4321"))
   }
 
-  @Test
-  func getUserColor() async throws {
+  @Test(arguments: [false, true])
+  func getUserColor(noUsersFound: Bool) async throws {
     let url = try #require(
       URL(
         string: "https://api.twitch.tv/helix/chat/color?user_id=11111&user_id=44444"))
 
     await harness.session.stub(
       url: url,
-      body: MockedData.getUserColorJSON)
+      body: noUsersFound ? Data(#"{"data":null}"#.utf8) : MockedData.getUserColorJSON)
 
     let colors =
       (try await harness.twitch.helix(
         for: .getUserColors(of: ["11111", "44444"])
       )).value
 
-    #expect(colors.count == 2)
-
-    #expect(colors.contains(where: { $0.userID == "11111" }))
+    #expect(colors.count == (noUsersFound ? 0 : 2))
+    #expect(colors.contains(where: { $0.userID == "11111" }) == !noUsersFound)
   }
 
   @Test

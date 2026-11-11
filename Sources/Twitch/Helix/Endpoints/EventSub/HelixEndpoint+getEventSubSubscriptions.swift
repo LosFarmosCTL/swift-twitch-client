@@ -15,11 +15,11 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - filter: The subscription filter; `nil` requests subscriptions without this
   ///     filter.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getEventSubSubscriptions(
     filter: EventSubSubscriptionFilter? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     GetEventSubSubscriptionsResponse,
     GetEventSubSubscriptionsResponse.Subscription,
@@ -35,7 +35,7 @@ extension HelixEndpoint {
           items.append(filter.queryItem)
         }
 
-        items.append(("after", afterCursor))
+        items.append(("after", cursor))
         return items
       },
       makeResponse: { response in
@@ -87,6 +87,8 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
     public let transport: Transport
     /// The subscription’s contribution to the application’s EventSub cost limit.
     public let cost: Int
+    /// Present when notification batching is enabled; omission means false.
+    public let isBatchingEnabled: Bool?
   }
 
   /// An existing subscription’s destination and WebSocket connection timestamps.
@@ -135,6 +137,8 @@ public enum EventSubSubscriptionFilter: Sendable {
   case userID(String)
   /// Selects the subscription with the specified ID.
   case subscriptionID(String)
+  /// Includes subscriptions delivered through the specified conduit.
+  case conduitID(String)
 
   fileprivate var queryItem: (String, String?) {
     switch self {
@@ -144,6 +148,8 @@ public enum EventSubSubscriptionFilter: Sendable {
       return ("type", type)
     case .userID(let userID):
       return ("user_id", userID)
+    case .conduitID(let conduitID):
+      return ("conduit_id", conduitID)
     case .subscriptionID(let subscriptionID):
       return ("subscription_id", subscriptionID)
     }
@@ -154,6 +160,10 @@ public enum EventSubSubscriptionFilter: Sendable {
 public enum EventSubSubscriptionStatus: String, Sendable {
   /// The subscription or shard is enabled and can deliver notifications.
   case enabled
+  /// The Guest Star moderator no longer has permission.
+  case guestStarModeratorRemoved = "guest_star_moderator_removed"
+  /// The subscription’s conduit was deleted.
+  case conduitDeleted = "conduit_deleted"
   /// Twitch is waiting to verify the webhook callback. Encoded as
   /// `"webhook_callback_verification_pending"`.
   case webhookCallbackVerificationPending = "webhook_callback_verification_pending"

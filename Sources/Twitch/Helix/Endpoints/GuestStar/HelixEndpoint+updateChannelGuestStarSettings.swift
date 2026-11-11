@@ -30,26 +30,26 @@ extension HelixEndpoint {
     regenerateBrowserSources: Bool? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
     .init(
-      method: "PUT", path: "guest_star/channel_settings",
+      method: "PATCH", path: "guest_star/channel_settings",
       authentication: .user,
       queryItems: { credentials in
-        [
-          ("broadcaster_id", try credentials.requireUser().id),
-          (
-            "is_moderator_send_live_enabled",
-            isModeratorSendLiveEnabled.map(String.init)
-          ),
-          ("slot_count", slotCount.map(String.init)),
-          (
-            "is_browser_source_audio_enabled",
-            isBrowserSourceAudioEnabled.map(String.init)
-          ),
-          ("group_layout", groupLayout?.rawValue),
-          (
-            "regenerate_browser_sources",
-            regenerateBrowserSources.map(String.init)
-          ),
-        ]
+        [("broadcaster_id", try credentials.requireUser().id)]
+      },
+      body: { _ in
+        UpdateGuestStarChannelSettingsBody(
+          isModeratorSendLiveEnabled: isModeratorSendLiveEnabled,
+          slotCount: slotCount,
+          isBrowserSourceAudioEnabled: isBrowserSourceAudioEnabled,
+          groupLayout: groupLayout,
+          regenerateBrowserSources: regenerateBrowserSources)
       })
   }
+}
+
+private struct UpdateGuestStarChannelSettingsBody: Encodable, Sendable {
+  let isModeratorSendLiveEnabled: Bool?
+  let slotCount: Int?
+  let isBrowserSourceAudioEnabled: Bool?
+  let groupLayout: GuestStarGroupLayout?
+  let regenerateBrowserSources: Bool?
 }

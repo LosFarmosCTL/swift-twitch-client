@@ -13,7 +13,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - extensionID: The identifier of the extension.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields matching items and a pagination cursor when
@@ -21,7 +21,7 @@ extension HelixEndpoint {
   public static func getExtensionLiveChannels(
     extensionID: String,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (channels: [ExtensionLiveChannel], cursor: String?), ExtensionLiveChannel,
     HelixEndpointResponseTypes.Normal
@@ -33,7 +33,7 @@ extension HelixEndpoint {
         [
           ("extension_id", extensionID),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

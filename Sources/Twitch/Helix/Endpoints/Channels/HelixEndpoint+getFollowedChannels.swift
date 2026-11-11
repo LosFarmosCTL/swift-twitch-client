@@ -14,11 +14,11 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getFollowedChannels(
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     FollowedChannelsResponse, Follow, HelixEndpointResponseTypes.Normal
   > {
@@ -29,7 +29,7 @@ extension HelixEndpoint {
         [
           ("user_id", try credentials.requireUser().id),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

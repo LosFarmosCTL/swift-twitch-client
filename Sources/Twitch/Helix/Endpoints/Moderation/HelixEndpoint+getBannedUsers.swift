@@ -19,17 +19,15 @@ extension HelixEndpoint {
   ///     to the user token’s identity.
   ///   - userIDs: The user IDs to include in the request. Defaults to `[]`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
-  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   ///
   /// - Returns: An endpoint that yields `(users: [BannedUser], cursor: String?)` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getBannedUsers(
     userIDs: [String] = [],
     limit: Int? = nil,
-    after afterCursor: String? = nil,
-    before beforeCursor: String? = nil,
+    after cursor: String? = nil,
     broadcasterID: String? = nil
   ) -> HelixEndpoint<
     (users: [BannedUser], cursor: String?), BannedUser,
@@ -46,8 +44,7 @@ extension HelixEndpoint {
               broadcasterID, parameter: "broadcaster_id", matchingToken: true)
           ),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
-          ("before", beforeCursor),
+          ("after", cursor),
         ] + userIDs.map { ("user_id", $0) }
       },
       makeResponse: {
@@ -66,8 +63,9 @@ public struct BannedUser: Decodable, Sendable {
   /// The user’s display name.
   public let userDisplayName: String
 
-  /// The time the resource expires.
-  public let expiresAt: Date
+  /// The timeout expiry; `nil` for a permanent ban.
+  @InitRaw(default: nil, type: Date?.self)
+  @NilOnTypeMismatch public var expiresAt: Date?
   /// The time the resource was created.
   public let createdAt: Date
 
@@ -92,4 +90,5 @@ public struct BannedUser: Decodable, Sendable {
     case moderatorLogin
     case moderatorDisplayName = "moderatorName"
   }
+
 }

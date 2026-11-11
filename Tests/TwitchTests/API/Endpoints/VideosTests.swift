@@ -31,7 +31,7 @@ struct VideosTests {
     #expect(video.title == "The incredible artistry that is me.")
     #expect(video.description == "")
     #expect(video.createdAt.formatted(.iso8601) == "2022-07-08T16:58:46Z")
-    #expect(video.publishedAt.formatted(.iso8601) == "2022-07-08T16:58:46Z")
+    #expect(video.publishedAt == nil)
     #expect(video.url == "https://www.twitch.tv/videos/987654321")
     #expect(
       video.thumbnailURL
@@ -40,7 +40,7 @@ struct VideosTests {
     #expect(video.viewable == "public")
     #expect(video.viewCount == 395_246)
     #expect(video.language == "en")
-    #expect(video.type == .archive)
+    #expect(video.type == .pastPremiere)
     #expect(video.duration == "6h26m14s")
     #expect(video.mutedSegments == nil)
   }

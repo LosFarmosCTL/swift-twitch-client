@@ -21,7 +21,7 @@ extension HelixEndpoint {
   public static func updateGuestStarSlot(
     sessionID: String,
     sourceSlotID: String,
-    destinationSlotID: String? = nil,
+    destinationSlotID: String,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
   ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {

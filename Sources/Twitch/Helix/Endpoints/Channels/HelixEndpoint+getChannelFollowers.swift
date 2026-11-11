@@ -16,12 +16,12 @@ extension HelixEndpoint {
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getChannelFollowers(
     of broadcasterID: String? = nil,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<FollowersResponse, Follower, HelixEndpointResponseTypes.Normal> {
     .init(
       method: "GET", path: "channels/followers",
@@ -33,7 +33,7 @@ extension HelixEndpoint {
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: {

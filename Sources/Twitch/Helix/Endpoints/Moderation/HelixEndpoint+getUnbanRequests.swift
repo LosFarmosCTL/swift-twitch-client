@@ -16,13 +16,13 @@ extension HelixEndpoint {
   ///   - status: The request status to retrieve.
   ///   - userID: An optional requestor ID to filter by.
   ///   - limit: The page size; `nil` uses Twitch’s default.
-  ///   - afterCursor: The next-page cursor, if any.
+  ///   - cursor: The next-page cursor, if any.
   ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
   ///     Required for app tokens.
   /// - Returns: Requests and the next-page cursor.
   public static func getUnbanRequests(
     in broadcasterID: String, status: UnbanRequestStatus, userID: String? = nil,
-    limit: Int? = nil, after afterCursor: String? = nil, moderatorID: String? = nil
+    limit: Int? = nil, after cursor: String? = nil, moderatorID: String? = nil
   ) -> HelixEndpoint<
     (requests: [UnbanRequest], cursor: String?), UnbanRequest,
     HelixEndpointResponseTypes.Normal
@@ -39,7 +39,7 @@ extension HelixEndpoint {
               moderatorID, parameter: "moderator_id", matchingToken: true)
           ),
           ("status", status.rawValue), ("user_id", userID),
-          ("first", limit.map(String.init)), ("after", afterCursor),
+          ("first", limit.map(String.init)), ("after", cursor),
         ]
       }, makeResponse: { ($0.data, $0.pagination?.cursor) })
   }
@@ -71,11 +71,11 @@ public struct UnbanRequest: Decodable, Sendable {
   /// The broadcaster’s display name.
   public let broadcasterDisplayName: String
   /// The resolving moderator’s user ID, or an empty string if unresolved.
-  public let moderatorID: String
+  public let moderatorID: String?
   /// The resolving moderator’s login name.
-  public let moderatorLogin: String
+  public let moderatorLogin: String?
   /// The resolving moderator’s display name.
-  public let moderatorDisplayName: String
+  public let moderatorDisplayName: String?
   /// The requestor’s user ID.
   public let userID: String
   /// The requestor’s login name.

@@ -28,6 +28,9 @@ struct ModerationTests {
     #expect(request.id == "92af127c-7326-4483-a52b-b0da0be61c01")
     #expect(request.userID == "424596340")
     #expect(request.status == "pending")
+    #expect(request.moderatorID == nil)
+    #expect(request.moderatorLogin == nil)
+    #expect(request.moderatorDisplayName == nil)
     #expect(request.resolvedAt == nil)
     #expect(request.resolutionText == nil)
   }
@@ -252,6 +255,8 @@ struct ModerationTests {
 
     #expect(bans.count == 2)
     #expect(bans.first?.userID == "423374343")
+    #expect(bans.first?.expiresAt == nil)
+    #expect(bans.last?.expiresAt != nil)
   }
 
   @Test

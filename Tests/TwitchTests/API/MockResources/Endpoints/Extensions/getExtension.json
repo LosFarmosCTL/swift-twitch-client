@@ -21,7 +21,7 @@
       "screenshot_urls": [
         "https://extensions-discovery-images.twitch.tv/pgn0bjv51epi7eaekt53tovjnc82qo/0.0.8/screenshotbdec475d-3d2f-4378-b334-941dfddc897a"
       ],
-      "state": "Released",
+      "state": "In Review",
       "subscriptions_support_level": "optional",
       "summary": "Test ALL the extensions features!",
       "support_email": "dx-extensions-test-dev@justin.tv",
@@ -52,6 +52,10 @@
           "size": 0,
           "zoom": false,
           "zoom_pixels": 0,
+          "can_link_external_content": false
+        },
+        "live_config": {
+          "viewer_url": "https://example.com/live.html",
           "can_link_external_content": false
         }
       },

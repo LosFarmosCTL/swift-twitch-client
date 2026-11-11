@@ -35,7 +35,7 @@ public struct ExtensionBitsProduct: Decodable, Sendable {
   /// The product’s unique SKU.
   public let sku: String
   /// The product’s price and Bits currency.
-  public let cost: ExtensionBitsProductCost
+  public let cost: ExtensionBitsProductCost?
   /// Whether the product is in development.
   public let isInDevelopment: Bool
   /// The display name shown on Twitch.

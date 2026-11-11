@@ -14,7 +14,7 @@ extension HelixEndpoint {
   ///   - query: The search text.
   ///   - liveOnly: Whether to restrict results to live channels.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
+  ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
   /// - Returns: An endpoint that yields `(channels: [Channel], cursor: String?)` when
@@ -23,7 +23,7 @@ extension HelixEndpoint {
     for query: String,
     liveOnly: Bool? = nil,
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (channels: [Channel], cursor: String?),
     Channel, HelixEndpointResponseTypes.Normal
@@ -36,7 +36,7 @@ extension HelixEndpoint {
           ("query", query),
           ("live_only", liveOnly.map(String.init)),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ]
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })

@@ -45,13 +45,10 @@ extension HelixEndpoint {
         ] + userIDs.map { ("user_id", $0) }
       },
       makeResponse: {
-        let total = try $0.require(\.total)
-        let points = try $0.require(\.points)
-
-        return SubscribersResponse(
+        SubscribersResponse(
           subscribers: $0.data,
-          total: total,
-          points: points,
+          total: $0.total,
+          points: $0.points,
           cursor: $0.pagination?.cursor)
       })
   }
@@ -62,10 +59,10 @@ public struct SubscribersResponse: Sendable {
   /// The channel subscribers.
   public let subscribers: [Subscriber]
 
-  /// The number of subscriptions matching the request across all pages.
-  public let total: Int
-  /// The total subscription points reported by Twitch.
-  public let points: Int
+  /// The number of subscriptions across all pages; omitted for user ID filters.
+  public let total: Int?
+  /// The total subscription points; omitted for user ID filters.
+  public let points: Int?
 
   /// The pagination cursor to pass when requesting another page.
   public let cursor: String?

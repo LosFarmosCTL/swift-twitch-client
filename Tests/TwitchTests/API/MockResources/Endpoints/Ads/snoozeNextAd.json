@@ -2,8 +2,8 @@
   "data": [
     {
       "snooze_count": 1,
-      "snooze_refresh_at": "2023-08-01T23:08:18+00:00",
-      "next_ad_at": "2023-08-01T23:08:18+00:00"
+      "snooze_refresh_at": 1690931298,
+      "next_ad_at": 0
     }
   ]
 }

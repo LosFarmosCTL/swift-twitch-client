@@ -14,13 +14,13 @@ extension HelixEndpoint {
   ///   - extensionID: The extension’s client ID.
   ///   - transactionIDs: Up to 100 transaction IDs; an empty array requests all purchases.
   ///   - limit: The page size, from 1 through 100; `nil` uses Twitch’s default.
-  ///   - afterCursor: The next-page cursor, if any.
+  ///   - cursor: The next-page cursor, if any.
   /// - Returns: Transactions and the cursor for the next page.
   public static func getExtensionTransactions(
     extensionID: String,
     transactionIDs: [String] = [],
     limit: Int? = nil,
-    after afterCursor: String? = nil
+    after cursor: String? = nil
   ) -> HelixEndpoint<
     (transactions: [ExtensionTransaction], cursor: String?), ExtensionTransaction,
     HelixEndpointResponseTypes.Normal
@@ -32,7 +32,7 @@ extension HelixEndpoint {
         [
           ("extension_id", extensionID),
           ("first", limit.map(String.init)),
-          ("after", afterCursor),
+          ("after", cursor),
         ] + transactionIDs.map { ("id", $0) }
       },
       makeResponse: { ($0.data, $0.pagination?.cursor) })

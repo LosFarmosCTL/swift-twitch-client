@@ -21,6 +21,7 @@ struct StreamsTests {
     #expect(cursor == nil)
 
     #expect(streams.count == 1)
+    #expect(streams.first?.tags == nil)
     #expect(streams.contains(where: { $0.id == "40952121085" }))
   }
 

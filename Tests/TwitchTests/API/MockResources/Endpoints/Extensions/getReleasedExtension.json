@@ -53,6 +53,10 @@
           "zoom": false,
           "zoom_pixels": 0,
           "can_link_external_content": false
+        },
+        "live_config": {
+          "viewer_url": "https://example.com/live.html",
+          "can_link_external_content": false
         }
       },
       "allowlisted_config_urls": [],

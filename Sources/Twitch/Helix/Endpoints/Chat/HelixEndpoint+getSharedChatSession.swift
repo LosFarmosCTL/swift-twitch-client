@@ -4,7 +4,7 @@ import MemberwiseInit
 extension HelixEndpoint {
   /// Gets a channel’s active shared chat session, or `nil` when it is not in one.
   ///
-  /// Accepts a user or app access token without an additional endpoint scope.
+  /// Requires a user access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#get-shared-chat-session
@@ -18,7 +18,7 @@ extension HelixEndpoint {
   > {
     .init(
       method: "GET", path: "shared_chat/session",
-      authentication: .either,
+      authentication: .user,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
       makeResponse: { $0.data.first })
   }

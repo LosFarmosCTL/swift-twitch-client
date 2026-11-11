@@ -66,7 +66,7 @@ struct BitsTests {
   func getBitsLeaderboard() async throws {
     let url = try #require(
       URL(
-        string: "https://api.twitch.tv/helix/bits/leaderboard?count=2&period=week"))
+        string: "https://api.twitch.tv/helix/bits/leaderboard?count=2&period=all"))
 
     await harness.session.stub(
       url: url,
@@ -75,7 +75,7 @@ struct BitsTests {
     let leaderboard =
       (try await harness.twitch.helix(
         for: .getBitsLeaderboard(
-          count: 2, period: .week,
+          count: 2, period: .all,
           startedAt: nil))).value
 
     #expect(leaderboard.total == 2)
@@ -85,8 +85,8 @@ struct BitsTests {
     #expect(leaderboard.leaders.first?.rank == 1)
     #expect(leaderboard.leaders.first?.score == 12543)
 
-    #expect(leaderboard.startDate != nil)
-    #expect(leaderboard.endDate != nil)
+    #expect(leaderboard.startDate == nil)
+    #expect(leaderboard.endDate == nil)
   }
 
   @Test

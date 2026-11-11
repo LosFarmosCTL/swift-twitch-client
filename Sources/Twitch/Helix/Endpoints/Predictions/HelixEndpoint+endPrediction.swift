@@ -26,13 +26,10 @@ extension HelixEndpoint {
     .init(
       method: "PATCH", path: "predictions",
       authentication: .user,
-      queryItems: { credentials in
-        [
-          ("broadcaster_id", try credentials.requireUser().id),
-          ("id", predictionID),
-          ("status", status.rawValue),
-          ("winning_outcome_id", winningOutcomeID),
-        ]
+      body: { credentials in
+        EndPredictionRequestBody(
+          broadcasterID: try credentials.requireUser().id,
+          id: predictionID, status: status, winningOutcomeID: winningOutcomeID)
       },
       makeResponse: {
         let prediction = try $0.requireFirst()
@@ -43,7 +40,7 @@ extension HelixEndpoint {
 }
 
 /// The requested transition to lock, resolve, or cancel a prediction.
-public enum PredictionEndStatus: String, Sendable {
+public enum PredictionEndStatus: String, Encodable, Sendable {
   /// Resolves the prediction using the specified winning outcome. Encoded as
   /// `"RESOLVED"`.
   case resolved = "RESOLVED"
@@ -51,4 +48,11 @@ public enum PredictionEndStatus: String, Sendable {
   case cancelled = "CANCELED"
   /// Locks the prediction against further participation. Encoded as `"LOCKED"`.
   case locked = "LOCKED"
+}
+
+private struct EndPredictionRequestBody: Encodable, Sendable {
+  let broadcasterID: String
+  let id: String
+  let status: PredictionEndStatus
+  let winningOutcomeID: String?
 }
