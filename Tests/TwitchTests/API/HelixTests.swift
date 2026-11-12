@@ -149,8 +149,7 @@ struct HelixTests {
         userLogin: "user"),
       network: SuspendingNetworkSession())
 
-    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation
-    {
+    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation {
       continuation in
       let cancellable = twitch.helixTask(
         for: .custom(method: "GET", path: "cancel"),
@@ -182,8 +181,7 @@ struct HelixTests {
       authentication: .either,
       makeResponse: { _ in throw HelixCallbackTestError.unexpected })
 
-    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation
-    {
+    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation {
       continuation in
       harness.twitch.helixTask(
         for: endpoint,

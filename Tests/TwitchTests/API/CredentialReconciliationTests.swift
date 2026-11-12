@@ -70,8 +70,7 @@ struct CredentialReconciliationTests {
   @Test(arguments: [
     TwitchCredentials.Kind.user(.init(id: "bot", login: "bot")), .app,
   ])
-  func pinnedMessageRetainsPinAndExplicitSender(kind: TwitchCredentials.Kind) async throws
-  {
+  func pinnedMessageRetainsPinAndExplicitSender(kind: TwitchCredentials.Kind) async throws {
     let harness = HelixTestHarness(
       credentials: .init(accessToken: "token", clientID: "app", kind: kind))
     let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))

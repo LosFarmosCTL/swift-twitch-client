@@ -33,8 +33,7 @@ extension IRCSessionTests {
   }
 
   @Test
-  func writerAuthenticationFailureWhileReaderConnectsPreservesTerminalError() async throws
-  {
+  func writerAuthenticationFailureWhileReaderConnectsPreservesTerminalError() async throws {
     let client = TwitchIRCClient(.anonymous, network: session)
     try await client.setDesiredChannels(["swift"])
 

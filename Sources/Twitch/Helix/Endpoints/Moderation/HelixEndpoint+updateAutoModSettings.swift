@@ -45,8 +45,7 @@ extension HelixEndpoint {
   ///   - settings: The settings to apply.
   public static func updateAutoModSettings(
     of broadcasterID: String, settings: AutoModConfiguration, moderatorID: String? = nil
-  ) -> HelixEndpoint<AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal>
-  {
+  ) -> HelixEndpoint<AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal> {
     self.updateAutoModSettings(
       of: broadcasterID, moderatorID: moderatorID, body: settings)
   }

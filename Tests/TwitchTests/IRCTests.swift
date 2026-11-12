@@ -280,8 +280,7 @@ struct IRCTests {
 
       let client = try await clientTask.value
 
-      await confirmation("Publisher should receive message and finish", expectedCount: 2)
-      {
+      await confirmation("Publisher should receive message and finish", expectedCount: 2) {
         received in
         let receivedMessage = AsyncStream<Void>.makeStream()
 

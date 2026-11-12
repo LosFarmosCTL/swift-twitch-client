@@ -88,6 +88,7 @@ public struct CheermoteImageSet: Decodable, Sendable {
 public struct CheermoteImageScaleSet: Decodable, Sendable {
   /// The image URL at 1× scale.
   public let url1x: String
+  // swift-format-ignore: AlwaysUseLowerCamelCase
   /// The image URL at 1.5× scale.
   public let url1_5x: String
   /// The image URL at 2× scale.
@@ -99,6 +100,7 @@ public struct CheermoteImageScaleSet: Decodable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case url1x = "1"
+    // swift-format-ignore: AlwaysUseLowerCamelCase
     case url1_5x = "1.5"
     case url2x = "2"
     case url3x = "3"

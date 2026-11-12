@@ -299,8 +299,7 @@ struct IRCSessionTests {
 
 extension IRCSessionTests {
   @Test
-  func concurrentConnectIsRejectedAndObserverCancellationKeepsSessionActive() async throws
-  {
+  func concurrentConnectIsRejectedAndObserverCancellationKeepsSessionActive() async throws {
     let client = TwitchIRCClient(.anonymous, mode: .receiveOnly, network: session)
     let observed = AsyncStream<Void>.makeStream()
     let states = await client.stateUpdates()

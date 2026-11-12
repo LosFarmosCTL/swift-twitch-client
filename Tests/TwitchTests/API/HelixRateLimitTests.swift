@@ -44,9 +44,8 @@ struct HelixRateLimitTests {
     #expect(response.metadata.rateLimit?.remaining == 0)
 
     await harness.session.stub(url: url, method: "DELETE", status: 204, headers: headers)
-    let empty:
-      HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> =
-        .init(method: "DELETE", path: "metadata", authentication: .either)
+    let empty: HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> =
+      .init(method: "DELETE", path: "metadata", authentication: .either)
     let deleted = try await harness.twitch.helix(for: empty)
     #expect(deleted.metadata.statusCode == 204)
     #expect(deleted.metadata.rateLimit?.limit == 800)
@@ -136,8 +135,7 @@ struct HelixRateLimitTests {
     #expect(response.value == "value")
     #expect(response.metadata.rateLimit?.remaining == 7)
 
-    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation
-    {
+    let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation {
       continuation in
       TwitchClient.helixTask(
         for: .custom(method: "GET", path: "metadata"), credentials: credentials,

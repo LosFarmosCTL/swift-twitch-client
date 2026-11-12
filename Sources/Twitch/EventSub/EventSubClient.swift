@@ -195,7 +195,7 @@ internal actor EventSubClient {
     if let connection = connections[sessionID] { await connection.cancel() }
 
     for (socket, events) in connectionSubscriptions where socket == sessionID {
-      events.forEach { event in
+      for event in events {
         if let handler = eventHandlers[event] {
           handler.finish(throwing: error)
         } else {
