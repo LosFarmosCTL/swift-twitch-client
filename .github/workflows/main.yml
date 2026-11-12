@@ -13,71 +13,31 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  XCODE_VERSION: "27.0"
-
 defaults:
   run:
     shell: bash
 
 jobs:
   build:
-    name: Build + Test (${{ matrix.os }}, Swift ${{ matrix.swift-version }})
+    name: Build + Test (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            swift-version: "6.4"
+            name: Linux, Swift 6.4
+            container: swift:6.4
           - os: xcode-27
-            swift-version: "6.4"
-
+            name: macOS, Xcode 27
+            container: ""
     steps:
       - uses: actions/checkout@v5
 
-      - name: Select Xcode
-        if: runner.os == 'macOS'
-        run: sudo xcode-select --switch "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
-
-      - name: Install Swift on Linux
-        if: runner.os == 'Linux'
-        env:
-          SWIFT_VERSION: ${{ matrix.swift-version }}
-        run: |
-          if swift --version 2>/dev/null | grep -Eq "Swift version ${SWIFT_VERSION//./\\.}([.[:space:]]|$)"; then
-            exit 0
-          fi
-
-          curl --fail --location --retry 3 \
-            "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz" \
-            --output "$RUNNER_TEMP/swiftly.tar.gz"
-          tar -xzf "$RUNNER_TEMP/swiftly.tar.gz" -C "$RUNNER_TEMP"
-          "$RUNNER_TEMP/swiftly" init --assume-yes --skip-install
-          source "$HOME/.local/share/swiftly/env.sh"
-          swiftly install "$SWIFT_VERSION" --post-install-file="$RUNNER_TEMP/swift-post-install.sh"
-          if [[ -f "$RUNNER_TEMP/swift-post-install.sh" ]]; then
-            sudo apt-get update
-            sudo bash "$RUNNER_TEMP/swift-post-install.sh"
-          fi
-          swiftly use "$SWIFT_VERSION"
-          echo "$SWIFTLY_BIN_DIR" >> "$GITHUB_PATH"
-
-      - name: Show and verify Swift version
-        env:
-          SWIFT_VERSION: ${{ matrix.swift-version }}
-        run: |
-          swift --version
-          swift --version | grep -E "Swift version ${SWIFT_VERSION//./\\.}([.[:space:]]|$)"
-
-      - name: Cache Swift build
-        uses: actions/cache@v6
-        with:
-          path: .build
-          key: build-${{ runner.os }}-${{ runner.arch }}-toolchain${{ matrix.swift-version || env.XCODE_VERSION }}-${{ hashFiles('Package.resolved') }}
-          restore-keys: |
-            build-${{ runner.os }}-${{ runner.arch }}-toolchain${{ matrix.swift-version || env.XCODE_VERSION }}-
+      - name: Show Swift version
+        run: swift --version
 
       - name: Build
         run: swift build --force-resolved-versions
@@ -91,9 +51,6 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
-
-      - name: Select Xcode
-        run: sudo xcode-select --switch "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
 
       - name: Show toolchain
         run: |
@@ -133,9 +90,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Select Xcode
-        run: sudo xcode-select --switch "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
-
       - name: Install SwiftLint
         run: brew install swiftlint
 
@@ -150,9 +104,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-
-      - name: Select Xcode
-        run: sudo xcode-select --switch "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
 
       - name: Check formatting
         run: |
