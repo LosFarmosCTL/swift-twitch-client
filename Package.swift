@@ -18,8 +18,8 @@ let package = Package(
   products: [.library(name: "Twitch", targets: ["Twitch"])],
   dependencies: [
     .package(
-      url: "https://github.com/MahdiBM/TwitchIRC",
-      .upToNextMajor(from: "1.6.0")),
+      url: "https://github.com/LosFarmosCTL/TwitchIRC",
+      .upToNextMajor(from: "2.0.0")),
 
     .package(
       url: "https://github.com/gohanlon/swift-memberwise-init-macro",

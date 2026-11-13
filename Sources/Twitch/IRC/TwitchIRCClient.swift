@@ -311,7 +311,7 @@ public actor TwitchIRCClient {
       .privateMessage(
         to: channel,
         message: message,
-        messageIdToReply: replyToMessageID,
+        messageIDToReply: replyToMessageID,
         clientNonce: clientNonce
       )
     )

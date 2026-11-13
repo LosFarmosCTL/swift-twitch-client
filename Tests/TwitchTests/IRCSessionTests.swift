@@ -83,7 +83,7 @@ struct IRCSessionTests {
     #expect(userState.emoteSets == ["0", "123"])
 
     let retained = try #require(
-      await updates.first { $0.globalUserState?.userId == credentials.userID })
+      await updates.first { $0.globalUserState?.userID == credentials.userID })
 
     #expect(retained.globalUserState?.emoteSets == ["0", "123"])
 

@@ -66,6 +66,10 @@ extension IRCConnection {
       for message in try await receive(on: socket) {
         switch message {
         case .capabilities(let capabilities):
+          guard capabilities.response == .acknowledged else {
+            throw IRCError.capabilitiesRejected
+          }
+
           commandsAcknowledged =
             commandsAcknowledged || capabilities.capabilities.contains(.commands)
           tagsAcknowledged =

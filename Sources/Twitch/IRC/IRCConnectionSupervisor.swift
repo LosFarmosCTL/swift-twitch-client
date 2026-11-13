@@ -168,7 +168,7 @@ extension IRCConnectionSupervisor {
         reason = try await relay(stream)
       } catch {
         switch error {
-        case IRCError.loginFailed:
+        case IRCError.loginFailed, IRCError.capabilitiesRejected:
           await disconnect(throwing: error)
           return
         default:

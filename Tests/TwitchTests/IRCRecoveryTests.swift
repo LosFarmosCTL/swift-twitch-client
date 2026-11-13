@@ -43,7 +43,7 @@ struct IRCRecoveryTests {
     let first = try #require(try await iterator.next())
 
     if case .globalUserState(let state) = first {
-      #expect(state.userId == "123")
+      #expect(state.userID == "123")
     } else {
       Issue.record("Handshake lost GLOBALUSERSTATE")
     }
@@ -59,6 +59,30 @@ struct IRCRecoveryTests {
     #expect(await socket.sentCount(prefix: "PONG :tmi.twitch.tv") == 1)
 
     await connection.disconnect()
+  }
+
+  @Test
+  func rejectedCapabilitiesEndSetupWithoutRetrying() async throws {
+    let supervisor = IRCConnectionSupervisor(network: session, role: .write)
+    _ = try await supervisor.start()
+    let socket = await session.waitForTask(at: 0)
+    await socket.waitForSent("NICK")
+    await socket.simulateIncoming(
+      .string(
+        ":tmi.twitch.tv CAP * NAK :twitch.tv/commands twitch.tv/tags\r\n" + welcome))
+
+    let error = await #expect(throws: IRCError.self) {
+      try await supervisor.waitUntilConnected()
+    }
+    if case .capabilitiesRejected = error {
+    } else {
+      Issue.record("Expected capability rejection")
+    }
+
+    await socket.waitForCancellation()
+    #expect(await socket.didCancel)
+    #expect(await session.taskCount() == 1)
+    await supervisor.disconnect()
   }
 
   @Test

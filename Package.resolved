@@ -1,5 +1,5 @@
 {
-  "originHash" : "13c1abf7781f0f1d2bd59d8cb1d084efaa620d10e84be27cd7c9be503311ddd5",
+  "originHash" : "99b671fef4b1eb0f787226c79e8e78f6132cf1c140d18cef468d081bb0dad1b7",
   "pins" : [
     {
       "identity" : "swift-memberwise-init-macro",
@@ -22,10 +22,10 @@
     {
       "identity" : "twitchirc",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MahdiBM/TwitchIRC",
+      "location" : "https://github.com/LosFarmosCTL/TwitchIRC",
       "state" : {
-        "revision" : "036f70385fe4f6d30ad2634699eb1e8e00b52087",
-        "version" : "1.6.0"
+        "revision" : "bb1622e426d7664775e6d2a6383d54a81e62818e",
+        "version" : "2.0.0"
       }
     }
   ],

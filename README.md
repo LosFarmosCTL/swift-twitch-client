@@ -19,7 +19,7 @@ Swift native client providing fully type- and threadsafe access to the Twitch AP
   - [x] Connection pooling for IRC & EventSub
   - [x] Automatic welcome message and keepalive handling
   - [x] Automatic reconnection for IRC & EventSub
-  - [x] IRC parsing (huge shoutout to [TwitchIRC](https://github.com/MahdiBM/TwitchIRC))
+  - [x] IRC parsing via [TwitchIRC](https://github.com/LosFarmosCTL/TwitchIRC)
   - [x] JSON encoding/decoding
   - [x] Typed request parameters
   - [x] Typed response models

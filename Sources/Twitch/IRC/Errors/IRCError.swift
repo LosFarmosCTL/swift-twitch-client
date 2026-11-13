@@ -2,6 +2,8 @@
 public enum IRCError: Error {
   /// The connection did not complete its handshake before the deadline.
   case handshakeTimedOut
+  /// Twitch rejected the required IRC capabilities.
+  case capabilitiesRejected
   /// Twitch rejected the IRC login.
   case loginFailed
   /// The session has already started connecting.
