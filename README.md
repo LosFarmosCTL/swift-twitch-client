@@ -128,15 +128,15 @@ let stream = try await twitch.eventStream(for: .channelFollow(
   moderatorID: "5678"
 ))
 
-for try await event in stream {
-  print(event)
+for try await notification in stream {
+  print(notification.sentAt, notification.event)
 }
 
 // Using callbacks
 
 try await twitch.eventListener(for: .streamOnline(broadcasterID: "1234")) { result in
   switch result {
-  case .event(let event): print(event)
+  case .event(let notification): print(notification.event)
   case .failure(let error): print(error)
   case .finished: break
   }
@@ -144,14 +144,14 @@ try await twitch.eventListener(for: .streamOnline(broadcasterID: "1234")) { resu
 
 // Using Combine
 
-let publisher = try await twitch.eventPublisher(for: .userUpdate(userID: "1234"))
+let publisher = twitch.eventPublisher(for: .userUpdate(userID: "1234"))
 
 publisher.sink(
   receiveCompletion: { error in
     // handle error
   },
-  receiveValue: { event in
-    // handle event
+  receiveValue: { notification in
+    print(notification.event)
   })
 ```
 

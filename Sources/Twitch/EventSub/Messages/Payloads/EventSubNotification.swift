@@ -1,23 +1,46 @@
 import Foundation
 
-internal struct EventSubNotification: Decodable {
-  let subscription: Subscription
-  let event: Event
+/// A typed event with the metadata Twitch supplied for its EventSub delivery.
+public struct EventSubNotification<Payload: Sendable>: Sendable {
+  /// The event-specific payload.
+  public let event: Payload
+  /// The ID of the EventSub notification envelope.
+  public let messageID: String
+  /// When Twitch sent the notification.
+  public let sentAt: Date
+  /// The Twitch subscription that produced the notification.
+  public let subscriptionID: String
+}
+
+extension EventSubNotification where Payload == any Event {
+  func typed<R: Event>(as _: R.Type) -> EventSubNotification<R>? {
+    guard let event = event as? R else { return nil }
+    return EventSubNotification<R>(
+      event: event, messageID: messageID, sentAt: sentAt, subscriptionID: subscriptionID)
+  }
+}
+
+internal struct EventSubNotificationFrame: Sendable {
+  let subscription: EventSubMessage.Subscription
+  let notification: EventSubNotification<any Event>
 
   enum CodingKeys: CodingKey {
     case subscription, event
   }
 
-  internal init(from decoder: Decoder) throws {
+  init(from decoder: any Decoder, messageID: String, sentAt: Date) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    self.subscription = try container.decode(Subscription.self, forKey: .subscription)
-    self.event = try container.decode(self.subscription.type.event, forKey: .event)
-  }
+    subscription = try container.decode(EventSubMessage.Subscription.self, forKey: .subscription)
 
-  struct Subscription: Decodable {
-    let id: String
-    let type: EventType
-    let version: String
+    guard let type = EventType(rawValue: subscription.type) else {
+      throw DecodingError.dataCorruptedError(
+        forKey: .subscription, in: container,
+        debugDescription: "Unsupported EventSub type: \(subscription.type)")
+    }
+
+    notification = EventSubNotification<any Event>(
+      event: try container.decode(type.event, forKey: .event),
+      messageID: messageID, sentAt: sentAt, subscriptionID: subscription.id)
   }
 }

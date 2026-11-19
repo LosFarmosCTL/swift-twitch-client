@@ -65,13 +65,22 @@ struct EventSubAuthenticationTests {
 
   #if canImport(Combine)
     @Test
-    func appPublisherRejectsBeforeOpeningSocket() async {
+    func appPublisherRejectsThroughCompletionBeforeOpeningSocket() async throws {
       let harness = HelixTestHarness(credentials: app)
-      await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
-        _ = try await harness.twitch.eventPublisher(
-          for: .streamOnline(broadcasterID: "channel"))
-      }
+      let failures = AsyncStream<any Error>.makeStream()
+      let publisher = harness.twitch.eventPublisher(
+        for: .streamOnline(broadcasterID: "channel"))
       #expect(await harness.session.taskCount() == 0)
+      let handle = publisher.sink(
+        receiveCompletion: {
+          if case .failure(let error) = $0 { failures.continuation.yield(error) }
+        },
+        receiveValue: { _ in Issue.record("App tokens cannot observe WebSocket events") })
+      let error = try #require(await failures.stream.first { _ in true })
+      #expect(error as? TwitchAuthenticationError == .userAccessTokenRequired)
+      #expect(await harness.session.taskCount() == 0)
+      #expect(await harness.session.requestCount() == 0)
+      withExtendedLifetime(handle) {}
     }
   #endif
 
@@ -87,9 +96,11 @@ struct EventSubAuthenticationTests {
       url: url, method: "POST",
       body: Data(MockedMessages.mockEventSubSubscription.utf8))
     await harness.session.stub(url: deleteURL, method: "DELETE", status: 204)
-    let gate = SubscriptionRequestGate()
+    let gate = AsyncTestGate()
+    let deleted = AsyncStream<Void>.makeStream()
     await harness.session.onRequest { request in
       if request.httpMethod == "POST" { await gate.pause() }
+      if request.httpMethod == "DELETE" { deleted.continuation.yield(()) }
     }
     await harness.session.simulateIncoming(
       .string(MockedMessages.welcomeMessage), queue: true)
@@ -100,6 +111,7 @@ struct EventSubAuthenticationTests {
     await gate.release()
     await #expect(throws: CancellationError.self) { _ = try await setup.value }
 
+    _ = await deleted.stream.first { _ in true }
     let requests = await harness.session.requests()
     #expect(requests.map(\.httpMethod) == ["POST", "DELETE"])
     #expect(
@@ -124,39 +136,17 @@ struct EventSubAuthenticationTests {
   @Test(.timeLimit(.minutes(1)))
   func credentialSwitchCancelsPendingHandshake() async throws {
     let harness = HelixTestHarness(credentials: user)
-    let originalContext = await harness.twitch.eventSubClient
+    let coordinator = await harness.twitch.eventSubClient
+    let originalRevision = await harness.twitch.eventSubRevision
     let setup = Task { try await harness.twitch.eventStream(for: .mock()) }
     let socket = await harness.session.waitForTask(at: 0)
     await harness.twitch.switchCredentials(to: app)
     await #expect(throws: CancellationError.self) { _ = try await setup.value }
     #expect(await socket.didCancel)
     await #expect(throws: CancellationError.self) {
-      _ = try await originalContext.reserveWebSocketSessionID()
+      _ = try await coordinator.reserveSubscriptionSlot(revision: originalRevision)
     }
     #expect(await harness.session.taskCount() == 1)
     #expect(await harness.session.requestCount() == 0)
-  }
-}
-
-private actor SubscriptionRequestGate {
-  private var entered = false
-  private var entryWaiter: CheckedContinuation<Void, Never>?
-  private var releaseWaiter: CheckedContinuation<Void, Never>?
-
-  func pause() async {
-    entered = true
-    entryWaiter?.resume()
-    entryWaiter = nil
-    await withCheckedContinuation { releaseWaiter = $0 }
-  }
-
-  func waitUntilEntered() async {
-    if entered { return }
-    await withCheckedContinuation { entryWaiter = $0 }
-  }
-
-  func release() {
-    releaseWaiter?.resume()
-    releaseWaiter = nil
   }
 }

@@ -60,20 +60,25 @@ Choose an ``EventSubSubscription`` factory and consume its typed notifications.
 This example observes when a broadcaster starts streaming:
 
 ```swift
-let events = try await twitch.eventStream(
+let notifications = try await twitch.eventStream(
   for: .streamOnline(broadcasterID: userID)
 )
 
-for try await event in events {
-  print("\(event.broadcasterDisplayName) started streaming")
+for try await notification in notifications {
+  print("\(notification.event.broadcasterDisplayName) started streaming")
 }
 ```
 
-The client creates the subscription and receives notifications over WebSockets.
-Cancelling the consuming task terminates the stream and schedules unsubscription.
+The client receives notifications over WebSockets. Matching subscription descriptions
+share one Twitch subscription. Cancelling the consuming task removes its observer.
+When the last observer leaves, the client schedules unsubscription.
 Connection failures and revocations finish the stream with an ``EventSubError``.
 Call ``TwitchClient/resetEventSub()`` to close all EventSub connections and finish
 their consumers. Callbacks and Combine publishers are also available where supported.
+
+Streams, callbacks, and publishers deliver an ``EventSubNotification`` with the
+typed event, its notification and subscription IDs, and `sentAt`, the time Twitch
+sent the notification.
 
 ### Receive and send chat with IRC
 
@@ -141,6 +146,7 @@ callbacks and Combine publishers where available.
 
 - ``Event``
 - ``EventSubSubscription``
+- ``EventSubNotification``
 - ``EventSubListenerEvent``
 - ``EventSubError``
 - ``EventSubRevocation``

@@ -51,6 +51,6 @@ struct EventTestHarness {
     await session.simulateIncoming(.string(data))
 
     var iter = stream.makeAsyncIterator()
-    return try await iter.next()
+    return try await iter.next()?.event
   }
 }
