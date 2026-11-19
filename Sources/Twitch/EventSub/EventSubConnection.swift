@@ -5,213 +5,201 @@ import Foundation
 #endif
 
 internal actor EventSubConnection {
-  private let eventSubURL: URL
+  nonisolated let id: UUID
 
+  enum Update: Sendable {
+    case notification(EventSubNotificationFrame)
+    case revocation(EventSubRevocation)
+    case reconnect(URL)
+    case failure(EventSubError)
+  }
+
+  private let eventSubURL: URL
   private let network: NetworkSession
   private let decoder: JSONDecoder
+  private let onUpdate: @Sendable (Update) async -> Void
 
-  private var keepaliveTimer: KeepaliveTimer?
   private var webSocket: WebSocketTask?
-  private var sessionID: String?
-
-  private var isClosing = false
-
-  private var onMessage:
-    (@Sendable (Result<EventSubNotification, EventSubConnectionError>) async -> Void)
-
-  private var welcomeContinuation: CheckedContinuation<EventSubWelcome, any Error>?
-  private var pendingWelcomeResult: Result<EventSubWelcome, EventSubConnectionError>?
-
-  private var receivedMessageIDs = [String]()
-
-  internal func cancel() async {
-    isClosing = true
-
-    finishWelcome(
-      .failure(
-        EventSubConnectionError.disconnected(
-          with: CancellationError(),
-          sessionID: sessionID ?? "")))
-
-    await webSocket?.cancel(with: .goingAway, reason: nil)
-    await keepaliveTimer?.cancel()
-  }
+  private var keepaliveTimer: KeepaliveTimer?
+  private var receiveTask: Task<Void, Never>?
+  private var closingTask: Task<Void, Never>?
+  private var failure: EventSubError?
 
   init(
-    network: NetworkSession,
-    decoder: JSONDecoder,
-    eventSubURL: URL,
-    onMessage:
-      @Sendable @escaping (Result<EventSubNotification, EventSubConnectionError>) async ->
-      Void
+    id: UUID, network: NetworkSession, decoder: JSONDecoder, eventSubURL: URL,
+    onUpdate: @escaping @Sendable (Update) async -> Void
   ) {
+    self.id = id
     self.network = network
     self.decoder = decoder
-
     self.eventSubURL = eventSubURL
-
-    self.onMessage = onMessage
+    self.onUpdate = onUpdate
   }
 
-  internal func resume() async throws -> String {
-    isClosing = false
+  deinit {
+    receiveTask?.cancel()
 
-    if let sessionID = self.sessionID { return sessionID }
+    let socket = webSocket
+    let timer = keepaliveTimer
+    Task { await Self.closeSocket(socket, timer: timer) }
+  }
 
-    self.webSocket = await network.webSocketTask(with: eventSubURL)
-    await self.webSocket?.resume()
-    await self.scheduleReceive()
+  // MARK: - Handshake
 
-    // Twitch sends keepalive messages in a specified time interval,
-    // if we don't receive a message within that interval, we should
-    // consider the connection to be timed out
-    self.keepaliveTimer = KeepaliveTimer(duration: .seconds(7)) {
-      @Sendable [weak self] in
-
-      await self?.handleKeepaliveTimeout()
-    }
-
-    // wait for the welcome message to be received
-    let welcomeMessage = try await withTaskCancellationHandler {
-      try await withCheckedThrowingContinuation { continuation in
-        self.welcomeContinuation = continuation
-
-        // in case the welcome message was received before the continuation was set
-        if let pending = self.pendingWelcomeResult {
-          self.pendingWelcomeResult = nil
-          self.finishWelcome(pending)
-        }
-      }
+  func connect() async throws -> String {
+    try await withTaskCancellationHandler {
+      try await performHandshake()
     } onCancel: {
-      Task { [weak self] in
-        await self?.cancelDuringHandshake()
+      Task { [weak self] in await self?.cancel() }
+    }
+  }
+
+  private func performHandshake() async throws -> String {
+    do {
+      let socket = try await openSocket()
+
+      let timer = KeepaliveTimer(duration: .seconds(7)) { [weak self] in
+        await self?.fail(.timedOut)
       }
-    }
+      keepaliveTimer = timer
 
-    try Task.checkCancellation()
+      let welcome = try await readWelcome(on: socket, timer: timer)
+      await timer.reset(duration: welcome.keepaliveTimeout + .seconds(1))
 
-    // use a slightly longer keepalive timeout to account for network latency
-    let timeout = welcomeMessage.keepaliveTimeout + .seconds(1)
-    await self.keepaliveTimer?.reset(duration: timeout)
+      try checkOpen()
+      return welcome.sessionID
+    } catch {
+      await cancel()
 
-    self.sessionID = welcomeMessage.sessionID
-    return welcomeMessage.sessionID
-  }
-
-  private func scheduleReceive() async {
-    await self.webSocket?.receive { @Sendable result in
-      Task { await self.receiveMessage(result) }
+      if let failure { throw failure }
+      try Task.checkCancellation()
+      throw error
     }
   }
 
-  private func receiveMessage(
-    _ result: Result<URLSessionWebSocketTask.Message, any Error>
-  ) async {
-    switch result {
-    case .success(let message):
-      // reset the keepalive timer on every message
-      await self.keepaliveTimer?.reset()
+  private func openSocket() async throws -> WebSocketTask {
+    try checkOpen()
 
-      if let message = parseMessage(message) {
-        // ignore duplicate messages
-        if !receivedMessageIDs.contains(message.id) {
-          await handleMessage(message)
-          receivedMessageIDs.append(message.id)
+    let socket = await network.webSocketTask(with: eventSubURL)
+    do {
+      try checkOpen()
+    } catch {
+      // Shutdown may have run while the network was creating the socket.
+      await Self.closeSocket(socket)
+      throw error
+    }
 
-          // only keep the last 100 message IDs
-          if receivedMessageIDs.count > 100 {
-            receivedMessageIDs.removeFirst()
-          }
+    webSocket = socket
+    await socket.resume()
+
+    try checkOpen()
+    return socket
+  }
+
+  private func readWelcome(
+    on socket: WebSocketTask, timer: KeepaliveTimer
+  ) async throws -> EventSubWelcome {
+    while true {
+      let frame = try await socket.receive()
+      try checkOpen()
+      await timer.reset()
+
+      if case .welcome(let welcome) = decodePayload(from: frame) { return welcome }
+    }
+  }
+
+  // MARK: - Receiving
+
+  /// Begin delivering frames once the session can route them.
+  func startReceiving() throws {
+    try checkOpen()
+    guard receiveTask == nil, let socket = webSocket else { return }
+
+    receiveTask = Task { [weak self] in
+      do {
+        while !Task.isCancelled {
+          let frame = try await socket.receive()
+
+          guard let self else { return }
+          try await self.handleFrame(frame)
         }
+      } catch {
+        await self?.fail(.disconnected(with: error))
       }
-
-      // recursively receive the next message
-      await self.scheduleReceive()
-    case .failure(let error):
-      await keepaliveTimer?.cancel()
-
-      if isClosing { return }
-
-      let disconnectedError = EventSubConnectionError.disconnected(
-        with: error, sessionID: sessionID ?? "")
-
-      self.finishWelcome(.failure(disconnectedError))
-
-      await self.keepaliveTimer?.cancel()
-      await onMessage(.failure(disconnectedError))
     }
   }
 
-  private func parseMessage(_ message: URLSessionWebSocketTask.Message)
-    -> EventSubMessage?
-  {
-    switch message {
-    case .string(let string):
-      // ignore decoding errors, we should assume that twitch sends valid JSON
-      // if they mess up, we'll just ignore the message, there is no recovery
-      // that we could do here anyways and shutting down the connection because
-      // of an invalid message doesn't make sense
-      return try? decoder.decode(EventSubMessage.self, from: Data(string.utf8))
+  private func handleFrame(_ frame: URLSessionWebSocketTask.Message) async throws {
+    try checkOpen()
+    await keepaliveTimer?.reset()
 
-    // ignore binary messages, Twitch only sends JSON
-    case .data: return nil
-    @unknown default: return nil
-    }
-  }
+    // Shutdown can run while the timer is being reset.
+    try checkOpen()
 
-  private func handleMessage(_ message: EventSubMessage) async {
-    switch message.payload {
-    case .keepalive: break  // nothing to do for keepalive messages
-    case .welcome(let welcome):
-      self.finishWelcome(.success(welcome))
+    switch decodePayload(from: frame) {
     case .notification(let notification):
-      await onMessage(.success(notification))
+      await onUpdate(.notification(notification))
     case .revocation(let revocation):
-      await onMessage(.failure(EventSubConnectionError.revocation(revocation)))
+      await onUpdate(.revocation(revocation))
     case .reconnect(let reconnect):
-      await onMessage(
-        .failure(
-          EventSubConnectionError.reconnectRequested(
-            reconnectURL: reconnect.reconnectURL, sessionID: sessionID ?? "")))
+      await onUpdate(.reconnect(reconnect.reconnectURL))
+    default: break
     }
+
+    // Delivering an update can close the session.
+    try checkOpen()
   }
 
-  private func finishWelcome(
-    _ result: Result<EventSubWelcome, EventSubConnectionError>
-  ) {
-    if let continuation = self.welcomeContinuation {
-      self.welcomeContinuation = nil
-      switch result {
-      case .success(let welcome):
-        continuation.resume(returning: welcome)
-      case .failure(let err):
-        continuation.resume(throwing: err)
-      }
-    } else {
-      pendingWelcomeResult = result
-    }
+  private func decodePayload(from frame: URLSessionWebSocketTask.Message) -> EventSubPayload? {
+    guard case .string(let text) = frame else { return nil }
+    return try? decoder.decode(EventSubMessage.self, from: Data(text.utf8)).payload
   }
 
-  private func cancelDuringHandshake() async {
-    let disconnectedError = EventSubConnectionError.disconnected(
-      with: CancellationError(), sessionID: sessionID ?? "")
+  // MARK: - Shutdown
 
-    finishWelcome(.failure(disconnectedError))
-    await keepaliveTimer?.cancel()
-    await webSocket?.cancel(with: .goingAway, reason: nil)
+  func cancel() async {
+    await beginClosing().value
   }
 
-  private func handleKeepaliveTimeout() async {
-    // NOTE: onMessage needs to be async because of this call, since the keepalive timer
-    // runs in a different thread, this call would otherwise cross actor boundaries. Swift
-    // Strict Concurrency checking cannot verify this at the moment, because the actor
-    // isolation gets erased in `EventSubClient` when passing an instance method as the
-    // handler to the connection.
-    await self.onMessage(
-      .failure(EventSubConnectionError.timedOut(sessionID: self.sessionID ?? "")))
-    await self.webSocket?.cancel(with: .goingAway, reason: nil)
+  /// Close the socket and let a frame already being delivered finish before dropping its source.
+  func cancelAfterDraining() async {
+    await cancel()
+    await receiveTask?.value
+  }
 
-    self.finishWelcome(
-      .failure(EventSubConnectionError.timedOut(sessionID: self.sessionID ?? "")))
+  private func fail(_ error: EventSubError) async {
+    guard closingTask == nil, failure == nil else { return }
+
+    failure = error
+
+    // During the handshake, connect() reports the failure to its caller.
+    if receiveTask != nil { await onUpdate(.failure(error)) }
+    await cancel()
+  }
+
+  private func beginClosing() -> Task<Void, Never> {
+    if let closingTask { return closingTask }
+
+    receiveTask?.cancel()
+
+    let socket = webSocket
+    let timer = keepaliveTimer
+    webSocket = nil
+    keepaliveTimer = nil
+
+    let task = Task { await Self.closeSocket(socket, timer: timer) }
+    closingTask = task
+    return task
+  }
+
+  private static func closeSocket(_ socket: WebSocketTask?, timer: KeepaliveTimer? = nil) async {
+    await socket?.cancel(with: .goingAway, reason: nil)
+    await timer?.cancel()
+  }
+
+  private func checkOpen() throws {
+    if let failure { throw failure }
+    try Task.checkCancellation()
+    guard closingTask == nil else { throw CancellationError() }
   }
 }

@@ -10,11 +10,6 @@ protocol WebSocketTask: Sendable {
 
   func send(_ message: URLSessionWebSocketTask.Message, ) async throws
 
-  func receive(
-    completionHandler:
-      @Sendable @escaping (Result<URLSessionWebSocketTask.Message, Error>) -> Void
-  ) async
-
   func receive() async throws -> URLSessionWebSocketTask.Message
 }
 
@@ -32,11 +27,6 @@ final class URLSessionWebSocketTaskAdapter: WebSocketTask {
   func send(_ message: URLSessionWebSocketTask.Message) async throws {
     try await task.send(message)
   }
-
-  func receive(
-    completionHandler:
-      @Sendable @escaping (Result<URLSessionWebSocketTask.Message, Error>) -> Void
-  ) { task.receive(completionHandler: completionHandler) }
 
   func receive() async throws -> URLSessionWebSocketTask.Message {
     return try await task.receive()

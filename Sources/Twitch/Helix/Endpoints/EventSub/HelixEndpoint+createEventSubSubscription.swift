@@ -30,13 +30,27 @@ extension HelixEndpoint {
     CreateEventSubSubscriptionResponse.Subscription,
     HelixEndpointResponseTypes.Normal
   > {
+    createEventSubSubscription(
+      using: transport, type: subscription.type, version: subscription.version,
+      condition: subscription.condition,
+      isBatchingEnabled: isBatchingEnabled)
+  }
+
+  internal static func createEventSubSubscription(
+    using transport: EventSubTransport,
+    type: String, version: String, condition: [String: String],
+    isBatchingEnabled: Bool? = nil
+  ) -> HelixEndpoint<
+    CreateEventSubSubscriptionResponse,
+    CreateEventSubSubscriptionResponse.Subscription,
+    HelixEndpointResponseTypes.Normal
+  > {
     .init(
       method: "POST", path: "eventsub/subscriptions",
       authentication: transport.authentication,
       body: { _ in
         CreateEventSubRequestBody(
-          type: subscription.type, version: subscription.version,
-          condition: subscription.condition,
+          type: type, version: version, condition: condition,
           transport: transport.transport, isBatchingEnabled: isBatchingEnabled)
       },
       makeResponse: {

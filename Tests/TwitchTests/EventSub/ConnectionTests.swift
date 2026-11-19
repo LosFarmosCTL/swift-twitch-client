@@ -114,6 +114,7 @@ struct WebSocketClientTests {
     #expect({ if case .timedOut = error { true } else { false } }())
 
     let task = try #require(await session.lastTask())
+    await task.waitForCancellation()
     #expect(await task.didCancel)
   }
 
@@ -134,6 +135,7 @@ struct WebSocketClientTests {
     #expect({ if case .revocation = error { true } else { false } }())
 
     let task = try #require(await session.lastTask())
+    await task.waitForCancellation()
     #expect(await task.didCancel)
   }
 
@@ -155,7 +157,7 @@ struct WebSocketClientTests {
         subscriptionID: secondSubscriptionID
       ).data(using: .utf8)!)
 
-    let secondStream = try await twitch.eventStream(for: .mock())
+    let secondStream = try await twitch.eventStream(for: .mock(version: "2"))
 
     await session.simulateIncoming(
       .string(MockedMessages.mockRevocationMessage))
@@ -198,6 +200,7 @@ struct WebSocketClientTests {
     _ = try await iter.next()
 
     let oldTask = try #require(await session.task(at: 0))
+    await oldTask.waitForCancellation()
     #expect(await oldTask.didCancel)
 
     let newTask = try #require(await session.task(at: 1))
@@ -220,6 +223,7 @@ struct WebSocketClientTests {
     #expect({ if case .disconnected = error { true } else { false } }())
 
     let task = try #require(await session.lastTask())
+    await task.waitForCancellation()
     #expect(await task.didCancel)
   }
 
@@ -227,8 +231,8 @@ struct WebSocketClientTests {
   func testParallelInitialSubscriptionsReuseOneWebSocket() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage), queue: true)
 
-    _ = try await withThrowingTaskGroup(
-      of: AsyncThrowingStream<MockEvent, any Error>.self
+    let streams = try await withThrowingTaskGroup(
+      of: AsyncThrowingStream<EventSubNotification<MockEvent>, any Error>.self
     ) { group in
       for _ in 0..<10 {
         group.addTask {
@@ -236,7 +240,7 @@ struct WebSocketClientTests {
         }
       }
 
-      var streams: [AsyncThrowingStream<MockEvent, any Error>] = []
+      var streams: [AsyncThrowingStream<EventSubNotification<MockEvent>, any Error>] = []
       for try await stream in group {
         streams.append(stream)
       }
@@ -245,5 +249,8 @@ struct WebSocketClientTests {
     }
 
     #expect(await session.taskCount() == 1)
+    #expect(await session.requestCount() == 1)
+    #expect(streams.count == 10)
+    await twitch.resetEventSub()
   }
 }

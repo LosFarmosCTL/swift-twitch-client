@@ -22,6 +22,10 @@ struct EventSubConnectionLifecycleTests {
       url: url, method: "POST",
       status: 200, headers: ["Content-Type": "application/json"],
       body: MockedMessages.mockEventSubSubscription.data(using: .utf8)!)
+    await session.stub(
+      url: url.appending(queryItems: [
+        URLQueryItem(name: "id", value: MockedMessages.defaultSubscriptionID)
+      ]), method: "DELETE", status: 204)
   }
 
   @Test(
@@ -87,7 +91,7 @@ struct EventSubConnectionLifecycleTests {
     }
 
     let eventSubClient = await twitch.eventSubClient
-    while await eventSubClient.connectionCreationWaiterCount < 2 {
+    while await eventSubClient.subscriptionSetupWaiterCount < 2 {
       await Task.yield()
     }
 
@@ -120,6 +124,66 @@ struct EventSubConnectionLifecycleTests {
     }
 
     #expect({ if case .disconnected = error { true } else { false } }())
+  }
+
+  @Test("Streams and listeners share upstream ownership", .timeLimit(.minutes(1)))
+  func sharedObserversReleaseOnlyTheirOwnOwnership() async throws {
+    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    let stream = try await twitch.eventStream(for: .mock())
+    let listenerEvents = AsyncStream<EventSubNotification<MockEvent>>.makeStream()
+    let listener = try await twitch.eventListener(for: .mock()) { event in
+      if case .event(let event) = event { listenerEvents.continuation.yield(event) }
+    }
+    let context = await twitch.eventSubClient
+    #expect(await session.requestCount() == 1)
+
+    let consumer = Task {
+      for try await _ in stream {}
+    }
+    consumer.cancel()
+    _ = await consumer.result
+    while await context.subscriptionObserverCount != 1 { await Task.yield() }
+    #expect(await session.requestCount() == 1)
+    #expect(await session.lastTask()?.didCancel == false)
+
+    await session.simulateIncoming(.string(MockedMessages.mockEventMessage))
+    var events = listenerEvents.stream.makeAsyncIterator()
+    _ = try #require(await events.next())
+
+    let deleted = AsyncStream<Void>.makeStream()
+    await session.onRequest { request in
+      if request.httpMethod == "DELETE" { deleted.continuation.yield(()) }
+    }
+    listener.cancel()
+    _ = await deleted.stream.first { _ in true }
+    #expect(await session.requests().map(\.httpMethod) == ["POST", "DELETE"])
+    let socket = try #require(await session.lastTask())
+    await socket.waitForCancellation()
+    #expect(await socket.didCancel)
+  }
+
+  @Test(
+    "Revocation finishes all local owners without restoring them", .timeLimit(.minutes(1))
+  )
+  func revocationFinishesEverySharedObserver() async throws {
+    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    let first = try await twitch.eventStream(for: .mock())
+    let second = try await twitch.eventStream(for: .mock())
+    #expect(await session.requestCount() == 1)
+
+    await session.simulateIncoming(.string(MockedMessages.mockRevocationMessage))
+    for stream in [first, second] {
+      var iterator = stream.makeAsyncIterator()
+      let error = await #expect(throws: EventSubError.self) {
+        _ = try await iterator.next()
+      }
+      #expect({ if case .revocation = error { true } else { false } }())
+    }
+    #expect(await twitch.eventSubClient.subscriptionObserverCount == 0)
+    #expect(await session.requestCount() == 1)
+    let socket = try #require(await session.lastTask())
+    await socket.waitForCancellation()
+    #expect(await socket.didCancel)
   }
 
   @Test("Client finishes EventSub stream on reset")
@@ -175,53 +239,66 @@ struct EventSubConnectionLifecycleTests {
   }
 
   #if canImport(Combine)
-    @Test("Client setup throws cancellation when EventSub publisher setup is cancelled")
+    @Test(
+      "Publisher cancellation preserves its other subscribers and raw observers",
+      .timeLimit(.minutes(1)))
+    func publisherHasIndependentDownstreamOwnership() async throws {
+      await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+      let raw = try await twitch.eventStream(for: .mock())
+      let publisher = twitch.eventPublisher(for: .mock())
+      let first = publisher.sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+      let events = AsyncStream<EventSubNotification<MockEvent>>.makeStream()
+      let second = publisher.sink(
+        receiveCompletion: { _ in }, receiveValue: { events.continuation.yield($0) })
+      let context = await twitch.eventSubClient
+      while await context.subscriptionObserverCount != 3 { await Task.yield() }
+      first.cancel()
+      while await context.subscriptionObserverCount != 2 { await Task.yield() }
+      await session.simulateIncoming(.string(MockedMessages.mockEventMessage))
+      var iterator = events.stream.makeAsyncIterator()
+      _ = try #require(await iterator.next())
+      #expect(await session.requestCount() == 1)
+
+      second.cancel()
+      while await context.subscriptionObserverCount != 1 { await Task.yield() }
+      #expect(await session.requestCount() == 1)
+      var rawIterator = raw.makeAsyncIterator()
+      _ = try #require(try await rawIterator.next())
+      await twitch.resetEventSub()
+    }
+
+    @Test("Publisher cancellation closes an unneeded handshake without completion")
     func testEventSubPublisherSetupCancellation() async throws {
-      let cancelled = AsyncStream<Void>.makeStream()
-
-      let setupTask = Task {
-        do {
-          _ = try await twitch.eventPublisher(for: .mock())
-          Issue.record("Publisher setup should not succeed after cancellation")
-        } catch is CancellationError {
-          cancelled.continuation.yield(())
-          cancelled.continuation.finish()
-        } catch {
-          Issue.record("Expected CancellationError, got \(error)")
-        }
-      }
-
-      _ = await session.waitForTask(at: 0)
-      setupTask.cancel()
-
-      _ = await cancelled.stream.first(where: { _ in true })
-      _ = await setupTask.result
-
+      let handle = twitch.eventPublisher(for: .mock()).sink(
+        receiveCompletion: { _ in Issue.record("Cancelled subscribers must not complete")
+        },
+        receiveValue: { _ in Issue.record("Cancelled subscribers must not receive events")
+        })
+      let socket = await session.waitForTask(at: 0)
+      handle.cancel()
+      await socket.waitForCancellation()
       await twitch.resetEventSub()
     }
 
     @Test("Client finishes EventSub publisher on reset")
     func testEventSubResetFinishesActivePublisher() async throws {
       await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
-      let publisher = try await twitch.eventPublisher(for: .mock())
-
+      let values = AsyncStream<EventSubNotification<MockEvent>>.makeStream()
       let finished = AsyncStream<Void>.makeStream()
-      let cancellable = publisher.sink(
+      let cancellable = twitch.eventPublisher(for: .mock()).sink(
         receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            finished.continuation.finish()
-          case .failure:
+          if case .failure = completion {
             Issue.record("Publisher should finish normally on reset")
           }
-        },
-        receiveValue: { _ in }
-      )
-
+          finished.continuation.finish()
+        }, receiveValue: { values.continuation.yield($0) })
+      let socket = await session.waitForTask(at: 0)
+      while await session.requestCount() == 0 { await Task.yield() }
+      await socket.simulateIncoming(.string(MockedMessages.mockEventMessage))
+      _ = await values.stream.first { _ in true }
       await twitch.resetEventSub()
-      _ = await finished.stream.first(where: { _ in true })
-
-      _ = cancellable
+      _ = await finished.stream.first { _ in true }
+      withExtendedLifetime(cancellable) {}
     }
   #endif
 }

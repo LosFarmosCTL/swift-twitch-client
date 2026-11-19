@@ -10,13 +10,15 @@ import Foundation
 /// requests or observe ``EventSubSubscription`` events. IRC sessions created by this
 /// client have independent lifetimes.
 public actor TwitchClient {
-  internal var credentials: TwitchCredentials
+  internal private(set) var credentials: TwitchCredentials
   internal let network: NetworkSession
 
   internal let encoder: JSONEncoder
   internal let decoder: JSONDecoder
 
-  internal var eventSubClient: EventSubClient
+  internal let eventSubClient: EventSubClient
+  var eventSubRevision: UInt64 = 0
+  var eventSubResetTask: Task<Void, Never>?
 
   /// Creates a client with the supplied credentials and network session.
   ///
@@ -47,23 +49,25 @@ public actor TwitchClient {
 
     self.eventSubClient = EventSubClient(
       network: network,
-      decoder: self.decoder)
+      decoder: self.decoder,
+      credentials: credentials)
+  }
+
+  deinit {
+    let eventSubClient = eventSubClient
+    Task { await eventSubClient.retire() }
   }
 
   /// Replaces the credentials used by this client’s Helix and EventSub operations.
   ///
-  /// EventSub subscriptions are reset as part of the switch. Existing independently
-  /// created IRC sessions retain their captured credentials.
+  /// EventSub observers finish when teardown begins. Create new subscriptions with the
+  /// new credentials. Independently created IRC sessions retain their captured credentials.
   ///
   /// - Parameters:
   ///   - credentials: The credentials used to authorize the request.
   public func switchCredentials(to credentials: TwitchCredentials) async {
-    // Install the new context before suspending. Concurrent switches cannot restore
-    // older credentials, and in-flight setup retains its original EventSub context.
-    let previous = eventSubClient
     self.credentials = credentials
-    eventSubClient = EventSubClient(network: network, decoder: decoder)
-    await previous.retire()
+    await startEventSubReset().value
   }
 
   internal static func makeEncoder() -> JSONEncoder {
