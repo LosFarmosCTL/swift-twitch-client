@@ -73,7 +73,7 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   ///
   /// Supply the same access token that was submitted for validation.
   public func credentials(accessToken: String) -> TwitchCredentials {
-    .init(accessToken: accessToken, clientID: clientID, kind: kind)
+    .init(accessToken: accessToken, clientID: clientID, kind: kind, scopes: Set(scopes))
   }
 
   /// The scopes returned by validation; this does not enumerate prior app user grants.

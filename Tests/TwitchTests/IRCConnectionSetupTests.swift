@@ -14,64 +14,42 @@ struct IRCConnectionSetupTests {
           + ":tmi.twitch.tv 001 justinfan12345 :Welcome, GLHF!"))
   }
 
-  @Test(arguments: [false, true])
-  func shutdownInterruptsPendingSetup(waitingForReader: Bool) async throws {
-    let client = TwitchIRCClient(.anonymous, network: session)
-    let pending = Task { try await client.connect() }
-    let writer = await session.waitForTask(at: 0)
-    await writer.waitForSent("NICK")
-    var reader: MockWebSocketTask?
+  @Test
+  func shutdownEndsJoinAndClosesPendingHandshake() async throws {
+    let client = client()
+    let pending = Task { try await client.join(to: ChatChannel(id: "123", login: "swift")) }
+    let socket = await session.waitForTask(at: 0)
+    await socket.waitForSent("NICK")
 
-    if waitingForReader {
-      await handshake(writer)
-      reader = await session.waitForTask(at: 1)
-      await reader?.waitForSent("NICK")
-    }
-
-    await client.shutdown()
-    let error = await #expect(throws: IRCError.self) { try await pending.value }
-
-    if case .disconnected = error {
-    } else {
-      Issue.record("Explicit shutdown should interrupt setup with disconnected")
-    }
-
-    #expect(await client.state.status == .shutdown)
-    #expect(await writer.didCancel)
-
-    if let reader {
-      #expect(await reader.didCancel)
-    }
-
-    await #expect(throws: IRCError.self) { try await client.connect() }
+    await client.shutdownChat()
+    await #expect(throws: ChatError.shutdown) { try await pending.value }
+    await socket.waitForCancellation()
+    #expect(await client.chatState.isShutdown)
   }
 
-  @Test(arguments: [false, true])
-  func endingSessionDoesNotWaitForSocketCreation(cancelCaller: Bool) async throws {
-    let gate = AsyncStream<Void>.makeStream()
-    await session.onSocketCreation {
-      for await _ in gate.stream {}
-    }
+  @Test
+  func endingChatDoesNotWaitForSocketCreation() async throws {
+    let gate = AsyncTestGate()
+    await session.onSocketCreation { await gate.pause() }
 
-    let client = TwitchIRCClient(.anonymous, network: session)
-    let pending = Task { try await client.connect() }
+    let client = client()
+    let pending = Task { try await client.join(to: ChatChannel(id: "123", login: "swift")) }
     let socket = await session.waitForTask(at: 0)
 
-    if cancelCaller {
-      pending.cancel()
-      await #expect(throws: CancellationError.self) { try await pending.value }
-    } else {
-      await client.shutdown()
-      await #expect(throws: IRCError.self) { try await pending.value }
-    }
-
-    #expect(await client.state.status == .shutdown)
-    gate.continuation.finish()
+    await client.shutdownChat()
+    await #expect(throws: ChatError.shutdown) { try await pending.value }
+    await gate.waitUntilEntered()
+    await gate.release()
     await socket.waitForCancellation()
 
     #expect(await socket.didResume == false)
     #expect(await socket.sentCount(prefix: "NICK") == 0)
-    await #expect(throws: IRCError.self) { try await client.connect() }
+  }
+
+  private func client() -> TwitchClient {
+    TwitchClient(
+      credentials: .app(accessToken: "token", clientID: "app"),
+      chat: .init(reader: .irc(.anonymous)), network: session)
   }
 
   @Test
@@ -107,22 +85,4 @@ struct IRCConnectionSetupTests {
     await connection.disconnect()
   }
 
-  @Test
-  func cancelledConnectDoesNotStartSession() async throws {
-    let client = TwitchIRCClient(.anonymous, network: session)
-    let gate = AsyncStream<Void>.makeStream()
-    let pending = Task {
-      for await _ in gate.stream {}
-      try await client.connect()
-    }
-
-    pending.cancel()
-    gate.continuation.finish()
-    await #expect(throws: CancellationError.self) { try await pending.value }
-
-    #expect(await session.taskCount() == 0)
-    #expect(await client.state.status == .idle)
-
-    await client.shutdown()
-  }
 }

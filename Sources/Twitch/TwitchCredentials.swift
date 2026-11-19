@@ -34,6 +34,9 @@ public struct TwitchCredentials: Sendable {
   public let clientID: String
   /// Whether these credentials represent an OAuth user, OAuth app, or Extension JWT.
   public let kind: Kind
+  /// Granted OAuth scopes, if known. `nil` means unknown, not an empty grant.
+  /// Managed chat only enables scope-gated optional enrichment with positive evidence.
+  public let scopes: Set<String>?
 
   /// The authorized account, or `nil` for app tokens and Extension JWTs.
   public var user: UserIdentity? {
@@ -46,17 +49,23 @@ public struct TwitchCredentials: Sendable {
   public var userLogin: String? { user?.login }
 
   /// Creates credentials for an authenticated Twitch account.
-  public init(accessToken: String, clientID: String, userID: String, userLogin: String) {
+  public init(
+    accessToken: String, clientID: String, userID: String, userLogin: String,
+    scopes: Set<String>? = nil
+  ) {
     self.init(
       accessToken: accessToken, clientID: clientID,
-      kind: .user(.init(id: userID, login: userLogin)))
+      kind: .user(.init(id: userID, login: userLogin)), scopes: scopes)
   }
 
   /// Creates credentials with an explicit token kind.
-  public init(accessToken: String, clientID: String, kind: Kind) {
+  public init(
+    accessToken: String, clientID: String, kind: Kind, scopes: Set<String>? = nil
+  ) {
     self.accessToken = String(accessToken.trimmingPrefix("oauth:"))
     self.clientID = clientID
     self.kind = kind
+    self.scopes = scopes
   }
 
   /// Creates app credentials from an existing token.

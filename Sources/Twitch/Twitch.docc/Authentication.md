@@ -145,21 +145,17 @@ conduit subscriptions through Helix and call conduit management endpoints. The l
 does not provide webhook receivers or manage conduit shard reception. Event-specific
 consent requirements apply to those subscriptions.
 
-Authenticated IRC requires user credentials. Connecting with app or JWT credentials
-throws ``TwitchAuthenticationError/userAccessTokenRequired`` before a socket opens.
-Anonymous reception is available explicitly:
-
-```swift
-let irc = TwitchIRCClient(.anonymous, mode: .receiveOnly)
-```
+Authenticated IRC and the IRC writer require user credentials. Choose an anonymous
+reader explicitly with `ChatConfiguration(reader: .irc(.anonymous))`. A join with a
+resolved `ChatChannel` can use that reader without an OAuth request.
 
 ### Credential and session lifetimes
 
-``TwitchClient/switchCredentials(to:)`` changes the credentials used by subsequent Helix
-requests and ends the previous EventSub context. In-flight Helix requests retain their
-captured credentials. EventSub setup interrupted by a reset or switch is cancelled;
-subscription cleanup uses the credentials captured when that subscription was created.
+`switchCredentials(to:chatBehavior:)` updates the credentials used by subsequent Helix
+requests. In-flight requests retain their captured credentials. EventSub observers finish
+when teardown begins, and subscription cleanup uses the credentials that created each
+subscription.
 
-IRC sessions have independent lifetimes and capture credentials at creation. Switching
-the parent client's credentials does not update an existing IRC session.
-
+Managed chat preserves desired channels by default. The anonymous IRC reader can stay
+connected while account-bound transports restart. Pass `chatBehavior: .partChannels`
+to clear managed membership during the switch.

@@ -161,11 +161,12 @@ extension TwitchClient {
     credentials: TwitchCredentials,
     network: NetworkSession,
     encoder: JSONEncoder = TwitchClient.makeEncoder(),
-    decoder: JSONDecoder = TwitchClient.makeDecoder()
+    decoder: JSONDecoder = TwitchClient.makeDecoder(),
+    beforeDispatch: (() throws -> Void)? = nil
   ) async throws -> HelixResponse<R> {
     let response = try await Self.response(
       for: endpoint, credentials: credentials, network: network,
-      encoder: encoder, decoder: decoder)
+      encoder: encoder, decoder: decoder, beforeDispatch: beforeDispatch)
     let decoded =
       try Self.decode(response.data, decoder: decoder) as DecodedHelixResponse<H>
 

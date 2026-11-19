@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  internal static func response(
+  internal nonisolated(nonsending) static func response(
     for endpoint: HelixEndpoint<
       some Any,
       some Sendable & Decodable,
@@ -14,7 +14,8 @@ extension TwitchClient {
     credentials: TwitchCredentials,
     network: NetworkSession,
     encoder: JSONEncoder = TwitchClient.makeEncoder(),
-    decoder: JSONDecoder = TwitchClient.makeDecoder()
+    decoder: JSONDecoder = TwitchClient.makeDecoder(),
+    beforeDispatch: (() throws -> Void)? = nil
   ) async throws -> (data: Data, metadata: HelixResponseMetadata) {
     try Task.checkCancellation()
 
@@ -27,6 +28,7 @@ extension TwitchClient {
       throw HelixError.unexpectedError(wrapped: error)
     }
 
+    try beforeDispatch?()
     let (data, response): (Data, HTTPURLResponse)
     do {
       (data, response) = try await network.data(for: request)

@@ -58,11 +58,11 @@ struct CredentialReconciliationTests {
       _ = try await harness.twitch.eventStream(
         for: .streamOnline(broadcasterID: "channel"))
     }
-    let irc = await harness.twitch.makeIRCClient()
+    let chat = TwitchClient(
+      credentials: jwt, chat: .init(writer: .irc), network: harness.session)
     await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
-      try await irc.connect()
+      try await chat.sendIRC(.privateMessage(to: "swift", message: "hello"))
     }
-    await irc.shutdown()
     #expect(await harness.session.requestCount() == 0)
     #expect(await harness.session.taskCount() == 0)
   }

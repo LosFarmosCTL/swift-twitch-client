@@ -155,70 +155,22 @@ publisher.sink(
   })
 ```
 
-### Chat (IRC)
+### Managed chat
 
-Authenticated IRC requires a user access token. IRC has its own session lifetime, separate from Helix and EventSub. The factory captures the current credentials;
-later `TwitchClient.switchCredentials` calls do not update an existing IRC session.
-
-```swift
-let irc = await twitch.makeIRCClient(mode: .receiveOnly)
-let messages = await irc.messageStream()
-let states = await irc.stateUpdates()
-
-try await irc.setDesiredChannels(["forsen", "twitchdev"])
-
-// Start consumers before connecting so healthy sockets can deliver during startup.
-let messageTask = Task {
-  for try await message in messages {
-    if case .privateMessage(let chat) = message {
-      print(chat.message)
-    }
-  }
-}
-
-let stateTask = Task {
-  for await state in states {
-    print(state.status, state.channels)
-    // state.recoveries includes the affected channels, reason, retry attempt,
-    // and scheduled retry time (nil while establishing the replacement socket).
-    // state.globalUserState retains the latest USERSTATE information.
-  }
-}
-
-try await irc.connect()
-
-// replace the full set of channels at once, or JOIN/PART individually
-try await irc.setDesiredChannels(["xqc", "twitchdev"])
-try await irc.requestPart(from: "xqc")
-try await irc.requestJoin(to: "forsen")
-
-await irc.shutdown()
-try await messageTask.value
-await stateTask.value
-```
-
-IRC is accessible via listeners and combine publishers as well:
+Join, observe, and send chat from `TwitchClient`. Select authenticated or anonymous IRC
+or EventSub for reading, and Helix or IRC for sending.
 
 ```swift
-let irc = await twitch.makeIRCClient()
-
-let listener = await irc.messageListener { event in
-  switch event {
-  case .message(let message): print(message)
-  case .finished: print("IRC session ended")
-  case .failure(let error): print(error)
-  }
-}
-
-let cancellable = await irc.messagePublisher().sink(
-  receiveCompletion: { completion in print(completion) },
-  receiveValue: { message in print(message) })
-
-try await irc.setDesiredChannels(["forsen"])
-try await irc.connect()
-try await irc.sendMessage("Hello chat!", to: "forsen")
-await irc.shutdown()
+let twitch = TwitchClient(
+  credentials: credentials,
+  chat: .init(reader: .irc(.authenticated), writer: .helix)
+)
+let messages = await twitch.messageStream()
+try await twitch.join(channelLogin: "twitchdev")
+try await twitch.sendMessage("Hello chat!", channelLogin: "twitchdev")
 ```
+
+Use `ircMessageStream()` or `sendIRC(_:)` for direct access to the configured IRC transports.
 
 ## One-off requests using static methods
 

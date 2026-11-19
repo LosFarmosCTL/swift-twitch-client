@@ -1,0 +1,99 @@
+import Foundation
+
+extension ManagedChat {
+  internal func emitChatDeletion(
+    _ deletion: ChatMessageDeletion, channel: ChatChannel, timestamp: Date?
+  ) {
+    guard memberships[channel.id]?.deletedMessageIDs.insert(deletion.messageID) == true else {
+      return
+    }
+    emitChat(
+      ChatEvent(
+        channel: channel, timestamp: timestamp, payload: .messageDeleted(deletion)))
+  }
+
+  internal func acceptChatModeration(
+    _ moderation: ChatModeration, channel: ChatChannel, timestamp: Date?
+  ) {
+    // Shared-chat actions affect their source, not automatically the receiving channel.
+    if moderation.sourceChannelID == nil || moderation.sourceChannelID == channel.id {
+      switch moderation.action {
+      case .ban(let user, _) where isChatSender(user):
+        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .banned
+      case .timeout(let user, let until, _, _) where isChatSender(user):
+        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .timeout(
+          until: until)
+      case .unban(let user) where isChatSender(user),
+        .untimeout(let user) where isChatSender(user):
+        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .none
+      default: break
+      }
+    }
+
+    emitChat(
+      ChatEvent(channel: channel, timestamp: timestamp, payload: .moderation(moderation)))
+    publishChatState()
+  }
+
+  func receiveChatModerationEvent(
+    _ event: ChannelModerateEvent, timestamp: Date?, channel: ChatChannel
+  ) {
+    let id = channel.id
+    let moderator = ChatUser(
+      id: event.moderatorID, login: event.moderatorLogin,
+      displayName: event.moderatorDisplayName)
+
+    switch event.action {
+    case .delete(let deletion), .sharedChatDelete(let deletion):
+      emitChatDeletion(
+        ChatMessageDeletion(
+          messageID: deletion.messageID,
+          author: ChatUser(
+            id: deletion.userID, login: deletion.userLogin,
+            displayName: deletion.userDisplayName),
+          text: deletion.messageBody, moderator: moderator), channel: channel,
+        timestamp: timestamp)
+      return
+
+    case .mod(let user), .unmod(let user), .vip(let user), .unvip(let user):
+      observeChatModerationRole(event, user: user, in: id)
+    default: break
+    }
+
+    acceptChatModeration(
+      ChatModeration(
+        moderator: moderator, sourceChannelID: event.sourceBroadcasterID,
+        action: ChatModeration.Action(eventSub: event.action)),
+      channel: channel, timestamp: timestamp)
+  }
+
+  private func observeChatModerationRole(
+    _ event: ChannelModerateEvent, user: ChannelModerateEvent.Action.User, in id: String
+  ) {
+    if user.userID == credentials.userID,
+      event.sourceBroadcasterID == nil || event.sourceBroadcasterID == id
+    {
+      var privilege = senderEvidence[.id(id)]?.observedPrivilege ?? .unknown
+
+      switch event.action {
+      case .mod: privilege.isModerator = true
+      case .unmod: privilege.isModerator = false
+      case .vip: privilege.isVIP = true
+      case .unvip: privilege.isVIP = false
+      default: break
+      }
+
+      privilege.isKnown = true
+      observeChatPrivilege(privilege, in: id)
+    }
+  }
+
+  private func isChatSender(_ user: ChatUser) -> Bool {
+    if let id = user.id {
+      return id == credentials.userID
+    }
+
+    return user.login?.lowercased() == credentials.userLogin?.lowercased()
+      && credentials.userLogin != nil
+  }
+}

@@ -1,35 +1,32 @@
 import Foundation
 import TwitchIRC
 
-internal actor IRCConnectionSupervisor {
-  enum Event: Sendable {
-    case state(IRCState)
-    case message(IncomingMessage)
-  }
+internal enum IRCConnectionUpdate: Sendable {
+  case state(IRCState)
+  case message(IncomingMessage)
+}
 
+internal actor IRCConnectionSupervisor {
   nonisolated let id = UUID()
 
-  private let connection: IRCConnection
-  private let role: IRCRecovery.Role
+  let connection: IRCConnection
+  let role: IRCRecovery.Role
+  private let lifetime = IRCConnectionLifetime()
 
   var state: State { currentState }
   private var currentState = State() {
     didSet {
-      let snapshot = snapshot
-      continuation?.yield(.state(snapshot))
-
-      for observer in stateObservers.values {
-        observer.yield(snapshot)
-      }
+      continuation?.yield(.state(state.snapshot))
+      completeConnectionWaiters()
     }
   }
 
-  private var connectionAttemptID = UUID()
+  var connectionAttemptID = UUID()
 
-  private var task: Task<Void, Never>?
-  private var interruptionReason: IRCRecovery.Reason?
-  private var continuation: AsyncThrowingStream<Event, Error>.Continuation?
-  var stateObservers: [UUID: AsyncStream<IRCState>.Continuation] = [:]
+  private var runTask: Task<Void, Never>?
+  var interruptionReason: IRCRecovery.Reason?
+  var continuation: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
+  var connectionWaiters: [UUID: AsyncThrowingStream<Void, any Error>.Continuation] = [:]
 
   init(
     credentials: TwitchCredentials? = nil,
@@ -40,59 +37,47 @@ internal actor IRCConnectionSupervisor {
     self.connection = IRCConnection(
       credentials: credentials,
       network: network,
-      rateLimiter: rateLimiter)
+      rateLimiter: rateLimiter, lifetime: lifetime)
 
     self.role = role
   }
 
   deinit {
-    task?.cancel()
+    runTask?.cancel()
     continuation?.finish()
 
-    for observer in stateObservers.values { observer.finish() }
+    for waiter in connectionWaiters.values { waiter.finish(throwing: IRCError.disconnected) }
 
     let connection = connection
     Task.detached { await connection.disconnect() }
   }
 
-  func start() throws -> AsyncThrowingStream<Event, Error> {
+  nonisolated func invalidate() { lifetime.invalidate() }
+
+  func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
     guard !state.isEnded else { throw state.terminalError ?? IRCError.disconnected }
     guard state.status == .idle else { throw IRCError.alreadyConnected }
+    try lifetime.check()
 
-    let (stream, continuation) = AsyncThrowingStream<Event, Error>.makeStream()
+    let (stream, continuation) = AsyncThrowingStream<IRCConnectionUpdate, any Error>.makeStream()
     self.continuation = continuation
 
     updateState { $0.status = .connecting }
 
-    task = Task { [weak self] in await self?.run() }
+    runTask = Task { [weak self] in await self?.run() }
 
     return stream
   }
 
-  func waitUntilConnected() async throws {
-    let updates = stateUpdates()
-
-    try await withTaskCancellationHandler {
-      for await _ in updates {
-        switch state.status {
-        case .connected:
-          try Task.checkCancellation()
-          return
-
-        case .failed: throw state.terminalError ?? IRCError.disconnected
-        case .shutdown: throw IRCError.disconnected
-        default: break
-        }
-      }
-
-      try Task.checkCancellation()
-      throw IRCError.disconnected
-    } onCancel: {
-      Task { await self.disconnect() }
-    }
+  func send(_ message: OutgoingMessage) async throws {
+    try await send(IRCWireMessage(message))
   }
 
-  func send(_ message: OutgoingMessage) async throws {
+  func send(
+    _ message: IRCWireMessage,
+    beforeDispatch: (@Sendable (IRCConnectionLifetime) async throws -> Void)? = nil
+  ) async throws {
+    try lifetime.check()
     guard state.status == .connected else {
       throw state.terminalError ?? IRCError.disconnected
     }
@@ -100,7 +85,9 @@ internal actor IRCConnectionSupervisor {
     let attemptID = connectionAttemptID
 
     do {
-      try await connection.send(message)
+      try await connection.send(message, beforeDispatch: beforeDispatch)
+    } catch let refusal as IRCDispatchRefused {
+      throw refusal.underlying
     } catch let error as CancellationError {
       throw error
     } catch {
@@ -115,6 +102,7 @@ internal actor IRCConnectionSupervisor {
 
   func disconnect(throwing error: Error? = nil) async {
     guard !state.isEnded else { return }
+    invalidate()
 
     updateState { state in
       state.terminalError = error
@@ -123,116 +111,18 @@ internal actor IRCConnectionSupervisor {
       state.recovery = nil
     }
 
-    task?.cancel()
-    task = nil
+    runTask?.cancel()
+    runTask = nil
 
     continuation?.finish(throwing: error)
     continuation = nil
 
-    finishStateObservers()
-
     await connection.disconnect()
   }
 
-  private func updateState(_ update: (inout State) -> Void) {
+  func updateState(_ update: (inout State) -> Void) {
     var state = currentState
     update(&state)
     currentState = state
-  }
-}
-
-extension IRCConnectionSupervisor {
-  private func run() async {
-    var failures = 0
-
-    while !state.isEnded {
-      let reason: IRCRecovery.Reason
-
-      do {
-        connectionAttemptID = UUID()
-
-        if state.recovery?.retryAt != nil {
-          updateState { $0.recovery?.retryAt = nil }
-        }
-
-        let stream = try await connection.connect()
-
-        guard !state.isEnded else { return }
-
-        failures = 0
-        updateState { state in
-          state.status = .connected
-          state.recovery = nil
-        }
-
-        reason = try await relay(stream)
-      } catch {
-        switch error {
-        case IRCError.loginFailed, IRCError.capabilitiesRejected:
-          await disconnect(throwing: error)
-          return
-        default:
-          reason = .init(error: error)
-        }
-      }
-
-      guard !state.isEnded else { return }
-
-      failures += 1
-
-      let delay = scheduleRecovery(
-        reason: interruptionReason ?? reason,
-        failures: failures
-      )
-
-      interruptionReason = nil
-      await connection.disconnect()
-
-      do { try await Task.sleep(for: delay) } catch { return }
-    }
-  }
-
-  private func relay(
-    _ stream: AsyncThrowingStream<IncomingMessage, Error>
-  ) async throws -> IRCRecovery.Reason {
-    for try await message in stream {
-      guard !state.isEnded else { return .connectionClosed }
-
-      if case .reconnect = message { return .serverRequestedReconnect }
-      if case .globalUserState(let state) = message {
-        updateState { $0.globalUserState = state }
-      }
-
-      continuation?.yield(.message(message))
-    }
-
-    return .connectionClosed
-  }
-
-  private func scheduleRecovery(
-    reason: IRCRecovery.Reason,
-    failures: Int
-  ) -> Duration {
-    let delay = Self.reconnectDelay(failures: failures)
-
-    updateState { state in
-      state.status = .reconnecting
-      state.recovery = IRCRecovery(
-        connectionID: id,
-        role: role,
-        channels: [],
-        reason: reason,
-        attempt: failures,
-        retryAt: Date().addingTimeInterval(
-          Double(delay.components.seconds) + Double(delay.components.attoseconds) / 1e18))
-    }
-
-    return delay
-  }
-
-  private static func reconnectDelay(failures: Int) -> Duration {
-    let ceiling = 250 * (1 << min(max(failures, 1), 6))
-
-    return .milliseconds(Int.random(in: (ceiling / 2)...ceiling))
   }
 }

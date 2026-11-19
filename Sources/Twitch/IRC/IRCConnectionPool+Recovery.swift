@@ -22,7 +22,7 @@ extension IRCConnectionPool {
         guard state.entries[id] != nil else { return }
 
         switch event {
-        case .state(let snapshot): await connectionStateChanged(snapshot, id: id)
+        case .state(let snapshot): connectionStateChanged(snapshot, id: id)
         case .message(let message): await handle(message, id: id)
         }
       }
@@ -33,12 +33,8 @@ extension IRCConnectionPool {
     }
   }
 
-  private func connectionStateChanged(_ snapshot: IRCState, id: UUID) async {
+  private func connectionStateChanged(_ snapshot: IRCState, id: UUID) {
     guard let entry = state.entries[id] else { return }
-
-    if snapshot.status == .reconnecting, entry.channels.isEmpty, established {
-      return await retire(id)
-    }
 
     updateState { state in
       state.entries[id]?.globalUserState = snapshot.globalUserState
@@ -71,10 +67,4 @@ extension IRCConnectionPool {
     }
   }
 
-  private func retire(_ id: UUID) async {
-    guard let entry = updateState({ $0.removeEntry(id) }) else { return }
-
-    entry.task?.cancel()
-    await entry.supervisor.disconnect()
-  }
 }

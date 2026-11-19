@@ -80,42 +80,26 @@ Streams, callbacks, and publishers deliver an ``EventSubNotification`` with the
 typed event, its notification and subscription IDs, and `sentAt`, the time Twitch
 sent the notification.
 
-### Receive and send chat with IRC
+### Manage chat from TwitchClient
 
-Create a ``TwitchIRCClient``, register a message observer, and select channels before
-connecting. This example joins the authenticated user's channel, sends a greeting,
-and receives parsed IRC messages until the stream ends or its task is cancelled:
+Choose a reader and writer with ``ChatConfiguration``. Register a message stream before
+joining to receive the first normalized events, then call `join` to await channel readiness.
+Use `requestJoin` to start setup without waiting for readiness. Cancelling an observer or
+readiness wait leaves the channel joined. Call `part` to withdraw membership and
+``TwitchClient/shutdownChat()`` to close the managed transports and finish the observers.
 
-```swift
-let irc = await twitch.makeIRCClient()
-let messages = await irc.messageStream()
-try await irc.setDesiredChannels([login])
+``TwitchClient/chatStateUpdates()`` yields the latest membership, connection, and send
+state. Managed sends apply process-local sender limits, channel pacing, and known
+restrictions. Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
+Moderation enrichment is opt-in and uses observed roles plus known token scopes.
 
-do {
-  try await irc.connect()
-  try await irc.sendMessage("Hello chat!", to: login)
+Credential switches preserve desired channels by default. Pass `chatBehavior: .partChannels`
+to clear them. A preserved anonymous IRC reader stays connected, and account-bound
+transports restart with the new credentials.
 
-  for try await message in messages {
-    print(message)
-  }
-} catch {
-  await irc.shutdown()
-  throw error
-}
-
-await irc.shutdown()
-```
-
-Observe ``TwitchIRCClient/stateUpdates()`` for connectivity, channel membership,
-and recovery progress. Cancelling a message observer leaves the session running;
-call ``TwitchIRCClient/shutdown()`` when the session is no longer needed.
-
-IRC sessions capture credentials when created and have independent lifetimes.
-Switching the parent client's credentials does not update an existing IRC session.
-For a session that only receives messages, pass `mode: .receiveOnly` to
-`makeIRCClient`. Anonymous reception is also available by constructing
-`TwitchIRCClient(.anonymous, mode: .receiveOnly)` directly. IRC also supports
-callbacks and Combine publishers where available.
+For transport-specific access, use the raw IRC stream, listener, or publisher on
+``TwitchClient``. Each delivery identifies the read or write connection that received it.
+Raw sends use the configured IRC writer and apply IRC wire validation.
 
 ## Topics
 
@@ -151,12 +135,19 @@ callbacks and Combine publishers where available.
 - ``EventSubError``
 - ``EventSubRevocation``
 
-### IRC sessions
+### Managed chat
 
-- ``TwitchIRCClient``
+- ``ChatConfiguration``
+- ``ChatChannel``
+- ``ChatEvent``
+- ``ChatState``
+- ``ChatSendingPolicy``
+- ``ChatSendEligibility``
+- ``IRCMessage``
+- ``IRCListenerEvent``
+
 - ``IRCState``
 - ``IRCRecovery``
 - ``IRCChannelStatus``
 - ``IRCChannelFailure``
-- ``IRCListenerEvent``
 - ``IRCError``

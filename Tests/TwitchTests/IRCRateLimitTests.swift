@@ -64,23 +64,21 @@ struct IRCRateLimitTests {
 
     let pool = IRCConnectionPool(
       with: credentials, network: session, rateLimiter: limiter)
-    let pending = Task { try await pool.connect() }
-
+    let updates = try await pool.start()
+    try await pool.join(to: "swift")
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
-    _ = try await pending.value
-
-    try await pool.join(to: "swift")
     await socket.waitForSent("JOIN #swift")
 
     let queued = Task { try await pool.join(to: "other") }
     for await _ in waiting.stream {}
 
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    #expect(await statuses.next() == ["swift": .joining, "other": .joining])
+    #expect(await pool.snapshot.channels == ["swift": .joining, "other": .joining])
 
     await socket.simulateIncoming(.string("@room-id=123 :tmi.twitch.tv ROOMSTATE #swift"))
-    #expect(await statuses.next() == ["swift": .joined, "other": .joining])
+    let acknowledged = try #require(
+      try await updates.nextState { $0.channels["swift"] == .joined })
+    #expect(acknowledged.channels["other"] == .joining)
 
     try await pool.part(from: "other")
     try await queued.value
@@ -103,19 +101,16 @@ struct IRCRateLimitTests {
       with: credentials, network: session, rateLimiter: limiter)
     let second = IRCConnectionPool(
       with: credentials, network: session, rateLimiter: limiter)
-    let firstConnect = Task { try await first.connect() }
-
+    _ = try await first.start()
+    try await first.join(to: "swift")
     let firstSocket = await session.waitForTask(at: 0)
     await handshake(firstSocket)
-    _ = try await firstConnect.value
 
-    let secondConnect = Task { try await second.connect() }
+    _ = try await second.start()
+    try await second.join(to: "other")
     let secondSocket = await session.waitForTask(at: 1)
     await handshake(secondSocket)
-    _ = try await secondConnect.value
 
-    try await first.join(to: "swift")
-    try await second.join(to: "other")
     await firstSocket.waitForSent("JOIN #swift")
     await secondSocket.waitForSent("JOIN #other")
 
@@ -178,13 +173,10 @@ struct IRCRateLimitTests {
     let pool = IRCConnectionPool(
       with: credentials, network: session, joinTimeout: .milliseconds(20),
       rateLimiter: limiter)
-    let pending = Task { try await pool.connect() }
+    _ = try await pool.start()
+    try await pool.setChannels(["swift", "other"])
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
-    _ = try await pending.value
-
-    try await pool.join(to: "swift")
-    try await pool.join(to: "other")
     await socket.waitForSent("JOIN", count: 2)
 
     await socket.simulateIncoming(.string(":tmi.twitch.tv RECONNECT"))
@@ -195,8 +187,7 @@ struct IRCRateLimitTests {
     // Let the acknowledgement deadline elapse while both JOINs are still queued.
     try await Task.sleep(for: .milliseconds(40))
 
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    #expect(await statuses.next() == ["swift": .joining, "other": .joining])
+    #expect(await pool.snapshot.channels == ["swift": .joining, "other": .joining])
     #expect(await replacement.sentCount(prefix: "JOIN") == 0)
 
     await pool.disconnect()
@@ -213,13 +204,10 @@ struct IRCRateLimitTests {
 
     for index in 0..<2 {
       let pool = IRCConnectionPool(network: session, rateLimiter: limiter)
-      let pending = Task { try await pool.connect() }
+      _ = try await pool.start()
+      try await pool.setChannels(["swift", "other"])
       let socket = await session.waitForTask(at: index)
       await handshake(socket)
-      _ = try await pending.value
-
-      try await pool.join(to: "swift")
-      try await pool.join(to: "other")
       await socket.waitForSent("JOIN #swift")
       await socket.waitForSent("JOIN #other")
 

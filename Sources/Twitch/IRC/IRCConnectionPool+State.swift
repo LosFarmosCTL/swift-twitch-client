@@ -2,6 +2,16 @@ import Foundation
 import TwitchIRC
 
 extension IRCConnectionPool {
+  struct Entry: Sendable {
+    let supervisor: IRCConnectionSupervisor
+
+    var channels: Set<String> = []
+    var ready = false
+    var recovery: IRCRecovery?
+    var globalUserState: GlobalUserState?
+    var task: Task<Void, Never>?
+  }
+
   struct State: Sendable {
     var entries: [UUID: Entry] = [:]
     var active = false
@@ -14,33 +24,6 @@ extension IRCConnectionPool {
 
   var snapshot: IRCState { state.snapshot }
 
-  func stateUpdates() -> AsyncStream<IRCState> {
-    let id = UUID()
-    let (stream, observer) = AsyncStream<IRCState>.makeStream()
-
-    observer.yield(snapshot)
-
-    guard !state.ended else {
-      observer.finish()
-      return stream
-    }
-
-    stateObservers[id] = observer
-    observer.onTermination = { [weak self] _ in
-      Task { await self?.removeStateObserver(id) }
-    }
-
-    return stream
-  }
-
-  func finishStateObservers() {
-    for observer in stateObservers.values { observer.finish() }
-    stateObservers.removeAll()
-  }
-
-  private func removeStateObserver(_ id: UUID) {
-    stateObservers[id] = nil
-  }
 }
 
 extension IRCConnectionPool.State {
@@ -72,7 +55,7 @@ extension IRCConnectionPool.State {
       status = .failed(.init(terminalError: terminalError))
     } else if ended {
       status = .shutdown
-    } else if !active {
+    } else if !active || entries.isEmpty {
       status = .idle
     } else if !recoveries.isEmpty {
       status = .reconnecting

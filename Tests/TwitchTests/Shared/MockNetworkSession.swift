@@ -42,6 +42,7 @@ actor MockNetworkSession: NetworkSession {
   private enum Stub {
     case response(Data, HTTPURLResponse)
     case failure(any Error)
+    case handler(@Sendable (URLRequest) throws -> (Data, HTTPURLResponse))
   }
 
   private var webSocketTasks: [MockWebSocketTask] = []
@@ -70,6 +71,8 @@ actor MockNetworkSession: NetworkSession {
       return (data, response)
     case .failure(let error):
       throw error
+    case .handler(let handler):
+      return try handler(request)
     }
   }
 
@@ -123,6 +126,13 @@ actor MockNetworkSession: NetworkSession {
 
   func stub(url: URL, method: String = "GET", error: any Error) {
     stubs[Key(url: url, method: method)] = .failure(error)
+  }
+
+  func stub(
+    url: URL, method: String,
+    response: @escaping @Sendable (URLRequest) throws -> (Data, HTTPURLResponse)
+  ) {
+    stubs[Key(url: url, method: method)] = .handler(response)
   }
 
   func requests() -> [URLRequest] {
