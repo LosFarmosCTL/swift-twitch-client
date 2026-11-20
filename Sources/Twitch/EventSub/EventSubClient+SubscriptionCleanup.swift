@@ -28,13 +28,13 @@ extension EventSubClient {
       // The resolver checks cancellation before handing a slot back to setup.
       subscription.setupTask?.cancel()
     case .posting(let slot):
-      releaseReservation(slot)
+      beginClosingReservation(slot)
     case .active(let id, let slot):
-      releaseReservation(slot)
-
       if deleteRemote {
-        Task { await deleteAndRemove(subscription, id: id) }
+        beginClosingReservation(slot)
+        Task { await deleteAndRemove(subscription, id: id, slot: slot) }
       } else {
+        releaseReservation(slot)
         completeCleanup(subscription, remoteID: id)
       }
 
@@ -51,21 +51,33 @@ extension EventSubClient {
     for observer in observers { observer.failSetup(setupFailure) }
   }
 
-  func deleteAndRemove(_ subscription: Subscription, id: String?) async {
+  func deleteAndRemove(_ subscription: Subscription, id: String?, slot: Reservation?) async {
     if let id {
       if remoteSubscriptions[id] == nil { remoteSubscriptions[id] = subscription }
 
-      // Cleanup uses the token that created the remote subscription.
-      _ = try? await TwitchClient.helix(
-        for: .deleteEventSubSubscription(subscriptionID: id),
-        credentials: subscription.credentials,
-        network: network,
-        decoder: decoder,
-        diagnostics: diagnostics
-      )
+      if await deleteRemoteSubscription(id, credentials: subscription.credentials), let slot {
+        releaseReservation(slot)
+      }
+    } else if let slot {
+      releaseReservation(slot)
     }
 
     completeCleanup(subscription, remoteID: id)
+  }
+
+  private func deleteRemoteSubscription(_ id: String, credentials: TwitchCredentials) async -> Bool
+  {
+    do {
+      _ = try await TwitchClient.helix(
+        for: .deleteEventSubSubscription(subscriptionID: id),
+        credentials: credentials, network: network, decoder: decoder, diagnostics: diagnostics)
+      return true
+    } catch HelixError.twitchError(_, 404, _), HelixError.parsingErrorFailed(404, _) {
+      return true
+    } catch {
+      // Until this socket closes, Twitch may still count the subscription.
+      return false
+    }
   }
 
   private func completeCleanup(_ subscription: Subscription, remoteID: String?) {

@@ -12,10 +12,15 @@ extension EventSubClient {
   }
 
   private func openSubscription(_ subscription: Subscription) async {
+    var reservation: Reservation?
     var subscriptionID: String?
 
     do {
-      let sessionID = try await reserveSession(for: subscription)
+      let (slot, sessionID) = try await reserveSubscriptionSlot(revision: subscription.revision)
+      reservation = slot
+      try checkRevision(subscription.revision)
+      guard case .reserving = subscription.phase else { throw CancellationError() }
+      subscription.phase = .posting(slot)
 
       let key = subscription.key
       let response = try await TwitchClient.helix(
@@ -34,15 +39,9 @@ extension EventSubClient {
     } catch {
       closeSubscription(subscription, error: setupError(error))
 
-      // a POST may succeed after the last observer has left.
-      await deleteAndRemove(subscription, id: subscriptionID)
+      // A POST may succeed after the last observer has left.
+      await deleteAndRemove(subscription, id: subscriptionID, slot: reservation)
     }
-  }
-
-  private func reserveSession(for subscription: Subscription) async throws -> String {
-    let (slot, sessionID) = try await reserveSubscriptionSlot(revision: subscription.revision)
-    subscription.phase = .posting(slot)
-    return sessionID
   }
 
   private func activate(_ subscription: Subscription, id: String) throws {

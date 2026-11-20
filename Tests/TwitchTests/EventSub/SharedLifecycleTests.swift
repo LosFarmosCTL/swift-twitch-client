@@ -272,6 +272,34 @@ struct SharedEventSubLifecycleTests {
 }
 
 extension SharedEventSubLifecycleTests {
+  @Test("A pending DELETE still occupies capacity on a socket that stays open")
+  func pendingDeletionReservesCapacity() async throws {
+    let harness = EventTestHarness()
+    await stubSubscription(harness.session)
+    await harness.session.simulateIncoming(.string(welcome(sessionID)), queue: true)
+    let handle = try await harness.twitch.eventListener(for: .mock()) { _ in }
+    let oldSocket = await harness.session.waitForTask(at: 0)
+    let coordinator = await harness.twitch.eventSubClient
+    for _ in 0..<299 {
+      _ = try await coordinator.reserveSubscriptionSlot()
+    }
+
+    let gate = AsyncTestGate()
+    await harness.session.onRequest { request in
+      if request.httpMethod == "DELETE" { await gate.pause() }
+    }
+    handle.cancel()
+    await gate.waitUntilEntered()
+
+    await harness.session.simulateIncoming(.string(welcome("new-session")), queue: true)
+    let next = try? await coordinator.reserveSubscriptionSlot()
+    #expect(await !oldSocket.didCancel)
+
+    await gate.release()
+    await harness.twitch.resetEventSub()
+    #expect(next?.sessionID == "new-session")
+  }
+
   @Test("Slow deletion releases the socket and only delays a conflicting subscription")
   func slowDeletion() async throws {
     let original = TwitchCredentials(

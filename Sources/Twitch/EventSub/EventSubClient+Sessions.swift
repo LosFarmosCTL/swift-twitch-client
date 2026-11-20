@@ -42,14 +42,23 @@ extension EventSubClient {
     }
   }
 
+  func beginClosingReservation(_ slot: Reservation) {
+    guard sessions.active[slot.session]?.beginClosingSlot(slot.id) == true else { return }
+
+    closeSessionIfUnused(slot.session)
+  }
+
   func releaseReservation(_ slot: Reservation) {
     guard sessions.active[slot.session]?.releaseSlot(slot.id) == true else { return }
 
-    if sessions.active[slot.session]?.slots.isEmpty == true {
-      closeSession(slot.session)
-    }
-
+    closeSessionIfUnused(slot.session)
     serveSlotWaiters()
+  }
+
+  private func closeSessionIfUnused(_ sessionID: UUID) {
+    if sessions.active[sessionID]?.slots.isEmpty == true {
+      closeSession(sessionID)
+    }
   }
 
   func serveSlotWaiters() {
@@ -122,15 +131,25 @@ extension EventSubClient {
     var replacement: SocketHandshake?
     var drainingConnections: [UUID: EventSubConnection] = [:]
     var slots: Set<UUID> = []
+    // These still count against capacity, but don't keep an otherwise unused socket open.
+    var closingSlots: Set<UUID> = []
     var notifications = NotificationBuffer()
 
     fileprivate var availableSlots: Int {
       // Hold off on new POSTs until the replacement's welcome arrives.
-      replacement == nil ? Self.subscriptionLimit - slots.count : 0
+      replacement == nil ? Self.subscriptionLimit - slots.count - closingSlots.count : 0
+    }
+
+    fileprivate mutating func beginClosingSlot(_ id: UUID) -> Bool {
+      guard slots.remove(id) != nil else { return false }
+
+      closingSlots.insert(id)
+      notifications.discardPendingFrames(for: id)
+      return true
     }
 
     fileprivate mutating func releaseSlot(_ id: UUID) -> Bool {
-      guard slots.remove(id) != nil else { return false }
+      guard slots.remove(id) != nil || closingSlots.remove(id) != nil else { return false }
 
       notifications.discardPendingFrames(for: id)
       return true
