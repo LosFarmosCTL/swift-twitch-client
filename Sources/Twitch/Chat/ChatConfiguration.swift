@@ -51,8 +51,7 @@ public enum ChatCredentialSwitchBehavior: Sendable, Equatable {
 public struct ChatSendingPolicy: Sendable, Equatable {
   /// No automatic waiting. Account-window exhaustion always refuses immediately.
   public static let interactive = Self()
-  /// Bypasses local pacing/admission, but still records managed attempts. Validation
-  /// and observed restrictions still apply.
+  /// Bypasses local pacing, but still validates requests and records managed attempts.
   public static let unpaced = Self(enforcesLimits: false)
 
   public let enforcesLimits: Bool

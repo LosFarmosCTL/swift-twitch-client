@@ -184,10 +184,6 @@ extension ManagedChatTests {
     }
     #expect(clearing && moderation)
     #expect(await client.sendEligibility(in: channel.id) == .timedOut(until: nil))
-    await #expect(throws: ChatSendError.refused(.timedOut(until: nil))) {
-      try await client.sendMessage("blocked", to: channel)
-    }
-    #expect(await session.requestCount() == 0)
     await client.shutdownChat()
   }
 

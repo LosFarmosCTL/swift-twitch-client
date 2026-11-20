@@ -138,8 +138,8 @@ readiness wait leaves the channel joined. Call `part` to withdraw membership and
 ``TwitchClient/shutdownChat()`` to close the managed transports and finish the observers.
 
 ``TwitchClient/chatStateUpdates()`` yields the latest membership, connection, and send
-state. Managed sends apply process-local sender limits, channel pacing, and known
-restrictions. These local checks are not Twitch's server-side send or join limits.
+state. Managed sends apply process-local sender limits and channel pacing.
+These local checks are not Twitch's server-side send or join limits.
 Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
 Moderation enrichment is opt-in and uses observed roles plus known token scopes.
 See <doc:Authentication> for read and write scopes by transport.

@@ -20,7 +20,6 @@ extension ManagedChat {
   func commitSend(_ attempt: SendAttempt, on transport: IRCConnectionLifetime? = nil) throws {
     try checkCredentialRevision(attempt.revision)
     let id = attempt.channelID
-    if let block = sendRestriction(in: id, now: .now) { throw block }
     let privileged = effectiveChatPrivilege(id).isPrivileged
     let interval = chatSendInterval(in: id)
     let commit = {
@@ -32,7 +31,7 @@ extension ManagedChat {
     if let limit { throw ChatSendBlock(limit, now: .now, wallTime: Date()) }
   }
 
-  private func sendRestriction(
+  func sendRestriction(
     in id: String, now: ContinuousClock.Instant
   ) -> ChatSendBlock? {
     guard !isShutdown else {
@@ -47,9 +46,6 @@ extension ManagedChat {
   func sendBlock(
     in id: String, history: ChatSendLimiter.Snapshot?, now: ContinuousClock.Instant, wallTime: Date
   ) -> ChatSendBlock? {
-    if let restriction = sendRestriction(in: id, now: now) {
-      return restriction
-    }
     guard configuration.sending.enforcesLimits, let history,
       let limit = ChatSendLimiter.limit(
         history, channel: id, privileged: effectiveChatPrivilege(id).isPrivileged,

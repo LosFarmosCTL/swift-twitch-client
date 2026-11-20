@@ -193,10 +193,9 @@ extension ManagedChatTests {
       .string("@msg-id=msg_banned;target-user-id=\(target) :tmi.twitch.tv NOTICE #swift :Banned"))
     _ = try #require(
       await client.chatStateUpdates().first { $0.sendEligibility[channel.id] == .banned })
-    await #expect(throws: ChatSendError.refused(.banned)) {
-      try await client.sendMessage("blocked", to: channel)
-    }
-    #expect(await writer.sentCount(prefix: "PRIVMSG #swift") == 2)
+    let outcome = try await client.sendMessage("let Twitch decide", to: channel)
+    #expect(outcome == .written(clientNonce: nil))
+    #expect(await writer.sentCount(prefix: "PRIVMSG #swift") == 3)
     #expect(await client.chatState.channels.isEmpty)
     await client.shutdownChat()
   }

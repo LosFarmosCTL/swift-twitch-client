@@ -31,7 +31,9 @@ extension ManagedChat {
     var channels: [String: ChatSendEligibility] = [:]
     var next: ContinuousClock.Instant?
     for id in destinations {
-      let block = sendBlock(in: id, history: history, now: now, wallTime: wallTime)
+      let block =
+        sendRestriction(in: id, now: now)
+        ?? sendBlock(in: id, history: history, now: now, wallTime: wallTime)
       channels[id] = block?.eligibility ?? .eligible
       if let deadline = block?.deadline { next = min(next ?? deadline, deadline) }
     }
