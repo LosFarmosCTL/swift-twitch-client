@@ -29,7 +29,7 @@ extension HelixEndpoint {
     isLive: Bool? = nil,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PATCH", path: "guest_star/slot_settings",
       authentication: .user,

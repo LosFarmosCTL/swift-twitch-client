@@ -18,7 +18,7 @@ extension HelixEndpoint {
   public static func getCustomPowerUps(
     for broadcasterID: String? = nil,
     powerUpIDs: [String] = []
-  ) -> HelixEndpoint<[CustomPowerUp], CustomPowerUp, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[CustomPowerUp]> {
     .init(
       method: "GET", path: "bits/custom_power_ups",
       authentication: .user,
@@ -31,7 +31,7 @@ extension HelixEndpoint {
         ]
           + powerUpIDs.map { ("id", $0) }
       },
-      makeResponse: { $0.data })
+      responseType: CustomPowerUp.self, makeResponse: { $0.data })
   }
 }
 

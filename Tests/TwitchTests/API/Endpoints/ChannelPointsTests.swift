@@ -107,11 +107,13 @@ struct ChannelPointsTests {
       url: url,
       body: MockedData.getCustomRewardRedemptionsJSON)
 
-    let (redemptions, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getCustomRewardRedemptions(
           rewardID: "92af127c-7326-4483-a52b-b0da0be61c01",
           status: .cancelled))).value
+    let redemptions = page.redemptions
+    let cursor = page.cursor
 
     #expect(redemptions.count == 1)
     #expect(redemptions.first?.id == "17fa2df1-ad76-4804-bfa5-a40ef63efe63")

@@ -14,13 +14,13 @@ extension HelixEndpoint {
   ///   - userIDs: The user IDs to include in the request.
   public static func getUserColors(
     of userIDs: [String]
-  ) -> HelixEndpoint<[UserColor], UserColor, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[UserColor]> {
     .init(
       method: "GET", path: "chat/color",
       authentication: .either,
       queryItems: { _ in
         userIDs.map { ("user_id", $0) }
-      }, makeResponse: { $0.data })
+      }, responseType: UserColor.self, makeResponse: { $0.data })
   }
 }
 

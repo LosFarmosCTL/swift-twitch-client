@@ -17,17 +17,14 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(channels: [Channel], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``SearchChannelsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func searchChannels(
     for query: String,
     liveOnly: Bool? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (channels: [Channel], cursor: String?),
-    Channel, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<SearchChannelsResponse> {
     .init(
       method: "GET", path: "search/channels",
       authentication: .either,
@@ -39,7 +36,10 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Channel.self,
+      makeResponse: {
+        SearchChannelsResponse(channels: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -87,4 +87,13 @@ public struct Channel: Decodable, Sendable {
     case title
     case startedAt
   }
+}
+
+/// A page of search channels.
+@MemberwiseInit(.public)
+public struct SearchChannelsResponse: Sendable {
+  /// The channels on this page.
+  public let channels: [Channel]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

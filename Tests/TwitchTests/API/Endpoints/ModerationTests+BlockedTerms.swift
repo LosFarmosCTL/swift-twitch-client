@@ -16,9 +16,11 @@ extension ModerationTests {
       url: url,
       body: MockedData.getBlockedTermsJSON)
 
-    let (terms, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getBlockedTerms(in: "5678"))).value
+    let terms = page.terms
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 

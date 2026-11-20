@@ -22,7 +22,7 @@ extension HelixEndpoint {
     _ userID: String,
     in broadcasterID: String,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "moderation/bans",
       authentication: .either,

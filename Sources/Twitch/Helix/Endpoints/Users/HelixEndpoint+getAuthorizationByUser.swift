@@ -12,14 +12,12 @@ extension HelixEndpoint {
   /// - Parameter userIDs: The IDs of one through ten users to check.
   public static func getAuthorizationByUser(
     _ userIDs: [String]
-  ) -> HelixEndpoint<
-    [UserAuthorization], UserAuthorization, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[UserAuthorization]> {
     .init(
       method: "GET", path: "authorization/users",
       authentication: .app,
       queryItems: { _ in userIDs.map { ("user_id", $0) } },
-      makeResponse: { $0.data })
+      responseType: UserAuthorization.self, makeResponse: { $0.data })
   }
 }
 

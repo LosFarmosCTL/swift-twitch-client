@@ -12,7 +12,7 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-stream-key
   /// ) for request limits and account requirements.
   public static func getStreamKey()
-    -> HelixEndpoint<String, StreamKey, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<String>
   {
     .init(
       method: "GET", path: "streams/key",
@@ -22,6 +22,7 @@ extension HelixEndpoint {
           ("broadcaster_id", try credentials.requireUser().id)
         ]
       },
+      responseType: StreamKey.self,
       makeResponse: { response in
         let key = try response.requireFirst()
 

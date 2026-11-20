@@ -17,7 +17,7 @@ extension HelixEndpoint {
   public static func createStreamMarker(
     for userID: String? = nil,
     description: String? = nil
-  ) -> HelixEndpoint<StreamMarker, StreamMarker, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<StreamMarker> {
     .init(
       method: "POST", path: "streams/markers",
       authentication: .user,
@@ -26,6 +26,7 @@ extension HelixEndpoint {
           userID: try credentials.resolveUserID(userID, parameter: "user_id"),
           description: description)
       },
+      responseType: StreamMarker.self,
       makeResponse: { response in
         let marker = try response.requireFirst()
 

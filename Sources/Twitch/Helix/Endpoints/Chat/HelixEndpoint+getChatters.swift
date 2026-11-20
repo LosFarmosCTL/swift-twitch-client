@@ -26,7 +26,7 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after cursor: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<ChattersResponse, Chatter, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<ChattersResponse> {
     .init(
       method: "GET", path: "chat/chatters",
       authentication: .either,
@@ -42,6 +42,7 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: Chatter.self,
       makeResponse: {
         let total = try $0.require(\.total)
 

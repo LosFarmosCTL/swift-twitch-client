@@ -17,7 +17,7 @@ extension HelixEndpoint {
   public static func endPoll(
     pollID: String,
     status: PollEndStatus
-  ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Poll> {
     .init(
       method: "PATCH", path: "polls",
       authentication: .user,
@@ -27,6 +27,7 @@ extension HelixEndpoint {
           id: pollID,
           status: status)
       },
+      responseType: Poll.self,
       makeResponse: {
         let poll = try $0.requireFirst()
 

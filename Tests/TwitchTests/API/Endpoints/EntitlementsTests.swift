@@ -19,10 +19,12 @@ struct EntitlementsTests {
       url: url,
       body: MockedData.getDropsEntitlementsJSON)
 
-    let (entitlements, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getDropsEntitlements(
           userID: "25009227", gameID: "33214", limit: 3))).value
+    let entitlements = page.entitlements
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6MX0")
 

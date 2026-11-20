@@ -28,8 +28,10 @@ struct GamesTests {
       url: url,
       body: MockedData.getTopGamesJSON)
 
-    let (games, cursor) = (try await harness.twitch.helix(for: .getTopGames(limit: 1)))
+    let page = (try await harness.twitch.helix(for: .getTopGames(limit: 1)))
       .value
+    let games = page.games
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6MjB9fQ==")
 

@@ -19,7 +19,7 @@ extension HelixEndpoint {
     broadcasterID: String? = nil,
     title: String? = nil,
     duration: Double? = nil
-  ) -> HelixEndpoint<ClipCreation, ClipCreation, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<ClipCreation> {
     .init(
       method: "POST", path: "clips",
       authentication: .user,
@@ -33,6 +33,7 @@ extension HelixEndpoint {
           ("duration", duration.map(String.init(describing:))),
         ]
       },
+      responseType: ClipCreation.self,
       makeResponse: {
         let clip = try $0.requireFirst()
 

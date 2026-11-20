@@ -22,10 +22,7 @@ extension HelixEndpoint {
     extensionID: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (channels: [ExtensionLiveChannel], cursor: String?), ExtensionLiveChannel,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ExtensionLiveChannelsResponse> {
     .init(
       method: "GET", path: "extensions/live",
       authentication: .either,
@@ -36,8 +33,9 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: ExtensionLiveChannel.self,
       makeResponse: {
-        ($0.data, $0.pagination?.cursor)
+        ExtensionLiveChannelsResponse(channels: $0.data, cursor: $0.pagination?.cursor)
       })
   }
 }
@@ -63,4 +61,13 @@ public struct ExtensionLiveChannel: Decodable, Sendable {
     case gameName
     case title
   }
+}
+
+/// A page of extension live channels.
+@MemberwiseInit(.public)
+public struct ExtensionLiveChannelsResponse: Sendable {
+  /// The channels on this page.
+  public let channels: [ExtensionLiveChannel]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

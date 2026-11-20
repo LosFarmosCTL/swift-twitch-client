@@ -26,10 +26,7 @@ extension HelixEndpoint {
     range: DateInterval? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (reports: [ExtensionReport], cursor: String?),
-    ExtensionReport, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ExtensionAnalyticsResponse> {
     .init(
       method: "GET", path: "analytics/extensions",
       authentication: .user,
@@ -42,7 +39,10 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: ExtensionReport.self,
+      makeResponse: {
+        ExtensionAnalyticsResponse(reports: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -85,4 +85,13 @@ public struct ExtensionReport: Decodable, Sendable {
 
     self.range = DateInterval(start: startedAt, end: endedAt)
   }
+}
+
+/// A page of extension analytics.
+@MemberwiseInit(.public)
+public struct ExtensionAnalyticsResponse: Sendable {
+  /// The reports on this page.
+  public let reports: [ExtensionReport]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

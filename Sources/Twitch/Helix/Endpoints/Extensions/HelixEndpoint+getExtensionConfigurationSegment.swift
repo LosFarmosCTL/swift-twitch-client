@@ -22,10 +22,7 @@ extension HelixEndpoint {
     extensionID: String,
     segments: [ExtensionConfigurationSegmentType],
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<
-    [ExtensionConfigurationSegment], ExtensionConfigurationSegment,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[ExtensionConfigurationSegment]> {
     let segmentItems = segments.map { ("segment", $0.rawValue) }
 
     return .init(
@@ -37,7 +34,7 @@ extension HelixEndpoint {
           ("broadcaster_id", broadcasterID),
         ] + segmentItems
       },
-      makeResponse: { $0.data })
+      responseType: ExtensionConfigurationSegment.self, makeResponse: { $0.data })
   }
 }
 

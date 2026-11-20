@@ -19,7 +19,7 @@ extension HelixEndpoint {
     title: String,
     outcomes: [String],
     predictionWindow: Int
-  ) -> HelixEndpoint<Prediction, Prediction, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Prediction> {
     .init(
       method: "POST", path: "predictions",
       authentication: .user,
@@ -30,6 +30,7 @@ extension HelixEndpoint {
           outcomes: outcomes.map { .init(title: $0) },
           predictionWindow: predictionWindow)
       },
+      responseType: Prediction.self,
       makeResponse: {
         let prediction = try $0.requireFirst()
 

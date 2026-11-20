@@ -11,7 +11,7 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#cancel-a-raid
   /// ) for request limits and account requirements.
   public static func cancelRaid()
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     .init(
       method: "DELETE", path: "raids",

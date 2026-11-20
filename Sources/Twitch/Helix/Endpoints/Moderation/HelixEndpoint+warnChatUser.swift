@@ -18,7 +18,7 @@ extension HelixEndpoint {
   ///     Required for app tokens.
   public static func warnChatUser(
     _ userID: String, in broadcasterID: String, reason: String, moderatorID: String? = nil
-  ) -> HelixEndpoint<ChatWarning, ChatWarning, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<ChatWarning> {
     .init(
       method: "POST", path: "moderation/warnings",
       authentication: .either,
@@ -33,7 +33,7 @@ extension HelixEndpoint {
         ]
       },
       body: { _ in ["data": ["user_id": userID, "reason": reason]] },
-      makeResponse: { try $0.requireFirst() })
+      responseType: ChatWarning.self, makeResponse: { try $0.requireFirst() })
   }
 }
 

@@ -21,7 +21,7 @@ extension HelixEndpoint {
   public static func removeBlockedTerm(
     in broadcasterID: String, termID: String,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "moderation/blocked_terms",
       authentication: .either,

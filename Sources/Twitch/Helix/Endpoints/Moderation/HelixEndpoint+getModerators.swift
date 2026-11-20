@@ -20,16 +20,13 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(moderators: [Moderator], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``ModeratorsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getModerators(
     userIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (moderators: [Moderator], cursor: String?), Moderator,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ModeratorsResponse> {
     .init(
       method: "GET", path: "moderation/moderators",
       authentication: .user,
@@ -39,7 +36,10 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ] + userIDs.map { ("user_id", $0) }
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: Moderator.self,
+      makeResponse: {
+        ModeratorsResponse(moderators: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -58,4 +58,13 @@ public struct Moderator: Decodable, Sendable {
     case login = "userLogin"
     case displayName = "userName"
   }
+}
+
+/// A page of moderators.
+@MemberwiseInit(.public)
+public struct ModeratorsResponse: Sendable {
+  /// The moderators on this page.
+  public let moderators: [Moderator]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

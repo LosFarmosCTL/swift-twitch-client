@@ -22,7 +22,7 @@ extension HelixEndpoint {
   public static func createClipFromVOD(
     _ vodID: String, broadcasterID: String, vodOffset: Int, title: String,
     duration: Double? = nil, editorID: String? = nil
-  ) -> HelixEndpoint<ClipCreation, ClipCreation, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<ClipCreation> {
     .init(
       method: "POST", path: "videos/clips",
       authentication: .either,
@@ -37,6 +37,6 @@ extension HelixEndpoint {
           ("vod_offset", String(vodOffset)), ("title", title),
           ("duration", duration.map(String.init(describing:))),
         ]
-      }, makeResponse: { try $0.requireFirst() })
+      }, responseType: ClipCreation.self, makeResponse: { try $0.requireFirst() })
   }
 }

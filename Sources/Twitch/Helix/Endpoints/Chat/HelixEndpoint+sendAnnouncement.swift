@@ -27,7 +27,7 @@ extension HelixEndpoint {
     color: AnnouncementColor? = nil,
     isSourceOnly: Bool? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "chat/announcements",
       authentication: .either,

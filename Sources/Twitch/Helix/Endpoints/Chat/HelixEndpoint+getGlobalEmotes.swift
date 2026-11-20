@@ -10,11 +10,12 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-global-emotes
   /// ) for request limits and account requirements.
   public static func getGlobalEmotes()
-    -> HelixEndpoint<GlobalEmotesResponse, GlobalEmote, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<GlobalEmotesResponse>
   {
     .init(
       method: "GET", path: "chat/emotes/global",
       authentication: .either,
+      responseType: GlobalEmote.self,
       makeResponse: {
         let template = try $0.require(\.template)
 

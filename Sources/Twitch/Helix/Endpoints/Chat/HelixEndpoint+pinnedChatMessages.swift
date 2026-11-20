@@ -17,9 +17,7 @@ extension HelixEndpoint {
   ///     Required for app tokens.
   public static func getPinnedChatMessage(
     in broadcasterID: String, moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    PinnedChatMessage?, PinnedChatMessage, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<PinnedChatMessage?> {
     .init(
       method: "GET", path: "chat/pins",
       authentication: .either,
@@ -32,7 +30,7 @@ extension HelixEndpoint {
               moderatorID, parameter: "moderator_id", matchingToken: true)
           ),
         ]
-      }, makeResponse: { $0.data.first })
+      }, responseType: PinnedChatMessage.self, makeResponse: { $0.data.first })
   }
 
   /// Pins a chat message, replacing any existing mod-pinned message in the channel.
@@ -52,7 +50,7 @@ extension HelixEndpoint {
   public static func pinChatMessage(
     _ messageID: String, in broadcasterID: String,
     durationSeconds: Int? = nil, moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PUT", path: "chat/pins",
       authentication: .either,
@@ -87,7 +85,7 @@ extension HelixEndpoint {
   public static func updatePinnedChatMessage(
     _ messageID: String, in broadcasterID: String,
     durationSeconds: Int? = nil, moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PATCH", path: "chat/pins",
       authentication: .either,
@@ -120,7 +118,7 @@ extension HelixEndpoint {
   ///     Required for app tokens.
   public static func unpinChatMessage(
     _ messageID: String, in broadcasterID: String, moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "chat/pins",
       authentication: .either,

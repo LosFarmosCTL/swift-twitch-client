@@ -1,14 +1,12 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   private static func updateAutoModSettings(
     of broadcasterID: String,
     moderatorID: String?,
     body: Encodable & Sendable
-  ) -> HelixEndpoint<
-    AutoModSettings, AutoModSettings,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<AutoModSettings> {
     .init(
       method: "PUT", path: "moderation/automod/settings",
       authentication: .either,
@@ -22,6 +20,7 @@ extension HelixEndpoint {
           ),
         ]
       }, body: { _ in body },
+      responseType: AutoModSettings.self,
       makeResponse: {
         let settings = try $0.requireFirst()
 
@@ -45,7 +44,7 @@ extension HelixEndpoint {
   ///   - settings: The settings to apply.
   public static func updateAutoModSettings(
     of broadcasterID: String, settings: AutoModConfiguration, moderatorID: String? = nil
-  ) -> HelixEndpoint<AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<AutoModSettings> {
     self.updateAutoModSettings(
       of: broadcasterID, moderatorID: moderatorID, body: settings)
   }
@@ -67,9 +66,7 @@ extension HelixEndpoint {
   public static func updateAutoModSettings(
     of broadcasterID: String, overall overallLevel: Int, moderatorID: String? = nil
   )
-    -> HelixEndpoint<
-      AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal
-    >
+    -> HelixEndpoint<AutoModSettings>
   {
     self.updateAutoModSettings(
       of: broadcasterID, moderatorID: moderatorID, body: ["overall_level": overallLevel])
@@ -77,6 +74,7 @@ extension HelixEndpoint {
 }
 
 /// The individual AutoMod category levels to include in a settings update request.
+@MemberwiseInit(.public)
 public struct AutoModConfiguration: Encodable, Sendable {
   /// The AutoMod filtering level for aggression.
   public let aggression: Int

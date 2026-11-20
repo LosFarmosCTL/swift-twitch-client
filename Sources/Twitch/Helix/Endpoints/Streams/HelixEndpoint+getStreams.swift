@@ -21,7 +21,7 @@ extension HelixEndpoint {
   ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(streams: [Stream], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``StreamsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getStreams(
     userIDs: [String] = [],
@@ -32,10 +32,7 @@ extension HelixEndpoint {
     limit: Int? = nil,
     before beforeCursor: String? = nil,
     after afterCursor: String? = nil
-  ) -> HelixEndpoint<
-    (streams: [Stream], cursor: String?),
-    Stream, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<StreamsResponse> {
     let userIDs = userIDs.compactMap { ("user_id", $0) }
     let userLogins = userLogins.compactMap { ("user_login", $0) }
     let gameIDs = gameIDs.compactMap { ("game_id", $0) }
@@ -51,7 +48,8 @@ extension HelixEndpoint {
           ("before", beforeCursor),
           ("after", afterCursor),
         ] + userIDs + userLogins + gameIDs + languages
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: Stream.self,
+      makeResponse: { StreamsResponse(streams: $0.data, cursor: $0.pagination?.cursor) })
   }
 }
 
@@ -115,4 +113,13 @@ public struct Stream: Decodable, Sendable {
     case startedAt
     case thumbnailURL = "thumbnailUrl"
   }
+}
+
+/// A page of streams.
+@MemberwiseInit(.public)
+public struct StreamsResponse: Sendable {
+  /// The streams on this page.
+  public let streams: [Stream]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

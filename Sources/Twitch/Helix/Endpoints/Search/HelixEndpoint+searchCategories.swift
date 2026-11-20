@@ -16,16 +16,13 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(categories: [Category], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``SearchCategoriesResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func searchCategories(
     for query: String,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (categories: [Category], cursor: String?),
-    Category, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<SearchCategoriesResponse> {
     .init(
       method: "GET", path: "search/categories",
       authentication: .either,
@@ -36,7 +33,10 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
         ]
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Category.self,
+      makeResponse: {
+        SearchCategoriesResponse(categories: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -55,4 +55,13 @@ public struct Category: Decodable, Sendable {
     case name
     case boxArtURL = "boxArtUrl"
   }
+}
+
+/// A page of search categories.
+@MemberwiseInit(.public)
+public struct SearchCategoriesResponse: Sendable {
+  /// The categories on this page.
+  public let categories: [Category]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

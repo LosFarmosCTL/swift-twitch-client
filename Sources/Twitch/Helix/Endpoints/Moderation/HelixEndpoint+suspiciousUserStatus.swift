@@ -20,9 +20,7 @@ extension HelixEndpoint {
   public static func addSuspiciousStatusToChatUser(
     _ userID: String, in broadcasterID: String, status: SuspiciousUserTreatment,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    SuspiciousUserStatus, SuspiciousUserStatus, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<SuspiciousUserStatus> {
     .init(
       method: "POST", path: "moderation/suspicious_users",
       authentication: .either,
@@ -36,7 +34,7 @@ extension HelixEndpoint {
           ),
         ]
       }, body: { _ in ["user_id": userID, "status": status.rawValue] },
-      makeResponse: { try $0.requireFirst() })
+      responseType: SuspiciousUserStatus.self, makeResponse: { try $0.requireFirst() })
   }
 
   /// Removes a viewer’s suspicious-user treatment in a channel.
@@ -55,9 +53,7 @@ extension HelixEndpoint {
   ///     Required for app tokens.
   public static func removeSuspiciousStatusFromChatUser(
     _ userID: String, in broadcasterID: String, moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    SuspiciousUserStatus, SuspiciousUserStatus, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<SuspiciousUserStatus> {
     .init(
       method: "DELETE", path: "moderation/suspicious_users",
       authentication: .either,
@@ -71,7 +67,7 @@ extension HelixEndpoint {
           ),
           ("user_id", userID),
         ]
-      }, makeResponse: { try $0.requireFirst() })
+      }, responseType: SuspiciousUserStatus.self, makeResponse: { try $0.requireFirst() })
   }
 }
 

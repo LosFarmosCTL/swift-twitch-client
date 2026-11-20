@@ -24,10 +24,7 @@ extension HelixEndpoint {
   public static func getCharityCampaignDonations(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (donations: [CharityDonation], cursor: String?),
-    CharityDonation, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<CharityCampaignDonationsResponse> {
     .init(
       method: "GET", path: "charity/donations",
       authentication: .user,
@@ -38,7 +35,11 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: CharityDonation.self,
+      makeResponse: {
+        CharityCampaignDonationsResponse(
+          donations: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -68,4 +69,13 @@ public struct CharityDonation: Decodable, Sendable {
     case userDisplayName = "userName"
     case amount
   }
+}
+
+/// A page of charity campaign donations.
+@MemberwiseInit(.public)
+public struct CharityCampaignDonationsResponse: Sendable {
+  /// The donations on this page.
+  public let donations: [CharityDonation]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

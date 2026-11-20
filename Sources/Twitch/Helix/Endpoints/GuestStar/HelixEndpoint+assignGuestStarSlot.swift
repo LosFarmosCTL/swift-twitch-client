@@ -24,7 +24,7 @@ extension HelixEndpoint {
     slotID: String,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "guest_star/slot",
       authentication: .user,

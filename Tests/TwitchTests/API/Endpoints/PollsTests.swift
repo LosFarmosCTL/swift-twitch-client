@@ -18,9 +18,11 @@ struct PollsTests {
       url: url,
       body: MockedData.getPollsJSON)
 
-    let (polls, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getPolls(pollIDs: ["ed961efd-8a3f-4cf5-a9d0-e616c590cd2a"]))).value
+    let polls = page.polls
+    let cursor = page.cursor
 
     #expect(polls.count == 1)
     #expect(cursor == nil)

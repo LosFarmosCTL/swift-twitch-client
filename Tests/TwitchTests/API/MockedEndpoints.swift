@@ -2,11 +2,7 @@ import Foundation
 
 @testable import Twitch
 
-extension HelixEndpoint
-where
-  EndpointResponseType == HelixEndpointResponseTypes.Normal,
-  ResponseType == String?, HelixResponseType == String
-{
+extension HelixEndpoint where Response == String? {
   public static func custom(
     method: String, path: String, queryItems: [URLQueryItem]? = nil,
     body: [String: String]? = nil
@@ -19,6 +15,6 @@ where
           $0.map { ($0.name, $0.value) }
         } ?? []
       }, body: { _ in body },
-      makeResponse: { $0.data.first })
+      responseType: String.self, makeResponse: { $0.data.first })
   }
 }

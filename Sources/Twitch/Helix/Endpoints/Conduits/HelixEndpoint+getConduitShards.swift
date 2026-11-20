@@ -16,16 +16,13 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(shards: [ConduitShard], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``ConduitShardsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getConduitShards(
     conduitID: String,
     status: ConduitShardStatus? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (shards: [ConduitShard], cursor: String?),
-    ConduitShard, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ConduitShardsResponse> {
     .init(
       method: "GET", path: "eventsub/conduits/shards",
       authentication: .app,
@@ -36,7 +33,10 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: ConduitShard.self,
+      makeResponse: {
+        ConduitShardsResponse(shards: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -105,4 +105,13 @@ public struct ConduitShardTransport: Decodable, Sendable {
     case sessionID = "sessionId"
     case connectedAt, disconnectedAt
   }
+}
+
+/// A page of conduit shards.
+@MemberwiseInit(.public)
+public struct ConduitShardsResponse: Sendable {
+  /// The shards on this page.
+  public let shards: [ConduitShard]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }
