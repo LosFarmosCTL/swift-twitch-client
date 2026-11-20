@@ -99,7 +99,6 @@ public struct ChatState: Sendable {
   public internal(set) var channels: [String: ChatChannelState] = [:]
   public internal(set) var lastDeparture: ChatDeparture?
   public internal(set) var sendEligibility: [String: ChatSendEligibility] = [:]
-  public internal(set) var lastSendOutcomes: [String: ChatSendOutcome] = [:]
   public internal(set) var isShutdown = false
 }
 

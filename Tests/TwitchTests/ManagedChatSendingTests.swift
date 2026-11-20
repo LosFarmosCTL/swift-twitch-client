@@ -39,7 +39,7 @@ extension ManagedChatTests {
   }
 
   @Test
-  func inFlightSendKeepsItsCredentialsAndCannotReplaceTheNewAccountsOutcome() async throws {
+  func inFlightSendKeepsItsCredentials() async throws {
     let client = client()
     let beforeResponse = AsyncTestGate()
     let originalAuthorization = "Bearer \(first.accessToken)"
@@ -58,12 +58,12 @@ extension ManagedChatTests {
       url: URL(string: "https://api.twitch.tv/helix/chat/messages")!, method: "POST",
       body: Data(#"{"data":[{"message_id":"new-message","is_sent":true,"drop_reason":null}]}"#.utf8)
     )
-    try await client.sendMessage("new account", to: channel)
+    #expect(
+      try await client.sendMessage("new account", to: channel)
+        == .accepted(messageID: "new-message"))
 
     await beforeResponse.release()
     #expect(try await original.value == .accepted(messageID: "message"))
-    #expect(
-      await client.chatState.lastSendOutcomes[channel.id] == .accepted(messageID: "new-message"))
     let authorization = await session.requests().map {
       $0.value(forHTTPHeaderField: "Authorization")
     }
@@ -149,12 +149,15 @@ extension ManagedChatTests {
     #expect(await client.chatState.channels.isEmpty)
     #expect(await client.chatState.reader == .idle)
 
+    let events = await client.messageStream()
     await socket.simulateIncoming(
       .string("@msg-id=msg_rejected :tmi.twitch.tv NOTICE #first :Rejected"))
     _ = try #require(
-      await client.chatStateUpdates().first {
-        $0.lastSendOutcomes[own.id]
-          == .rejected(code: "msg_rejected", message: "Rejected")
+      await events.first {
+        if case .notice(code: "msg_rejected", message: "Rejected") = $0.payload {
+          return $0.channel.id == own.id
+        }
+        return false
       })
     await client.shutdownChat()
   }
@@ -185,7 +188,6 @@ extension ManagedChatTests {
     _ = try #require(
       await events.first { if case .notice = $0.payload { true } else { false } })
     #expect(await client.sendEligibility(in: channel.id) == .eligible)
-    #expect(await client.chatState.lastSendOutcomes[channel.id] == .written(clientNonce: nil))
 
     try await client.sendMessage("as vip", to: channel)
     let target = try #require(first.userID)
@@ -220,7 +222,6 @@ extension ManagedChatTests {
       try await client.sendMessage("first", to: own)
     }
     #expect({ if case .rateLimited = rateLimit { true } else { false } }())
-    #expect(await client.chatState.lastSendOutcomes[own.id] == .rateLimited)
 
     await session.stub(
       url: url, method: "POST",
@@ -233,9 +234,6 @@ extension ManagedChatTests {
     ) {
       try await client.sendMessage("second", to: own)
     }
-    #expect(
-      await client.chatState.lastSendOutcomes[own.id]
-        == .rejected(code: "msg_rejected", message: "Rejected"))
 
     // Local evidence only, not a guarantee of server eligibility.
     #expect(await client.sendEligibility(in: own.id) == .eligible)

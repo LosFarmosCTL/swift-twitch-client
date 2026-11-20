@@ -126,13 +126,6 @@ extension ManagedChat {
       sendDestinations.insert(channel.id)
     }
 
-    if role == .write, directedAtSender, let code = notice.code, code.hasPrefix("msg_"),
-      !["msg_room_not_found", "msg_channel_suspended"].contains(code)
-    {
-      lastSendOutcomes[channel.id] = .rejected(code: code, message: notice.text)
-      sendDestinations.insert(channel.id)
-    }
-
     emitChat(
       ChatEvent(
         channel: channel, timestamp: notice.timestamp,

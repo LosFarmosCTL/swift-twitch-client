@@ -23,20 +23,13 @@ extension ManagedChat {
     while true {
       do {
         try checkSendAdmission(attempt)
-        let outcome: ChatSendOutcome
         if let frame {
           try await sendChatIRC(frame, attempt: attempt)
-          outcome = .written(clientNonce: clientNonce)
-        } else {
-          outcome = try await sendChatHelix(text, replyTo: messageID, attempt: attempt)
+          return .written(clientNonce: clientNonce)
         }
-        recordChatSendOutcome(outcome, for: attempt)
-        return outcome
+        return try await sendChatHelix(text, replyTo: messageID, attempt: attempt)
       } catch let refusal as ChatSendBlock {
         try await Task.sleep(for: refusal.delay(until: deadline))
-      } catch {
-        recordChatSendOutcome(chatSendFailure(error), for: attempt)
-        throw error
       }
     }
   }
@@ -96,18 +89,4 @@ extension ManagedChat {
     return .accepted(messageID: response.value.messageID)
   }
 
-  private func recordChatSendOutcome(_ outcome: ChatSendOutcome, for attempt: SendAttempt) {
-    guard attempt.revision == credentialRevision, !isShutdown else { return }
-    lastSendOutcomes[attempt.channelID] = outcome
-    publishChatState()
-  }
-
-  private func chatSendFailure(_ error: any Error) -> ChatSendOutcome {
-    switch error {
-    case ChatSendError.rejected(let code, let message):
-      .rejected(code: code, message: message)
-    case HelixError.rateLimited: .rateLimited
-    default: .failed(String(describing: error))
-    }
-  }
 }

@@ -17,7 +17,7 @@ extension ManagedChat {
       reader: configuration.reader == .eventSub ? eventSubReaderStatus : readerStatus,
       writer: writerStatus, ircReader: ircReaderState, ircWriter: ircWriterState,
       channels: channels, lastDeparture: lastDeparture, sendEligibility: eligibility,
-      lastSendOutcomes: lastSendOutcomes, isShutdown: isShutdown)
+      isShutdown: isShutdown)
   }
 
   func messageStream(

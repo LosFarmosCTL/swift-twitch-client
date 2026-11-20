@@ -138,7 +138,10 @@ readiness wait leaves the channel joined. Call `part` to withdraw membership and
 ``TwitchClient/shutdownChat()`` to close the managed transports and finish the observers.
 
 ``TwitchClient/chatStateUpdates()`` yields the latest membership, connection, and send
-state. Managed sends apply process-local sender limits and channel pacing.
+eligibility. `sendMessage` returns the immediate send outcome. A successful IRC write
+isn't a delivery receipt; Twitch's later rejection notices appear as `notice` events
+on the chat stream and aren't tied to a specific send.
+Managed sends apply process-local sender limits and channel pacing.
 These local checks are not Twitch's server-side send or join limits.
 Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
 See <doc:Authentication> for read and write scopes by transport.

@@ -40,7 +40,6 @@ internal final class ManagedChat {
 
   var prefill: Task<Void, Never>?
   var senderEvidence: [ChatChannelReference: SenderEvidence] = [:]
-  var lastSendOutcomes: [String: ChatSendOutcome] = [:]
   var sendDestinations: Set<String> = []
   var sendHistoryObserver: Task<Void, Never>?
   var eligibilityRefresh: (deadline: ContinuousClock.Instant, task: Task<Void, Never>)?
@@ -121,7 +120,6 @@ internal final class ManagedChat {
 
     if change.previousUserID != change.userID {
       senderEvidence.removeAll()
-      lastSendOutcomes.removeAll()
     }
 
     if !preserveReader { retireChatReader() }
