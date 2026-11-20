@@ -11,20 +11,25 @@ extension EventSubClient {
 
     switch frame {
     case .notification(let frame):
-      let notification = frame.notification
-
-      let notSeenBefore = sessions.active[sessionID]?.notifications.accept(notification.messageID)
-      guard notSeenBefore == true else { return }
-
-      for observer in subscription.observers.values {
-        observer.handler.yield(notification)
-      }
+      deliver(frame, to: subscription, in: sessionID)
     case .revocation(let revocation):
       closeSubscription(
         subscription,
         error: EventSubError.revocation(revocation),
         deleteRemote: false)
     }
+  }
+
+  func deliver(
+    _ frame: EventSubNotificationFrame, to subscription: Subscription, in sessionID: UUID
+  ) {
+    guard frame.subscription.type == subscription.key.type,
+      frame.subscription.version == subscription.key.version,
+      let notification = sessions.active[sessionID]?.notifications.decode(
+        frame, as: subscription.eventType, using: decoder)
+    else { return }
+
+    for observer in subscription.observers.values { observer.handler.yield(notification) }
   }
 
   private func bufferEarlyFrame(_ frame: Frame, in sessionID: UUID) {
@@ -48,7 +53,7 @@ extension EventSubClient {
   func takePendingFrames(
     _ subscriptionID: String,
     for slot: Reservation
-  ) throws -> [EventSubNotification<any Event>] {
+  ) throws -> [EventSubNotificationFrame] {
     let frames = try sessions.active[slot.session]?.notifications
       .takePendingFrames(subscriptionID, for: slot.id)
 
@@ -71,12 +76,22 @@ extension EventSubClient {
     private var pending: [UUID: [String: PendingFrames]] = [:]
     private var received = RecentIDs(capacity: 100)
 
-    fileprivate mutating func accept(_ messageID: String) -> Bool { received.insert(messageID) }
+    fileprivate mutating func decode(
+      _ frame: EventSubNotificationFrame, as eventType: any Event.Type, using decoder: JSONDecoder
+    ) -> EventSubNotification<any Event>? {
+      guard !received.contains(frame.messageID),
+        let notification = try? frame.decode(as: eventType, using: decoder)
+      else { return nil }
+
+      // Only a successfully decoded delivery should suppress a later replay.
+      _ = received.insert(frame.messageID)
+      return notification
+    }
 
     fileprivate mutating func takePendingFrames(
       _ subscriptionID: String,
       for slotID: UUID
-    ) throws -> [EventSubNotification<any Event>] {
+    ) throws -> [EventSubNotificationFrame] {
       let frames = pending.removeValue(forKey: slotID)?[subscriptionID]
 
       if let revocation = frames?.revocation {
@@ -91,8 +106,7 @@ extension EventSubClient {
 
       switch frame {
       case .notification(let frame):
-        guard accept(frame.notification.messageID) else { return }
-        frames.notifications.append(frame.notification)
+        frames.notifications.append(frame)
       case .revocation(let revocation):
         frames.revocation = revocation
       }
@@ -104,7 +118,7 @@ extension EventSubClient {
   }
 
   private struct PendingFrames {
-    var notifications: [EventSubNotification<any Event>] = []
+    var notifications: [EventSubNotificationFrame] = []
     var revocation: EventSubRevocation?
   }
 }

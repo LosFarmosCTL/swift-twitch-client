@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func userWhisperMessage(userID: String, version: String = "1")
+  public static func userWhisperMessage(userID: String)
     -> EventSubSubscription<UserWhisperMessageEvent>
   {
     .init(
-      type: EventType.userWhisperMessage.rawValue, version: version,
+      type: "user.whisper.message", version: "1",
       condition: [
         "user_id": userID
       ])

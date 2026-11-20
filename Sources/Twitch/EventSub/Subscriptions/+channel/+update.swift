@@ -9,12 +9,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
-  public static func channelUpdate(broadcasterID: String, version: String = "2")
+  public static func channelUpdate(broadcasterID: String)
     -> EventSubSubscription<ChannelUpdateEvent>
   {
     .init(
-      type: EventType.channelUpdate.rawValue, version: version,
+      type: "channel.update", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

@@ -6,6 +6,8 @@ internal struct RecentIDs {
 
   init(capacity: Int) { self.capacity = capacity }
 
+  func contains(_ id: String) -> Bool { ids.contains(id) }
+
   mutating func insert(_ id: String) -> Bool {
     guard ids.insert(id).inserted else { return false }
 

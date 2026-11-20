@@ -1,6 +1,8 @@
 import MemberwiseInit
 
 /// An EventSub notification delivered when a Guest Star guest’s state changes.
+///
+/// Uses Twitch’s beta Guest Star schema, which Twitch may change without notice.
 @MemberwiseInit(.public)
 public struct ChannelGuestStarGuestUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.

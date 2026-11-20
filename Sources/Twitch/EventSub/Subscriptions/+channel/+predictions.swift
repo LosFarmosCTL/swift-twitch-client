@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPredictionBegin(broadcasterID: String, version: String = "1")
+  public static func channelPredictionBegin(broadcasterID: String)
     -> EventSubSubscription<ChannelPredictionBeginEvent>
   {
     .init(
-      type: EventType.channelPredictionBegin.rawValue, version: version,
+      type: "channel.prediction.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelPredictionProgress(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelPredictionProgressEvent> {
     .init(
-      type: EventType.channelPredictionProgress.rawValue, version: version,
+      type: "channel.prediction.progress", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPredictionLock(broadcasterID: String, version: String = "1")
+  public static func channelPredictionLock(broadcasterID: String)
     -> EventSubSubscription<ChannelPredictionLockEvent>
   {
     .init(
-      type: EventType.channelPredictionLock.rawValue, version: version,
+      type: "channel.prediction.lock", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -76,12 +73,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPredictionEnd(broadcasterID: String, version: String = "1")
+  public static func channelPredictionEnd(broadcasterID: String)
     -> EventSubSubscription<ChannelPredictionEndEvent>
   {
     .init(
-      type: EventType.channelPredictionEnd.rawValue, version: version,
+      type: "channel.prediction.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

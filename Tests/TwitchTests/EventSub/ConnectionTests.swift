@@ -4,8 +4,19 @@ import Testing
 @testable import Twitch
 
 extension EventSubSubscription {
-  public static func mock(version: String = "1") -> EventSubSubscription<MockEvent> {
-    .init(type: EventType.mock.rawValue, version: version, condition: [:])
+  static func mock(version: String = "1") -> EventSubSubscription<MockEvent> {
+    .init(type: "mock", version: version, condition: [:])
+  }
+}
+
+struct MockEvent: Event {
+  let decodingID: UUID
+
+  private enum CodingKeys: CodingKey {}
+
+  init(from decoder: any Decoder) throws {
+    _ = try decoder.container(keyedBy: CodingKeys.self)
+    decodingID = UUID()
   }
 }
 
@@ -84,18 +95,35 @@ struct WebSocketClientTests {
     }
   }
 
-  @Test("Client receives EventSub Event messages")
+  @Test("Client delivers matching notifications after dropping invalid frames")
   func testEventSubEvents() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
     let stream = try await twitch.eventStream(for: .mock())
 
+    let valid = MockedMessages.mockEventMessage
+    let mismatches = [
+      valid.replacingOccurrences(
+        of: #""subscription_type": "mock""#, with: #""subscription_type": "other""#),
+      valid.replacingOccurrences(
+        of: #""subscription_version": "1""#, with: #""subscription_version": "2""#),
+      valid.replacingOccurrences(of: #""mock""#, with: #""other""#),
+      MockedMessages.mockVersion2EventMessage,
+    ]
+    for (index, frame) in mismatches.enumerated() {
+      await session.simulateIncoming(
+        .string(MockedMessages.customized(frame, messageID: "invalid-\(index)")))
+    }
     await session.simulateIncoming(
-      .string(MockedMessages.mockEventMessage))
+      .string(valid.replacingOccurrences(of: #""event": {}"#, with: #""event": null"#)))
+    await session.simulateIncoming(.string(valid))
+    await session.simulateIncoming(.string(MockedMessages.customized(valid, messageID: "next")))
 
     var iter = stream.makeAsyncIterator()
-    let message = try await iter.next()
-
-    _ = try #require(message)
+    let message = try #require(try await iter.next())
+    #expect(message.messageID == MockedMessages.defaultEventMessageID)
+    let next = try #require(try await iter.next())
+    #expect(next.messageID == "next")
+    await twitch.resetEventSub()
   }
 
   @Test("Client disconnects without keepalive")
@@ -176,7 +204,7 @@ struct WebSocketClientTests {
     await session.simulateIncoming(
       .string(
         MockedMessages.customized(
-          MockedMessages.mockEventMessage,
+          MockedMessages.mockVersion2EventMessage,
           messageID: "secondary-event-message-id",
           subscriptionID: secondSubscriptionID)))
 

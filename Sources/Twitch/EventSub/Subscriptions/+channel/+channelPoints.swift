@@ -11,12 +11,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelPointsCustomRewardAdd(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelPointsCustomRewardAddEvent> {
     .init(
-      type: EventType.channelPointsCustomRewardAdd.rawValue, version: version,
+      type: "channel.channel_points_custom_reward.add", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -36,19 +35,18 @@ extension EventSubSubscription {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - rewardID: A reward ID to filter by; `nil` receives notifications for all
   ///     matching rewards.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes `ChannelPointsCustomRewardUpdateEvent`
   ///   payloads.
   public static func channelPointsCustomRewardUpdate(
-    broadcasterID: String, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil
   ) -> EventSubSubscription<ChannelPointsCustomRewardUpdateEvent> {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
       condition["reward_id"] = rewardID
     }
     return .init(
-      type: EventType.channelPointsCustomRewardUpdate.rawValue, version: version,
+      type: "channel.channel_points_custom_reward.update", version: "1",
       condition: condition)
   }
 
@@ -66,19 +64,18 @@ extension EventSubSubscription {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - rewardID: A reward ID to filter by; `nil` receives notifications for all
   ///     matching rewards.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes `ChannelPointsCustomRewardRemoveEvent`
   ///   payloads.
   public static func channelPointsCustomRewardRemove(
-    broadcasterID: String, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil
   ) -> EventSubSubscription<ChannelPointsCustomRewardRemoveEvent> {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
       condition["reward_id"] = rewardID
     }
     return .init(
-      type: EventType.channelPointsCustomRewardRemove.rawValue, version: version,
+      type: "channel.channel_points_custom_reward.remove", version: "1",
       condition: condition)
   }
 
@@ -96,19 +93,18 @@ extension EventSubSubscription {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - rewardID: A reward ID to filter by; `nil` receives notifications for all
   ///     matching rewards.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes `ChannelPointsCustomRewardRedemptionAddEvent`
   ///   payloads.
   public static func channelPointsCustomRewardRedemptionAdd(
-    broadcasterID: String, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil
   ) -> EventSubSubscription<ChannelPointsCustomRewardRedemptionAddEvent> {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
       condition["reward_id"] = rewardID
     }
     return .init(
-      type: EventType.channelPointsCustomRewardRedemptionAdd.rawValue, version: version,
+      type: "channel.channel_points_custom_reward_redemption.add", version: "1",
       condition: condition)
   }
 
@@ -126,20 +122,19 @@ extension EventSubSubscription {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - rewardID: A reward ID to filter by; `nil` receives notifications for all
   ///     matching rewards.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes
   ///   `ChannelPointsCustomRewardRedemptionUpdateEvent` payloads.
   public static func channelPointsCustomRewardRedemptionUpdate(
-    broadcasterID: String, rewardID: String? = nil, version: String = "1"
+    broadcasterID: String, rewardID: String? = nil
   ) -> EventSubSubscription<ChannelPointsCustomRewardRedemptionUpdateEvent> {
     var condition: [String: String] = ["broadcaster_user_id": broadcasterID]
     if let rewardID = rewardID {
       condition["reward_id"] = rewardID
     }
     return .init(
-      type: EventType.channelPointsCustomRewardRedemptionUpdate.rawValue,
-      version: version,
+      type: "channel.channel_points_custom_reward_redemption.update",
+      version: "1",
       condition: condition)
   }
 
@@ -155,16 +150,15 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   ///
   /// - Returns: A subscription that decodes
   ///   `ChannelPointsAutomaticRewardRedemptionAddEvent` payloads.
   public static func channelPointsAutomaticRewardRedemptionAdd(
-    broadcasterID: String, version: String = "2"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelPointsAutomaticRewardRedemptionAddEvent> {
     .init(
-      type: EventType.channelPointsAutomaticRewardRedemptionAdd.rawValue,
-      version: version,
+      type: "channel.channel_points_automatic_reward_redemption.add",
+      version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

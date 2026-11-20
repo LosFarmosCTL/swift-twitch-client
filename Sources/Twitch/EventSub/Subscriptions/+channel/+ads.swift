@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelAdBreakBegin(broadcasterID: String, version: String = "1")
+  public static func channelAdBreakBegin(broadcasterID: String)
     -> EventSubSubscription<ChannelAdBreakBeginEvent>
   {
     .init(
-      type: EventType.channelAdBreakBegin.rawValue, version: version,
+      type: "channel.ad_break.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

@@ -4,9 +4,9 @@ import Testing
 @testable import Twitch
 
 extension ManagedChatEventSubTests {
-  @Test
-  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride() async throws {
-    let client = await client(moderation: true)
+  @Test(arguments: [false, true])
+  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride(warningScope: Bool) async throws {
+    let client = await client(moderation: true, warningScope: warningScope)
     try await client.join(to: channel)
     let events = await client.messageStream()
     await client.setChatPrivilege(ChatPrivilege(isModerator: true, isVIP: true), in: channel.id)
@@ -17,7 +17,10 @@ extension ManagedChatEventSubTests {
 
     await session.simulateIncoming(
       .string(
-        try notification(MockedMessages.channelModerateTimeoutUser, type: "channel.moderate") {
+        try notification(
+          MockedMessages.channelModerateTimeoutUser, type: "channel.moderate",
+          version: warningScope ? "2" : "1"
+        ) {
           var event = $0
           event["action"] = "unvip"
           event["unvip"] = ["user_id": "999", "user_login": "sender", "user_name": "Sender"]

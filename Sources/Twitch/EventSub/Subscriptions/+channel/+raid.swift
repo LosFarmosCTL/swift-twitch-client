@@ -9,12 +9,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - fromBroadcasterID: The Twitch user ID of the source broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelRaid(
-    fromBroadcasterID: String, version: String = "1"
+    fromBroadcasterID: String
   ) -> EventSubSubscription<ChannelRaidEvent> {
     .init(
-      type: EventType.channelRaid.rawValue, version: version,
+      type: "channel.raid", version: "1",
       condition: [
         "from_broadcaster_user_id": fromBroadcasterID
       ])
@@ -30,12 +29,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - toBroadcasterID: The Twitch user ID of the destination broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelRaid(
-    toBroadcasterID: String, version: String = "1"
+    toBroadcasterID: String
   ) -> EventSubSubscription<ChannelRaidEvent> {
     .init(
-      type: EventType.channelRaid.rawValue, version: version,
+      type: "channel.raid", version: "1",
       condition: [
         "to_broadcaster_user_id": toBroadcasterID
       ])

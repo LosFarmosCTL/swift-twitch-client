@@ -1,7 +1,7 @@
 import Foundation
 import MemberwiseInit
 
-/// An EventSub notification for channel moderate.
+/// A version 2 EventSub channel moderation notification, including warning actions.
 @MemberwiseInit(.public)
 // swiftlint:disable:next type_body_length
 public struct ChannelModerateEvent: Event {

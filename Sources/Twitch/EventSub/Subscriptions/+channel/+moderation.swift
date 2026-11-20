@@ -1,29 +1,50 @@
 extension EventSubSubscription {
-  /// Creates a subscription description for channel moderate notifications.
+  /// Creates a version 2 subscription description for channel moderation notifications.
   ///
   /// Requires one scope from each pair: `moderator:read:blocked_terms` /
   /// `moderator:manage:blocked_terms`, `moderator:read:chat_settings` /
   /// `moderator:manage:chat_settings`, `moderator:read:unban_requests` /
   /// `moderator:manage:unban_requests`, `moderator:read:banned_users` /
   /// `moderator:manage:banned_users`, and `moderator:read:chat_messages` /
-  /// `moderator:manage:chat_messages`. Version 2 also requires `moderator:read:warnings`
-  /// or `moderator:manage:warnings`. Both versions require `moderator:read:moderators`
+  /// `moderator:manage:chat_messages`. Also requires `moderator:read:warnings`
+  /// or `moderator:manage:warnings`, plus `moderator:read:moderators`
   /// and `moderator:read:vips`. With WebSockets, `moderatorID` must match the token’s
   /// user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelmoderate-v2
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation#channel-moderate-v2
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   public static func channelModerate(
-    broadcasterID: String, moderatorID: String, version: String = "2"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelModerateEvent> {
     .init(
-      type: EventType.channelModerate.rawValue, version: version,
+      type: "channel.moderate", version: "2",
+      condition: [
+        "broadcaster_user_id": broadcasterID,
+        "moderator_user_id": moderatorID,
+      ])
+  }
+
+  /// Creates a version 1 subscription description for channel moderation notifications.
+  ///
+  /// Use `channelModerate(broadcasterID:moderatorID:)` for warning actions in version 2.
+  ///
+  /// See the [Twitch reference](
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation#channel-moderate
+  /// ) for conditions and transport-specific authorization.
+  ///
+  /// - Parameters:
+  ///   - broadcasterID: The Twitch user ID of the broadcaster.
+  ///   - moderatorID: The Twitch user ID of the moderator, matching the WebSocket token user.
+  public static func channelModerateV1(
+    broadcasterID: String, moderatorID: String
+  ) -> EventSubSubscription<ChannelModerateV1Event> {
+    .init(
+      type: "channel.moderate", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -41,12 +62,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelBan(broadcasterID: String, version: String = "1")
+  public static func channelBan(broadcasterID: String)
     -> EventSubSubscription<ChannelBanEvent>
   {
     .init(
-      type: EventType.channelBan.rawValue, version: version,
+      type: "channel.ban", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -63,12 +83,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelUnban(broadcasterID: String, version: String = "1")
+  public static func channelUnban(broadcasterID: String)
     -> EventSubSubscription<ChannelUnbanEvent>
   {
     .init(
-      type: EventType.channelUnban.rawValue, version: version,
+      type: "channel.unban", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -85,12 +104,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelModeratorAdd(broadcasterID: String, version: String = "1")
+  public static func channelModeratorAdd(broadcasterID: String)
     -> EventSubSubscription<ChannelModeratorAddEvent>
   {
     .init(
-      type: EventType.channelModeratorAdd.rawValue, version: version,
+      type: "channel.moderator.add", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -107,12 +125,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelModeratorRemove(broadcasterID: String, version: String = "1")
+  public static func channelModeratorRemove(broadcasterID: String)
     -> EventSubSubscription<ChannelModeratorRemoveEvent>
   {
     .init(
-      type: EventType.channelModeratorRemove.rawValue, version: version,
+      type: "channel.moderator.remove", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -131,12 +148,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelUnbanRequestCreate(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelUnbanRequestCreateEvent> {
     .init(
-      type: EventType.channelUnbanRequestCreate.rawValue, version: version,
+      type: "channel.unban_request.create", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -156,12 +172,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelUnbanRequestResolve(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelUnbanRequestResolveEvent> {
     .init(
-      type: EventType.channelUnbanRequestResolve.rawValue, version: version,
+      type: "channel.unban_request.resolve", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -181,12 +196,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelWarningAcknowledge(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelWarningAcknowledgeEvent> {
     .init(
-      type: EventType.channelWarningAcknowledge.rawValue, version: version,
+      type: "channel.warning.acknowledge", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -206,12 +220,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelWarningSend(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelWarningSendEvent> {
     .init(
-      type: EventType.channelWarningSend.rawValue, version: version,
+      type: "channel.warning.send", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -231,12 +244,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelSuspiciousUserMessage(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelSuspiciousUserMessageEvent> {
     .init(
-      type: EventType.channelSuspiciousUserMessage.rawValue, version: version,
+      type: "channel.suspicious_user.message", version: "1",
       condition: [
         "moderator_user_id": moderatorID,
         "broadcaster_user_id": broadcasterID,
@@ -255,12 +267,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelSuspiciousUserUpdate(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelSuspiciousUserUpdateEvent> {
     .init(
-      type: EventType.channelSuspiciousUserUpdate.rawValue, version: version,
+      type: "channel.suspicious_user.update", version: "1",
       condition: [
         "moderator_user_id": moderatorID,
         "broadcaster_user_id": broadcasterID,
@@ -280,12 +291,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelShieldModeBegin(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelShieldModeBeginEvent> {
     .init(
-      type: EventType.channelShieldModeBegin.rawValue, version: version,
+      type: "channel.shield_mode.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -305,12 +315,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelShieldModeEnd(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelShieldModeEndEvent> {
     .init(
-      type: EventType.channelShieldModeEnd.rawValue, version: version,
+      type: "channel.shield_mode.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,

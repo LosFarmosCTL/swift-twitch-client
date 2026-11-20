@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func charityDonation(broadcasterID: String, version: String = "1")
+  public static func charityDonation(broadcasterID: String)
     -> EventSubSubscription<CharityDonationEvent>
   {
     .init(
-      type: EventType.charityDonation.rawValue, version: version,
+      type: "channel.charity_campaign.donate", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func charityCampaignStart(broadcasterID: String, version: String = "1")
+  public static func charityCampaignStart(broadcasterID: String)
     -> EventSubSubscription<CharityCampaignStartEvent>
   {
     .init(
-      type: EventType.charityCampaignStart.rawValue, version: version,
+      type: "channel.charity_campaign.start", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func charityCampaignProgress(broadcasterID: String, version: String = "1")
+  public static func charityCampaignProgress(broadcasterID: String)
     -> EventSubSubscription<CharityCampaignProgressEvent>
   {
     .init(
-      type: EventType.charityCampaignProgress.rawValue, version: version,
+      type: "channel.charity_campaign.progress", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -76,12 +73,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func charityCampaignStop(broadcasterID: String, version: String = "1")
+  public static func charityCampaignStop(broadcasterID: String)
     -> EventSubSubscription<CharityCampaignStopEvent>
   {
     .init(
-      type: EventType.charityCampaignStop.rawValue, version: version,
+      type: "channel.charity_campaign.stop", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

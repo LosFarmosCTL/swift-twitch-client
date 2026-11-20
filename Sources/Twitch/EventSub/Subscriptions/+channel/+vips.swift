@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelVIPAdd(broadcasterID: String, version: String = "1")
+  public static func channelVIPAdd(broadcasterID: String)
     -> EventSubSubscription<ChannelVIPAddEvent>
   {
     .init(
-      type: EventType.channelVIPAdd.rawValue, version: version,
+      type: "channel.vip.add", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelVIPRemove(broadcasterID: String, version: String = "1")
+  public static func channelVIPRemove(broadcasterID: String)
     -> EventSubSubscription<ChannelVIPRemoveEvent>
   {
     .init(
-      type: EventType.channelVIPRemove.rawValue, version: version,
+      type: "channel.vip.remove", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

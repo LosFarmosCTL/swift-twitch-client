@@ -3,8 +3,9 @@ import Foundation
 extension EventSubClient {
   // MARK: - Subscription setup
 
-  func startSubscription(_ key: ConflictKey) -> Subscription {
-    let subscription = Subscription(key: key, credentials: credentials, revision: revision)
+  func startSubscription(_ key: ConflictKey, eventType: any Event.Type) -> Subscription {
+    let subscription = Subscription(
+      key: key, eventType: eventType, credentials: credentials, revision: revision)
     subscriptions[key] = subscription
     subscription.setupTask = Task { await openSubscription(subscription) }
     return subscription
@@ -52,10 +53,8 @@ extension EventSubClient {
     subscription.setupTask = nil
     remoteSubscriptions[id] = subscription
 
-    for observer in subscription.observers.values {
-      for notification in buffered { observer.handler.yield(notification) }
-      observer.markReady()
-    }
+    for frame in buffered { deliver(frame, to: subscription, in: slot.session) }
+    for observer in subscription.observers.values { observer.markReady() }
   }
 
   private func setupError(_ error: any Error) -> any Error {
@@ -83,6 +82,7 @@ extension EventSubClient {
     }
 
     let key: ConflictKey
+    let eventType: any Event.Type
     let credentials: TwitchCredentials
     let revision: UInt64
 
@@ -93,8 +93,11 @@ extension EventSubClient {
     // A nil registry means this entry has finished cleanup.
     private(set) var cleanupWaiters: [UUID: AsyncStream<Void>.Continuation]? = [:]
 
-    init(key: ConflictKey, credentials: TwitchCredentials, revision: UInt64) {
+    init(
+      key: ConflictKey, eventType: any Event.Type, credentials: TwitchCredentials, revision: UInt64
+    ) {
       self.key = key
+      self.eventType = eventType
       self.credentials = credentials
       self.revision = revision
     }
