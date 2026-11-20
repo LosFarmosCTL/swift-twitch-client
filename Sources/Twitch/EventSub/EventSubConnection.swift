@@ -49,24 +49,27 @@ internal actor EventSubConnection {
 
   // MARK: - Handshake
 
-  func connect() async throws -> String {
+  func connect(handshakeDeadline: ContinuousClock.Instant? = nil) async throws -> String {
     try await withTaskCancellationHandler {
-      try await performHandshake()
+      try await performHandshake(deadline: handshakeDeadline)
     } onCancel: {
       Task { [weak self] in await self?.cancel() }
     }
   }
 
-  private func performHandshake() async throws -> String {
+  private func performHandshake(deadline: ContinuousClock.Instant?) async throws -> String {
     do {
       let socket = try await openSocket()
 
-      let timer = KeepaliveTimer(duration: .seconds(7)) { [weak self] in
+      let timeout = min(
+        .seconds(7), deadline.map { ContinuousClock.now.duration(to: $0) } ?? .seconds(7))
+      guard timeout > .zero else { throw EventSubError.timedOut }
+      let timer = KeepaliveTimer(duration: timeout) { [weak self] in
         await self?.fail(.timedOut)
       }
       keepaliveTimer = timer
 
-      let welcome = try await readWelcome(on: socket, timer: timer)
+      let welcome = try await readWelcome(on: socket, timer: deadline == nil ? timer : nil)
       await timer.reset(duration: welcome.keepaliveTimeout + .seconds(1))
 
       try checkOpen()
@@ -100,12 +103,12 @@ internal actor EventSubConnection {
   }
 
   private func readWelcome(
-    on socket: WebSocketTask, timer: KeepaliveTimer
+    on socket: WebSocketTask, timer: KeepaliveTimer?
   ) async throws -> EventSubWelcome {
     while true {
       let frame = try await socket.receive()
       try checkOpen()
-      await timer.reset()
+      await timer?.reset()
 
       if case .welcome(let welcome) = decodeMessage(from: frame)?.message.payload {
         return welcome

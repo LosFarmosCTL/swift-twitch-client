@@ -9,8 +9,7 @@ extension EventSubClient {
     let isCurrent = session.connection.id == socketID
     guard isCurrent || session.drainingConnections[socketID] != nil else { return }
 
-    // Outgoing sockets can still deliver frames during handoff. The replacement
-    // determines whether the session survives from the moment it starts connecting.
+    // The old socket can deliver frames while the replacement is connecting.
     let controlsSession = isCurrent && session.replacement == nil
 
     switch update {
@@ -27,19 +26,32 @@ extension EventSubClient {
     }
   }
 
-  private func startHandoff(in sessionID: UUID, at url: URL) {
+  private func startHandoff(
+    in sessionID: UUID, at url: URL,
+    deadline: ContinuousClock.Instant = .now.advanced(by: .seconds(30)),
+    delay: Duration = .zero
+  ) {
     let replacement = makeSessionConnection(in: sessionID, at: url)
     let task = Task<Void, Never> { [weak self] in
-      await self?.handoff(sessionID, to: replacement)
+      if delay > .zero {
+        do { try await Task.sleep(for: delay) } catch { return }
+      }
+      await self?.handoff(sessionID, to: replacement, at: url, deadline: deadline)
     }
 
     sessions.active[sessionID]?.replacement = SocketHandshake(connection: replacement, task: task)
   }
 
-  private func handoff(_ sessionID: UUID, to replacement: EventSubConnection) async {
+  private func handoff(
+    _ sessionID: UUID, to replacement: EventSubConnection, at url: URL,
+    deadline: ContinuousClock.Instant
+  ) async {
+    guard sessions.active[sessionID]?.replacement?.connection.id == replacement.id else { return }
+
     do {
-      let twitchSessionID = try await replacement.connect()
-      guard
+      guard ContinuousClock.now < deadline else { throw EventSubError.timedOut }
+      let twitchSessionID = try await replacement.connect(handshakeDeadline: deadline)
+      guard sessions.active[sessionID]?.replacement?.connection.id == replacement.id,
         let previous = sessions.active[sessionID]?.installReplacement(
           replacement, twitchSessionID: twitchSessionID)
       else { return }
@@ -50,8 +62,16 @@ extension EventSubClient {
       await previous.cancelAfterDraining()
       sessions.active[sessionID]?.drainingConnections[previous.id] = nil
     } catch {
-      guard sessions.active[sessionID] != nil else { return }
-      failSession(sessionID, error: .disconnected(with: error))
+      guard let session = sessions.active[sessionID] else { return }
+      let remaining = ContinuousClock.now.duration(to: deadline)
+      if session.replacement?.connection.id == replacement.id, remaining > .zero {
+        // No Welcome: the old connection may still be delivering notifications.
+        startHandoff(in: sessionID, at: url, deadline: deadline, delay: min(.seconds(1), remaining))
+      } else if session.connection.id == replacement.id
+        || session.replacement?.connection.id == replacement.id
+      {
+        failSession(sessionID, error: .disconnected(with: error))
+      }
     }
   }
 }

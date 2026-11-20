@@ -213,6 +213,32 @@ struct WebSocketClientTests {
     _ = try #require(message)
   }
 
+  @Test(
+    "A failed replacement leaves the old socket open until a retry is ready",
+    .timeLimit(.minutes(1)))
+  func failedReplacementKeepsOldSocket() async throws {
+    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    let stream = try await twitch.eventStream(for: .mock())
+    let old = await session.waitForTask(at: 0)
+    await old.simulateIncoming(.string(MockedMessages.mockReconnectMessage))
+
+    let failed = await session.waitForTask(at: 1)
+    await failed.simulateError(URLError(.networkConnectionLost))
+    let retry = await session.waitForTask(at: 2)
+    #expect(await failed.didCancel)
+    #expect(await !old.didCancel)
+
+    await old.simulateIncoming(.string(MockedMessages.mockEventMessage))
+    var iterator = stream.makeAsyncIterator()
+    let notification = try #require(try await iterator.next())
+    #expect(notification.messageID == MockedMessages.defaultEventMessageID)
+
+    await retry.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    await old.waitForCancellation()
+    #expect(await !retry.didCancel)
+    await twitch.resetEventSub()
+  }
+
   @Test("Client reconnects on reconnection message")
   func testEventSubReconnect() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
