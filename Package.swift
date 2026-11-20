@@ -23,7 +23,7 @@ let package = Package(
 
     .package(
       url: "https://github.com/gohanlon/swift-memberwise-init-macro",
-      .upToNextMajor(from: "0.6.0")),
+      .upToNextMinor(from: "0.6.0")),
   ],
   targets: [
     .target(
