@@ -122,9 +122,7 @@ Raw sends use the configured IRC writer and apply IRC wire validation.
 - ``HelixResponseMetadata``
 - ``HelixRateLimit``
 - ``HelixRateLimitError``
-- ``HelixEndpointResponseType``
-- ``HelixEndpointResponseTypes``
-- ``EmptyResponse``
+- ``ChatSettingsUpdate``
 
 ### EventSub notifications
 

@@ -95,11 +95,13 @@ struct ExtensionsTests {
       url: url,
       body: MockedData.getExtensionLiveChannelsJSON)
 
-    let (channels, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getExtensionLiveChannels(
           extensionID: "uo6dggojyb8d6soh92zknwmi5ej1q2",
           limit: 1))).value
+    let channels = page.channels
+    let cursor = page.cursor
 
     #expect(
       cursor

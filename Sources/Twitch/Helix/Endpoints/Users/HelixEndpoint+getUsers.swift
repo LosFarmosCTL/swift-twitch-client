@@ -19,7 +19,7 @@ extension HelixEndpoint {
   public static func getUsers(
     userIDs: [String] = [],
     userLogins: [String] = []
-  ) -> HelixEndpoint<[User], User, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[User]> {
     let idQueryItems = userIDs.map { ("id", $0) }
     let loginQueryItems = userLogins.map { ("login", $0) }
 
@@ -32,7 +32,7 @@ extension HelixEndpoint {
         }
         return idQueryItems + loginQueryItems
       },
-      makeResponse: { $0.data })
+      responseType: User.self, makeResponse: { $0.data })
   }
 }
 

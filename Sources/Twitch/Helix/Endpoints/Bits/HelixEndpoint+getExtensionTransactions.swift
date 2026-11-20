@@ -21,10 +21,7 @@ extension HelixEndpoint {
     transactionIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (transactions: [ExtensionTransaction], cursor: String?), ExtensionTransaction,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ExtensionTransactionsResponse> {
     .init(
       method: "GET", path: "extensions/transactions",
       authentication: .app,
@@ -35,7 +32,11 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + transactionIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: ExtensionTransaction.self,
+      makeResponse: {
+        ExtensionTransactionsResponse(
+          transactions: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -98,4 +99,13 @@ public struct ExtensionTransaction: Decodable, Sendable {
       case isBroadcast = "broadcast"
     }
   }
+}
+
+/// A page of extension transactions.
+@MemberwiseInit(.public)
+public struct ExtensionTransactionsResponse: Sendable {
+  /// The transactions on this page.
+  public let transactions: [ExtensionTransaction]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

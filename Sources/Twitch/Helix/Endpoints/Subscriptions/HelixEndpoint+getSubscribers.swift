@@ -28,7 +28,7 @@ extension HelixEndpoint {
     after afterCursor: String? = nil,
     before beforeCursor: String? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<SubscribersResponse, Subscriber, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<SubscribersResponse> {
     .init(
       method: "GET", path: "subscriptions",
       authentication: .either,
@@ -44,6 +44,7 @@ extension HelixEndpoint {
           ("before", beforeCursor),
         ] + userIDs.map { ("user_id", $0) }
       },
+      responseType: Subscriber.self,
       makeResponse: {
         SubscribersResponse(
           subscribers: $0.data,

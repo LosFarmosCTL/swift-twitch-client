@@ -16,7 +16,7 @@ extension HelixEndpoint {
   public static func getUserEmotes(
     broadcasterID: String? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<UserEmotesResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<UserEmotesResponse> {
     .init(
       method: "GET", path: "chat/emotes/user",
       authentication: .user,
@@ -27,6 +27,7 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: SetEmote.self,
       makeResponse: {
         UserEmotesResponse(
           emotes: $0.data, template: try $0.require(\.template),

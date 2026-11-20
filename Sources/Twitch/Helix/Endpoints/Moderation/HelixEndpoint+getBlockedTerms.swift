@@ -23,17 +23,14 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(terms: [BlockedTerm], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``BlockedTermsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getBlockedTerms(
     in broadcasterID: String,
     limit: Int? = nil,
     after cursor: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    (terms: [BlockedTerm], cursor: String?), BlockedTerm,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<BlockedTermsResponse> {
     .init(
       method: "GET", path: "moderation/blocked_terms",
       authentication: .either,
@@ -49,8 +46,9 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: BlockedTerm.self,
       makeResponse: {
-        ($0.data, $0.pagination?.cursor)
+        BlockedTermsResponse(terms: $0.data, cursor: $0.pagination?.cursor)
       })
   }
 }
@@ -82,4 +80,13 @@ public struct BlockedTerm: Decodable, Sendable {
 
     case id, text, createdAt, updatedAt, expiresAt
   }
+}
+
+/// A page of blocked terms.
+@MemberwiseInit(.public)
+public struct BlockedTermsResponse: Sendable {
+  /// The terms on this page.
+  public let terms: [BlockedTerm]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

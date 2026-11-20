@@ -27,10 +27,7 @@ extension HelixEndpoint {
     videoID: String? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (users: [StreamMarkersByUser], cursor: String?), StreamMarkersByUser,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<StreamMarkersResponse> {
     .init(
       method: "GET", path: "streams/markers",
       authentication: .user,
@@ -46,7 +43,10 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: StreamMarkersByUser.self,
+      makeResponse: {
+        StreamMarkersResponse(users: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -102,4 +102,13 @@ public struct StreamMarkersVideo: Decodable, Sendable {
       case url = "URL"
     }
   }
+}
+
+/// A page of stream markers.
+@MemberwiseInit(.public)
+public struct StreamMarkersResponse: Sendable {
+  /// The users on this page.
+  public let users: [StreamMarkersByUser]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

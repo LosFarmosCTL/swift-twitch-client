@@ -30,7 +30,7 @@ extension HelixEndpoint {
     tags: [String]? = nil,
     contentClassificationLabels: [ContentClassificationLabelID: Bool]? = nil,
     isBrandedContent: Bool? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     let contentClassificationLabels =
       contentClassificationLabels?.map { (id, isEnabled) in
         UpdateChannelRequestBody.ContentClassificationLabelUpdate(

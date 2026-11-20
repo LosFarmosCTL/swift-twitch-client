@@ -16,7 +16,7 @@ extension HelixEndpoint {
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
   public static func getHypeTrainStatus(for broadcasterID: String? = nil)
-    -> HelixEndpoint<HypeTrainStatus, HypeTrainStatus, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<HypeTrainStatus>
   {
     .init(
       method: "GET", path: "hypetrain/status",
@@ -29,6 +29,7 @@ extension HelixEndpoint {
           )
         ]
       },
+      responseType: HypeTrainStatus.self,
       makeResponse: { response in
         let status = try response.requireFirst()
 

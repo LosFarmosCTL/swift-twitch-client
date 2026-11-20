@@ -79,9 +79,11 @@ struct ClipsTests {
       url: url,
       body: MockedData.getClipsJSON)
 
-    let (clips, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getClips(clipIDs: ["AwkwardHelplessSalamanderSwiftRage"]))).value
+    let clips = page.clips
+    let cursor = page.cursor
 
     #expect(cursor == nil)
     #expect(clips.count == 1)

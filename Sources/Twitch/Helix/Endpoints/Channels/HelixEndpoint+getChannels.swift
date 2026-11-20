@@ -13,14 +13,14 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - broadcasterIDs: The broadcaster IDs to include in the request.
   public static func getChannels(_ broadcasterIDs: [String])
-    -> HelixEndpoint<[Broadcaster], Broadcaster, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[Broadcaster]>
   {
     .init(
       method: "GET", path: "channels",
       authentication: .either,
       queryItems: { _ in
         broadcasterIDs.map { ("broadcaster_id", $0) }
-      }, makeResponse: { $0.data })
+      }, responseType: Broadcaster.self, makeResponse: { $0.data })
   }
 }
 

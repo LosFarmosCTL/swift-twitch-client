@@ -15,7 +15,7 @@ extension HelixEndpoint {
   public static func getReleasedExtension(
     extensionID: String,
     version: String? = nil
-  ) -> HelixEndpoint<Extension, Extension, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Extension> {
     .init(
       method: "GET", path: "extensions/released",
       authentication: .either,
@@ -25,6 +25,7 @@ extension HelixEndpoint {
           ("extension_version", version),
         ]
       },
+      responseType: Extension.self,
       makeResponse: { response in
         let extensionInfo = try response.requireFirst()
 

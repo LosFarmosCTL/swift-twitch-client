@@ -52,14 +52,12 @@ struct HelixTests {
 
   @Test
   func bodyEncodingFailureIsUnexpectedError() async {
-    let endpoint = HelixEndpoint<
-      String?, String, HelixEndpointResponseTypes.Normal
-    >(
+    let endpoint = HelixEndpoint<String?>(
       method: "POST",
       path: "encoding-failure",
       authentication: .either,
       body: { _ in UnencodableBody() },
-      makeResponse: { $0.data.first })
+      responseType: String.self, makeResponse: { $0.data.first })
 
     do {
       _ = try await harness.twitch.helix(for: endpoint)
@@ -110,6 +108,23 @@ struct HelixTests {
       Issue.record("Expected parsingResponseFailed, got \(String(describing: error))")
       return
     }
+  }
+
+  @Test
+  func emptyEndpointRejectsAnUnexpectedBody() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/empty"))
+    let body = Data("unexpected body".utf8)
+    await harness.session.stub(url: url, method: "DELETE", status: 200, body: body)
+    let endpoint: HelixEndpoint<Void> = .init(
+      method: "DELETE", path: "empty", authentication: .either)
+    let error = await #expect(throws: HelixError.self) {
+      try await harness.twitch.helix(for: endpoint)
+    }
+    guard case .nonEmptyResponse(let responseData) = error else {
+      Issue.record("Expected nonEmptyResponse, got \(String(describing: error))")
+      return
+    }
+    #expect(responseData == body)
   }
 
   @Test
@@ -173,12 +188,11 @@ struct HelixTests {
       url: url,
       body: Data("{\"data\":[\"value\"]}".utf8))
 
-    let endpoint = HelixEndpoint<
-      String?, String, HelixEndpointResponseTypes.Normal
-    >(
+    let endpoint = HelixEndpoint<String?>(
       method: "GET",
       path: "unexpected",
       authentication: .either,
+      responseType: String.self,
       makeResponse: { _ in throw HelixCallbackTestError.unexpected })
 
     let result: Result<HelixResponse<String?>, HelixError> = await withCheckedContinuation {

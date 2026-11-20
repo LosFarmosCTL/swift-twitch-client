@@ -16,7 +16,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - userID: The Twitch user ID.
   public static func removeChannelVIP(userID: String)
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     .init(
       method: "DELETE", path: "channels/vips",

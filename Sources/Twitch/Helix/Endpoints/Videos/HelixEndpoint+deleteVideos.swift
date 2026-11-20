@@ -13,13 +13,13 @@ extension HelixEndpoint {
   ///   - videoIDs: The video IDs to include in the request.
   public static func deleteVideos(
     videoIDs: [String]
-  ) -> HelixEndpoint<[String], String, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[String]> {
     .init(
       method: "DELETE", path: "videos",
       authentication: .user,
       queryItems: { _ in
         videoIDs.map { ("id", $0) }
       },
-      makeResponse: { $0.data })
+      responseType: String.self, makeResponse: { $0.data })
   }
 }

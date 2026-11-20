@@ -14,12 +14,12 @@ extension HelixEndpoint {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   public static func getChannelBadges(
     of broadcasterID: String
-  ) -> HelixEndpoint<[BadgeSet], BadgeSet, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[BadgeSet]> {
     .init(
       method: "GET", path: "chat/badges",
       authentication: .either,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
-      makeResponse: { $0.data })
+      responseType: BadgeSet.self, makeResponse: { $0.data })
   }
 }
 

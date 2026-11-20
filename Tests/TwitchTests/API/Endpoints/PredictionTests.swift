@@ -18,13 +18,15 @@ struct PredictionTests {
       url: url,
       body: MockedData.getPredictionsJSON)
 
-    let (predictions, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getPredictions(
           predictionIDs: ["d6676d5c-c86e-44d2-bfc4-100fb48f0656"],
           limit: nil,
           after: nil)
       )).value
+    let predictions = page.predictions
+    let cursor = page.cursor
 
     #expect(cursor == nil)
     #expect(predictions.count == 1)

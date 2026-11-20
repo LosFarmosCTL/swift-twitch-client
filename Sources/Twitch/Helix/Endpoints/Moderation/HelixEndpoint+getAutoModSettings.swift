@@ -23,7 +23,7 @@ extension HelixEndpoint {
     of broadcasterID: String,
     moderatorID: String? = nil
   )
-    -> HelixEndpoint<AutoModSettings, AutoModSettings, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<AutoModSettings>
   {
     .init(
       method: "GET", path: "moderation/automod/settings",
@@ -38,6 +38,7 @@ extension HelixEndpoint {
           ),
         ]
       },
+      responseType: AutoModSettings.self,
       makeResponse: {
         let settings = try $0.requireFirst()
 

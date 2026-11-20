@@ -15,17 +15,14 @@ extension HelixEndpoint {
   ///   - includeAll: Whether to include all available entries.
   public static func getExtensionBitsProducts(
     includeAll: Bool? = nil
-  ) -> HelixEndpoint<
-    [ExtensionBitsProduct], ExtensionBitsProduct,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[ExtensionBitsProduct]> {
     .init(
       method: "GET", path: "bits/extensions",
       authentication: .app,
       queryItems: { _ in
         [("should_include_all", includeAll.map(String.init))]
       },
-      makeResponse: { $0.data })
+      responseType: ExtensionBitsProduct.self, makeResponse: { $0.data })
   }
 }
 

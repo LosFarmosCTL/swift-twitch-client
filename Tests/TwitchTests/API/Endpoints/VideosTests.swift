@@ -14,9 +14,11 @@ struct VideosTests {
       url: url,
       body: MockedData.getVideosJSON)
 
-    let (videos, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getVideos(videoIDs: ["987654321"]))).value
+    let videos = page.videos
+    let cursor = page.cursor
 
     #expect(cursor == nil)
 

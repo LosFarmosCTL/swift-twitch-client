@@ -12,7 +12,7 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-channel-editors
   /// ) for request limits and account requirements.
   public static func getChannelEditors()
-    -> HelixEndpoint<[Editor], Editor, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[Editor]>
   {
     .init(
       method: "GET", path: "channels/editors",
@@ -20,7 +20,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [("broadcaster_id", try credentials.requireUser().id)]
       },
-      makeResponse: { $0.data })
+      responseType: Editor.self, makeResponse: { $0.data })
   }
 }
 

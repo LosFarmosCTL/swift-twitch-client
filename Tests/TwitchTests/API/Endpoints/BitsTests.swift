@@ -43,12 +43,14 @@ struct BitsTests {
 
     await harness.session.stub(url: url, body: MockedData.getExtensionTransactionsJSON)
 
-    let (transactions, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getExtensionTransactions(
           extensionID: "extension", transactionIDs: ["one", "two"], limit: 2,
           after: "next")
       )).value
+    let transactions = page.transactions
+    let cursor = page.cursor
 
     #expect(cursor == "cursorString")
     #expect(transactions.count == 2)

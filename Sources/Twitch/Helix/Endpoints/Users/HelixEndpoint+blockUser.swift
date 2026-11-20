@@ -17,7 +17,7 @@ extension HelixEndpoint {
     _ userID: String,
     sourceContext: UserBlockSourceContext? = nil,
     reason: UserBlockReason? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PUT", path: "users/blocks",
       authentication: .user,

@@ -26,10 +26,7 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after cursor: String? = nil,
     userID: String? = nil
-  ) -> HelixEndpoint<
-    (channels: [ModeratedChannel], cursor: String?), ModeratedChannel,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ModeratedChannelsResponse> {
     .init(
       method: "GET", path: "moderation/channels",
       authentication: .either,
@@ -43,7 +40,10 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) }
+      }, responseType: ModeratedChannel.self,
+      makeResponse: {
+        ModeratedChannelsResponse(channels: $0.data, cursor: $0.pagination?.cursor)
+      }
     )
   }
 }
@@ -63,4 +63,13 @@ public struct ModeratedChannel: Decodable, Sendable {
     case login = "broadcasterLogin"
     case displayName = "broadcasterName"
   }
+}
+
+/// A page of moderated channels.
+@MemberwiseInit(.public)
+public struct ModeratedChannelsResponse: Sendable {
+  /// The channels on this page.
+  public let channels: [ModeratedChannel]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

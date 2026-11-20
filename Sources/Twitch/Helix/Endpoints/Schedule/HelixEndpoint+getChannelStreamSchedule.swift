@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a broadcaster’s streaming schedule, optionally filtered to specific segments.
@@ -19,10 +20,7 @@ extension HelixEndpoint {
   public static func getChannelStreamSchedule(
     for broadcasterID: String, segmentIDs: [String] = [], startTime: Date? = nil,
     limit: Int? = nil, after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (schedule: StreamSchedule, cursor: String?), StreamSchedule,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ChannelStreamScheduleResponse> {
     .init(
       method: "GET", path: "schedule",
       authentication: .either,
@@ -32,6 +30,19 @@ extension HelixEndpoint {
           ("start_time", startTime?.formatted(.iso8601)),
           ("first", limit.map(String.init)), ("after", cursor),
         ] + segmentIDs.map { ("id", $0) }
-      }, makeResponse: { (try $0.requireFirst(), $0.pagination?.cursor) })
+      }, responseType: StreamSchedule.self,
+      makeResponse: {
+        ChannelStreamScheduleResponse(
+          schedule: try $0.requireFirst(), cursor: $0.pagination?.cursor)
+      })
   }
+}
+
+/// A schedule page.
+@MemberwiseInit(.public)
+public struct ChannelStreamScheduleResponse: Sendable {
+  /// The schedule on this page.
+  public let schedule: StreamSchedule
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

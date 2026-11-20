@@ -28,7 +28,7 @@ extension HelixEndpoint {
   ///     after cursor.
   ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   ///
-  /// - Returns: An endpoint that yields `(videos: [Video], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``VideosResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getVideos(
     videoIDs: [String] = [],
@@ -41,10 +41,7 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after afterCursor: String? = nil,
     before beforeCursor: String? = nil
-  ) -> HelixEndpoint<
-    (videos: [Video], cursor: String?),
-    Video, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<VideosResponse> {
     let idQueryItems = videoIDs.map { ("id", $0) }
 
     return .init(
@@ -63,7 +60,8 @@ extension HelixEndpoint {
           ("before", beforeCursor),
         ] + idQueryItems
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Video.self,
+      makeResponse: { VideosResponse(videos: $0.data, cursor: $0.pagination?.cursor) })
   }
 }
 
@@ -181,4 +179,13 @@ public struct MutedSegment: Decodable, Sendable {
   public let duration: Int
   /// The offset from the beginning of the content.
   public let offset: Int
+}
+
+/// A page of videos.
+@MemberwiseInit(.public)
+public struct VideosResponse: Sendable {
+  /// The videos on this page.
+  public let videos: [Video]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

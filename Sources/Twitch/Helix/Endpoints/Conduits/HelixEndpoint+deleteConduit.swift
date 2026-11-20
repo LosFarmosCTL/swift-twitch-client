@@ -13,7 +13,7 @@ extension HelixEndpoint {
   ///   - conduitID: The identifier of the conduit.
   public static func deleteConduit(
     conduitID: String
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "eventsub/conduits",
       authentication: .app,

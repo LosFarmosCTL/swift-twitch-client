@@ -23,10 +23,7 @@ extension HelixEndpoint {
   public static func getUnbanRequests(
     in broadcasterID: String, status: UnbanRequestStatus, userID: String? = nil,
     limit: Int? = nil, after cursor: String? = nil, moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    (requests: [UnbanRequest], cursor: String?), UnbanRequest,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<UnbanRequestsResponse> {
     .init(
       method: "GET", path: "moderation/unban_requests",
       authentication: .user,
@@ -41,7 +38,10 @@ extension HelixEndpoint {
           ("status", status.rawValue), ("user_id", userID),
           ("first", limit.map(String.init)), ("after", cursor),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: UnbanRequest.self,
+      makeResponse: {
+        UnbanRequestsResponse(requests: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -106,4 +106,13 @@ public struct UnbanRequest: Decodable, Sendable {
     case userDisplayName = "userName"
     case text, status, createdAt, resolvedAt, resolutionText
   }
+}
+
+/// A page of unban requests.
+@MemberwiseInit(.public)
+public struct UnbanRequestsResponse: Sendable {
+  /// The requests on this page.
+  public let requests: [UnbanRequest]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

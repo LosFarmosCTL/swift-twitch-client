@@ -45,9 +45,11 @@ struct CharityTests {
       url: url,
       body: MockedData.getCharityCampaignDonationsJSON)
 
-    let (donations, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getCharityCampaignDonations(limit: 2))).value
+    let donations = page.donations
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
     #expect(donations.count == 2)

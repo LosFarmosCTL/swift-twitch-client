@@ -22,7 +22,7 @@ extension HelixEndpoint {
     in broadcasterID: String,
     text: String,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<BlockedTerm, BlockedTerm, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<BlockedTerm> {
     .init(
       method: "POST", path: "moderation/blocked_terms",
       authentication: .either,
@@ -37,6 +37,7 @@ extension HelixEndpoint {
         ]
       },
       body: { _ in ["text": text] },
+      responseType: BlockedTerm.self,
       makeResponse: {
         let term = try $0.requireFirst()
 

@@ -19,9 +19,7 @@ extension HelixEndpoint {
   public static func getFollowedChannels(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    FollowedChannelsResponse, Follow, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<FollowedChannelsResponse> {
     .init(
       method: "GET", path: "channels/followed",
       authentication: .user,
@@ -32,6 +30,7 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: Follow.self,
       makeResponse: {
         let total = try $0.require(\.total)
 
@@ -58,7 +57,7 @@ extension HelixEndpoint {
   /// - Returns: An endpoint that yields matching follow details when executed, or `nil`
   ///   when Twitch returns no matching entry.
   public static func checkFollow(to broadcasterID: String)
-    -> HelixEndpoint<Follow?, Follow, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<Follow?>
   {
     .init(
       method: "GET", path: "channels/followed",
@@ -69,7 +68,7 @@ extension HelixEndpoint {
           ("broadcaster_id", broadcasterID),
         ]
       },
-      makeResponse: { $0.data.first })
+      responseType: Follow.self, makeResponse: { $0.data.first })
   }
 }
 

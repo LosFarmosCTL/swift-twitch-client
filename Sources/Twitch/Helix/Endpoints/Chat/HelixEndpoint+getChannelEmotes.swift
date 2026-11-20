@@ -14,13 +14,12 @@ extension HelixEndpoint {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   public static func getChannelEmotes(
     of broadcasterID: String
-  ) -> HelixEndpoint<
-    ChannelEmotesResponse, ChannelEmote, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ChannelEmotesResponse> {
     .init(
       method: "GET", path: "chat/emotes",
       authentication: .either,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
+      responseType: ChannelEmote.self,
       makeResponse: {
         let template = try $0.require(\.template)
 

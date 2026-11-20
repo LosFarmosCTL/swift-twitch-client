@@ -10,8 +10,8 @@ import Foundation
 /// parameters. Creating an endpoint performs no network I/O. Execute it with a
 /// `helix(for:)` overload on ``TwitchClient``.
 ///
-/// `ResponseType` is the caller-facing result, `HelixResponseType` is the decoded payload
-/// element, and `EndpointResponseType` selects empty, JSON, or raw response handling.
+/// `Response` is the caller-facing value inside ``HelixResponse``. Payload decoding and
+/// empty-body or raw-body handling are implementation details of the selected factory.
 ///
 /// The client checks each endpoint’s token kind and token-dependent parameters before
 /// sending a request. It does not request additional scopes automatically. Requests use
@@ -21,10 +21,7 @@ import Foundation
 ///
 /// A successful HTTP response may still report an operation-specific failure, such as a
 /// chat message rejected for delivery. Check the returned model’s status fields.
-public struct HelixEndpoint<
-  ResponseType, HelixResponseType: Sendable & Decodable,
-  EndpointResponseType: HelixEndpointResponseType
->: Sendable {
+public struct HelixEndpoint<Response>: Sendable {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 
   private let authentication: HelixAuthentication
@@ -33,19 +30,18 @@ public struct HelixEndpoint<
 
   private let makeQueryItems: @Sendable (TwitchCredentials) throws -> [(String, String?)]
   private let makeBody: @Sendable (TwitchCredentials) throws -> Encodable?
-  private let makeResponse:
-    @Sendable (DecodedHelixResponse<HelixResponseType>) throws -> ResponseType
-  private let makeRawResponse: @Sendable (Data) throws -> ResponseType
+  private let processResponse: @Sendable (Data, JSONDecoder) throws -> Response
 
-  internal init(
+  internal init<Payload: Decodable & Sendable>(
     method: String, path: String,
     authentication: HelixAuthentication,
     queryItems: @escaping @Sendable (TwitchCredentials) throws -> [(String, String?)] = {
       _ in []
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil },
+    responseType: Payload.Type,
     makeResponse:
-      @escaping @Sendable (DecodedHelixResponse<HelixResponseType>) throws -> ResponseType
+      @escaping @Sendable (DecodedHelixResponse<Payload>) throws -> Response
   ) {
     self.authentication = authentication
     self.method = method
@@ -53,8 +49,11 @@ public struct HelixEndpoint<
 
     self.makeQueryItems = queryItems
     self.makeBody = body
-    self.makeResponse = makeResponse
-    self.makeRawResponse = { _ in fatalError() }
+    self.processResponse = { data, decoder in
+      let decoded: DecodedHelixResponse<Payload> = try TwitchClient.decode(
+        data, decoder: decoder)
+      return try makeResponse(decoded)
+    }
   }
 
   internal init(
@@ -64,7 +63,7 @@ public struct HelixEndpoint<
       _ in []
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil },
-    makeRawResponse: @escaping @Sendable (Data) throws -> ResponseType
+    makeRawResponse: @escaping @Sendable (Data) throws -> Response
   ) {
     self.authentication = authentication
     self.method = method
@@ -72,8 +71,7 @@ public struct HelixEndpoint<
 
     self.makeQueryItems = queryItems
     self.makeBody = body
-    self.makeResponse = { _ in fatalError() }
-    self.makeRawResponse = makeRawResponse
+    self.processResponse = { data, _ in try makeRawResponse(data) }
   }
 
   internal func makeRequest(
@@ -106,19 +104,12 @@ public struct HelixEndpoint<
     return urlRequest
   }
 
-  internal func makeResponse(from response: DecodedHelixResponse<HelixResponseType>)
-    throws
-    -> ResponseType
-  {
-    try makeResponse(response)
-  }
-
-  internal func makeResponse(from data: Data) throws -> ResponseType {
-    try makeRawResponse(data)
+  internal func makeResponse(from data: Data, decoder: JSONDecoder) throws -> Response {
+    try processResponse(data, decoder)
   }
 }
 
-extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes.Void {
+extension HelixEndpoint where Response == Void {
   internal init(
     method: String, path: String,
     authentication: HelixAuthentication,
@@ -127,24 +118,16 @@ extension HelixEndpoint where EndpointResponseType == HelixEndpointResponseTypes
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil }
   ) {
-    // makeResponse should never be called on a Void endpoint!
     self.init(
       method: method, path: path, authentication: authentication, queryItems: queryItems,
       body: body,
-      makeResponse: { _ in fatalError() })
+      makeRawResponse: { data in
+        guard data.isEmpty else {
+          throw HelixError.nonEmptyResponse(responseData: data)
+        }
+        return ()
+      })
   }
-}
-
-/// A marker protocol selecting how a Helix response is processed.
-public protocol HelixEndpointResponseType: SendableMetatype {}
-/// The response-processing markers used by ``HelixEndpoint``.
-public enum HelixEndpointResponseTypes {
-  /// A marker for endpoints that require an empty response body.
-  public enum Void: HelixEndpointResponseType {}
-  /// A marker for endpoints that decode the Helix JSON response envelope.
-  public enum Normal: HelixEndpointResponseType {}
-  /// A marker for endpoints that convert the response body without a Helix JSON envelope.
-  public enum Raw: HelixEndpointResponseType {}
 }
 
 /// Token requirements are explicit for every factory; Twitch checks scopes and prior grants.
