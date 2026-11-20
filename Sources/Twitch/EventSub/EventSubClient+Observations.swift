@@ -1,8 +1,8 @@
 import Foundation
 
 extension EventSubClient {
-  func observe(
-    for requested: EventSubSubscription<some Event>,
+  func observe<E: Event>(
+    for requested: EventSubSubscription<E>,
     handler: any EventSubHandler,
     revision: UInt64
   ) async throws -> EventSubObservation {
@@ -17,7 +17,7 @@ extension EventSubClient {
     try await waitForSubscriptionCleanup(key, revision: revision)
     try checkRevision(revision)
 
-    let subscription = subscriptions[key] ?? startSubscription(key)
+    let subscription = subscriptions[key] ?? startSubscription(key, eventType: E.self)
     let (observer, handle) = attachObserver(handler, to: subscription)
 
     do {

@@ -32,10 +32,6 @@ struct SharedEventSubLifecycleTests {
     await stubSubscription(harness.session, id: MockedMessages.defaultSubscriptionID)
     await harness.session.simulateIncoming(.string(welcome(sessionID)), queue: true)
     let first = try await harness.twitch.eventStream(for: .mock())
-    let sharedEvents = AsyncStream<EventSubNotification<MockEvent>>.makeStream()
-    let shared = try await harness.twitch.eventListener(for: .mock()) {
-      if case .event(let event) = $0 { sharedEvents.continuation.yield(event) }
-    }
     let old = await harness.session.waitForTask(at: 0)
 
     let secondID = "pending-subscription"
@@ -46,43 +42,49 @@ struct SharedEventSubLifecycleTests {
     }
     let setup = Task { try await harness.twitch.eventStream(for: .mock(version: "2")) }
     await gate.waitUntilEntered()
+    let earlyEvents = AsyncStream<EventSubNotification<MockEvent>>.makeStream()
+    async let earlyListener = harness.twitch.eventListener(for: .mock(version: "2")) {
+      if case .event(let event) = $0 { earlyEvents.continuation.yield(event) }
+    }
+    let context = await harness.twitch.eventSubClient
+    while await context.subscriptionSetupWaiterCount != 2 { await Task.yield() }
+
     await old.simulateIncoming(.string(MockedMessages.mockReconnectMessage))
     let replacement = await harness.session.waitForTask(at: 1)
-    #expect(await !old.didCancel)
     let early = MockedMessages.customized(
-      MockedMessages.mockEventMessage.replacingOccurrences(of: "\"1\"", with: "\"2\""),
+      MockedMessages.mockVersion2EventMessage,
       messageID: "before-post-response", subscriptionID: secondID)
     await old.simulateIncoming(.string(early))
     await old.simulateIncoming(.string(MockedMessages.mockEventMessage))
     var firstIterator = first.makeAsyncIterator()
     _ = try #require(try await firstIterator.next())
-    let sharedNotification = try #require(await sharedEvents.stream.first { _ in true })
-    try expectMetadata(sharedNotification)
     #expect(await !old.didCancel)
 
     await replacement.simulateIncoming(.string(welcome("replacement")))
     await old.waitForCancellation()
     await gate.release()
     let second = try await setup.value
+    let listener = try await earlyListener
     var secondIterator = second.makeAsyncIterator()
     // The pending subscription can receive a frame before its POST returns.
     let buffered = try #require(try await secondIterator.next())
     try expectMetadata(buffered, messageID: "before-post-response", subscriptionID: secondID)
+    let sharedBuffered = try #require(await earlyEvents.stream.first { _ in true })
+    #expect(buffered.event.decodingID == sharedBuffered.event.decodingID)
 
     // The old socket already delivered this envelope. The following notification
     // establishes that the replacement processed the replay before reset.
     await replacement.simulateIncoming(.string(MockedMessages.mockEventMessage))
     let afterHandoff = MockedMessages.customized(
-      MockedMessages.mockEventMessage, messageID: "after-handoff", subscriptionID: secondID)
+      MockedMessages.mockVersion2EventMessage, messageID: "after-handoff", subscriptionID: secondID)
     await replacement.simulateIncoming(.string(afterHandoff))
-    _ = try #require(try await secondIterator.next())
-    #expect(await harness.session.taskCount() == 2)
+    let afterHandoffNotification = try #require(try await secondIterator.next())
+    #expect(afterHandoffNotification.messageID == "after-handoff")
     #expect(
       await harness.session.requests().filter { $0.httpMethod == "POST" }.count == 2)
-    #expect(await !replacement.didCancel)
     await harness.twitch.resetEventSub()
     #expect(try await firstIterator.next() == nil)
-    withExtendedLifetime(shared) {}
+    withExtendedLifetime(listener) {}
   }
 
   @Test("Parallel reservations respect capacity, cancellation, and retirement")

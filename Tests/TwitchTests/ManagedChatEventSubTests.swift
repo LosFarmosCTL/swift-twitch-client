@@ -232,19 +232,22 @@ struct ManagedChatEventSubTests {
 
 extension ManagedChatEventSubTests {
   func client(
-    moderation: Bool = false, welcome: Bool = true, prefill: Bool = false
+    moderation: Bool = false, welcome: Bool = true, prefill: Bool = false,
+    warningScope: Bool = false
   ) async
     -> TwitchClient
   {
+    var scopes: Set<String> = [
+      "moderator:read:blocked_terms", "moderator:read:chat_settings",
+      "moderator:read:unban_requests",
+      "moderator:read:banned_users", "moderator:read:chat_messages",
+      "moderator:read:moderators", "moderator:read:vips",
+      "user:read:moderated_channels",
+    ]
+    if warningScope { scopes.insert("moderator:read:warnings") }
     let credentials = TwitchCredentials(
       accessToken: "token", clientID: "app", userID: "999", userLogin: "sender",
-      scopes: [
-        "moderator:read:blocked_terms", "moderator:read:chat_settings",
-        "moderator:read:unban_requests",
-        "moderator:read:banned_users", "moderator:read:chat_messages",
-        "moderator:read:moderators", "moderator:read:vips",
-        "user:read:moderated_channels",
-      ])
+      scopes: scopes)
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
     await session.stub(url: url, method: "POST") { request in
       let body = try #require(request.httpBody)
@@ -297,7 +300,7 @@ extension ManagedChatEventSubTests {
   }
 
   func notification(
-    _ fixture: String, type: String, envelopeID: String = UUID().uuidString,
+    _ fixture: String, type: String, version: String = "1", envelopeID: String = UUID().uuidString,
     transform: ([String: Any]) -> [String: Any] = { $0 }
   ) throws -> String {
     var root =
@@ -305,12 +308,14 @@ extension ManagedChatEventSubTests {
         JSONSerialization.jsonObject(with: Data(fixture.utf8)) as? [String: Any])
     var metadata = try #require(root["metadata"] as? [String: Any])
     metadata["message_id"] = envelopeID
+    metadata["subscription_type"] = type
+    metadata["subscription_version"] = version
     root["metadata"] = metadata
     var payload = try #require(root["payload"] as? [String: Any])
     var subscription = try #require(payload["subscription"] as? [String: Any])
     subscription["id"] = type + "-123"
     subscription["type"] = type
-    subscription["version"] = "1"
+    subscription["version"] = version
     payload["subscription"] = subscription
     payload["event"] = transform(try #require(payload["event"] as? [String: Any]))
     root["payload"] = payload

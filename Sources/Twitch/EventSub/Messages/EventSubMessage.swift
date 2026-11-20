@@ -1,6 +1,7 @@
 import Foundation
 
 internal struct EventSubMessage: Decodable {
+  let metadata: Metadata
   let payload: EventSubPayload
 
   enum CodingKeys: String, CodingKey {
@@ -10,7 +11,7 @@ internal struct EventSubMessage: Decodable {
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    let metadata = try container.decode(Metadata.self, forKey: .metadata)
+    metadata = try container.decode(Metadata.self, forKey: .metadata)
 
     switch metadata.messageType {
     case .welcome:
@@ -19,10 +20,17 @@ internal struct EventSubMessage: Decodable {
     case .keepalive:
       self.payload = .keepalive
     case .notification:
-      self.payload = .notification(
-        try EventSubNotificationFrame(
-          from: container.superDecoder(forKey: .payload),
-          messageID: metadata.messageID, sentAt: metadata.messageTimestamp))
+      let notification = try container.nestedContainer(
+        keyedBy: NotificationKeys.self, forKey: .payload)
+      let subscription = try notification.decode(Subscription.self, forKey: .subscription)
+      guard metadata.subscriptionType == subscription.type,
+        metadata.subscriptionVersion == subscription.version
+      else {
+        throw DecodingError.dataCorruptedError(
+          forKey: .subscription, in: notification,
+          debugDescription: "EventSub subscription type or version differs from the metadata.")
+      }
+      self.payload = .notification(subscription)
     case .reconnect:
       self.payload = .reconnect(
         try container.decode(EventSubReconnect.self, forKey: .payload))
@@ -31,6 +39,8 @@ internal struct EventSubMessage: Decodable {
         try container.decode(EventSubRevocation.self, forKey: .payload))
     }
   }
+
+  private enum NotificationKeys: CodingKey { case subscription }
 
   struct Subscription: Decodable, Sendable {
     let id: String
@@ -58,10 +68,12 @@ internal struct EventSubMessage: Decodable {
     let messageID: String
     let messageType: MessageType
     let messageTimestamp: Date
+    let subscriptionType: String?
+    let subscriptionVersion: String?
 
     enum CodingKeys: String, CodingKey {
       case messageID = "messageId"
-      case messageType, messageTimestamp
+      case messageType, messageTimestamp, subscriptionType, subscriptionVersion
     }
 
     enum MessageType: String, Decodable {

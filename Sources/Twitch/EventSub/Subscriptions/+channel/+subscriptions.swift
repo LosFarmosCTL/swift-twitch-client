@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelSubscribe(broadcasterID: String, version: String = "1")
+  public static func channelSubscribe(broadcasterID: String)
     -> EventSubSubscription<ChannelSubscribeEvent>
   {
     .init(
-      type: EventType.channelSubscribe.rawValue, version: version,
+      type: "channel.subscribe", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelSubscriptionEnd(broadcasterID: String, version: String = "1")
+  public static func channelSubscriptionEnd(broadcasterID: String)
     -> EventSubSubscription<ChannelSubscriptionEndEvent>
   {
     .init(
-      type: EventType.channelSubscriptionEnd.rawValue, version: version,
+      type: "channel.subscription.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelSubscriptionGift(broadcasterID: String, version: String = "1")
+  public static func channelSubscriptionGift(broadcasterID: String)
     -> EventSubSubscription<ChannelSubscriptionGiftEvent>
   {
     .init(
-      type: EventType.channelSubscriptionGift.rawValue, version: version,
+      type: "channel.subscription.gift", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -76,12 +73,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelSubscriptionMessage(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelSubscriptionMessageEvent> {
     .init(
-      type: EventType.channelSubscriptionMessage.rawValue, version: version,
+      type: "channel.subscription.message", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

@@ -2,6 +2,8 @@ import Foundation
 import MemberwiseInit
 
 /// An EventSub notification delivered when a Guest Star session begins.
+///
+/// Uses Twitch’s beta Guest Star schema, which Twitch may change without notice.
 @MemberwiseInit(.public)
 public struct ChannelGuestStarSessionBeginEvent: Event {
   /// The Twitch user ID of the broadcaster.
