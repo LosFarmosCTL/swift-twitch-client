@@ -4,22 +4,25 @@ import MemberwiseInit
 extension HelixEndpoint {
   /// Gets a broadcaster’s followers and follower count.
   ///
-  /// With a user access token, requires `moderator:read:followers`. Follower details
-  /// require the broadcaster’s or a channel moderator’s token; otherwise Twitch returns
-  /// only the total count.
+  /// Requires a user access token. Follower details require `moderator:read:followers`
+  /// and a token for the broadcaster or a channel moderator. Without those permissions,
+  /// Twitch returns only the total for unfiltered requests.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-channel-followers
+  /// https://dev.twitch.tv/docs/api/reference/channels/#get-channel-followers
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
+  ///   - userID: When provided, only returns a matching follower. Requires follower-detail
+  ///     authorization.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getChannelFollowers(
     of broadcasterID: String? = nil,
+    userID: String? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> HelixEndpoint<FollowersResponse> {
@@ -32,6 +35,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
+          ("user_id", userID),
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
@@ -49,12 +53,11 @@ extension HelixEndpoint {
 
   /// Checks whether a user follows a broadcaster.
   ///
-  /// With a user access token, requires `moderator:read:followers`. Follower details
-  /// require the broadcaster’s or a channel moderator’s token; otherwise Twitch returns
-  /// only the total count.
+  /// Requires the broadcaster’s or a channel moderator’s user token with
+  /// `moderator:read:followers`. Twitch rejects unauthorized filtered requests.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-channel-followers
+  /// https://dev.twitch.tv/docs/api/reference/channels/#get-channel-followers
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -63,8 +66,7 @@ extension HelixEndpoint {
   ///     client’s authenticated user ID.
   ///
   /// - Returns: An endpoint that yields matching follow details when executed, or `nil`
-  ///   when Twitch returns no matching entry. A missing entry can also reflect
-  ///   insufficient follower-detail authorization.
+  ///   when Twitch returns no matching entry.
   public static func checkFollower(_ userID: String, follows broadcasterID: String? = nil)
     -> HelixEndpoint<Follower?>
   {

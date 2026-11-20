@@ -21,4 +21,19 @@ struct EventSubUserTests {
     #expect(received.emailVerified == true)
     #expect(received.description == "cool description")
   }
+
+  @Test("Custom notifications support empty and typed payloads")
+  func customSubscriptionDecoding() async throws {
+    let condition = ["user_id": "111"]
+    let ignored: VoidEvent? = try await harness.testEvent(
+      .custom(type: "user.update", version: "1", condition: condition),
+      with: MockedMessages.userUpdate, requiringCondition: condition)
+    _ = try #require(ignored)
+
+    let typed = try await EventTestHarness().testEvent(
+      .custom(
+        type: "user.update", version: "1", condition: condition, decoding: UserUpdateEvent.self),
+      with: MockedMessages.userUpdate, requiringCondition: condition)
+    #expect(typed?.userID == "1337")
+  }
 }

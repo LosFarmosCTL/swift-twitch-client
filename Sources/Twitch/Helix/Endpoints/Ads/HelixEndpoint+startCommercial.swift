@@ -10,7 +10,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#start-commercial
+  /// https://dev.twitch.tv/docs/api/reference/ads/#start-commercial
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

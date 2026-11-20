@@ -3,10 +3,10 @@ import Foundation
 extension HelixEndpoint {
   /// Updates the authenticated user’s active extension slots.
   ///
-  /// With a user access token, requires `user:edit:broadcast`.
+  /// With a user access token, requires `user:edit:broadcast` or `channel:manage:extensions`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-user-extensions
+  /// https://dev.twitch.tv/docs/api/reference/users/#update-user-extensions
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

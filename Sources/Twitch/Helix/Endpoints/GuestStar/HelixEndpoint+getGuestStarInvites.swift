@@ -13,18 +13,15 @@ extension HelixEndpoint {
   /// token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-guest-star-invites
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#get-guest-star-invites
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   ///   - sessionID: The identifier of the session.
   public static func getGuestStarInvites(
     broadcasterID: String? = nil,
-    moderatorID: String? = nil,
     sessionID: String
   ) -> HelixEndpoint<[GuestStarInvite]> {
     .init(
@@ -36,10 +33,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("session_id", sessionID),
         ]
       },

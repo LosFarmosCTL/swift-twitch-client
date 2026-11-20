@@ -10,7 +10,7 @@ extension HelixEndpoint {
   /// be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-shield-mode-status
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#get-shield-mode-status
   /// ) for request limits and account requirements.
   ///
   /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.

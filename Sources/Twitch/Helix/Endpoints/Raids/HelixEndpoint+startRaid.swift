@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#start-a-raid
+  /// https://dev.twitch.tv/docs/api/reference/raids/#start-a-raid
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `from_broadcaster_id`.

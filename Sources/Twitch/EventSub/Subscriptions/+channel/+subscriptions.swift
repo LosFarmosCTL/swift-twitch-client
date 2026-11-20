@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsubscribe
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-subscribe
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsubscriptionend
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-subscription-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsubscriptiongift
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-subscription-gift
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -68,7 +68,7 @@ extension EventSubSubscription {
   /// scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsubscriptionmessage
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-subscription-message
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

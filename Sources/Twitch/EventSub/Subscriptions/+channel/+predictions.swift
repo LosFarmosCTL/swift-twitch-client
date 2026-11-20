@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpredictionbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/prediction/#channel-prediction-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpredictionprogress
+  /// https://dev.twitch.tv/docs/eventsub/reference/prediction/#channel-prediction-progress
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpredictionlock
+  /// https://dev.twitch.tv/docs/eventsub/reference/prediction/#channel-prediction-lock
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -68,7 +68,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpredictionend
+  /// https://dev.twitch.tv/docs/eventsub/reference/prediction/#channel-prediction-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

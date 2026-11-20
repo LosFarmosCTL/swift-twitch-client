@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:edit`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-user
+  /// https://dev.twitch.tv/docs/api/reference/users/#update-user
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

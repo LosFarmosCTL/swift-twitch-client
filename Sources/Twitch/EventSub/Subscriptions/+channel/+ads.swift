@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelad_breakbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-ad-break-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

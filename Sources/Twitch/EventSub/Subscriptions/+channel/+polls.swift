@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpollbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/poll/#channel-poll-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpollprogress
+  /// https://dev.twitch.tv/docs/eventsub/reference/poll/#channel-poll-progress
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelpollend
+  /// https://dev.twitch.tv/docs/eventsub/reference/poll/#channel-poll-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

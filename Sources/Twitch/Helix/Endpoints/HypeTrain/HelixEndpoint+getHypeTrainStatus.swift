@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-hype-train-status
+  /// https://dev.twitch.tv/docs/api/reference/hype-train/#get-hype-train-status
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

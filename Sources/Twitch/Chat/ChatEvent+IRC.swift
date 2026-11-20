@@ -45,6 +45,7 @@ extension ChatNotification {
       systemMessage: value.systemMessage.chatNonempty,
       sourceChannelID: value.source?.roomID,
       sourceMessageID: value.source?.id,
+      isSourceOnly: nil,
       details: details)
   }
 }

@@ -3,12 +3,12 @@ import Foundation
 extension HelixEndpoint {
   /// Updates the authenticated broadcaster’s channel information.
   ///
-  /// With a user access token, requires `channel:manage:broadcast`.
+  /// With a user access token, requires `channel:manage:broadcast` or `user:edit:broadcast`.
   ///
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#modify-channel-information
+  /// https://dev.twitch.tv/docs/api/reference/channels/#modify-channel-information
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `broadcaster_id`.

@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-teams
+  /// https://dev.twitch.tv/docs/api/reference/teams/#get-teams
   /// ) for request limits and account requirements.
   ///
   /// Specify either `teamName` or `teamID`, but not both. Twitch rejects requests with

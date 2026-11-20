@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:manage:chat_color`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-user-chat-color
+  /// https://dev.twitch.tv/docs/api/reference/chat/#update-user-chat-color
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `user_id`.
@@ -73,7 +73,7 @@ public enum HelixColor: Sendable {
     case .coral: return "coral"
     case .dodgerBlue: return "dodger_blue"
     case .firebrick: return "firebrick"
-    case .goldenRod: return "goldenrod"
+    case .goldenRod: return "golden_rod"
     case .green: return "green"
     case .hotPink: return "hot_pink"
     case .orangeRed: return "orange_red"

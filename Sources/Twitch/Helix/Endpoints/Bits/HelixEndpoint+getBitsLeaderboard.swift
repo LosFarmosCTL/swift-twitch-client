@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `bits:read`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard
+  /// https://dev.twitch.tv/docs/api/reference/bits/#get-bits-leaderboard
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

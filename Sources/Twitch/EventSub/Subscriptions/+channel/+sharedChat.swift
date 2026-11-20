@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshared_chatbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-shared-chat-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -29,7 +29,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshared_chatupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-shared-chat-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -53,7 +53,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshared_chatend
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-shared-chat-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

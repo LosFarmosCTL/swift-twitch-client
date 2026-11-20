@@ -38,6 +38,9 @@ public struct ChannelChatNotificationEvent: Event {
   public let sourceMessageID: String?
   /// The badges from the source channel, when provided.
   public let sourceBadges: [ChannelChatMessageEvent.Badge]?
+  /// Whether a Shared Chat notification was sent only to its source channel.
+  @Init(default: nil)
+  public let isSourceOnly: Bool?
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
@@ -83,6 +86,7 @@ public struct ChannelChatNotificationEvent: Event {
     case sourceBroadcasterDisplayName = "sourceBroadcasterUserName"
     case sourceMessageID = "sourceMessageId"
     case sourceBadges
+    case isSourceOnly, watchStreak, modiversary, sharedChatModiversary
   }
 
   /// Decodes a chat notification and its notice-specific payload.
@@ -114,6 +118,7 @@ public struct ChannelChatNotificationEvent: Event {
     sourceMessageID = try container.decodeIfPresent(String.self, forKey: .sourceMessageID)
     sourceBadges = try container.decodeIfPresent(
       [ChannelChatMessageEvent.Badge].self, forKey: .sourceBadges)
+    isSourceOnly = try container.decodeIfPresent(Bool.self, forKey: .isSourceOnly)
   }
 
   /// The user responsible for a notification, or an indication that they are anonymous.
@@ -180,6 +185,10 @@ public struct ChannelChatNotificationEvent: Event {
     case charityDonation(CharityDonationNotice)
     /// A summary of the recipients of gifted Drops.
     case giftedDropsSummary(GiftedDropsSummaryNotice)
+    /// A viewer reached a consecutive-broadcast watch milestone.
+    case watchStreak(WatchStreakNotice)
+    /// A viewer reached a moderation anniversary.
+    case modiversary(ModiversaryNotice)
 
     /// A viewer started a subscription in the source channel during shared chat.
     case sharedChatSub(SubNotice)
@@ -215,6 +224,8 @@ public struct ChannelChatNotificationEvent: Event {
     case sharedChatCharityDonation(CharityDonationNotice)
     /// A summary of gifted Drops recipients in the source channel during shared chat.
     case sharedChatGiftedDropsSummary(GiftedDropsSummaryNotice)
+    /// A viewer reached a moderation anniversary in the source channel.
+    case sharedChatModiversary(ModiversaryNotice)
 
     /// A value Twitch did not classify or this client does not recognize.
     case unknown(String)
@@ -306,6 +317,13 @@ public struct ChannelChatNotificationEvent: Event {
         self = .sharedChatGiftedDropsSummary(
           try container.decode(
             GiftedDropsSummaryNotice.self, forKey: .sharedChatGiftedDropsSummary))
+      case "watch_streak":
+        self = .watchStreak(try container.decode(WatchStreakNotice.self, forKey: .watchStreak))
+      case "modiversary":
+        self = .modiversary(try container.decode(ModiversaryNotice.self, forKey: .modiversary))
+      case "shared_chat_modiversary":
+        self = .sharedChatModiversary(
+          try container.decode(ModiversaryNotice.self, forKey: .sharedChatModiversary))
       default:
         self = .unknown(type)
       }
@@ -314,6 +332,19 @@ public struct ChannelChatNotificationEvent: Event {
 }
 
 // MARK: - Normal notice types
+
+/// A viewer’s watch streak and Channel Points award.
+@MemberwiseInit(.public)
+public struct WatchStreakNotice: Decodable, Sendable {
+  public let streakCount: Int
+  public let channelPointsAwarded: Int
+}
+
+/// A viewer’s time as a channel moderator, in months.
+@MemberwiseInit(.public)
+public struct ModiversaryNotice: Decodable, Sendable {
+  public let months: Int
+}
 
 /// A new-subscription chat notification.
 @MemberwiseInit(.public)
@@ -344,8 +375,8 @@ public struct ResubNotice: Decodable, Sendable {
 
   /// The subscription tier.
   public let subscriptionTier: SubscriptionTier
-  /// Whether the subscription uses Prime.
-  public let isPrime: Bool
+  /// Whether the subscription uses Prime, when Twitch reports it.
+  public let isPrime: Bool?
 
   /// Gift details when available and decodable; `nil` also covers a non-gifted
   /// subscription.
@@ -373,7 +404,7 @@ public struct ResubNotice: Decodable, Sendable {
     streakMonths = try container.decodeIfPresent(Int.self, forKey: .streakMonths)
     subscriptionTier = try container.decode(
       SubscriptionTier.self, forKey: .subscriptionTier)
-    isPrime = try container.decode(Bool.self, forKey: .isPrime)
+    isPrime = try container.decodeIfPresent(Bool.self, forKey: .isPrime)
     gift = try? Gift(from: decoder)
   }
 
@@ -499,7 +530,7 @@ public struct GiftPaidUpgradeNotice: Decodable, Sendable {
       let gifterID = try container.decode(String.self, forKey: .gifterID)
       let gifterDisplayName = try container.decode(
         String.self, forKey: .gifterDisplayName)
-      let gifterLogin = try container.decode(String.self, forKey: .gifterLogin)
+      let gifterLogin = try container.decodeIfPresent(String.self, forKey: .gifterLogin)
       gifter = .init(
         userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
     }
@@ -511,8 +542,8 @@ public struct GiftPaidUpgradeNotice: Decodable, Sendable {
     public let userID: String
     /// The user’s display name.
     public let userDisplayName: String
-    /// The user’s login name.
-    public let userLogin: String
+    /// The user’s login name, when Twitch includes it.
+    public let userLogin: String?
   }
 }
 

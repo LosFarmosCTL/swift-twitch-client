@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// extension’s client ID. The client sends it as a Bearer token; it does not sign JWTs.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#set-extension-required-configuration
+  /// https://dev.twitch.tv/docs/api/reference/extensions/#set-extension-required-configuration
   /// ).
   ///
   /// - Parameters:

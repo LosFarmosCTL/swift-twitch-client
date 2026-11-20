@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// client ID must belong to a member of the organization that owns the game.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-drops-entitlements
+  /// https://dev.twitch.tv/docs/api/reference/entitlements/#update-drops-entitlements
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

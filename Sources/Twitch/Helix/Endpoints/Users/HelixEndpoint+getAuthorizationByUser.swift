@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// Requires an app access token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-authorization-by-user
+  /// https://dev.twitch.tv/docs/api/reference/users/#get-authorization-by-user
   /// ).
   ///
   /// - Parameter userIDs: The IDs of one through ten users to check.

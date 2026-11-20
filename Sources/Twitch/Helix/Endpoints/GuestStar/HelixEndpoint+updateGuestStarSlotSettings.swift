@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// `moderator:manage:guest_star`. The moderator ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot-settings
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#update-guest-star-slot-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -19,16 +19,13 @@ extension HelixEndpoint {
   ///     setting unchanged.
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   public static func updateGuestStarSlotSettings(
     sessionID: String,
     slotID: String,
     isAudioEnabled: Bool? = nil,
     isVideoEnabled: Bool? = nil,
     isLive: Bool? = nil,
-    broadcasterID: String? = nil,
-    moderatorID: String? = nil
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<Void> {
     .init(
       method: "PATCH", path: "guest_star/slot_settings",
@@ -39,10 +36,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("session_id", sessionID),
           ("slot_id", slotID),
           ("is_audio_enabled", isAudioEnabled.map(String.init)),

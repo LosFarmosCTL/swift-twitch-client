@@ -10,14 +10,14 @@ extension HelixEndpoint {
   /// extension’s client ID. The client sends it as a Bearer token; it does not sign JWTs.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-extensions
+  /// https://dev.twitch.tv/docs/api/reference/extensions/#get-extensions
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - extensionID: The identifier of the extension.
   ///   - version: The extension release version; `nil` requests the latest released
   ///     version. Specify a version for an unreleased extension; otherwise Twitch returns
-  ///     an empty list and execution throws.
+  ///     HTTP 404.
   public static func getExtension(
     extensionID: String,
     version: String? = nil
@@ -93,6 +93,9 @@ public struct Extension: Decodable, Sendable {
   /// The extension’s mobile, panel, video overlay, and component view configurations.
   @MemberwiseInit(.public)
   public struct ExtensionViews: Decodable, Sendable {
+    /// The view shown when configuring the extension in the Extension Manager.
+    @Init(default: nil)
+    public let config: ExtensionView?
     /// The broadcaster’s live configuration view, when supported.
     public let liveConfig: ExtensionView?
     /// The mobile view settings, when provided.

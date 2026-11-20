@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Twitch requires an app access token for this endpoint.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-conduits
+  /// https://dev.twitch.tv/docs/api/reference/conduits/#get-conduits
   /// ) for request limits and account requirements.
   public static func getConduits()
     -> HelixEndpoint<[Conduit]>

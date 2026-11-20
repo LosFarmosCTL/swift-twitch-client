@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `clips:edit`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-clip
+  /// https://dev.twitch.tv/docs/api/reference/clips/#create-clip
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

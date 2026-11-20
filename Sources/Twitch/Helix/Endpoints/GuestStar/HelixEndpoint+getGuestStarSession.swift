@@ -13,21 +13,17 @@ extension HelixEndpoint {
   /// token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-guest-star-session
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#get-guest-star-session
   /// ) for request limits and account requirements.
   ///
-  /// Executing this endpoint requires a session in the response. An empty data array
-  /// throws `HelixError.noDataInResponse` rather than yielding an optional session.
+  /// Returns `nil` when Twitch reports no active session visible to the requester.
   ///
   /// - Parameters:
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   public static func getGuestStarSession(
-    broadcasterID: String? = nil,
-    moderatorID: String? = nil
-  ) -> HelixEndpoint<GuestStarSession> {
+    broadcasterID: String? = nil
+  ) -> HelixEndpoint<GuestStarSession?> {
     .init(
       method: "GET", path: "guest_star/session",
       authentication: .user,
@@ -37,18 +33,11 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
         ]
       },
       responseType: GuestStarSession.self,
-      makeResponse: { response in
-        let session = try response.requireFirst()
-
-        return session
-      })
+      makeResponse: { $0.data.first })
   }
 }
 

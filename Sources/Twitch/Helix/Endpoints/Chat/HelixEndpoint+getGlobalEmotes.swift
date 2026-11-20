@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-global-emotes
+  /// https://dev.twitch.tv/docs/api/reference/chat/#get-global-emotes
   /// ) for request limits and account requirements.
   public static func getGlobalEmotes()
     -> HelixEndpoint<GlobalEmotesResponse>

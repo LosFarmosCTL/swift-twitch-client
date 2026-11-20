@@ -22,7 +22,7 @@ public struct ChannelBitsUseEvent: Event {
   /// The message content or explanatory text supplied by Twitch, when provided.
   public let message: Message?
 
-  /// Whether the Bits paid for a Cheer or a Power-up, with its associated details.
+  /// What the Bits paid for, with associated details.
   public let type: BitsUseType
 
   enum CodingKeys: String, CodingKey {
@@ -36,7 +36,7 @@ public struct ChannelBitsUseEvent: Event {
     case message
   }
 
-  /// Decodes Bits usage and its Cheer or Power-up payload.
+  /// Decodes Bits usage and its type-specific payload.
   public init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
@@ -168,6 +168,24 @@ public enum BitsUseType: Sendable {
   case cheer
   /// Bits purchased a Power-up; includes its type and any emote or message effect.
   case powerUp(PowerUp)
+  /// Bits purchased a broadcaster-defined Power-up.
+  case customPowerUp(CustomPowerUp)
+  /// An unfamiliar Bits use type, preserved as sent by Twitch.
+  case unknown(String)
+
+  /// The identity and display title included with a custom Power-up purchase.
+  @MemberwiseInit(.public)
+  public struct CustomPowerUp: Decodable, Sendable {
+    /// The title shown to viewers.
+    public let title: String
+    /// The identifier of the custom Power-up reward.
+    public let rewardID: String
+
+    enum CodingKeys: String, CodingKey {
+      case title
+      case rewardID = "rewardId"
+    }
+  }
 
   /// A purchased Power-up’s type and any emote or message-effect metadata.
   @MemberwiseInit(.public)
@@ -194,24 +212,23 @@ public enum BitsUseType: Sendable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case type, cheer, powerUp
+    case type, cheer, powerUp, customPowerUp
   }
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    let type = try container.decode(UseType.self, forKey: .type)
+    let type = try container.decode(String.self, forKey: .type)
     switch type {
-    case .cheer:
+    case "cheer":
       self = .cheer
-    case .powerUp:
+    case "power_up":
       let powerUp = try container.decode(PowerUp.self, forKey: .powerUp)
       self = .powerUp(powerUp)
+    case "custom_power_up":
+      self = .customPowerUp(try container.decode(CustomPowerUp.self, forKey: .customPowerUp))
+    default:
+      self = .unknown(type)
     }
-  }
-
-  private enum UseType: String, Decodable, Sendable {
-    case cheer = "cheer"
-    case powerUp = "power_up"
   }
 }

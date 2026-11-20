@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// `user:read:email`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#userupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/user/#user-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

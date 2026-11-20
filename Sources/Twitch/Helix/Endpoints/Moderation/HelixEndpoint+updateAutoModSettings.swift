@@ -35,7 +35,7 @@ extension HelixEndpoint {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-automod-settings
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#update-automod-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -56,7 +56,7 @@ extension HelixEndpoint {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-automod-settings
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#update-automod-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

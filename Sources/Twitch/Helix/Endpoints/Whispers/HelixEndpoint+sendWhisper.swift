@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:manage:whispers`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#send-whisper
+  /// https://dev.twitch.tv/docs/api/reference/whispers/#send-whisper
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `from_user_id`.

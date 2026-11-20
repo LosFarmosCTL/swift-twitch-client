@@ -186,7 +186,8 @@ struct EventSubModerationTests {
         "moderator_user_id": "222",
       ])
 
-    _ = try #require(message)
+    let event = try #require(message)
+    #expect(event.moderatorID == "1337")
   }
 
   @Test("Should decode channelWarningAcknowledge event")

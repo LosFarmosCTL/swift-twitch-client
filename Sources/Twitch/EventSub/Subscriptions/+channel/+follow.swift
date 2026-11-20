@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelfollow
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-follow
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

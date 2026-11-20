@@ -38,6 +38,7 @@ extension ChatNotification {
       kind: event.noticeType.chatKind, id: event.messageID, author: author,
       text: event.message.text, systemMessage: event.systemMessage,
       sourceChannelID: event.sourceBroadcasterID, sourceMessageID: event.sourceMessageID,
+      isSourceOnly: event.isSourceOnly,
       details: .eventSub(event))
   }
 }
@@ -67,6 +68,8 @@ extension ChannelChatNotificationEvent.NoticeType {
     case .bitsBadgeTier: "bits_badge_tier"
     case .charityDonation: "charity_donation"
     case .giftedDropsSummary: "gifted_drops_summary"
+    case .watchStreak: "watch_streak"
+    case .modiversary: "modiversary"
     case .sharedChatSub: "shared_chat_sub"
     case .sharedChatResub: "shared_chat_resub"
     case .sharedChatSubGift: "shared_chat_sub_gift"
@@ -80,6 +83,7 @@ extension ChannelChatNotificationEvent.NoticeType {
     case .sharedChatBitsBadgeTier: "shared_chat_bits_badge_tier"
     case .sharedChatCharityDonation: "shared_chat_charity_donation"
     case .sharedChatGiftedDropsSummary: "shared_chat_gifted_drops_summary"
+    case .sharedChatModiversary: "shared_chat_modiversary"
     case .unknown(let kind): kind
     }
   }

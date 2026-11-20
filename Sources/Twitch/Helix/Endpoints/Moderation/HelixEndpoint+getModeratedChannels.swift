@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// additional grant requirements described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-moderated-channels
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#get-moderated-channels
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `user_id`.

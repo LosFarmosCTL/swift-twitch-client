@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcharity_campaigndonate
+  /// https://dev.twitch.tv/docs/eventsub/reference/charity/#channel-charity-campaign-donate
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcharity_campaignstart
+  /// https://dev.twitch.tv/docs/eventsub/reference/charity/#channel-charity-campaign-start
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcharity_campaignprogress
+  /// https://dev.twitch.tv/docs/eventsub/reference/charity/#channel-charity-campaign-progress
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -68,7 +68,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcharity_campaignstop
+  /// https://dev.twitch.tv/docs/eventsub/reference/charity/#channel-charity-campaign-stop
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

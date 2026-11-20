@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelvipadd
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-vip-add
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelvipremove
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-vip-remove
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

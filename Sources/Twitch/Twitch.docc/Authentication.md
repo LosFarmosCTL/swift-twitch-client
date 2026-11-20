@@ -80,9 +80,9 @@ optional account information for user and app tokens.
 
 ### Supply acting user IDs for app requests
 
-User credentials carry an account identity that endpoint factories can use for defaults.
-App credentials do not identify a user. For endpoints that act on an account, supply
-the appropriate `senderID`, `moderatorID`, `broadcasterID`, `editorID`, or `userID`:
+When you send a chat message with a user token, TwitchClient uses that account as
+the sender by default. An app token doesn't identify a user, so you supply
+`senderID`. In both cases, `channelID` is the destination, not the sender:
 
 ```swift
 let app = TwitchClient(credentials: appCredentials)
@@ -107,15 +107,13 @@ Factories document their token and scope requirements. Twitch checks scopes, pri
 user grants, roles, and account eligibility. An app token does not bypass user consent,
 and its validation scopes do not enumerate all earlier user grants to the application.
 
-The client checks token-kind compatibility and token-dependent parameters before
-sending requests. Violations throw ``HelixError/authenticationError(_:)`` containing a
-``TwitchAuthenticationError``. Where Twitch requires an acting ID to match a user
-token's account, an explicit ID is checked against that identity. Lookup targets can
-identify other accounts when the endpoint permits it.
+The client rejects incompatible credentials before sending a request and reports
+the reason as a ``TwitchAuthenticationError``.
 
 Some parameters depend on the token kind: `isSourceOnly` on chat messages and
-announcements is app-only, as is `userID` filtering for Drops entitlements. Pinning a
-chat message cannot be combined with a reply or `isSourceOnly`. The endpoint reference
+announcements is app-only. Drops entitlement `userID` filters must match the token's
+user ID when using a user token. Pinning a chat message cannot be combined with a
+reply or `isSourceOnly`. The endpoint reference
 describes these rules alongside the additional grant requirements.
 
 ### Use Extension JWTs
@@ -145,9 +143,16 @@ conduit subscriptions through Helix and call conduit management endpoints. The l
 does not provide webhook receivers or manage conduit shard reception. Event-specific
 consent requirements apply to those subscriptions.
 
-Authenticated IRC and the IRC writer require user credentials. Choose an anonymous
-reader explicitly with `ChatConfiguration(reader: .irc(.anonymous))`. A join with a
-resolved `ChatChannel` can use that reader without an OAuth request.
+Managed chat uses a user access token with `user:read:chat` for direct EventSub reads,
+`chat:read` for authenticated IRC reads, `user:write:chat` for Helix writes, and
+`chat:edit` for IRC writes. Managed writes require user credentials for either writer.
+The raw Helix Send Chat Message endpoint also supports app tokens with Twitch's
+required prior user grants.
+
+Choose an anonymous reader explicitly with `ChatConfiguration(reader: .irc(.anonymous))`.
+Where Twitch permits anonymous IRC access, a join with an already resolved `ChatChannel`
+does not need an OAuth request. Resolving an unknown channel first uses Helix and
+requires credentials.
 
 ### Credential and session lifetimes
 

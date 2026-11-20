@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// Email is available only for the authorized user with `user:read:email`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-users
+  /// https://dev.twitch.tv/docs/api/reference/users/#get-users
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

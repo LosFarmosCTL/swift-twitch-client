@@ -35,12 +35,12 @@ struct ValidateAccessTokenTests {
       request.value(forHTTPHeaderField: "Authorization") == "OAuth oauth-token")
   }
 
-  @Test(arguments: ["", "\"user_id\": null, \"login\": null,"])
-  func appValidationAcceptsAbsentOrNullIdentity(identity: String) async throws {
+  @Test(arguments: ["\"scopes\":[],", "\"user_id\":null,\"login\":null,\"scopes\":null,", ""])
+  func appValidationAcceptsAbsentOrNullIdentityAndScopes(fields: String) async throws {
     let session = MockNetworkSession()
     let url = try #require(URL(string: "https://id.twitch.tv/oauth2/validate"))
     let response = Data(
-      "{\"client_id\":\"client-id\",\(identity)\"scopes\":[],\"expires_in\":3600}".utf8)
+      "{\"client_id\":\"client-id\",\(fields)\"expires_in\":3600}".utf8)
     await session.stub(url: url, body: response)
     let validated = try await TwitchClient.validateAccessToken(
       accessToken: "oauth:app-token", network: session)

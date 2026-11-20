@@ -7,16 +7,18 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:read:follows`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-followed-channels
+  /// https://dev.twitch.tv/docs/api/reference/channels/#get-followed-channels
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `user_id`.
   ///
   /// - Parameters:
+  ///   - broadcasterID: When provided, only returns a matching followed channel.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   public static func getFollowedChannels(
+    broadcasterID: String? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
   ) -> HelixEndpoint<FollowedChannelsResponse> {
@@ -26,6 +28,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [
           ("user_id", try credentials.requireUser().id),
+          ("broadcaster_id", broadcasterID),
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
@@ -46,7 +49,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:read:follows`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-followed-channels
+  /// https://dev.twitch.tv/docs/api/reference/channels/#get-followed-channels
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `user_id`.

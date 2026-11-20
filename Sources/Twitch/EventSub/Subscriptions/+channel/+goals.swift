@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelgoalbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/goal/#channel-goal-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelgoalprogress
+  /// https://dev.twitch.tv/docs/eventsub/reference/goal/#channel-goal-progress
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelgoalend
+  /// https://dev.twitch.tv/docs/eventsub/reference/goal/#channel-goal-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

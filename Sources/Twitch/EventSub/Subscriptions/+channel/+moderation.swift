@@ -12,7 +12,7 @@ extension EventSubSubscription {
   /// user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation#channel-moderate-v2
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-moderate-v2
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -29,35 +29,13 @@ extension EventSubSubscription {
       ])
   }
 
-  /// Creates a version 1 subscription description for channel moderation notifications.
-  ///
-  /// Use `channelModerate(broadcasterID:moderatorID:)` for warning actions in version 2.
-  ///
-  /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation#channel-moderate
-  /// ) for conditions and transport-specific authorization.
-  ///
-  /// - Parameters:
-  ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The Twitch user ID of the moderator, matching the WebSocket token user.
-  public static func channelModerateV1(
-    broadcasterID: String, moderatorID: String
-  ) -> EventSubSubscription<ChannelModerateV1Event> {
-    .init(
-      type: "channel.moderate", version: "1",
-      condition: [
-        "broadcaster_user_id": broadcasterID,
-        "moderator_user_id": moderatorID,
-      ])
-  }
-
   /// Creates a subscription description for channel ban notifications.
   ///
   /// Requires `channel:moderate`. The broadcaster must grant the required scope; with
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelban
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-ban
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -78,7 +56,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelunban
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-unban
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -99,7 +77,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelmoderatoradd
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-moderator-add
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -120,7 +98,7 @@ extension EventSubSubscription {
   /// WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelmoderatorremove
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-moderator-remove
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -142,7 +120,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelunban_requestcreate
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-unban-request-create
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -166,7 +144,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelunban_requestresolve
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-unban-request-resolve
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -190,7 +168,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelwarningacknowledge
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-warning-acknowledge
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -214,7 +192,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelwarningsend
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-warning-send
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -238,7 +216,7 @@ extension EventSubSubscription {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsuspicious_usermessage
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-suspicious-user-message
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -261,7 +239,7 @@ extension EventSubSubscription {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelsuspicious_userupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-suspicious-user-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -285,7 +263,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshield_modebegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-shield-mode-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -309,7 +287,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshield_modeend
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-moderation/#channel-shield-mode-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

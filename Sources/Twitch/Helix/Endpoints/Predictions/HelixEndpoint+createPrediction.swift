@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-prediction
+  /// https://dev.twitch.tv/docs/api/reference/predictions/#create-prediction
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

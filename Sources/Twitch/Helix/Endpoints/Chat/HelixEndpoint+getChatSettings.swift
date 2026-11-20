@@ -5,11 +5,12 @@ extension HelixEndpoint {
   /// Gets a channel’s chat restrictions and authorized moderator settings.
   ///
   /// Accepts a user or app access token without an additional endpoint scope. Reading
-  /// non-moderator chat delay also requires `moderator:read:chat_settings`, with
+  /// non-moderator chat delay also requires `moderator:read:chat_settings` or
+  /// `moderator:manage:chat_settings`, with
   /// `moderatorID` matching a channel moderator’s token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-chat-settings
+  /// https://dev.twitch.tv/docs/api/reference/chat/#get-chat-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -37,6 +38,9 @@ extension HelixEndpoint {
 /// A channel’s chat restrictions and any moderator-visible delay settings.
 @MemberwiseInit(.public)
 public struct ChatSettings: Decodable, Sendable {
+  /// The acting moderator’s user ID, when returned by Twitch.
+  @Init(default: nil)
+  public let moderatorID: String?
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
   /// Whether slow mode is enabled. Independent of the configured wait time.
@@ -65,6 +69,7 @@ public struct ChatSettings: Decodable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
+    case moderatorID = "moderatorId"
     case slowMode, followerMode
     case nonModeratorChatDelay
     case slowModeWaitTime
@@ -81,6 +86,7 @@ public struct ChatSettings: Decodable, Sendable {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
     self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
+    self.moderatorID = try container.decodeIfPresent(String.self, forKey: .moderatorID)
     self.slowMode = try container.decode(Bool.self, forKey: .slowMode)
     self.followerMode = try container.decode(Bool.self, forKey: .followerMode)
     self.nonModeratorChatDelayEnabled = try container.decodeIfPresent(

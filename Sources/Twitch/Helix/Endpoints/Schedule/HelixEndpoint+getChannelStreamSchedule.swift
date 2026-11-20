@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-channel-stream-schedule
+  /// https://dev.twitch.tv/docs/api/reference/schedule/#get-channel-stream-schedule
   /// ). Twitch lists `utc_offset` as unsupported; this factory does not send it.
   ///
   /// - Parameters:

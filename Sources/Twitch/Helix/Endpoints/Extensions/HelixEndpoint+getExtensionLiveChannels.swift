@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-extension-live-channels
+  /// https://dev.twitch.tv/docs/api/reference/extensions/#get-extension-live-channels
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

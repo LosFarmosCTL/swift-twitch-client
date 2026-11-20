@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `channel:manage:videos`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#delete-videos
+  /// https://dev.twitch.tv/docs/api/reference/videos/#delete-videos
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

@@ -56,9 +56,9 @@ extension ManagedChatEventSubTests {
     await client.resetEventSub()
   }
 
-  @Test(arguments: [false, true])
-  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride(warningScope: Bool) async throws {
-    let client = await client(moderation: true, warningScope: warningScope)
+  @Test
+  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride() async throws {
+    let client = await client(moderation: true)
     try await client.join(to: channel)
     let events = await client.messageStream()
     await client.setChatPrivilege(ChatPrivilege(isModerator: true, isVIP: true), in: channel.id)
@@ -71,7 +71,7 @@ extension ManagedChatEventSubTests {
       .string(
         try notification(
           MockedMessages.channelModerateTimeoutUser, type: "channel.moderate",
-          version: warningScope ? "2" : "1"
+          version: "2"
         ) {
           var event = $0
           event["action"] = "unvip"
@@ -86,6 +86,21 @@ extension ManagedChatEventSubTests {
     #expect(privilege == ChatPrivilege())
     await client.shutdownChat()
     await client.resetEventSub()
+  }
+
+  @Test
+  func moderationWithoutWarningsScopeDoesNotSubscribeToAnOlderVersion() async throws {
+    let client = await client(moderation: true, warningScope: false)
+    try await client.join(to: channel)
+    await client.setChatPrivilege(ChatPrivilege(isModerator: true), in: channel.id)
+    let state = await client.chatState
+    #expect(state.channels[channel.id]?.status == .ready)
+    #expect(
+      state.channels[channel.id]?.moderation
+        == .unavailable(
+          "Required moderation scopes are not known to be granted."))
+    #expect(await postCount() == 6)
+    await client.shutdownChat()
   }
 
   @Test
@@ -151,7 +166,9 @@ extension ManagedChatEventSubTests {
   }
 
   private func moderationDeletion(messageID: String) throws -> String {
-    try notification(MockedMessages.channelModerateTimeoutUser, type: "channel.moderate") {
+    try notification(
+      MockedMessages.channelModerateTimeoutUser, type: "channel.moderate", version: "2"
+    ) {
       var event = $0
       event["moderator_user_id"] = "moderator"
       event["action"] = "delete"

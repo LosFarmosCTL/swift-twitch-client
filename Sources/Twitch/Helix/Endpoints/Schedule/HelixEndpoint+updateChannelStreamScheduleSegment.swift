@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `channel:manage:schedule`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule-segment
+  /// https://dev.twitch.tv/docs/api/reference/schedule/#update-channel-stream-schedule-segment
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

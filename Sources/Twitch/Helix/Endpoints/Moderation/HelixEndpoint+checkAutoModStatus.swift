@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// grant requirements described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#check-automod-status
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#check-automod-status
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -30,7 +30,7 @@ extension HelixEndpoint {
   /// grant requirements described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#check-automod-status
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#check-automod-status
   /// ) for request limits and account requirements.
   ///
   /// Omit `broadcasterID` to use the user token’s identity. App tokens require it explicitly.

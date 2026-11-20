@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// `channel:manage:broadcast`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-stream-markers
+  /// https://dev.twitch.tv/docs/api/reference/streams/#get-stream-markers
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// match the token’s user. App tokens require a prior grant from the moderator.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#warn-chat-user
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#warn-chat-user
   /// ).
   ///
   /// - Parameters:

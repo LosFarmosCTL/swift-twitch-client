@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-charity-campaign
+  /// https://dev.twitch.tv/docs/api/reference/charity/#get-charity-campaign
   /// ) for request limits and account requirements.
   ///
   /// - Returns: An endpoint that yields the active campaign when executed, or `nil` when

@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// `moderator:manage:guest_star`. The moderator ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#assign-guest-star-slot
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#assign-guest-star-slot
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -16,14 +16,11 @@ extension HelixEndpoint {
   ///   - slotID: The identifier of the slot.
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   public static func assignGuestStarSlot(
     sessionID: String,
     guestID: String,
     slotID: String,
-    broadcasterID: String? = nil,
-    moderatorID: String? = nil
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "guest_star/slot",
@@ -34,10 +31,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("session_id", sessionID),
           ("guest_id", guestID),
           ("slot_id", slotID),

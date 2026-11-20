@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// same client ID.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-redemption-status
+  /// https://dev.twitch.tv/docs/api/reference/channel-points/#update-redemption-status
   /// ) for request limits and account requirements.
   ///
   /// Returns every updated redemption. The list may be empty if no requested

@@ -10,7 +10,7 @@ extension HelixEndpoint {
   /// management is limited to rewards created by the same client ID.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-custom-reward-redemption
+  /// https://dev.twitch.tv/docs/api/reference/channel-points/#get-custom-reward-redemption
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

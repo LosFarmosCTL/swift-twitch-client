@@ -4,11 +4,11 @@ import MemberwiseInit
 extension HelixEndpoint {
   /// Gets the extensions installed by the authenticated user.
   ///
-  /// With a user access token, requires `user:read:broadcast` or `user:edit:broadcast`.
-  /// Inactive extensions require `user:edit:broadcast`.
+  /// With a user access token, requires `user:read:broadcast`, `user:edit:broadcast`,
+  /// or `channel:manage:extensions`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-user-extensions
+  /// https://dev.twitch.tv/docs/api/reference/users/#get-user-extensions
   /// ) for request limits and account requirements.
   public static func getUserExtensions()
     -> HelixEndpoint<[UserExtension]>

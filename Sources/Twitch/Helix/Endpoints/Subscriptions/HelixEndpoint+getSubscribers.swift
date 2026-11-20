@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-broadcaster-subscriptions
+  /// https://dev.twitch.tv/docs/api/reference/subscriptions/#get-broadcaster-subscriptions
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `broadcaster_id`.

@@ -46,22 +46,7 @@ internal struct EventSubMessage: Decodable {
     let id: String
     let type: String
     let version: String
-    let condition: [String: String]
-
-    enum CodingKeys: CodingKey { case id, type, version, condition }
-
-    init(from decoder: any Decoder) throws {
-      let fields = try decoder.container(keyedBy: CodingKeys.self)
-
-      id = try fields.decode(String.self, forKey: .id)
-      type = try fields.decode(String.self, forKey: .type)
-      version = try fields.decode(String.self, forKey: .version)
-
-      // Twitch can echo a nullable condition parameter that the request omitted.
-      condition = try fields.decode([String: String?].self, forKey: .condition).compactMapValues {
-        $0
-      }
-    }
+    @EventSubCondition private(set) var condition: [String: String]
   }
 
   internal struct Metadata: Decodable {
@@ -83,5 +68,20 @@ internal struct EventSubMessage: Decodable {
       case reconnect = "session_reconnect"
       case revocation = "revocation"
     }
+  }
+}
+
+/// Twitch can echo nullable condition parameters that the request omitted.
+@propertyWrapper
+struct EventSubCondition: Decodable, Sendable {
+  var wrappedValue: [String: String]
+
+  init(wrappedValue: [String: String]) {
+    self.wrappedValue = wrappedValue
+  }
+
+  init(from decoder: any Decoder) throws {
+    wrappedValue = try decoder.singleValueContainer().decode([String: String?].self)
+      .compactMapValues { $0 }
   }
 }

@@ -8,12 +8,13 @@ extension HelixEndpoint {
   /// client ID must belong to a member of the organization that owns the game.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-drops-entitlements
+  /// https://dev.twitch.tv/docs/api/reference/entitlements/#get-drops-entitlements
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - entitlementIDs: The entitlement IDs to include in the request. Defaults to `[]`.
-  ///   - userID: The Twitch user ID, when provided.
+  ///   - userID: The Twitch user ID, when provided. Must match the user token’s identity
+  ///     when using a user token.
   ///   - gameID: The identifier of the game, when provided.
   ///   - fulfillmentStatus: The Drops entitlement’s fulfillment status, when provided.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
@@ -34,13 +35,11 @@ extension HelixEndpoint {
       method: "GET", path: "entitlements/drops",
       authentication: .either,
       queryItems: { credentials in
-        if userID != nil, credentials.user != nil {
-          throw TwitchAuthenticationError.invalidParameter(
-            parameter: "user_id",
-            reason: "Drops user filtering requires an app access token.")
+        let filterUserID = try userID.map {
+          try credentials.resolveUserID($0, parameter: "user_id", matchingToken: true)
         }
         return [
-          ("user_id", userID),
+          ("user_id", filterUserID),
           ("game_id", gameID),
           ("fulfillment_status", fulfillmentStatus?.rawValue),
           ("first", limit.map(String.init)),

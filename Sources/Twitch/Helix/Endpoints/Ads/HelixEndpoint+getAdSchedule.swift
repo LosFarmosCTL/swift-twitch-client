@@ -10,7 +10,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-ad-schedule
+  /// https://dev.twitch.tv/docs/api/reference/ads/#get-ad-schedule
   /// ) for request limits and account requirements.
   /// - Parameter broadcasterID: The acting user ID. Required with app tokens; otherwise
   ///   defaults to the user token’s identity.

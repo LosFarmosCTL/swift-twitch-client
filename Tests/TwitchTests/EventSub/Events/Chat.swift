@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import Twitch
@@ -125,6 +126,30 @@ struct EventSubChatTests {
     #expect(type == "future_notice")
   }
 
+  @Test("Should preserve Shared Chat Modiversary details in managed chat")
+  func sharedChatModiversary() async throws {
+    let fixture = MockedMessages.channelChatNotificationSharedChat.replacingOccurrences(
+      of: #""notice_type": "shared_chat_resub""#,
+      with: """
+        "notice_type": "shared_chat_modiversary",
+        "shared_chat_modiversary": {"months":12},
+        "is_source_only": true
+        """)
+    let event = try #require(
+      try await harness.testEvent(
+        .channelChatNotification(broadcasterID: "111", userID: "222"),
+        with: fixture,
+        requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"]))
+    guard case .sharedChatModiversary(let notice) = event.noticeType else {
+      Issue.record("Expected a Shared Chat Modiversary notice")
+      return
+    }
+    #expect(notice.months == 12)
+    let normalized = ChatNotification(eventSub: event)
+    #expect(normalized.kind == "shared_chat_modiversary")
+    #expect(normalized.isSourceOnly == true)
+  }
+
   @Test("Should decode channelChatSettingsUpdate event")
   func testChannelChatSettingsUpdateEvent() async throws {
     let message = try await harness.testEvent(
@@ -143,6 +168,44 @@ struct EventSubChatTests {
       requiringCondition: ["broadcaster_user_id": "111", "user_id": "222"])
 
     _ = try #require(message)
+  }
+
+  @Test("Should decode mention and GIF fragments in a held message")
+  func heldMessageWithMentionAndGIF() throws {
+    let data = Data(
+      """
+      {"text":"@viewer GIF","fragments":[
+        {"type":"mention","text":"@viewer"},
+        {"type":"gif","text":"GIF"}
+      ]}
+      """.utf8)
+    let message = try TwitchClient.makeDecoder().decode(AutoModMessage.self, from: data)
+    #expect(message.fragments.map(\.type) == [.mention, .gif])
+  }
+
+  @Test("Should decode the documented chat notice payloads")
+  func documentedChatNoticePayloads() throws {
+    let decoder = TwitchClient.makeDecoder()
+    let resub = try decoder.decode(
+      ResubNotice.self,
+      from: Data(
+        #"{"cumulative_months":2,"duration_months":1,"sub_tier":"1000","is_prime":null}"#.utf8))
+    #expect(resub.isPrime == nil)
+
+    let upgrade = try decoder.decode(
+      GiftPaidUpgradeNotice.self,
+      from: Data(
+        #"{"gifter_is_anonymous":false,"gifter_user_id":"456","gifter_user_name":"Viewer"}"#.utf8))
+    let gifter = try #require(upgrade.gifter)
+    #expect(gifter.userID == "456")
+    #expect(gifter.userLogin == nil)
+
+    let donation = try decoder.decode(
+      CharityDonationNotice.self,
+      from: Data(
+        #"{"charity_name":"Charity","amount":{"value":100,"decimal_place":2,"currency":"USD"}}"#
+          .utf8))
+    #expect(donation.amount.decimalPlaces == 2)
   }
 
   @Test("Should decode channelChatUserMessageUpdate event")

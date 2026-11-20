@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:manage:blocked_users`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#block-user
+  /// https://dev.twitch.tv/docs/api/reference/users/#block-user
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

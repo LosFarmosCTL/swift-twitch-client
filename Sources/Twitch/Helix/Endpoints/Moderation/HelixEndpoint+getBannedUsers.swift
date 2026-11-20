@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-banned-users
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#get-banned-users
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `broadcaster_id`.

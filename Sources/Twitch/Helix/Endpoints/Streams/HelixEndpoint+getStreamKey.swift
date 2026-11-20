@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-stream-key
+  /// https://dev.twitch.tv/docs/api/reference/streams/#get-stream-key
   /// ) for request limits and account requirements.
   public static func getStreamKey()
     -> HelixEndpoint<String>

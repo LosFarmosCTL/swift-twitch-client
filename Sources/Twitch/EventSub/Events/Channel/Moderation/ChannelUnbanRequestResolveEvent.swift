@@ -37,9 +37,9 @@ public struct ChannelUnbanRequestResolveEvent: Event {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
     case broadcasterDisplayName = "broadcasterUserName"
-    case moderatorID = "moderatorId"
-    case moderatorLogin
-    case moderatorDisplayName = "moderatorName"
+    case moderatorID = "moderatorUserId"
+    case moderatorLogin = "moderatorUserLogin"
+    case moderatorDisplayName = "moderatorUserName"
     case userID = "userId"
     case userLogin
     case userDisplayName = "userName"

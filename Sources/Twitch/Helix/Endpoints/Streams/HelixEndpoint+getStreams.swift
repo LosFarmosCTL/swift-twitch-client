@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-streams
+  /// https://dev.twitch.tv/docs/api/reference/streams/#get-streams
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -87,8 +87,6 @@ public struct Stream: Decodable, Sendable {
   public let language: String
   /// The stream tags.
   public let tags: [String]?
-  /// Twitch’s deprecated maturity flag, documented as always returning `false`.
-  public let isMature: Bool
 
   /// The number of viewers reported by Twitch.
   public let viewerCount: Int
@@ -108,7 +106,6 @@ public struct Stream: Decodable, Sendable {
     case title
     case language
     case tags
-    case isMature
     case viewerCount
     case startedAt
     case thumbnailURL = "thumbnailUrl"

@@ -24,22 +24,33 @@ public struct AutoModMessage: Decodable, Sendable {
     public let emote: Emote?
     /// The Cheermote details, when provided.
     public let cheermote: Cheermote?
+    /// The mentioned account, when supplied.
+    @Init(default: nil)
+    public let mention: ChannelChatMessageEvent.Message.Fragment.Mention?
+    /// The embedded GIF, when supplied.
+    @Init(default: nil)
+    public let gif: ChannelChatMessageEvent.Message.Fragment.GIF?
 
     enum CodingKeys: String, CodingKey {
       case type
       case text
       case emote
       case cheermote
+      case mention
+      case gif
     }
 
-    /// Decodes a fragment, inferring its type from emote or Cheermote metadata when
-    /// Twitch omits the type.
+    /// Decodes a fragment, inferring its type from metadata when Twitch omits the type.
     public init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
 
       text = try container.decode(String.self, forKey: .text)
       emote = try container.decodeIfPresent(Emote.self, forKey: .emote)
       cheermote = try container.decodeIfPresent(Cheermote.self, forKey: .cheermote)
+      mention = try container.decodeIfPresent(
+        ChannelChatMessageEvent.Message.Fragment.Mention.self, forKey: .mention)
+      gif = try container.decodeIfPresent(
+        ChannelChatMessageEvent.Message.Fragment.GIF.self, forKey: .gif)
 
       if let type = try container.decodeIfPresent(FragmentType.self, forKey: .type) {
         self.type = type
@@ -47,6 +58,10 @@ public struct AutoModMessage: Decodable, Sendable {
         self.type = .emote
       } else if cheermote != nil {
         self.type = .cheermote
+      } else if mention != nil {
+        self.type = .mention
+      } else if gif != nil {
+        self.type = .gif
       } else {
         self.type = .text
       }
@@ -60,6 +75,10 @@ public struct AutoModMessage: Decodable, Sendable {
       case emote
       /// A cheermote message fragment.
       case cheermote
+      /// A user mention fragment.
+      case mention
+      /// A GIF fragment.
+      case gif
     }
 
     /// Emote metadata for a fragment of the chat message.

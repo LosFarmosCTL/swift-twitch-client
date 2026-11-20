@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// the user’s prior authorization with that scope and an explicit `userID`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#check-user-subscription
+  /// https://dev.twitch.tv/docs/api/reference/subscriptions/#check-user-subscription
   /// ) for request limits and account requirements.
   ///
   /// With user tokens, `userID` defaults to the token’s user and must match it.

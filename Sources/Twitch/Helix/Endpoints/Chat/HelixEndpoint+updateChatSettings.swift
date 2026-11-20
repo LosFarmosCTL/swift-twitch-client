@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-chat-settings
+  /// https://dev.twitch.tv/docs/api/reference/chat/#update-chat-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

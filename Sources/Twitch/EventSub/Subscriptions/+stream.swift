@@ -4,7 +4,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#streamonline
+  /// https://dev.twitch.tv/docs/eventsub/reference/stream/#stream-online
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -24,7 +24,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#streamoffline
+  /// https://dev.twitch.tv/docs/eventsub/reference/stream/#stream-offline
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

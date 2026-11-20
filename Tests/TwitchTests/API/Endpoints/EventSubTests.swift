@@ -40,6 +40,7 @@ struct EventSubTests {
     #expect(
       response.subscriptions.last?.status == "webhook_callback_verification_pending")
     #expect(response.subscriptions.last?.type == "user.update")
+    #expect(response.subscriptions.last?.condition == ["user_id": "1234"])
     #expect(response.subscriptions.last?.cost == 0)
   }
 
@@ -74,6 +75,36 @@ struct EventSubTests {
     #expect(fields["is_batching_enabled"] as? Bool == false)
     #expect(response.subscription.transport.method == "webhook")
     #expect(response.subscription.condition["user_id"] == "1234")
+  }
+
+  @Test
+  func createCustomEventSubSubscription() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
+    let original = try #require(
+      String(bytes: MockedData.createEventSubSubscriptionJSON, encoding: .utf8))
+    let fixture =
+      original
+      .replacingOccurrences(
+        of: #""user_id": "1234""#,
+        with: #""organization_id": "org", "category_id": null"#
+      )
+      .replacingOccurrences(of: "user.update", with: "drop.entitlement.grant")
+    await harness.session.stub(url: url, method: "POST", body: Data(fixture.utf8))
+
+    let response = try await harness.twitch.helix(
+      for: .createEventSubSubscription(
+        using: .webhook(callback: "https://example.com/webhook", secret: "secret"),
+        for: .custom(
+          type: "drop.entitlement.grant", version: "1", condition: ["organization_id": "org"]),
+        isBatchingEnabled: true)
+    ).value
+
+    #expect(response.subscription.condition == ["organization_id": "org"])
+    let body = try #require(await harness.session.lastRequest()?.httpBody)
+    let request = try TwitchClient.makeDecoder().decode(CreateEventSubRequestBody.self, from: body)
+    #expect(request.type == "drop.entitlement.grant")
+    #expect(request.condition == ["organization_id": "org"])
+    #expect(request.isBatchingEnabled == true)
   }
 
   @Test

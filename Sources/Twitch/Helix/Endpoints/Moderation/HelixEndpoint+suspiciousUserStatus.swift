@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// Accepts a user token or an app token with the required prior authorization.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#add-suspicious-status-to-chat-user
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#add-suspicious-status-to-chat-user
   /// ).
   ///
   /// - Parameters:
@@ -43,7 +43,7 @@ extension HelixEndpoint {
   /// Accepts a user token or an app token with the required prior authorization.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#remove-suspicious-status-from-chat-user
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#remove-suspicious-status-from-chat-user
   /// ).
   ///
   /// - Parameters:

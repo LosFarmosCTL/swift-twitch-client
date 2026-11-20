@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// same client ID.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-custom-rewards
+  /// https://dev.twitch.tv/docs/api/reference/channel-points/#create-custom-rewards
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

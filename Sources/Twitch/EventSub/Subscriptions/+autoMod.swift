@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#automodmessagehold-v2
+  /// https://dev.twitch.tv/docs/eventsub/reference/automod/#automod-message-hold-v2
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -29,7 +29,7 @@ extension EventSubSubscription {
   /// token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#automodmessageupdate-v2
+  /// https://dev.twitch.tv/docs/eventsub/reference/automod/#automod-message-update-v2
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -49,11 +49,11 @@ extension EventSubSubscription {
 
   /// Creates a subscription description for AutoMod settings update notifications.
   ///
-  /// Requires `moderator:read:automod_settings`. With WebSockets, `moderatorID` must
+  /// Requires `moderator:manage:automod_settings`. With WebSockets, `moderatorID` must
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#automodsettingsupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/automod/#automod-settings-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -77,7 +77,7 @@ extension EventSubSubscription {
   /// token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#automodtermsupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/automod/#automod-terms-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

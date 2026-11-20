@@ -5,7 +5,7 @@ extension HelixEndpoint {
   /// match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#resolve-unban-requests
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#resolve-unban-requests
   /// ).
   ///
   /// - Parameters:
@@ -13,11 +13,9 @@ extension HelixEndpoint {
   ///   - broadcasterID: The channel broadcaster’s ID.
   ///   - status: Whether to approve or deny the request.
   ///   - resolutionText: An optional explanation, at most 500 characters.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
-  ///     Required for app tokens.
   public static func resolveUnbanRequest(
     _ requestID: String, in broadcasterID: String, status: UnbanRequestResolution,
-    resolutionText: String? = nil, moderatorID: String? = nil
+    resolutionText: String? = nil
   ) -> HelixEndpoint<UnbanRequest> {
     .init(
       method: "PATCH", path: "moderation/unban_requests",
@@ -25,11 +23,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(
-              moderatorID, parameter: "moderator_id", matchingToken: true)
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("unban_request_id", requestID), ("status", status.rawValue),
           ("resolution_text", resolutionText),
         ]

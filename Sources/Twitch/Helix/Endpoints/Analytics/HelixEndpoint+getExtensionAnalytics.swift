@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `analytics:read:extensions`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-extension-analytics
+  /// https://dev.twitch.tv/docs/api/reference/analytics/#get-extension-analytics
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

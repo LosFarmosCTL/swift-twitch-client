@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// `moderator:manage:guest_star`. The moderator ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#delete-guest-star-slot
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#delete-guest-star-slot
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -18,15 +18,12 @@ extension HelixEndpoint {
   ///     assignment.
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   public static func deleteGuestStarSlot(
     sessionID: String,
     guestID: String,
     slotID: String,
     shouldReinviteGuest: Bool? = nil,
-    broadcasterID: String? = nil,
-    moderatorID: String? = nil
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "guest_star/slot",
@@ -37,10 +34,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("session_id", sessionID),
           ("guest_id", guestID),
           ("slot_id", slotID),

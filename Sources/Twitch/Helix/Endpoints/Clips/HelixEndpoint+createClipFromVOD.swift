@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// the user token’s user. Twitch also documents app-token authorization.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-clip-from-vod
+  /// https://dev.twitch.tv/docs/api/reference/clips/#create-clip-from-vod
   /// ).
   ///
   /// - Parameters:

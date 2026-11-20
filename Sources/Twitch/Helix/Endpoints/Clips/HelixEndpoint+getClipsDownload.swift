@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// the user token’s user. Twitch also documents app-token authorization.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-clips-download
+  /// https://dev.twitch.tv/docs/api/reference/clips/#get-clips-download
   /// ) for authorization and the endpoint-specific rate limit.
   ///
   /// - Parameters:

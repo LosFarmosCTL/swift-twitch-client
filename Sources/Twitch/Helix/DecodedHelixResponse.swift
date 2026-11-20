@@ -92,7 +92,7 @@ internal struct HelixResponsePayload<T: Decodable>: Decodable {
         pagination = try DecodedHelixResponse<T>.Pagination(from: paginationDecoder)
       } catch {
         if let cursor = try? String(from: paginationDecoder) {
-          pagination = .init(cursor: cursor)
+          pagination = .init(cursor: cursor.isEmpty ? nil : cursor)
         } else {
           paginationFailure = error
         }

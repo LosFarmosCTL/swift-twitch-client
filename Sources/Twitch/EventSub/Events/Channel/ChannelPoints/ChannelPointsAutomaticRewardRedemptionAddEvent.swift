@@ -24,7 +24,8 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   /// The reward details.
   public let reward: Reward
   /// The message content or explanatory text supplied by Twitch.
-  public let message: Message
+  @Init(default: nil)
+  public let message: Message?
   /// The time the reward was redeemed.
   public let redeemedAt: Date
 
@@ -55,6 +56,8 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
     public struct Emote: Decodable, Sendable {
       /// The identifier assigned by Twitch.
       public let id: String
+      /// The human-readable emote token.
+      public let name: String
     }
 
     /// The built-in Channel Points reward redeemed by the viewer.

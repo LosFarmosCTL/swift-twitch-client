@@ -6,7 +6,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshoutoutcreate
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-shoutout-create
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -30,7 +30,7 @@ extension EventSubSubscription {
   /// or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelshoutoutreceive
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-shoutout-receive
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

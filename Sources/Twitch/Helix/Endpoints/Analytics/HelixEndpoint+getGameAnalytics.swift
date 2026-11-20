@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `analytics:read:games`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-game-analytics
+  /// https://dev.twitch.tv/docs/api/reference/analytics/#get-game-analytics
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

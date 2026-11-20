@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// Requires a user access token with `user:read:emotes`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-user-emotes
+  /// https://dev.twitch.tv/docs/api/reference/chat/#get-user-emotes
   /// ).
   ///
   /// - Parameters:

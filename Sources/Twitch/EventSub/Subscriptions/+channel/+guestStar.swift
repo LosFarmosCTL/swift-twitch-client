@@ -8,7 +8,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-session-begin
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-session-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -36,7 +36,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-session-end
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-session-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -65,7 +65,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-guest-update
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-guest-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -94,7 +94,7 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-settings-update
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-settings-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

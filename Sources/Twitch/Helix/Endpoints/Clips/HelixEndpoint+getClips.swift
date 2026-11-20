@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Accepts a user or app access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-clips
+  /// https://dev.twitch.tv/docs/api/reference/clips/#get-clips
   /// ) for request limits and account requirements.
   ///
   /// Specify exactly one selector: a nonempty `clipIDs` array, `broadcasterID`, or

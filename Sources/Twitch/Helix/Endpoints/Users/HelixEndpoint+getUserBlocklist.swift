@@ -4,10 +4,10 @@ import MemberwiseInit
 extension HelixEndpoint {
   /// Gets the authenticated user’s blocked users.
   ///
-  /// With a user access token, requires `user:read:blocked_users`.
+  /// With a user access token, requires `user:read:blocked_users` or `user:manage:blocked_users`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-user-block-list
+  /// https://dev.twitch.tv/docs/api/reference/users/#get-user-block-list
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `broadcaster_id`.

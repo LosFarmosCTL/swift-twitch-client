@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#remove-blocked-term
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#remove-blocked-term
   /// ) for request limits and account requirements.
   ///
   /// Omit `moderatorID` to use the user token’s identity. App tokens require it explicitly.

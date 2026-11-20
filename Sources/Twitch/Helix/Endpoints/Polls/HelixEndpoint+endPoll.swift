@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#end-poll
+  /// https://dev.twitch.tv/docs/api/reference/polls/#end-poll
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

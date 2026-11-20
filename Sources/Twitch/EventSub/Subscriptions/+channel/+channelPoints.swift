@@ -6,7 +6,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_rewardadd
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-custom-reward-add
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -28,7 +28,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_rewardupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-custom-reward-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -57,7 +57,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_rewardremove
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-custom-reward-remove
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -86,7 +86,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionadd
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-custom-reward-redemption-add
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -115,7 +115,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_custom_reward_redemptionupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-custom-reward-redemption-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -145,7 +145,7 @@ extension EventSubSubscription {
   /// must grant the required scope; with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchannel_points_automatic_reward_redemptionadd-v2
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel-points/#channel-channel-points-automatic-reward-redemption-add-v2
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

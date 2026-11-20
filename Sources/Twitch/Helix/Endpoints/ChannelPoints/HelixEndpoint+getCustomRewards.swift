@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// `channel:manage:redemptions`. The broadcaster ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-custom-reward
+  /// https://dev.twitch.tv/docs/api/reference/channel-points/#get-custom-reward
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

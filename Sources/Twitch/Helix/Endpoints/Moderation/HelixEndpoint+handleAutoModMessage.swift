@@ -26,7 +26,7 @@ extension HelixEndpoint {
   /// additional grant requirements described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#manage-held-automod-messages
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#manage-held-automod-messages
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -44,7 +44,7 @@ extension HelixEndpoint {
   /// additional grant requirements described in the reference.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#manage-held-automod-messages
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#manage-held-automod-messages
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

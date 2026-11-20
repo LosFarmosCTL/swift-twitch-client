@@ -104,7 +104,11 @@ public struct ValidatedAccessToken: Decodable, Sendable {
           debugDescription:
             "Token validation must include both user_id and login, or neither."))
     }
-    scopes = try container.decode([String].self, forKey: .scopes)
+    if case .app = kind {
+      scopes = try container.decodeIfPresent([String].self, forKey: .scopes) ?? []
+    } else {
+      scopes = try container.decode([String].self, forKey: .scopes)
+    }
 
     let expiresIn = try container.decodeIfPresent(Int.self, forKey: .expiresIn)
     if expiresIn != 0 {

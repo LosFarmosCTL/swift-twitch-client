@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// event type.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#delete-eventsub-subscription
+  /// https://dev.twitch.tv/docs/api/reference/eventsub/#delete-eventsub-subscription
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

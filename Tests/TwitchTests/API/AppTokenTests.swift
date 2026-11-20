@@ -128,13 +128,19 @@ struct AppTokenTests {
     guard
       case .authenticationError(
         .invalidParameter(parameter: "for_source_only", reason: _)) = sourceError,
-      case .authenticationError(.invalidParameter(parameter: "user_id", reason: _)) =
-        dropsError
+      case .authenticationError(.userIDMismatch(parameter: "user_id")) = dropsError
     else {
       Issue.record("Expected token-dependent parameter errors")
       return
     }
     #expect(await userHarness.session.requestCount() == 0)
+    let dropsURL = try #require(
+      URL(string: "https://api.twitch.tv/helix/entitlements/drops?user_id=1234"))
+    await userHarness.session.stub(url: dropsURL, body: Data(#"{"data":[]}"#.utf8))
+    let entitlements = try await userHarness.twitch.helix(
+      for: .getDropsEntitlements(userID: "1234")
+    ).value
+    #expect(entitlements.entitlements.isEmpty)
 
     let harness = HelixTestHarness(credentials: app)
     let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))

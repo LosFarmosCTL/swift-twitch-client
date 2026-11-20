@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// With a user access token, requires `user:read:follows`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-followed-streams
+  /// https://dev.twitch.tv/docs/api/reference/streams/#get-followed-streams
   /// ) for request limits and account requirements.
   ///
   /// The request uses the executing client’s user ID for `user_id`.

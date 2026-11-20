@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// `moderator:manage:unban_requests`. The moderator ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-unban-requests
+  /// https://dev.twitch.tv/docs/api/reference/moderation/#get-unban-requests
   /// ).
   ///
   /// - Parameters:
@@ -17,12 +17,10 @@ extension HelixEndpoint {
   ///   - userID: An optional requestor ID to filter by.
   ///   - limit: The page size; `nil` uses Twitch’s default.
   ///   - cursor: The next-page cursor, if any.
-  ///   - moderatorID: The acting moderator’s ID; `nil` uses the user token’s identity.
-  ///     Required for app tokens.
   /// - Returns: Requests and the next-page cursor.
   public static func getUnbanRequests(
     in broadcasterID: String, status: UnbanRequestStatus, userID: String? = nil,
-    limit: Int? = nil, after cursor: String? = nil, moderatorID: String? = nil
+    limit: Int? = nil, after cursor: String? = nil
   ) -> HelixEndpoint<UnbanRequestsResponse> {
     .init(
       method: "GET", path: "moderation/unban_requests",
@@ -30,11 +28,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(
-              moderatorID, parameter: "moderator_id", matchingToken: true)
-          ),
+          ("moderator_id", try credentials.requireUser().id),
           ("status", status.rawValue), ("user_id", userID),
           ("first", limit.map(String.init)), ("after", cursor),
         ]

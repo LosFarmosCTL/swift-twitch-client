@@ -4,10 +4,10 @@ import MemberwiseInit
 extension HelixEndpoint {
   /// Adds a marker to a broadcaster’s current stream.
   ///
-  /// With a user access token, requires `channel:manage:broadcast`.
+  /// With a user access token, requires `channel:manage:broadcast` or `user:edit:broadcast`.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-stream-marker
+  /// https://dev.twitch.tv/docs/api/reference/streams/#create-stream-marker
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

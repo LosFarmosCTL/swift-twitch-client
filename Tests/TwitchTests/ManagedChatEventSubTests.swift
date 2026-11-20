@@ -233,7 +233,7 @@ struct ManagedChatEventSubTests {
 extension ManagedChatEventSubTests {
   func client(
     moderation: Bool = false, welcome: Bool = true, prefill: Bool = false,
-    warningScope: Bool = false
+    warningScope: Bool = true
   ) async
     -> TwitchClient
   {

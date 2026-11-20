@@ -4,7 +4,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelraid
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-raid
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -24,7 +24,7 @@ extension EventSubSubscription {
   /// No event-specific scope is required.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelraid
+  /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-raid
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

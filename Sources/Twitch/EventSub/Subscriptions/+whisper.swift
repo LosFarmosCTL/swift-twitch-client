@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#userwhispermessage
+  /// https://dev.twitch.tv/docs/eventsub/reference/user/#user-whisper-message
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

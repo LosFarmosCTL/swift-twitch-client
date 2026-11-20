@@ -113,6 +113,19 @@ struct ExtensionsTests {
   }
 
   @Test
+  func extensionLiveChannelsEndAtAnEmptyCursor() async throws {
+    let harness = HelixTestHarness()
+    let url = try #require(
+      URL(string: "https://api.twitch.tv/helix/extensions/live?extension_id=extension"))
+    await harness.session.stub(url: url, body: Data(#"{"data":[],"pagination":""}"#.utf8))
+
+    let page = try await harness.twitch.helix(
+      for: .getExtensionLiveChannels(extensionID: "extension")
+    ).value
+    #expect(page.cursor == nil)
+  }
+
+  @Test
   func getExtensionSecrets() async throws {
     let url = try #require(
       URL(

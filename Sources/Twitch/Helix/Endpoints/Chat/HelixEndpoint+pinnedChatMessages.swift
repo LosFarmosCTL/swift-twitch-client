@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// App tokens require additional prior user and channel grants.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-pinned-chat-message
+  /// https://dev.twitch.tv/docs/api/reference/chat/#get-pinned-chat-message
   /// ).
   ///
   /// - Parameters:
@@ -38,7 +38,7 @@ extension HelixEndpoint {
   /// Requires `moderator:manage:chat_messages`. App tokens require additional prior grants.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#pin-chat-message
+  /// https://dev.twitch.tv/docs/api/reference/chat/#pin-chat-message
   /// ).
   ///
   /// - Parameters:
@@ -73,7 +73,7 @@ extension HelixEndpoint {
   /// Requires `moderator:manage:chat_messages`. App tokens require additional prior grants.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-pinned-chat-message
+  /// https://dev.twitch.tv/docs/api/reference/chat/#update-pinned-chat-message
   /// ).
   ///
   /// - Parameters:
@@ -108,7 +108,7 @@ extension HelixEndpoint {
   /// Requires `moderator:manage:chat_messages`. App tokens require additional prior grants.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#unpin-chat-message
+  /// https://dev.twitch.tv/docs/api/reference/chat/#unpin-chat-message
   /// ).
   ///
   /// - Parameters:

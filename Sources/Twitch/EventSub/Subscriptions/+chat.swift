@@ -4,7 +4,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-clear
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -27,7 +27,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear_user_messages
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-clear-user-messages
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -49,7 +49,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-message
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -71,7 +71,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage_delete
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-message-delete
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -93,7 +93,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatnotification
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-notification
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -115,7 +115,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchat_settingsupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-settings-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -137,7 +137,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatuser_message_hold
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-user-message-hold
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -160,7 +160,7 @@ extension EventSubSubscription {
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatuser_message_update
+  /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-user-message-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

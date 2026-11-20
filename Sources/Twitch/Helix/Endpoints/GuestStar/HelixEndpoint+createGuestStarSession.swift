@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// For user-token requests, the broadcaster must be the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-guest-star-session
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#create-guest-star-session
   /// ) for request limits and account requirements.
   public static func createGuestStarSession() -> HelixEndpoint<GuestStarSession> {
     .init(

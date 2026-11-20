@@ -12,7 +12,7 @@ extension HelixEndpoint {
   /// Coordinate the cutover using the returned activation and expiration timestamps.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-extension-secret
+  /// https://dev.twitch.tv/docs/api/reference/extensions/#create-extension-secret
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

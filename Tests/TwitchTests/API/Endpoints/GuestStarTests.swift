@@ -71,7 +71,8 @@ struct GuestStarTests {
       url: url,
       body: MockedData.getGuestStarSessionJSON)
 
-    let session = (try await harness.twitch.helix(for: .getGuestStarSession())).value
+    let session = try #require(
+      try await harness.twitch.helix(for: .getGuestStarSession()).value)
 
     #expect(session.id == "2KFRQbFtpmfyD3IevNRnCzOPRJI")
     #expect(session.guests.count == 2)
@@ -84,6 +85,10 @@ struct GuestStarTests {
       session.guests.first?.assignedAt.formatted(.iso8601) == "2023-01-02T04:16:53Z")
     #expect(session.guests.first?.audioSettings.isAvailable == true)
     #expect(session.guests.first?.videoSettings.isAvailable == true)
+
+    await harness.session.stub(url: url, body: Data(#"{"data":[]}"#.utf8))
+    let empty = try await harness.twitch.helix(for: .getGuestStarSession()).value
+    #expect(empty == nil)
   }
 
   @Test

@@ -19,13 +19,7 @@ extension ManagedChat {
 
     guard !member.moderationBlocked, member.moderationTask == nil else { return }
 
-    let canReadWarnings = !scopes.isDisjoint(with: [
-      "moderator:read:warnings", "moderator:manage:warnings",
-    ])
-    let topic =
-      canReadWarnings
-      ? ChatEventSubTopics.Topic(.channelModerate(broadcasterID: id, moderatorID: user.id))
-      : ChatEventSubTopics.Topic(.channelModerateV1(broadcasterID: id, moderatorID: user.id))
+    let topic = ChatEventSubTopics.Topic(.channelModerate(broadcasterID: id, moderatorID: user.id))
     startChatModeration(member, topic: topic)
   }
 
@@ -51,10 +45,7 @@ extension ManagedChat {
       membership.moderation = .ready
       publishChatState()
     case .event(let notification):
-      let event =
-        notification.event as? ChannelModerateEvent
-        ?? (notification.event as? ChannelModerateV1Event)?.moderation
-      if let event {
+      if let event = notification.event as? ChannelModerateEvent {
         receiveChatModerationEvent(
           event, timestamp: notification.sentAt, channel: membership.channel)
       }
@@ -86,5 +77,6 @@ private let chatModerationScopes: [Set<String>] = [
   ["moderator:read:unban_requests", "moderator:manage:unban_requests"],
   ["moderator:read:banned_users", "moderator:manage:banned_users"],
   ["moderator:read:chat_messages", "moderator:manage:chat_messages"],
+  ["moderator:read:warnings", "moderator:manage:warnings"],
   ["moderator:read:moderators"], ["moderator:read:vips"],
 ]

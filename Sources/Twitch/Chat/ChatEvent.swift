@@ -78,6 +78,8 @@ public struct ChatNotification: Sendable {
   public let systemMessage: String?
   public let sourceChannelID: String?
   public let sourceMessageID: String?
+  /// Whether Twitch marked the notification as limited to its Shared Chat source.
+  public let isSourceOnly: Bool?
   public let details: Details
 }
 

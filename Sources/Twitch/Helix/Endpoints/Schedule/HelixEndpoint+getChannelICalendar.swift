@@ -6,7 +6,7 @@ extension HelixEndpoint {
   /// Twitch does not require authentication for this resource.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-channel-icalendar
+  /// https://dev.twitch.tv/docs/api/reference/schedule/#get-channel-icalendar
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

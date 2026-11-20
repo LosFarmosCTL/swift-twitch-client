@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// event type.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription
+  /// https://dev.twitch.tv/docs/api/reference/eventsub/#create-eventsub-subscription
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
@@ -118,7 +118,9 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     /// The EventSub schema version used to decode this subscription’s notifications.
     public let version: String
     /// The conditions selecting which events the subscription receives.
-    public let condition: [String: String]
+    public var condition: [String: String] { decodedCondition }
+    @InitRaw(.public, label: "condition", type: [String: String].self)
+    @EventSubCondition private var decodedCondition: [String: String]
     /// The time the resource was created.
     public let createdAt: Date
     /// The EventSub delivery transport.
@@ -127,6 +129,11 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     public let cost: Int
     /// Present when notification batching is enabled; omission means false.
     public let isBatchingEnabled: Bool?
+
+    private enum CodingKeys: String, CodingKey {
+      case id, status, type, version, createdAt, transport, cost, isBatchingEnabled
+      case decodedCondition = "condition"
+    }
   }
 
   /// The destination assigned to a newly created EventSub subscription.

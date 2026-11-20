@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Requires a user access token without an additional endpoint scope.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-shared-chat-session
+  /// https://dev.twitch.tv/docs/api/reference/chat/#get-shared-chat-session
   /// ).
   ///
   /// - Parameter broadcasterID: The channel broadcaster’s user ID.

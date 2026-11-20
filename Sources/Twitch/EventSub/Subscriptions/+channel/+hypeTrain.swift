@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelhype_trainbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/hype-train/#channel-hype-train-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -26,7 +26,7 @@ extension EventSubSubscription {
   /// with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelhype_trainprogress
+  /// https://dev.twitch.tv/docs/eventsub/reference/hype-train/#channel-hype-train-progress
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
@@ -47,7 +47,7 @@ extension EventSubSubscription {
   /// with WebSockets, use that broadcaster’s user token.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelhype_trainend
+  /// https://dev.twitch.tv/docs/eventsub/reference/hype-train/#channel-hype-train-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:

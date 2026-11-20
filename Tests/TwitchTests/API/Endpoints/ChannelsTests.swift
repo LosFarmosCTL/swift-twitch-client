@@ -118,6 +118,31 @@ struct ChannelsTests {
   }
 
   @Test
+  func filteredFollowListsPreserveTotals() async throws {
+    let followedURL = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/channels/followed?user_id=1234&broadcaster_id=654321"))
+    let followersURL = try #require(
+      URL(
+        string: "https://api.twitch.tv/helix/channels/followers?broadcaster_id=1234&user_id=654321")
+    )
+    await harness.session.stub(url: followedURL, body: MockedData.checkFollowJSON)
+    await harness.session.stub(url: followersURL, body: MockedData.checkChannelFollowerJSON)
+
+    let followed = try await harness.twitch.helix(
+      for: .getFollowedChannels(broadcasterID: "654321")
+    ).value
+    let followers = try await harness.twitch.helix(
+      for: .getChannelFollowers(of: "1234", userID: "654321")
+    ).value
+
+    #expect(followed.total == 8)
+    #expect(followed.follows.map(\.broadcasterID) == ["654321"])
+    #expect(followers.total == 8)
+    #expect(followers.followers.map(\.userID) == ["654321"])
+  }
+
+  @Test
   func checkChannelFollower() async throws {
     let url = try #require(
       URL(

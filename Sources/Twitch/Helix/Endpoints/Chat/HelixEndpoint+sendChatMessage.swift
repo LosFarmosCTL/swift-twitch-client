@@ -9,7 +9,7 @@ extension HelixEndpoint {
   /// 500 characters.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+  /// https://dev.twitch.tv/docs/api/reference/chat/#send-chat-message
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

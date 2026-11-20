@@ -79,6 +79,18 @@ extension ModerationTests {
   }
 
   @Test
+  func moderatorCanRemoveThemselvesFromAnotherChannel() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/moderators?broadcaster_id=9876&user_id=1234"))
+    await harness.session.stub(url: url, method: "DELETE", status: 204)
+
+    try await harness.twitch.helix(
+      for: .removeChannelModerator(userID: "1234", broadcasterID: "9876"))
+  }
+
+  @Test
   func getVIPs() async throws {
     let url = try #require(
       URL(

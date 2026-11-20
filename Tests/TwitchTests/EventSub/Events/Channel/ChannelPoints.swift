@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import Twitch
@@ -77,5 +78,29 @@ struct EventSubChannelPointsTests {
       requiringCondition: ["broadcaster_user_id": "1337"])
 
     _ = try #require(message)
+  }
+
+  @Test("Should decode an automatic reward with an emote but no message")
+  func automaticRewardWithoutMessage() async throws {
+    let bytes = Data(MockedMessages.channelPointsAutomaticRewardRedemptionAdd.utf8)
+    var frame = try #require(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+    var payload = try #require(frame["payload"] as? [String: Any])
+    var redemption = try #require(payload["event"] as? [String: Any])
+    var reward = try #require(redemption["reward"] as? [String: Any])
+    reward["type"] = "chosen_sub_emote_unlock"
+    reward["emote"] = ["id": "81274", "name": "VoHiYo"]
+    redemption["reward"] = reward
+    redemption["message"] = NSNull()
+    payload["event"] = redemption
+    frame["payload"] = payload
+    let fixture = try #require(
+      String(bytes: try JSONSerialization.data(withJSONObject: frame), encoding: .utf8))
+    let event = try #require(
+      try await harness.testEvent(
+        .channelPointsAutomaticRewardRedemptionAdd(broadcasterID: "1337"),
+        with: fixture,
+        requiringCondition: ["broadcaster_user_id": "1337"]))
+    #expect(event.message == nil)
+    #expect(event.reward.emote?.name == "VoHiYo")
   }
 }

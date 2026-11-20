@@ -8,7 +8,7 @@ extension HelixEndpoint {
   /// identify the extension.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-extension-bits-products
+  /// https://dev.twitch.tv/docs/api/reference/extensions/#get-extension-bits-products
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:

@@ -9,17 +9,14 @@ extension HelixEndpoint {
   /// `moderator:manage:guest_star`. The moderator ID must match the token’s user.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-channel-guest-star-settings
+  /// https://dev.twitch.tv/docs/api/reference/guest-star/#get-channel-guest-star-settings
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - moderatorID: The moderator’s Twitch user ID; `nil` uses the executing client’s
-  ///     authenticated user ID.
   public static func getChannelGuestStarSettings(
-    broadcasterID: String? = nil,
-    moderatorID: String? = nil
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<GuestStarChannelSettings> {
     .init(
       method: "GET", path: "guest_star/channel_settings",
@@ -30,10 +27,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          (
-            "moderator_id",
-            try credentials.resolveUserID(moderatorID, parameter: "moderator_id")
-          ),
+          ("moderator_id", try credentials.requireUser().id),
         ]
       },
       responseType: GuestStarChannelSettings.self,

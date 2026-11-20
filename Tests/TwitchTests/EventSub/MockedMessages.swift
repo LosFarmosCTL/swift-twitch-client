@@ -43,6 +43,7 @@ enum MockedMessages {
 
   // Bits
   static let channelBitsUse = fromResource("channelBitsUse")
+  static let channelCustomPowerUpRedemptionAdd = fromResource("channelCustomPowerUpRedemptionAdd")
   static let channelCheer = fromResource("channelCheer")
 
   // Ads

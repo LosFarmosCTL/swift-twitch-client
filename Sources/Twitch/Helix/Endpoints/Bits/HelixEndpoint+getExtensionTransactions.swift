@@ -7,7 +7,7 @@ extension HelixEndpoint {
   /// Requires an app access token whose client ID identifies the extension.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#get-extension-transactions
+  /// https://dev.twitch.tv/docs/api/reference/bits/#get-extension-transactions
   /// ) for authorization and request limits.
   ///
   /// - Parameters:

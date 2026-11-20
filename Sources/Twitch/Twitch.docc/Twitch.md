@@ -139,8 +139,14 @@ readiness wait leaves the channel joined. Call `part` to withdraw membership and
 
 ``TwitchClient/chatStateUpdates()`` yields the latest membership, connection, and send
 state. Managed sends apply process-local sender limits, channel pacing, and known
-restrictions. Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
+restrictions. These local checks are not Twitch's server-side send or join limits.
+Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
 Moderation enrichment is opt-in and uses observed roles plus known token scopes.
+See <doc:Authentication> for read and write scopes by transport.
+
+On watchOS, use Helix over HTTPS. Direct EventSub and IRC are not supported on
+Apple Watch: watchOS blocks the WebSocket connections they need in ordinary apps.
+See [Apple TN3135](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos).
 
 Credential switches preserve desired channels by default. Pass `chatBehavior: .partChannels`
 to clear them. A preserved anonymous IRC reader stays connected, and account-bound

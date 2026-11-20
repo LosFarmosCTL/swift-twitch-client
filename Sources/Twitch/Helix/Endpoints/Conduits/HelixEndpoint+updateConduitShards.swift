@@ -6,12 +6,12 @@ extension HelixEndpoint {
   /// Twitch requires an app access token for this endpoint.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/api/reference/#update-conduit-shards
+  /// https://dev.twitch.tv/docs/api/reference/conduits/#update-conduit-shards
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
   ///   - conduitID: The identifier of the conduit.
-  ///   - shards: The shard configurations to apply.
+  ///   - shards: The shard configurations to apply, up to 100 per request.
   public static func updateConduitShards(
     conduitID: String,
     shards: [ConduitShardUpdate]
