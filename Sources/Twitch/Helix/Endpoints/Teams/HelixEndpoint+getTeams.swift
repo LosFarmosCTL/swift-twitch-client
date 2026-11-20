@@ -46,9 +46,9 @@ public struct Team: Decodable, Sendable {
 
   /// The team’s description, which may contain HTML.
   public let info: String
-  /// The URL for thumbnail.
+  /// The URL of the team's thumbnail image, when provided.
   public let thumbnailURL: String?
-  /// The URL for background image, when provided.
+  /// The URL of the team's background image, when provided.
   public let backgroundImageURL: String?
   /// The team banner image, when provided.
   public let banner: String?

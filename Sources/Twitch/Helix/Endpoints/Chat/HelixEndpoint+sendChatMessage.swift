@@ -87,7 +87,7 @@ public struct ChatMessageResponse: Decodable, Sendable {
   public struct DropReason: Decodable, Sendable {
     /// The Twitch code identifying why the message was dropped.
     public let code: String
-    /// The message content or explanatory text supplied by Twitch.
+    /// Twitch's human-readable explanation of why the message was dropped.
     public let message: String
   }
 }

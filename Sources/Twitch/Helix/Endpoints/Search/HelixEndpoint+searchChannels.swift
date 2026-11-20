@@ -65,7 +65,7 @@ public struct Channel: Decodable, Sendable {
   /// The stream tags.
   public let tags: [String]
 
-  /// The URL for profile image.
+  /// The URL of the channel's profile image.
   public let profileImageURL: String
   /// The title shown to viewers.
   public let title: String

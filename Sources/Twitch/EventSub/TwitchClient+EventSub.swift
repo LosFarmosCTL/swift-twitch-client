@@ -5,32 +5,43 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  /// Closes EventSub connections and clears the client's active subscriptions.
+  /// Closes all EventSub WebSocket sessions and clears active subscriptions.
   ///
-  /// Existing event consumers finish. Create new subscriptions to resume receiving
-  /// events.
+  /// Existing streams, callbacks, and Combine publishers finish normally. Calling this
+  /// method does not affect Helix or managed chat IRC connections, though an EventSub
+  /// chat reader will see its subscriptions end. Start new subscriptions to resume
+  /// receiving EventSub notifications.
+  ///
+  /// - SeeAlso: <doc:EventSub>, ``switchCredentials(to:chatBehavior:)``
   public func resetEventSub() async {
     await startEventSubReset().value
   }
 
-  /// Observes an EventSub subscription through an independent notification stream.
+  /// Observes an EventSub subscription through an independent async throwing stream.
   ///
-  /// Identical descriptions share one upstream subscription. Terminating the stream
-  /// removes only this observer; the last observer schedules upstream deletion.
-  /// Connection failures and revocations finish the stream with an error.
-  /// The default unbounded buffer can grow when consumption is slow. Explicit bounded
-  /// policies drop older (`bufferingNewest`) or incoming (`bufferingOldest`) events;
-  /// they do not apply back pressure to Twitch. A retained stream is not cancelled
-  /// merely by breaking out of its iteration.
+  /// Matching subscription descriptions (same account, type, version, and condition)
+  /// share a single upstream Twitch subscription. Terminating this stream removes only
+  /// your local observer; the client schedules upstream subscription deletion once the
+  /// last observer leaves.
   ///
-  /// - Returns: A stream of typed notifications with their delivery metadata.
-  /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
-  ///   a `HelixError` or `EventSubError` if subscription setup fails, or
-  ///   `CancellationError` when setup is cancelled.
+  /// Connection failures and subscription revocations finish the stream by throwing an
+  /// ``EventSubError``. Calling ``resetEventSub()`` or
+  /// ``switchCredentials(to:chatBehavior:)`` finishes the stream normally.
   ///
+  /// - Important: The default `.unbounded` policy can grow without limit if consumption
+  ///   falls behind. Explicit bounded policies drop older (`.bufferingNewest`) or newer
+  ///   (`.bufferingOldest`) notifications without applying back pressure to Twitch. Simply
+  ///   breaking out of a `for try await` loop while retaining the stream does not cancel
+  ///   its registration—cancel the consuming task or let the stream deallocate.
   /// - Parameters:
-  ///   - subscription: The subscription details.
-  ///   - bufferingPolicy: How to buffer events awaiting consumption. Defaults to unbounded.
+  ///   - subscription: A typed ``EventSubSubscription`` describing the topic and condition.
+  ///   - bufferingPolicy: How to buffer notifications awaiting consumption. Defaults to
+  ///     `.unbounded`.
+  /// - Returns: A stream delivering ``EventSubNotification`` envelopes for `subscription`.
+  /// - Throws: ``TwitchAuthenticationError/userAccessTokenRequired`` when the client does
+  ///   not hold user OAuth credentials, ``HelixError`` or ``EventSubError`` if WebSocket
+  ///   setup or subscription creation fails, or `CancellationError` if setup is cancelled.
+  /// - SeeAlso: <doc:EventSub>, ``eventListener(for:callback:)``, ``eventPublisher(for:)``
   public func eventStream<R: Event>(
     for subscription: EventSubSubscription<R>,
     bufferingPolicy: AsyncThrowingStream<EventSubNotification<R>, any Error>.Continuation
@@ -51,21 +62,22 @@ extension TwitchClient {
     return stream
   }
 
-  /// Creates an EventSub subscription that delivers notifications to a callback.
+  /// Registers a callback observer for an EventSub subscription.
   ///
-  /// The callback receives typed notifications, delivery metadata, and terminal outcomes.
-  /// Call the returned handle’s `cancel()` method to schedule unsubscription; releasing the handle alone
-  /// does not cancel.
-  ///
-  /// - Returns: An explicit cancellation handle for the subscription.
-  /// - Throws: `TwitchAuthenticationError.userAccessTokenRequired` for app credentials,
-  ///   a `HelixError` or `EventSubError` if subscription setup fails, or
-  ///   `CancellationError` when setup is cancelled.
+  /// Matching subscription descriptions share one upstream Twitch subscription. Call
+  /// ``TwitchCancellable/cancel()`` on the returned handle to remove this observer and
+  /// schedule upstream unsubscription once no observers remain; releasing the handle alone
+  /// does not cancel the subscription.
   ///
   /// - Parameters:
-  ///   - subscription: The subscription details.
-  ///   - callback: The closure that receives decoded events or messages and terminal
-  ///     outcomes. Delivery is not guaranteed to run on the main actor.
+  ///   - subscription: A typed ``EventSubSubscription`` describing the topic and condition.
+  ///   - callback: A closure invoked with ``EventSubListenerEvent`` notifications and
+  ///     terminal outcomes. Delivery has no main-actor guarantee.
+  /// - Returns: A ``TwitchCancellable`` handle that removes this observer when cancelled.
+  /// - Throws: ``TwitchAuthenticationError/userAccessTokenRequired`` when the client does
+  ///   not hold user OAuth credentials, ``HelixError`` or ``EventSubError`` if WebSocket
+  ///   setup or subscription creation fails, or `CancellationError` if setup is cancelled.
+  /// - SeeAlso: <doc:EventSub>, ``eventStream(for:bufferingPolicy:)``, ``eventPublisher(for:)``
   public func eventListener<R: Event>(
     for subscription: EventSubSubscription<R>,
     callback: @escaping @Sendable (EventSubListenerEvent<EventSubNotification<R>>) -> Void
@@ -89,20 +101,24 @@ extension TwitchClient {
   }
 
   #if canImport(Combine)
-    /// Creates a lazy publisher of EventSub notifications.
+    /// Creates a lazy Combine publisher of EventSub notifications.
     ///
-    /// Each downstream subscriber registers independently on its first positive demand.
-    /// No connection or remote subscription is created by this factory. Cancelling one
-    /// downstream subscriber removes only its local registration. Matching descriptions
-    /// share one upstream subscription, deleted after its last observer leaves.
-    /// Events received without downstream demand are dropped, not buffered.
+    /// Calling this method opens no WebSocket and creates no remote subscription. Each
+    /// downstream subscriber registers independently on its first positive demand, and
+    /// cancelling a subscriber removes only its local registration. Matching descriptions
+    /// share one upstream Twitch subscription, which is deleted after the last observer
+    /// leaves.
     ///
-    /// - Returns: A publisher whose failures preserve `TwitchAuthenticationError`,
-    ///   `HelixError`, `EventSubError`, or `CancellationError` from setup. Active
-    ///   connection failures and revocations arrive as `EventSubError`.
-    ///
-    /// - Parameters:
-    ///   - subscription: The subscription details.
+    /// - Important: Notifications arriving while downstream demand is `.none` are dropped
+    ///   rather than buffered.
+    /// - Parameter subscription: A typed ``EventSubSubscription`` describing the topic and
+    ///   condition.
+    /// - Returns: A type-erased publisher emitting ``EventSubNotification`` values. Setup
+    ///   failures preserve ``TwitchAuthenticationError``, ``HelixError``,
+    ///   ``EventSubError``, or `CancellationError`; runtime connection failures and
+    ///   revocations arrive as ``EventSubError``.
+    /// - SeeAlso: <doc:EventSub>, ``eventStream(for:bufferingPolicy:)``,
+    ///   ``eventListener(for:callback:)``
     public nonisolated func eventPublisher<R: Event>(
       for subscription: EventSubSubscription<R>
     ) -> AnyPublisher<EventSubNotification<R>, any Error> {

@@ -143,7 +143,7 @@ struct DecodingDiagnosticsTests {
     await harness.session.stub(url: subscriptions, method: "POST", body: body)
     await harness.session.simulateIncoming(.string(MockedMessages.welcomeMessage))
 
-    await #expect(throws: HelixError.self) { try await harness.twitch.join(channelID: "123") }
+    await #expect(throws: HelixError.self) { try await harness.twitch.join(id: "123") }
     await #expect(throws: HelixError.self) { try await harness.twitch.eventStream(for: .mock()) }
 
     await harness.twitch.resetEventSub()

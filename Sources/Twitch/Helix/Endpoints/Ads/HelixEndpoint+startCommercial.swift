@@ -54,7 +54,7 @@ private struct StartCommercialRequestBody: Encodable, Sendable {
 public struct Commercial: Decodable, Sendable {
   /// The commercial length, in seconds.
   public let length: Int
-  /// The message content or explanatory text supplied by Twitch.
+  /// A status message describing any adjustment to the requested commercial length.
   public let message: String
   /// The number of seconds to wait before starting another commercial.
   public let retryAfter: Int

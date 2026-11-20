@@ -63,7 +63,7 @@ public struct Clip: Decodable, Sendable {
   public let id: String
   /// The URL associated with this resource.
   public let url: String
-  /// The URL for embed.
+  /// The URL used to embed the clip in an iframe.
   public let embedURL: String
 
   /// The Twitch user ID of the broadcaster.
@@ -89,7 +89,7 @@ public struct Clip: Decodable, Sendable {
   public let viewCount: Int
   /// The time the resource was created.
   public let createdAt: Date
-  /// The URL for thumbnail.
+  /// The URL of the clip's thumbnail image.
   public let thumbnailURL: String
   /// The clip’s duration, in seconds.
   public let duration: Double

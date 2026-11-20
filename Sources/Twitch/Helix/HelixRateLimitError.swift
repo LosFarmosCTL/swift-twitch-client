@@ -1,13 +1,20 @@
 import Foundation
 
-/// An HTTP 429 response from Twitch, including headers and the original error body.
+/// Details of an HTTP 429 (Too Many Requests) response from Twitch Helix.
+///
+/// Carried by ``HelixError/rateLimited(_:)`` whenever Twitch responds with HTTP 429,
+/// even if the error body is empty or non-JSON.
+///
+/// - Note: Some Helix endpoints enforce endpoint-specific cooldowns separate from the
+///   general token bucket, so `metadata.rateLimit?.resetAt` is not guaranteed to be a
+///   universal retry timestamp. See <doc:RateLimiting>.
 public struct HelixRateLimitError: Error, Sendable {
-  /// The HTTP status and any valid rate-limit headers from the rejected attempt.
+  /// The HTTP status (429) and any valid rate-limit headers from the rejected response.
   public let metadata: HelixResponseMetadata
-  /// Twitch's error name, when the body can be decoded.
+  /// Twitch's short error name, when the response body decoded as a Twitch error payload.
   public let name: String?
-  /// Twitch's explanation, when the body can be decoded.
+  /// Twitch's explanatory error message, when the response body decoded as a Twitch error.
   public let message: String?
-  /// The unmodified response body, including empty or non-JSON error responses.
+  /// The unmodified HTTP response body bytes, including empty or non-JSON responses.
   public let responseData: Data
 }

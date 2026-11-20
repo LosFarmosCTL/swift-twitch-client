@@ -17,9 +17,9 @@ public struct CharityCampaignProgressEvent: Event {
   public let charityName: String
   /// The description of the charity receiving donations.
   public let charityDescription: String
-  /// The URL for charity logo.
+  /// The URL of the charity's logo image.
   public let charityLogo: String
-  /// The URL for charity website.
+  /// The URL of the charity's website.
   public let charityWebsite: String
 
   /// The amount currently raised.

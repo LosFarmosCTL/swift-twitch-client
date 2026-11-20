@@ -26,9 +26,9 @@ public struct CharityDonationEvent: Event {
   public let charityName: String
   /// The description of the charity receiving donations.
   public let charityDescription: String
-  /// The URL for charity logo.
+  /// The URL of the charity's logo image.
   public let charityLogo: String
-  /// The URL for charity website.
+  /// The URL of the charity's website.
   public let charityWebsite: String
 
   /// The amount contributed or donated.
@@ -65,6 +65,7 @@ public struct CharityDonationEvent: Event {
       case value, decimalPlaces, decimalPlace, currency
     }
 
+    /// Decodes a charity monetary amount, accepting either `decimal_places` or `decimal_place`.
     public init(from decoder: any Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
       value = try container.decode(Int.self, forKey: .value)

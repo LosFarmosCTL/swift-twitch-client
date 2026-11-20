@@ -1,25 +1,40 @@
 import Foundation
 
-/// An incompatible credential or a missing token-dependent request parameter.
+/// A pre-flight validation error indicating incompatible credentials or parameters.
+///
+/// The client validates credential kinds and token-dependent parameters locally before
+/// sending a network request. Helix methods wrap this error in
+/// ``HelixError/authenticationError(_:)``, while direct EventSub and chat entry points
+/// may throw it directly.
+///
+/// - SeeAlso: ``TwitchCredentials``, <doc:Authentication>
 public enum TwitchAuthenticationError: Error, Sendable, Equatable {
-  /// This operation accepts OAuth access tokens, not Extension JWTs.
+  /// The operation requires a user or app OAuth access token and rejects Extension JWTs.
   case oauthAccessTokenRequired
-  /// This operation requires an authenticated Twitch account.
+  /// The operation requires a user OAuth access token identifying a signed-in account.
   case userAccessTokenRequired
-  /// This operation requires application credentials.
+  /// The operation requires an app OAuth access token.
   case appAccessTokenRequired
-  /// This operation requires an Extension JWT, which OAuth credentials cannot supply.
+  /// The operation requires an externally signed Extension Backend Service (EBS) JWT.
   case extensionJWTRequired
-  /// The required acting user or lookup target could not be resolved.
+  /// A required acting user ID or lookup target was omitted for an app access token.
+  ///
+  /// - Parameter parameter: The Twitch query or body parameter name that must be supplied.
   case missingUserID(parameter: String)
-  /// The acting user differs from the account represented by the user token.
+  /// A supplied user ID does not match the account represented by the user access token.
+  ///
+  /// - Parameter parameter: The Twitch query or body parameter name whose value mismatched.
   case userIDMismatch(parameter: String)
-  /// A parameter is incompatible with the supplied token kind.
+  /// A request parameter or combination of parameters is invalid for the supplied token kind.
+  ///
+  /// - Parameters:
+  ///   - parameter: The Twitch parameter name that failed validation.
+  ///   - reason: A human-readable explanation of why the parameter was rejected.
   case invalidParameter(parameter: String, reason: String)
 }
 
 extension TwitchAuthenticationError: CustomStringConvertible, LocalizedError {
-  /// A diagnostic explanation of the authentication failure.
+  /// A diagnostic explanation of the authentication or parameter-validation failure.
   public var description: String {
     switch self {
     case .oauthAccessTokenRequired: "An OAuth user or app access token is required."

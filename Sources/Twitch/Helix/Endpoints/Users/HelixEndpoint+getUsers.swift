@@ -52,11 +52,11 @@ public struct User: Decodable, Sendable {
   /// The account’s broadcaster classification.
   public let broadcasterType: BroadcasterType
 
-  /// The descriptive text supplied by Twitch.
+  /// The user's channel description ("About" bio).
   public let description: String
-  /// The URL for profile image.
+  /// The URL of the user's profile image.
   public let profileImageURL: String
-  /// The URL for offline image.
+  /// The URL of the user's offline player banner image.
   public let offlineImageURL: String
   /// The time the resource was created.
   public let createdAt: Date

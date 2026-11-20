@@ -47,7 +47,7 @@ extension HelixEndpoint {
 public struct ClipCreation: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
-  /// The URL for edit.
+  /// The URL to open Twitch's clip editor for this clip.
   public let editURL: String
 
   enum CodingKeys: String, CodingKey {

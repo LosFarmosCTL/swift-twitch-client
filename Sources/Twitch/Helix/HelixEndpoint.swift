@@ -4,23 +4,27 @@ import Foundation
   import FoundationNetworking
 #endif
 
-/// A typed description of a Helix request and its response conversion.
+/// A typed description of a Twitch Helix API request and its decoded response.
 ///
-/// Use the static endpoint factories to select an operation and provide request
-/// parameters. Creating an endpoint performs no network I/O. Execute it with a
-/// `helix(for:)` overload on ``TwitchClient``.
+/// Construct an endpoint using one of the static factory methods (for example,
+/// ``getUsers(userIDs:userLogins:)`` or ``sendChatMessage(in:message:replyTo:isSourceOnly:pin:senderID:)``),
+/// then execute it with ``TwitchClient/helix(for:)``,
+/// ``TwitchClient/helixTask(for:completionHandler:)``, or the static one-off overloads
+/// on ``TwitchClient``. Creating a `HelixEndpoint` performs no network I/O.
 ///
-/// `Response` is the caller-facing value inside ``HelixResponse``. Payload decoding and
-/// empty-body or raw-body handling are implementation details of the selected factory.
+/// `Response` is the value wrapped inside the returned ``HelixResponse``. Empty-body
+/// endpoints use `Void`, while raw-body endpoints (such as iCalendar exports) return
+/// their raw payload directly.
 ///
-/// The client checks each endpoint’s token kind and token-dependent parameters before
-/// sending a request. It does not request additional scopes automatically. Requests use
-/// credentials at execution time.
-/// Twitch also enforces the linked reference’s account eligibility, parameter limits, and
-/// token ownership rules.
+/// Before dispatching an HTTP request, the client validates the credential ``TwitchCredentials/kind``
+/// and any token-dependent parameters locally, throwing
+/// ``HelixError/authenticationError(_:)`` on mismatch. Scopes, account eligibility, and
+/// Twitch-side parameter limits are enforced by Twitch when the request runs.
 ///
-/// A successful HTTP response may still report an operation-specific failure, such as a
-/// chat message rejected for delivery. Check the returned model’s status fields.
+/// - Note: An HTTP 2xx response can still report an operation-level refusal inside its
+///   payload (for example, ``ChatMessageResponse/isSent`` being `false`). Always inspect
+///   operation status fields where provided.
+/// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, ``HelixResponse``, ``HelixError``
 public struct HelixEndpoint<Response>: Sendable {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 

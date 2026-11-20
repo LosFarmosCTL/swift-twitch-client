@@ -1,36 +1,41 @@
 import Foundation
 
-/// An EventSub WebSocket revocation payload identifying why a subscription ended.
+/// Details of a Twitch EventSub subscription revocation.
+///
+/// Carried by ``EventSubError/revocation(_:)`` when Twitch revokes an active WebSocket
+/// subscription, and surfaced in ``ChatDeparture/Reason/subscriptionRevoked(_:)`` and
+/// ``ChatChannelState/moderationRevocation`` for managed chat subscriptions.
+///
+/// - SeeAlso: <doc:EventSub>, ``EventSubError``
 public struct EventSubRevocation: Decodable, Sendable {
   internal let subscription: EventSubMessage.Subscription
   /// The reason Twitch revoked the subscription.
   public let status: Status
 
-  /// A Twitch revocation reason. Unfamiliar reasons are preserved in `rawValue`.
+  /// A Twitch revocation reason, preserving unfamiliar status strings in ``rawValue``.
   public struct Status: RawRepresentable, Decodable, Sendable, Hashable {
-    /// The exact revocation reason supplied by Twitch or the caller.
+    /// The exact revocation status string supplied by Twitch or the caller.
     public let rawValue: String
 
-    /// Creates a revocation reason from any string.
+    /// Creates a revocation reason from any raw status string.
     public init(rawValue: String) {
       self.rawValue = rawValue
     }
 
-    /// Decodes a revocation reason from a single string.
+    /// Decodes a revocation reason from a single JSON string.
     public init(from decoder: Decoder) throws {
       self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
     }
 
-    /// Authorization for the subscription was revoked. Encoded as
-    /// `"authorization_revoked"`.
+    /// The user revoked authorization or the token lost required scopes (`"authorization_revoked"`).
     public static let authorizationRevoked = Self(rawValue: "authorization_revoked")
-    /// The subscribed user was removed. Encoded as `"user_removed"`.
+    /// The user referenced in the subscription condition no longer exists (`"user_removed"`).
     public static let userRemoved = Self(rawValue: "user_removed")
-    /// Twitch removed the subscription schema version. Encoded as `"version_removed"`.
+    /// Twitch retired the subscription type or schema version (`"version_removed"`).
     public static let versionRemoved = Self(rawValue: "version_removed")
-    /// The subscribing chat user was banned from the channel.
+    /// The subscribed chat user was banned from the channel (`"chat_user_banned"`).
     public static let chatUserBanned = Self(rawValue: "chat_user_banned")
-    /// The subscribing chat user was timed out in the channel.
+    /// The subscribed chat user was timed out in the channel (`"chat_user_timed_out"`).
     public static let chatUserTimedOut = Self(rawValue: "chat_user_timed_out")
   }
 

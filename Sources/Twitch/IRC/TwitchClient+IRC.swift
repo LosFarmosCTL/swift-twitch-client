@@ -1,35 +1,75 @@
 import Foundation
 import TwitchIRC
 
-/// A raw parsed IRC message from one of the client's configured transports.
+/// A parsed Twitch IRC frame paired with the transport role that received it.
+///
+/// Emitted by ``TwitchClient/ircMessageStream(bufferingPolicy:)``,
+/// ``TwitchClient/ircMessageListener(_:)``, and ``TwitchClient/ircMessagePublisher()``.
+///
+/// - SeeAlso: <doc:ManagedChat>, ``IRCRecovery/Role``
 public struct IRCMessage: Sendable {
+  /// Whether the frame arrived on the IRC read pool or the dedicated IRC write connection.
   public let role: IRCRecovery.Role
+  /// The parsed `TwitchIRC` incoming message.
   public let message: IncomingMessage
 }
 
-/// Callback deliveries from the unified client's raw IRC stream.
+/// A delivery sent to a callback registered with ``TwitchClient/ircMessageListener(_:)``.
+///
+/// - SeeAlso: ``IRCMessage``, <doc:ManagedChat>
 public enum IRCListenerEvent: Sendable {
+  /// A parsed IRC frame from one of the client's configured IRC transports.
   case message(IRCMessage)
+  /// Managed chat shut down and no further IRC frames will arrive.
   case finished
 }
 
 extension TwitchClient {
-  /// Observes parsed IRC traffic without starting a connection. The stream survives transport
-  /// recovery and finishes on chat shutdown. Explicit buffering policies bound pending events.
+  /// Observes raw parsed IRC traffic from the client's configured IRC transports.
+  ///
+  /// Registering a stream does not open any connection; traffic flows once managed chat
+  /// connects an IRC reader or writer (see ``ChatConfiguration``). The stream survives
+  /// automatic connection recovery and credential switches, and finishes when
+  /// ``shutdownChat()`` is called.
+  ///
+  /// - Parameter bufferingPolicy: How to buffer unread IRC frames. Defaults to `.unbounded`.
+  ///   Explicit bounded policies cap memory without slowing the IRC reader.
+  /// - Returns: An independent async stream of ``IRCMessage`` values.
+  /// - SeeAlso: <doc:ManagedChat>, ``ircMessageListener(_:)``, ``ircMessagePublisher()``,
+  ///   ``sendIRC(_:)``
   public func ircMessageStream(
     bufferingPolicy: AsyncStream<IRCMessage>.Continuation.BufferingPolicy = .unbounded
   ) -> AsyncStream<IRCMessage> {
     chat.ircMessageStream(bufferingPolicy: bufferingPolicy)
   }
 
-  /// Writes a validated command to the IRC writer without managed chat admission.
+  /// Sends a raw IRC command over the client's configured IRC write connection.
+  ///
+  /// Raw sends validate wire safety (rejecting CR/LF or null-byte injection) and require
+  /// ``ChatConfiguration/writer`` to be ``ChatConfiguration/Writer/irc``, but bypass
+  /// managed chat's local send pacing and eligibility checks.
+  ///
+  /// - Parameter message: The `TwitchIRC` outgoing command to serialize and send.
+  /// - Throws: ``IRCError/writerNotConfigured`` if the client is not configured with an IRC
+  ///   writer, ``IRCError/invalidInput(parameter:)`` if the command fails wire validation,
+  ///   ``TwitchAuthenticationError/userAccessTokenRequired`` without user credentials,
+  ///   ``ChatError/shutdown`` after chat shutdown, or a transport ``IRCError``.
+  /// - SeeAlso: <doc:ManagedChat>, ``sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
   public func sendIRC(_ message: OutgoingMessage) async throws {
     try await chat.sendIRC(message)
   }
 
-  /// Convenience wrapper over `ircMessageStream()`. Explicit cancellation removes
-  /// this observer only; transport failures remain visible in `chatState`.
-  /// The callback has no actor or main-thread guarantee.
+  /// Registers a callback observer for raw parsed IRC traffic.
+  ///
+  /// Built on top of ``ircMessageStream(bufferingPolicy:)``. Calling
+  /// ``TwitchCancellable/cancel()`` on the returned handle removes only this observer and
+  /// leaves chat membership and connections intact. Transport failures are surfaced in
+  /// ``chatState`` rather than terminating the callback.
+  ///
+  /// - Parameter callback: A closure invoked with ``IRCListenerEvent`` deliveries. Has no
+  ///   main-actor guarantee.
+  /// - Returns: A ``TwitchCancellable`` handle that stops delivery to this callback.
+  /// - SeeAlso: <doc:ManagedChat>, ``ircMessageStream(bufferingPolicy:)``
   public func ircMessageListener(
     _ callback: @escaping @Sendable (IRCListenerEvent) -> Void
   ) -> TwitchCancellable {
@@ -47,11 +87,20 @@ extension TwitchClient {
   @preconcurrency import Combine
 
   extension TwitchClient {
-    /// Each subscriber synchronously registers its own observer on subscription.
-    /// Creating a publisher registers nothing. Cancellation removes only that subscriber,
-    /// never membership or the connection. Values are not buffered without demand.
-    /// Shutdown (including a late subscription) completes normally; transport failures
-    /// remain in `chatState` and do not terminate observers.
+    /// Creates a lazy Combine publisher of raw parsed IRC traffic.
+    ///
+    /// Creating the publisher does not register an observer or open a connection. Each
+    /// downstream subscriber registers independently upon subscription, and cancelling a
+    /// subscriber removes only that registration without affecting chat membership or
+    /// connections. Frames arriving without downstream demand are dropped rather than
+    /// buffered.
+    ///
+    /// The publisher completes normally after ``shutdownChat()`` (including for late
+    /// subscribers). Transport failures appear in ``chatState`` and do not fail the
+    /// publisher.
+    ///
+    /// - Returns: A publisher emitting ``IRCMessage`` values and never failing.
+    /// - SeeAlso: <doc:ManagedChat>, ``ircMessageStream(bufferingPolicy:)``
     public nonisolated func ircMessagePublisher() -> AnyPublisher<IRCMessage, Never> {
       ircPublishers.publisher()
     }

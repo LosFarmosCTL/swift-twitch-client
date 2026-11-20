@@ -18,14 +18,14 @@ public struct AutoModMessageHoldEvent: Event {
   /// The user’s display name.
   public let userDisplayName: String
 
-  /// The identifier of the message.
+  /// The identifier of the held message.
   public let messageID: String
-  /// The message content or explanatory text supplied by Twitch.
+  /// The held message's text and content fragments.
   public let message: AutoModMessage
 
   /// The time Twitch held the message for moderation.
   public let heldAt: Date
-  /// The reason supplied for this action.
+  /// Why AutoMod held the message (either an AutoMod category or matched blocked terms).
   public let reason: AutoModHoldReason
 
   enum CodingKeys: String, CodingKey {

@@ -5,19 +5,23 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  /// Executes a Helix request using explicit credentials.
+  /// Executes a one-off Helix request using explicit credentials.
   ///
-  /// The endpoint determines the HTTP operation and response type, including empty
-  /// (`Void`) and raw-body responses. Creating an endpoint performs no network I/O.
+  /// Use this static method when you want to make a standalone Helix call without
+  /// creating a long-lived ``TwitchClient`` instance. Each call performs a single HTTP
+  /// attempt with no automatic retries or rate-limit waiting.
   ///
   /// - Parameters:
-  ///   - endpoint: The typed request to execute.
-  ///   - credentials: The credentials used to authorize the request.
-  ///   - urlSession: The URL session used for network requests.
-  ///   - diagnostics: Opt-in decoding diagnostics for this request.
-  /// - Returns: The endpoint result and metadata from its HTTP response.
-  /// - Throws: `HelixError` for transport, Twitch API, or response-processing failures;
-  ///   `CancellationError` when the request is cancelled.
+  ///   - endpoint: A typed ``HelixEndpoint`` factory describing the request.
+  ///   - credentials: The ``TwitchCredentials`` used to authorize the request.
+  ///   - urlSession: The `URLSession` used for HTTP transport. Defaults to
+  ///     `URLSession(configuration: .default)`.
+  ///   - diagnostics: Opt-in decoding failure callback for this request.
+  /// - Returns: A ``HelixResponse`` containing the decoded result (or `()` for empty-body
+  ///   endpoints) and HTTP/rate-limit ``HelixResponseMetadata``.
+  /// - Throws: ``HelixError`` for authentication, network, HTTP, rate-limit, or decoding
+  ///   failures; `CancellationError` if the calling task is cancelled.
+  /// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, ``helix(for:)``
   @discardableResult
   public static func helix<R: Sendable>(
     for endpoint: HelixEndpoint<R>,
@@ -30,13 +34,18 @@ extension TwitchClient {
       network: URLSessionNetworkSession(session: urlSession), diagnostics: diagnostics)
   }
 
-  /// Executes a Helix request using this client’s credentials.
+  /// Executes a Helix request using this client's current credentials.
   ///
-  /// - Parameter endpoint: The typed request to execute.
-  /// - Returns: The endpoint result and metadata from its HTTP response. Empty-body
-  ///   endpoints return a `Void` value.
-  /// - Throws: `HelixError` for transport, Twitch API, or response-processing failures;
-  ///   `CancellationError` when the request is cancelled.
+  /// The client captures its credentials when the request begins, so a concurrent
+  /// ``switchCredentials(to:chatBehavior:)`` does not disturb an in-flight call. Each
+  /// invocation performs one HTTP attempt with no automatic retries or rate-limit waits.
+  ///
+  /// - Parameter endpoint: A typed ``HelixEndpoint`` factory describing the request.
+  /// - Returns: A ``HelixResponse`` containing the decoded result (or `()` for empty-body
+  ///   endpoints) and HTTP/rate-limit ``HelixResponseMetadata``.
+  /// - Throws: ``HelixError`` for authentication, network, HTTP, rate-limit, or decoding
+  ///   failures; `CancellationError` if the calling task is cancelled.
+  /// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, ``helixTask(for:completionHandler:)``
   @discardableResult
   public func helix<R>(for endpoint: HelixEndpoint<R>) async throws -> HelixResponse<R> {
     try await Self.helix(

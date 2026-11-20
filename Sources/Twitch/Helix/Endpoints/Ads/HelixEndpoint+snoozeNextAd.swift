@@ -53,6 +53,7 @@ public struct SnoozeResult: Decodable, Sendable {
     case snoozeCount, snoozeRefreshAt, nextAdAt
   }
 
+  /// Decodes the snooze result, mapping zero-valued timestamps to `nil`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.snoozeCount = try container.decode(Int.self, forKey: .snoozeCount)

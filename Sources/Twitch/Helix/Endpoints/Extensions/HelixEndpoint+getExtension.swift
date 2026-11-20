@@ -53,11 +53,11 @@ public struct Extension: Decodable, Sendable {
   public let configurationLocation: ExtensionConfigurationLocation
   /// The descriptive text supplied by Twitch, when provided.
   public let description: String?
-  /// The URL for eula tos, when provided.
+  /// The URL of the extension's EULA or terms of service, when provided.
   public let eulaTOSURL: String?
   /// Whether the extension supports chat.
   public let hasChatSupport: Bool
-  /// The URL for icon.
+  /// The URL of the extension's default icon.
   public let iconURL: String
   /// The icon URLs, when provided.
   public let iconURLs: [String: String]?
@@ -65,7 +65,7 @@ public struct Extension: Decodable, Sendable {
   public let id: String
   /// The name supplied by Twitch.
   public let name: String
-  /// The URL for privacy policy, when provided.
+  /// The URL of the extension's privacy policy, when provided.
   public let privacyPolicyURL: String?
   /// Whether the extension requests identity linking.
   public let requestIdentityLink: Bool
@@ -111,7 +111,7 @@ public struct Extension: Decodable, Sendable {
   /// A mobile or overlay view’s entry URL and permission to link to external content.
   @MemberwiseInit(.public)
   public struct ExtensionView: Decodable, Sendable {
-    /// The URL for viewer.
+    /// The viewer entry URL for this extension view.
     public let viewerURL: String
     /// Whether the extension may link to external content, when provided.
     public let canLinkExternalContent: Bool?
@@ -125,7 +125,7 @@ public struct Extension: Decodable, Sendable {
   /// A panel view’s entry URL, pixel height, and external-link permission.
   @MemberwiseInit(.public)
   public struct ExtensionPanelView: Decodable, Sendable {
-    /// The URL for viewer.
+    /// The viewer entry URL for this extension view.
     public let viewerURL: String
     /// The height in pixels.
     public let height: Int
@@ -142,7 +142,7 @@ public struct Extension: Decodable, Sendable {
   /// A video component’s entry URL, aspect ratio, and sizing behavior.
   @MemberwiseInit(.public)
   public struct ExtensionComponentView: Decodable, Sendable {
-    /// The URL for viewer.
+    /// The viewer entry URL for this extension view.
     public let viewerURL: String
     /// The horizontal component of the aspect ratio, when provided.
     public let aspectRatioX: Int?

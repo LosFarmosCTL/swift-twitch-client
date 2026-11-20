@@ -1,31 +1,64 @@
 import Foundation
 
-/// An HTTP, transport, or response-processing failure from a Helix request.
+/// An error thrown or delivered when a Twitch Helix request fails.
+///
+/// Async Helix methods throw `HelixError` for authentication, transport, HTTP, and
+/// decoding failures, and throw Swift's `CancellationError` on task cancellation.
+/// Callback-based methods (``TwitchClient/helixTask(for:completionHandler:)``) map task
+/// cancellation to ``cancelled``.
+///
+/// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, <doc:Diagnostics>, ``HelixRateLimitError``,
+///   ``HelixDecodingFailure``
 public enum HelixError: Error, Sendable {
-  /// The credential kind or a token-dependent parameter is incompatible with the endpoint.
+  /// Pre-flight credential or token-dependent parameter validation failed locally.
   case authenticationError(TwitchAuthenticationError)
-  /// The operation was cancelled.
+  /// The request was cancelled (delivered by callback-based Helix methods).
   case cancelled
-  /// The network request failed; carries the underlying error.
+  /// The underlying network transport failed before a valid HTTP response was received.
+  ///
+  /// - Parameter wrapped: The transport error thrown by `URLSession` or the network layer.
   case networkError(wrapped: Error)
-  /// The operation failed with an unexpected underlying error.
+  /// An unexpected error occurred outside normal Helix transport or response handling.
+  ///
+  /// - Parameter wrapped: The underlying error.
   case unexpectedError(wrapped: Error)
-  /// Twitch rejected the request; carries the error name, HTTP status, and message.
+  /// Twitch returned a non-2xx HTTP response whose error JSON was decoded successfully.
+  ///
+  /// - Parameters:
+  ///   - name: The short error name reported by Twitch (for example, `"Unauthorized"`).
+  ///   - status: The HTTP status code returned by Twitch.
+  ///   - message: Twitch's explanatory error message.
   case twitchError(name: String, status: Int, message: String)
-  /// Twitch returned HTTP 429; carries response metadata and the original error body.
+  /// Twitch returned HTTP 429 (Too Many Requests).
+  ///
+  /// Every HTTP 429 response produces this case even if the response body is empty or
+  /// cannot be decoded. See <doc:RateLimiting>.
   case rateLimited(HelixRateLimitError)
 
-  /// The success response could not be decoded.
+  /// A 2xx Helix response body could not be decoded into the endpoint's expected model.
+  ///
+  /// Also reported to ``TwitchClient/decodingDiagnostics()`` and ``TwitchDiagnostics``.
   case parsingResponseFailed(HelixDecodingFailure)
-  /// The error response could not be decoded.
+  /// A non-2xx (non-429) Helix error response body could not be decoded.
+  ///
+  /// - Parameters:
+  ///   - status: The HTTP status code returned by Twitch.
+  ///   - failure: Structured decoding details, the underlying error, and raw body bytes.
   case parsingErrorFailed(status: Int, failure: HelixDecodingFailure)
 
-  /// The response contained no required data; carries the raw response body.
+  /// A Helix endpoint expected at least one item in `data`, but Twitch returned an empty list.
+  ///
+  /// - Parameter responseData: The raw HTTP response body returned by Twitch.
   case noDataInResponse(responseData: Data)
-  /// The response omitted required metadata; carries the raw response body.
+  /// A Helix endpoint expected a required top-level field (such as `total` or `pagination`)
+  /// that was absent from the response.
+  ///
+  /// - Parameter responseData: The raw HTTP response body returned by Twitch.
   case missingDataInResponse(responseData: Data)
 
-  /// An endpoint requiring an empty response returned a body; carries that body.
+  /// An endpoint expecting an empty HTTP body received non-empty response data.
+  ///
+  /// - Parameter responseData: The unexpected HTTP response body returned by Twitch.
   case nonEmptyResponse(responseData: Data)
 }
 

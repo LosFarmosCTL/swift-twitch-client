@@ -47,7 +47,7 @@ public struct Game: Decodable, Sendable {
   public let id: String
   /// The name supplied by Twitch.
   public let name: String
-  /// The URL for box art.
+  /// The URL template for the game's box art image.
   public let boxArtURL: String
   /// The identifier of the igdb.
   public let igdbID: String

@@ -1,24 +1,34 @@
-/// The membership state of a desired IRC channel.
+/// The join and recovery status of a single channel on an IRC read transport.
+///
+/// Reported per channel login in ``IRCState/channels``.
+///
+/// - SeeAlso: ``IRCChannelFailure``, ``IRCState``
 public enum IRCChannelStatus: Sendable, Equatable {
-  /// The desired channel is waiting for join confirmation.
+  /// A `JOIN` command has been queued or sent and is awaiting Twitch's confirmation.
   case joining
-  /// The channel has been joined.
+  /// Twitch confirmed channel membership and messages are being received.
   case joined
-  /// The connection is recovering and membership is being restored.
+  /// The underlying IRC connection is recovering and will rejoin this channel automatically.
   case reconnecting
-  /// The session or channel has failed; carries the failure reason.
+  /// Joining or maintaining this channel failed; carries the ``IRCChannelFailure`` reason.
   case failed(IRCChannelFailure)
 }
 
-/// The reason an IRC channel could not be joined or maintained.
+/// The reason an IRC channel join or transport session failed.
+///
+/// - SeeAlso: ``IRCChannelStatus``, ``IRCState/Status``
 public enum IRCChannelFailure: Sendable, Equatable {
-  /// Twitch rejected the join; carries the server code and message.
+  /// Twitch rejected the `JOIN` with a server notice (for example, a suspended channel).
+  ///
+  /// - Parameters:
+  ///   - code: The Twitch `msg-id` notice code.
+  ///   - message: The human-readable notice text from Twitch.
   case joinRejected(code: String, message: String)
-  /// The channel join did not complete before the deadline.
+  /// Twitch did not confirm the `JOIN` before the timeout deadline elapsed.
   case joinTimedOut
-  /// Twitch rejected authentication for the session.
+  /// Twitch rejected the IRC OAuth login credentials.
   case authenticationFailed
-  /// The connection failed; carries a diagnostic description.
+  /// The IRC transport failed with an unrecoverable connection error.
   case connectionFailed(String)
 
   internal init(terminalError: Error) {

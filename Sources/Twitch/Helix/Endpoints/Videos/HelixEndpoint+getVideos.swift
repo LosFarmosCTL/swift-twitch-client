@@ -122,7 +122,7 @@ public struct Video: Decodable, Sendable {
   public let publishedAt: Date?
   /// The URL associated with this resource.
   public let url: String
-  /// The URL for thumbnail.
+  /// The URL template for the video's thumbnail image.
   public let thumbnailURL: String
   /// The visibility of the video.
   public let viewable: String

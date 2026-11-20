@@ -3,36 +3,32 @@
 [![CI](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml/badge.svg)](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml)
 
 > [!WARNING]
-> The developement of this library is still in progress and I am not commited to a stable release yet.
+> Development of this library is still in progress and there is not yet a stable release.
 >
-> While the overall API surface likely won't change, breaking changes are absolutely possible without notice!
+> While the overall API surface likely won't change, breaking changes are possible without notice.
 
-Swift native client providing fully type- and threadsafe access to the Twitch API, IRC and EventSub in a convenient way.
+A native Swift client providing type-safe, Swift 6 concurrency-safe access to Twitch chat (managed chat and raw IRC), EventSub, and the Helix API.
 
 ## Features
 
-- [x] Works on all Apple platforms, as well as Linux ([with caveats due to libcurl](#linux-support))
-- [x] Compatible with Swift 6s new strict concurrency model
-- [x] Access all documented, non-retired Helix endpoints using async/await or callbacks
-- [x] Access IRC chat _and_ EventSub using event listeners, `AsyncStream` or Combine
-- [x] Handles all annoying plumbing for you
-  - [x] Connection pooling for IRC & EventSub
-  - [x] Automatic welcome message and keepalive handling
-  - [x] Automatic reconnection for IRC & EventSub
+- [x] Runs on Apple platforms (macOS, iOS, tvOS, watchOS) and Linux ([with caveats](#platform-notes))
+- [x] Built for Swift 6 strict concurrency (`Sendable` models, actor-isolated client)
+- [x] Managed chat with selectable readers (authenticated IRC, anonymous IRC, EventSub) and writers (Helix, IRC), plus raw IRC access
+- [x] Real-time EventSub over WebSockets via `AsyncThrowingStream`, callbacks, or Combine
+- [x] Full typed coverage of the Twitch Helix API via async/await or callbacks
+- [x] Handles connection plumbing automatically
+  - [x] Connection pooling for IRC and EventSub WebSockets
+  - [x] Welcome handshakes, keepalives, and automatic reconnection / handoffs
   - [x] IRC parsing via [TwitchIRC](https://github.com/LosFarmosCTL/TwitchIRC)
-  - [x] JSON encoding/decoding
-  - [x] Typed request parameters
-  - [x] Typed response models
-  - [x] Typed error models
-  - [x] Typed event models
-- [x] Support for user and app access tokens in Helix
-- [x] Helix response metadata and typed rate-limit errors
+  - [x] Typed request parameters, response models, events, and errors
+- [x] User OAuth tokens, app OAuth tokens, and Extension Backend Service JWTs
+- [x] Per-response Helix rate-limit metadata, typed HTTP 429 errors, and structured decoding diagnostics
 
 ## Installation
 
-Requires Swift 6.4 or later, using Swift 6 language mode. Supported deployment targets are macOS 13, iOS 16, tvOS 16, and watchOS 9 or later.
+Requires Swift 6.4 or later in Swift 6 language mode. Supported Apple deployment targets are macOS 13, iOS 16, tvOS 16, and watchOS 9 or later.
 
-Add the following dependency to your `Package.swift`:
+Add the dependency to your `Package.swift`:
 
 ```swift
 .package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", branch: "main")
@@ -40,27 +36,37 @@ Add the following dependency to your `Package.swift`:
 
 ## Documentation
 
-See the [API reference](https://docs.chatless.app/swift-twitch-client/) for the available Helix endpoints, EventSub subscriptions and events, and IRC APIs. The examples below cover getting started with each.
+Browse the full [API reference and concept guides](https://docs.chatless.app/swift-twitch-client/) (built from [`Sources/Twitch/Twitch.docc`](Sources/Twitch/Twitch.docc/Twitch.md)) for deep dives into:
 
-## Usage
+- [Authentication](Sources/Twitch/Twitch.docc/Authentication.md) — user/app tokens, Extension JWTs, scopes, and credential switching
+- [Helix](Sources/Twitch/Twitch.docc/Helix.md) & [Rate Limiting](Sources/Twitch/Twitch.docc/RateLimiting.md) — endpoints, pagination, metadata, and HTTP 429 handling
+- [EventSub](Sources/Twitch/Twitch.docc/EventSub.md) — WebSocket pooling, streams/callbacks/Combine, and custom topics
+- [Managed Chat](Sources/Twitch/Twitch.docc/ManagedChat.md) — transport selection, local send pacing, moderation enrichment, and raw IRC
+- [Diagnostics](Sources/Twitch/Twitch.docc/Diagnostics.md) — structured decoding-failure reports
 
-### Creating credentials
+## Quick Start
 
-See the [Twitch docs](https://dev.twitch.tv/docs/authentication/) on how to obtain a Client ID and OAuth token. The flow you choose depends on your application, e.g. a mobile chat client can prompt a user to log in through a browser, while a server-side bot might use a different flow.
+### 1. Create a client
 
-You can validate a user or app access token and use the result to create a `TwitchClient`:
+Obtain a Client ID and OAuth token using the flow that fits your app (see [Twitch Authentication](https://dev.twitch.tv/docs/authentication/)). Validate the token to build `TwitchCredentials` with its verified identity and scopes, then create a `TwitchClient`:
 
 ```swift
-let token = "<token>"
-let validatedToken = try await TwitchClient.validateAccessToken(accessToken: token)
-let credentials = validatedToken.credentials(accessToken: token)
-let twitch = TwitchClient(credentials: credentials)
+import Twitch
+
+let token = "<user OAuth token>"
+let validated = try await TwitchClient.validateAccessToken(accessToken: token)
+let credentials = validated.credentials(accessToken: token)
+
+let twitch = TwitchClient(
+  credentials: credentials,
+  chat: .init(reader: .irc(.authenticated), writer: .helix)
+)
 ```
 
-You can also create credentials directly:
+If you already know the token's metadata (or are using an app token), construct `TwitchCredentials` directly without a validation request:
 
 ```swift
-let credentials = TwitchCredentials(
+let userCredentials = TwitchCredentials(
   accessToken: "<user token>",
   clientID: "<client ID>",
   userID: "<user ID>",
@@ -68,120 +74,94 @@ let credentials = TwitchCredentials(
 )
 
 let appCredentials = TwitchCredentials.app(
-  accessToken: "<app token>", clientID: "<client ID>"
+  accessToken: "<app token>",
+  clientID: "<client ID>"
 )
 ```
 
-See the [authentication guide](Sources/Twitch/Twitch.docc/Authentication.md) for token requirements, Extension JWTs, and credential management.
+### 2. Query Twitch with Helix
 
-### Helix
+Pass any typed `HelixEndpoint` factory to `helix(for:)`. Every response includes both the decoded `value` and HTTP/rate-limit `metadata`:
 
 ```swift
-// Using async/await
+let response = try await twitch.helix(for: .getUsers(userLogins: ["twitchdev"]))
+guard let broadcaster = response.value.first else { return }
 
-let result = try await twitch.helix(for: .someEndpoint(param1: "forsen"))
-
-// Using completion Handlers
-
-let request = twitch.helixTask(
-  for: .someEndpoint(param1: "forsen", param2: ["foo", "bar"])
-) { result in
+if let rateLimit = response.metadata.rateLimit {
+  print("Remaining points:", rateLimit.remaining ?? -1)
 }
+```
 
-// returns a TwitchCancellable that can be used to cancel the request
+Helix also supports completion handlers (`helixTask(for:completionHandler:)`), one-off static calls without a client instance, and app tokens (supply acting user IDs explicitly when using an app token):
+
+```swift
+// Callback-based request with explicit cancellation
+let request = twitch.helixTask(for: .getUsers(userLogins: ["twitchdev"])) { result in
+  // Handle Result<HelixResponse<[User]>, HelixError>
+}
 request.cancel()
-```
 
-App tokens use the same Helix API. For endpoints that act on a user, supply that user's ID explicitly:
+// One-off static request without creating a TwitchClient
+let oneOff = try await TwitchClient.helix(
+  for: .getUsers(userLogins: ["twitchdev"]),
+  credentials: appCredentials
+)
 
-```swift
+// App-token action with an explicit acting user ID
 let app = TwitchClient(credentials: appCredentials)
-let sent = try await app.helix(for: .sendChatMessage(
-  in: "1234", message: "Hello chat!", senderID: "5678"
+try await app.helix(for: .sendChatMessage(
+  in: broadcaster.id,
+  message: "Hello chat!",
+  senderID: "<bot user ID>"
 ))
 ```
 
-#### Rate limiting
+### 3. React to live events with EventSub
 
-Helix returns rate-limit headers with each response and throws `HelixError.rateLimited` for HTTP 429.
-
-```swift
-let response = try await twitch.helix(for: .getUsers(userLogins: ["forsen"]))
-let users = response.value
-// Inspect Twitch's rate-limit headers for this response.
-let rateLimit = response.metadata.rateLimit
-```
-
-See the [rate-limiting guide](Sources/Twitch/Twitch.docc/RateLimiting.md) for details.
-
-### EventSub
-
-EventSub streams, listeners and publishers use WebSockets and require user credentials.
+Subscribe to any `EventSubSubscription` over managed WebSockets (requires user credentials). Consume notifications with `AsyncThrowingStream`, callbacks, or Combine:
 
 ```swift
-let twitch = TwitchClient(credentials: credentials)
-
-// Using AsyncStream
-
-let stream = try await twitch.eventStream(for: .channelFollow(
-  broadcasterID: "1234",
-  moderatorID: "5678"
-))
-
-for try await notification in stream {
-  print(notification.sentAt, notification.event)
+// AsyncThrowingStream
+let events = try await twitch.eventStream(for: .streamOnline(broadcasterID: broadcaster.id))
+for try await notification in events {
+  print(notification.sentAt, "\(notification.event.broadcasterDisplayName) is live!")
 }
 
-// Using callbacks
-
-try await twitch.eventListener(for: .streamOnline(broadcasterID: "1234")) { result in
-  switch result {
+// Callbacks (cancel explicitly via the returned TwitchCancellable)
+let listener = try await twitch.eventListener(
+  for: .streamOnline(broadcasterID: broadcaster.id)
+) { delivery in
+  switch delivery {
   case .event(let notification): print(notification.event)
   case .failure(let error): print(error)
   case .finished: break
   }
 }
 
-// Using Combine
-
-let publisher = twitch.eventPublisher(for: .userUpdate(userID: "1234"))
-
-publisher.sink(
-  receiveCompletion: { error in
-    // handle error
-  },
-  receiveValue: { notification in
-    print(notification.event)
-  })
+// Combine (Apple platforms)
+let publisher = twitch.eventPublisher(for: .streamOnline(broadcasterID: broadcaster.id))
 ```
 
-### Managed chat
+### 4. Join and send chat
 
-Join, observe, and send chat from `TwitchClient`. Select authenticated or anonymous IRC
-or EventSub for reading, and Helix or IRC for sending.
+Register `messageStream()` before joining so you receive initial events, then join and send messages through your configured reader and writer transports:
 
 ```swift
-let twitch = TwitchClient(
-  credentials: credentials,
-  chat: .init(reader: .irc(.authenticated), writer: .helix)
-)
 let messages = await twitch.messageStream()
-try await twitch.join(channelLogin: "twitchdev")
-try await twitch.sendMessage("Hello chat!", channelLogin: "twitchdev")
+
+try await twitch.join(login: "twitchdev")
+try await twitch.sendMessage("Hello chat!", login: "twitchdev")
+
+for await event in messages {
+  if case .message(let message) = event.payload {
+    print("\(message.author.displayName ?? "unknown"): \(message.text)")
+  }
+}
 ```
 
-Use `ircMessageStream()` or `sendIRC(_:)` for direct access to the configured IRC transports.
+Use `ircMessageStream()`, `ircMessageListener(_:)`, `ircMessagePublisher()`, or `sendIRC(_:)` for direct access to the configured IRC transports.
 
-## One-off requests using static methods
+## Platform notes
 
-You can also use the static methods on `TwitchClient` to make one-off requests to the Twitch API by passing in `TwitchCredentials` to the `helix()` method directly:
-
-```swift
-let result = try await TwitchClient.helix(for: .someEndpoint(param1: "forsen"), credentials: credentials)
-```
-
-## Linux support
-
-This library will compile completely fine on Linux, minus the Combine support of course and normal HTTP requests to Helix will work as expected.
-
-However, `FoundationNetworking` uses libcurl for all networking on Linux and WebSocket support has only been included by default since version `8.11.0`, which is to my knowledge pretty rare to find on server distros. If an older version of libcurl without support is being used, connecting to a webSocket will crash with a `fatalError`! For some more information you can see swiftlang/swift-corelibs-foundation#4730
+- **Linux**: Compiles cleanly (without Combine), and all Helix HTTP requests work normally. However, `FoundationNetworking` relies on `libcurl`, which only includes WebSocket support by default starting in `8.11.0`—rare on older server distros. Connecting an EventSub or IRC WebSocket against an older `libcurl` crashes with `fatalError` (see `swiftlang/swift-corelibs-foundation#4730`).
+- **watchOS**: Helix over HTTPS works normally, but watchOS restricts direct WebSocket connections in ordinary apps (see [Apple TN3135](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos)), so EventSub and IRC are not supported on Apple Watch.

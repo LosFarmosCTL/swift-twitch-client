@@ -26,14 +26,14 @@ public struct AutoModMessageUpdateEvent: Event {
   /// The login name of the moderator.
   public let moderatorLogin: String
 
-  /// The identifier of the message.
+  /// The identifier of the held message.
   public let messageID: String
-  /// The message content or explanatory text supplied by Twitch.
+  /// The held message's text and content fragments.
   public let message: AutoModMessage
 
   /// The time Twitch held the message for moderation.
   public let heldAt: Date
-  /// The reason supplied for this action.
+  /// Why AutoMod originally held the message.
   public let reason: AutoModHoldReason
   /// Whether the held message was approved, denied, or expired.
   public let status: Status

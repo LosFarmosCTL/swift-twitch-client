@@ -135,7 +135,7 @@ struct ManagedChatTests {
     let client = client()
     let cancelled = Task { try await client.join(to: channel) }
     let socket = await session.waitForTask(at: 0)
-    let remaining = Task { try await client.join(channelLogin: "#SWIFT") }
+    let remaining = Task { try await client.join(login: "#SWIFT") }
     while await client.chatReadinessWaiterCount < 2 { await Task.yield() }
     cancelled.cancel()
     await #expect(throws: CancellationError.self) { try await cancelled.value }
@@ -146,7 +146,7 @@ struct ManagedChatTests {
     #expect(await socket.sentCount(prefix: "JOIN #swift") == 1)
     #expect(await session.requestCount() == 0)
     #expect(await client.chatState.channels.count == 1)
-    await client.part(channelID: channel.id)
+    await client.part(id: channel.id)
     await socket.waitForCancellation()
     #expect(await client.chatState.channels.isEmpty)
     await client.shutdownChat()
@@ -179,9 +179,9 @@ struct ManagedChatTests {
       entered.continuation.yield(())
       _ = await release.stream.first { _ in true }
     }
-    let cancelled = Task { try await client.join(channelLogin: "swift") }
+    let cancelled = Task { try await client.join(login: "swift") }
     _ = await entered.stream.first { _ in true }
-    let remaining = Task { try await client.join(channelLogin: "#SWIFT") }
+    let remaining = Task { try await client.join(login: "#SWIFT") }
     cancelled.cancel()
     await #expect(throws: CancellationError.self) { try await cancelled.value }
     #expect(await session.taskCount() == 0)
@@ -205,7 +205,7 @@ struct ManagedChatTests {
       entered.continuation.yield(())
       _ = await release.stream.first { _ in true }
     }
-    let pending = Task { try await client.requestJoin(channelID: channel.id) }
+    let pending = Task { try await client.requestJoin(id: channel.id) }
     _ = await entered.stream.first { _ in true }
     await client.part(from: channel)
     await #expect(throws: ChatError.parted) { try await pending.value }
@@ -229,15 +229,15 @@ struct ManagedChatTests {
     await stubChannelLookup(parameter: "login", value: channel.login)
     await session.onRequest { _ in await lookup.pause() }
 
-    let oldJoin = Task { try await client.requestJoin(channelLogin: "SWIFT") }
+    let oldJoin = Task { try await client.requestJoin(login: "SWIFT") }
     await lookup.waitUntilEntered()
-    await client.part(channelID: channel.id)
+    await client.part(id: channel.id)
     await lookup.release()
     await #expect(throws: ChatError.parted) { try await oldJoin.value }
     #expect(await client.chatState.channels.isEmpty)
     #expect(await session.taskCount() == 0)
 
-    let latestJoin = Task { try await client.join(channelLogin: channel.login) }
+    let latestJoin = Task { try await client.join(login: channel.login) }
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
     await acknowledge(socket)

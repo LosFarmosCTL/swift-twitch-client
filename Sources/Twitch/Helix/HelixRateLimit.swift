@@ -4,15 +4,26 @@ import Foundation
   import FoundationNetworking
 #endif
 
-/// A server observation, rather than a prediction of current capacity.
+/// Rate-limit headers observed on a single Helix HTTP response.
+///
+/// Twitch reports bucket capacity, remaining points, and reset timestamp via the
+/// `Ratelimit-Limit`, `Ratelimit-Remaining`, and `Ratelimit-Reset` headers. Each field
+/// is parsed independently; missing, negative, or malformed header values remain `nil`
+/// without failing an otherwise successful request.
+///
+/// - Note: Values represent a single server observation and may arrive out of order for
+///   concurrent requests. The library never sleeps, queues, or retries automatically based
+///   on these values.
+/// - SeeAlso: <doc:RateLimiting>, ``HelixResponseMetadata``, ``HelixRateLimitError``
 public struct HelixRateLimit: Sendable, Equatable {
-  /// The bucket capacity reported by Twitch.
+  /// The total point capacity of the rate-limit bucket (`Ratelimit-Limit`), if present.
   public let limit: Int?
-  /// The remaining points reported by Twitch.
+  /// The remaining points in the bucket after this request (`Ratelimit-Remaining`), if present.
   public let remaining: Int?
-  /// The original server Unix timestamp, without local clock adjustment.
+  /// When the bucket resets (`Ratelimit-Reset`), interpreted directly from Twitch's Unix
+  /// timestamp without local clock skew adjustment.
   public let resetAt: Date?
-  /// The local time this response was processed.
+  /// The local wall-clock time when this response was processed.
   public let observedAt: Date
 
   internal init?(response: HTTPURLResponse, observedAt: Date) {

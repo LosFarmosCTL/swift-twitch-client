@@ -54,7 +54,7 @@ public struct ConduitShardUpdateResponse: Sendable {
 public struct ConduitShardUpdateError: Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
-  /// The message content or explanatory text supplied by Twitch.
+  /// Twitch's explanation of why updating this shard failed.
   public let message: String
   /// The Twitch error code for the shard update.
   public let code: String

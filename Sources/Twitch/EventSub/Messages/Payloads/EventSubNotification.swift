@@ -1,14 +1,21 @@
 import Foundation
 
-/// A typed event with the metadata Twitch supplied for its EventSub delivery.
+/// A typed EventSub event paired with its Twitch delivery envelope metadata.
+///
+/// Delivered by ``TwitchClient/eventStream(for:bufferingPolicy:)``,
+/// ``TwitchClient/eventListener(for:callback:)``, and ``TwitchClient/eventPublisher(for:)``.
+///
+/// - SeeAlso: <doc:EventSub>, ``EventSubSubscription``, ``Event``
 public struct EventSubNotification<Payload: Sendable>: Sendable {
-  /// The event-specific payload.
+  /// The decoded event-specific payload.
   public let event: Payload
-  /// The ID of the EventSub notification envelope.
+  /// Twitch's unique identifier for this notification message envelope.
+  ///
+  /// Useful for deduplication or correlating logs across reconnects.
   public let messageID: String
-  /// When Twitch sent the notification.
+  /// The timestamp Twitch recorded when sending the notification.
   public let sentAt: Date
-  /// The Twitch subscription that produced the notification.
+  /// The ID of the Twitch EventSub subscription that produced this notification.
   public let subscriptionID: String
 }
 

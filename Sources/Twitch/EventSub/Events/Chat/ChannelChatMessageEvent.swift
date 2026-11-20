@@ -19,7 +19,7 @@ public struct ChannelChatMessageEvent: Event {
 
   /// The identifier of the message.
   public let messageID: String
-  /// The message content or explanatory text supplied by Twitch.
+  /// The structured message text and ordered content fragments.
   public let message: Message
 
   /// The category of chat message.
@@ -213,7 +213,7 @@ public struct ChannelChatMessageEvent: Event {
         case cheermote(Cheermote)
         /// A mention message fragment with its associated metadata.
         case mention(Mention)
-        /// An animated image format.
+        /// A GIF message fragment with its associated metadata.
         case gif(GIF)
         /// An unfamiliar fragment kind. The fragment's text remains available.
         case unknown(String)
@@ -256,9 +256,9 @@ public struct ChannelChatMessageEvent: Event {
       /// The identifier and media URL of a GIF embedded in a chat message.
       @MemberwiseInit(.public)
       public struct GIF: Decodable, Sendable {
-        /// The identifier of the gif.
+        /// The identifier of the GIF.
         public let gifID: String
-        /// The URL associated with this resource.
+        /// The media URL of the GIF.
         public let url: String
 
         enum CodingKeys: String, CodingKey {

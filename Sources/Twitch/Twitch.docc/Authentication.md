@@ -1,166 +1,181 @@
 # Authentication
 
-Choose credentials for the Twitch API or transport your application uses.
+Choose the right credential kind for your app, validate tokens, and rotate credentials safely.
 
 ## Overview
 
-``TwitchCredentials`` represents a user OAuth access token, an app OAuth access token,
-or an externally signed Extension Backend Service (EBS) JWT. A ``TwitchClient`` uses
-one set of credentials for its Helix requests and direct EventSub subscriptions.
-Applications that need both user and app operations can create separate clients.
+Every request through ``TwitchClient`` is authorized by a ``TwitchCredentials`` value. The
+library never fetches, stores, or refreshes OAuth tokens on your behalf—how you obtain a token
+depends on whether you are building a desktop/mobile client, a bot, a backend service, or a
+Twitch Extension. See Twitch's [authentication overview](https://dev.twitch.tv/docs/authentication/)
+for choosing an OAuth flow.
 
-The library accepts existing tokens. Obtaining, storing, and replacing them remains
-the application's responsibility. See the [Twitch authentication documentation](
-https://dev.twitch.tv/docs/authentication/) for the available OAuth flows.
+A single ``TwitchClient`` holds one ``TwitchCredentials`` value at a time. If your application
+needs to make both user-authorized and app-authorized requests concurrently, create two
+separate ``TwitchClient`` instances.
 
-### Validate OAuth tokens
+### Choosing a Credential Kind
 
-``TwitchClient/validateAccessToken(accessToken:)`` validates either OAuth access-token
-kind and returns a ``ValidatedAccessToken``:
+``TwitchCredentials/Kind`` supports three authentication modes:
+
+| Kind | Created with | Helix | EventSub WebSockets | Managed Chat |
+| --- | --- | --- | --- | --- |
+| **User OAuth** | ``TwitchCredentials/init(accessToken:clientID:userID:userLogin:scopes:)`` or ``ValidatedAccessToken/credentials(accessToken:)`` | User & shared endpoints | Supported | Full read & write (with required scopes) |
+| **App OAuth** | ``TwitchCredentials/app(accessToken:clientID:)`` | App & shared endpoints (supply acting user IDs explicitly) | Not supported (use Helix for webhooks/conduits) | Not supported for writes or authenticated reads |
+| **Extension JWT** | ``TwitchCredentials/extensionJWT(token:clientID:)`` | JWT-only extension endpoints | Not supported | Not supported |
+
+> Note: Managed chat also supports an **anonymous IRC reader**
+> (`ChatConfiguration(reader: .irc(.anonymous))`). Joining a pre-resolved ``ChatChannel`` with
+> an anonymous reader requires no OAuth token or Helix call. See <doc:ManagedChat>.
+
+### Validate OAuth Tokens at Startup
+
+The easiest and safest way to build ``TwitchCredentials`` from a user or app OAuth token is to
+validate it with ``TwitchClient/validateAccessToken(accessToken:)``:
 
 ```swift
-let token = "<user or app access token>"
+let token = "<user or app OAuth token>"
 let validated = try await TwitchClient.validateAccessToken(accessToken: token)
+
+print("Client ID:", validated.clientID)
+print("Expires in:", validated.expiresIn ?? -1, "seconds")
+
 let credentials = validated.credentials(accessToken: token)
 let twitch = TwitchClient(credentials: credentials)
 ```
 
-Supply the same token to `credentials(accessToken:)` that you submitted for validation.
-The result's `kind` is `.user(UserIdentity)` or `.app`. Validation also provides the
-client ID, scopes, and remaining lifetime in seconds (`expiresIn`). The lifetime is
-`nil` if Twitch omits it or reports zero. App tokens have no user ID or login.
+Pass the exact same token string to ``ValidatedAccessToken/credentials(accessToken:)`` that you
+validated. Using the validated result gives you two extra benefits over manual construction:
 
-Applications maintaining OAuth sessions must validate their tokens at startup and
-hourly, as described in [Twitch's validation requirements](
-https://dev.twitch.tv/docs/authentication/validate-tokens/). The library provides the
-validation request without scheduling repeated validation.
+1. **Verified identity** — ``ValidatedAccessToken/kind`` is automatically `.user(UserIdentity)`
+   for user tokens or `.app` for app tokens, with ``TwitchCredentials/user`` populated when
+   present.
+2. **Known scopes** — ``TwitchCredentials/scopes`` is populated from Twitch's response. Optional
+   scope-gated features in managed chat (such as ``ChatConfiguration/moderationEnrichment`` and
+   ``ChatConfiguration/prefillModeratedChannels``) only activate when the required scopes are
+   positively known to be present.
 
-### Create credentials directly
+> Important: Twitch requires applications with long-lived OAuth sessions to validate tokens on
+> startup and hourly thereafter (see [Validating Requests](https://dev.twitch.tv/docs/authentication/validate-tokens/)).
+> The library provides the validation call, while your app owns the timer and refresh flow.
 
-When the token's application and identity are already known, create credentials
-without a validation request:
+### Construct Credentials Directly
+
+If you already know the client ID and account identity (for instance, from cached session
+metadata), construct ``TwitchCredentials`` directly without making a network request:
 
 ```swift
 let userCredentials = TwitchCredentials(
   accessToken: "<user token>",
   clientID: "<client ID>",
   userID: "<user ID>",
-  userLogin: "<login>"
+  userLogin: "<login>",
+  scopes: ["chat:read", "user:write:chat"]
 )
 
 let appCredentials = TwitchCredentials.app(
-  accessToken: "<app token>", clientID: "<client ID>"
+  accessToken: "<app token>",
+  clientID: "<client ID>"
 )
 ```
 
-The client ID must match the application that issued the token. Initialization removes
-a leading `oauth:` prefix and lowercases user logins; it does not contact Twitch.
+Initialization strips any leading `oauth:` prefix from `accessToken` and normalizes `userLogin`
+to lowercase without contacting Twitch. Leaving `scopes` as `nil` means "unknown", not "empty":
+Helix and EventSub still send requests normally and let Twitch enforce scopes, while optional
+managed chat enrichments stay dormant until scopes are supplied.
 
-App tokens are obtained through the server-side client credentials flow, which requires
-a confidential client secret. Keep that secret on a backend rather than embedding it
-in a distributed application. App tokens cannot be refreshed; obtain a replacement
-through the client credentials flow when necessary. See [getting tokens](
-https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow)
-and [token renewal](https://dev.twitch.tv/docs/authentication/refresh-tokens/).
+> Warning: App access tokens are obtained through the OAuth Client Credentials flow using your
+> confidential client secret. Keep that secret on a trusted backend—never ship a client secret
+> inside a client app. App tokens cannot be refreshed; request a new one when expired.
 
-### Account identity
+### App Tokens and Acting User IDs
 
-User credentials expose the authorized account through `credentials.user`. Its `id`
-and `login` are available together:
-
-```swift
-if let account = credentials.user {
-  print(account.id, account.login)
-}
-```
-
-`user`, `userID`, and `userLogin` are optional because app tokens and Extension JWT
-credentials do not carry an OAuth user identity. Token validation exposes the same
-optional account information for user and app tokens.
-
-### Supply acting user IDs for app requests
-
-When you send a chat message with a user token, TwitchClient uses that account as
-the sender by default. An app token doesn't identify a user, so you supply
-`senderID`. In both cases, `channelID` is the destination, not the sender:
+With a user token, endpoints that act on behalf of a user default to ``TwitchCredentials/userID``.
+App tokens carry no user identity (`credentials.user == nil`), so you must supply the acting
+user ID or lookup target explicitly:
 
 ```swift
 let app = TwitchClient(credentials: appCredentials)
+
+// Public lookups need at least one ID or login with an app token:
+let users = try await app.helix(for: .getUsers(userLogins: ["twitchdev"])).value
+
+// Actions on behalf of a bot/user need an explicit senderID:
 let sent = try await app.helix(for: .sendChatMessage(
-  in: channelID, message: "Hello chat!", senderID: botID
-))
-
-let user = TwitchClient(credentials: userCredentials)
-let userSent = try await user.helix(for: .sendChatMessage(
-  in: channelID, message: "Hello chat!"
-))
+  in: "141981764",
+  message: "Hello from an app token!",
+  senderID: botUserID
+)).value
 ```
 
-Public lookups such as `getUsers` also need an explicit target with an app token:
+Before sending any Helix request, ``TwitchClient`` checks both the credential kind and
+token-dependent parameter constraints locally, throwing ``HelixError/authenticationError(_:)``
+wrapping ``TwitchAuthenticationError`` if something does not match:
+
+- Passing an app token to a user-only endpoint throws ``TwitchAuthenticationError/userAccessTokenRequired``.
+- Omitting a required user ID with an app token throws ``TwitchAuthenticationError/missingUserID(parameter:)``.
+- Passing a user ID that differs from a user token's own account throws ``TwitchAuthenticationError/userIDMismatch(parameter:)``.
+- Using token-specific parameters improperly—such as setting `isSourceOnly` on
+  ``HelixEndpoint/sendChatMessage(in:message:replyTo:isSourceOnly:pin:senderID:)`` with a user
+  token, or combining `pin: true` with `replyTo` or `isSourceOnly`—throws
+  ``TwitchAuthenticationError/invalidParameter(parameter:reason:)``.
+
+An app token never bypasses user consent: Twitch still checks prior user grants, channel roles,
+and account eligibility on the server.
+
+### Extension Backend Service (EBS) JWTs
+
+Certain Twitch Extension Helix endpoints require an externally signed JWT rather than an OAuth
+access token:
 
 ```swift
-let response = try await app.helix(for: .getUsers(userLogins: ["twitchdev"]))
-let users = response.value
-```
-
-Factories document their token and scope requirements. Twitch checks scopes, prior
-user grants, roles, and account eligibility. An app token does not bypass user consent,
-and its validation scopes do not enumerate all earlier user grants to the application.
-
-The client rejects incompatible credentials before sending a request and reports
-the reason as a ``TwitchAuthenticationError``.
-
-Some parameters depend on the token kind: `isSourceOnly` on chat messages and
-announcements is app-only. Drops entitlement `userID` filters must match the token's
-user ID when using a user token. Pinning a chat message cannot be combined with a
-reply or `isSourceOnly`. The endpoint reference
-describes these rules alongside the additional grant requirements.
-
-### Use Extension JWTs
-
-Some extension endpoints require an EBS JWT rather than an OAuth access token:
-
-```swift
-let credentials = TwitchCredentials.extensionJWT(
-  token: "<externally signed JWT>", clientID: "<extension client ID>"
+let jwtCredentials = TwitchCredentials.extensionJWT(
+  token: "<externally signed JWT>",
+  clientID: "<extension client ID>"
 )
-let extensions = TwitchClient(credentials: credentials)
+let extensionClient = TwitchClient(credentials: jwtCredentials)
 ```
 
-The caller signs the JWT with the claims required by the endpoint. The library sends
-it as a Bearer token and does not sign or validate its claims. JWT-only endpoints reject
-user and app OAuth credentials, and OAuth-only endpoints reject JWT credentials.
+Your backend is responsible for signing the JWT with the claims required by the endpoint (see
+Twitch's [Extension JWT schema](https://dev.twitch.tv/docs/extensions/reference/#jwt-schema)).
+The client transmits it as a `Bearer` token without validating or signing claims.
 
-Do not submit an EBS JWT to OAuth token validation or use it to authenticate IRC or
-EventSub. See the [Twitch Extension reference](
-https://dev.twitch.tv/docs/extensions/reference/#jwt-schema) for JWT requirements.
+> Important: Do **not** pass an EBS JWT to ``TwitchClient/validateAccessToken(accessToken:)``,
+> EventSub, or IRC. OAuth-only Helix endpoints reject JWT credentials with
+> ``TwitchAuthenticationError/oauthAccessTokenRequired``, and JWT-only endpoints reject OAuth
+> credentials with ``TwitchAuthenticationError/extensionJWTRequired``.
 
-### EventSub and IRC requirements
+### Rotating or Switching Credentials
 
-The high-level EventSub stream, listener, and publisher methods manage direct WebSocket
-subscriptions and require user credentials. App credentials can create raw webhook or
-conduit subscriptions through Helix and call conduit management endpoints. The library
-does not provide webhook receivers or manage conduit shard reception. Event-specific
-consent requirements apply to those subscriptions.
+When your app refreshes an expired token or signs into a different Twitch account, call
+``TwitchClient/switchCredentials(to:chatBehavior:)`` on the existing client:
 
-Managed chat uses a user access token with `user:read:chat` for direct EventSub reads,
-`chat:read` for authenticated IRC reads, `user:write:chat` for Helix writes, and
-`chat:edit` for IRC writes. Managed writes require user credentials for either writer.
-The raw Helix Send Chat Message endpoint also supports app tokens with Twitch's
-required prior user grants.
+```swift
+await twitch.switchCredentials(
+  to: refreshedCredentials,
+  chatBehavior: .preserveChannels
+)
+```
 
-Choose an anonymous reader explicitly with `ChatConfiguration(reader: .irc(.anonymous))`.
-Where Twitch permits anonymous IRC access, a join with an already resolved `ChatChannel`
-does not need an OAuth request. Resolving an unknown channel first uses Helix and
-requires credentials.
+Here is what happens across each subsystem during a switch:
 
-### Credential and session lifetimes
+- **Helix**: Subsequent calls immediately use the new credentials; requests already in flight
+  finish with the credentials they started with.
+- **EventSub**: Existing WebSocket sessions tear down, active observers finish normally, and
+  upstream subscription deletion uses the credentials that originally created each subscription.
+  Re-create your EventSub streams after the switch if you want to continue observing under the
+  new token.
+- **Managed chat**: With ``ChatCredentialSwitchBehavior/preserveChannels`` (the default),
+  desired channels are kept—an anonymous IRC reader stays connected, while account-bound IRC
+  and EventSub transports restart with the new credentials. Pass
+  ``ChatCredentialSwitchBehavior/partChannels`` to leave all joined channels instead. Pending
+  readiness waits from before the switch fail with ``ChatError/credentialsChanged``.
 
-`switchCredentials(to:chatBehavior:)` updates the credentials used by subsequent Helix
-requests. In-flight requests retain their captured credentials. EventSub observers finish
-when teardown begins, and subscription cleanup uses the credentials that created each
-subscription.
+## See Also
 
-Managed chat preserves desired channels by default. The anonymous IRC reader can stay
-connected while account-bound transports restart. Pass `chatBehavior: .partChannels`
-to clear managed membership during the switch.
+- <doc:Helix>
+- <doc:EventSub>
+- <doc:ManagedChat>
+- ``TwitchCredentials``
+- ``ValidatedAccessToken``
+- ``TwitchAuthenticationError``

@@ -5,19 +5,22 @@ import Foundation
 #endif
 
 extension TwitchClient {
-  /// Starts a callback-based Helix request using explicit credentials.
+  /// Starts a callback-based one-off Helix request using explicit credentials.
   ///
-  /// The completion handler runs from an unstructured task without a main-actor
-  /// delivery guarantee. Releasing the returned handle does not cancel the request.
-  /// Cancellation completes with ``HelixError/cancelled``.
+  /// The completion handler is invoked from an unstructured task with no main-actor
+  /// guarantee. Releasing the returned ``TwitchCancellable`` does not cancel the request;
+  /// call ``TwitchCancellable/cancel()`` explicitly. Cancelled requests complete with
+  /// ``HelixError/cancelled``.
   ///
   /// - Parameters:
-  ///   - endpoint: The typed request to execute.
-  ///   - credentials: The credentials used to authorize the request.
-  ///   - urlSession: The URL session used for network requests.
-  ///   - diagnostics: Opt-in decoding diagnostics for this request.
-  ///   - completionHandler: Receives the endpoint result with metadata or a `HelixError`.
-  /// - Returns: A handle whose `cancel()` method cancels the request task.
+  ///   - endpoint: A typed ``HelixEndpoint`` factory describing the request.
+  ///   - credentials: The ``TwitchCredentials`` used to authorize the request.
+  ///   - urlSession: The `URLSession` used for HTTP transport.
+  ///   - diagnostics: Opt-in decoding failure callback for this request.
+  ///   - completionHandler: Receives the ``HelixResponse`` on success or a ``HelixError``
+  ///     on failure or cancellation.
+  /// - Returns: A ``TwitchCancellable`` handle that cancels the underlying request task.
+  /// - SeeAlso: <doc:Helix>, ``helix(for:credentials:urlSession:diagnostics:)``
   @discardableResult
   public static func helixTask<R: Sendable>(
     for endpoint: HelixEndpoint<R>,
@@ -34,16 +37,19 @@ extension TwitchClient {
       completionHandler: completionHandler)
   }
 
-  /// Starts a callback-based Helix request using this client’s credentials.
+  /// Starts a callback-based Helix request using this client's credentials.
   ///
-  /// The completion handler runs from an unstructured task without a main-actor
-  /// delivery guarantee. Releasing the returned handle does not cancel the request.
-  /// Cancellation completes with ``HelixError/cancelled``.
+  /// The completion handler is invoked from an unstructured task with no main-actor
+  /// guarantee. Releasing the returned ``TwitchCancellable`` does not cancel the request;
+  /// call ``TwitchCancellable/cancel()`` explicitly. Cancelled requests complete with
+  /// ``HelixError/cancelled``.
   ///
   /// - Parameters:
-  ///   - endpoint: The typed request to execute.
-  ///   - completionHandler: Receives the endpoint result with metadata or a `HelixError`.
-  /// - Returns: A handle whose `cancel()` method cancels the request task.
+  ///   - endpoint: A typed ``HelixEndpoint`` factory describing the request.
+  ///   - completionHandler: Receives the ``HelixResponse`` on success or a ``HelixError``
+  ///     on failure or cancellation.
+  /// - Returns: A ``TwitchCancellable`` handle that cancels the underlying request task.
+  /// - SeeAlso: <doc:Helix>, ``helix(for:)``
   @discardableResult
   public nonisolated func helixTask<R: Sendable>(
     for endpoint: HelixEndpoint<R>,

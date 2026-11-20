@@ -92,7 +92,7 @@ public struct Stream: Decodable, Sendable {
   public let viewerCount: Int
   /// The time the activity started.
   public let startedAt: Date
-  /// The URL for thumbnail.
+  /// The URL template for the stream's preview thumbnail image.
   public let thumbnailURL: String
 
   enum CodingKeys: String, CodingKey {

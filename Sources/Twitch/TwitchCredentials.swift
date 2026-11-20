@@ -1,54 +1,86 @@
-/// Credentials for Twitch OAuth and Extension Backend Service requests.
+/// Credentials used to authorize Twitch OAuth and Extension Backend Service requests.
 ///
-/// Initialization normalizes the token and identity without contacting Twitch. Use
-/// ``TwitchClient/validateAccessToken(accessToken:)`` to validate an OAuth token.
-/// Extension JWTs must be signed externally and cannot be validated by that endpoint.
+/// `TwitchCredentials` wraps one of three authentication kinds (``Kind``):
+/// - A user OAuth access token carrying a ``UserIdentity`` (required for direct
+///   EventSub WebSockets, authenticated IRC, and user-scoped Helix endpoints).
+/// - An app OAuth access token created with ``app(accessToken:clientID:)``.
+/// - An externally signed Extension Backend Service (EBS) JWT created with
+///   ``extensionJWT(token:clientID:)``.
+///
+/// Creating credentials normalizes the token (stripping a leading `oauth:` prefix) and
+/// lowercases the user login without contacting Twitch. To validate an OAuth token and
+/// populate its identity and granted ``scopes`` automatically, call
+/// ``TwitchClient/validateAccessToken(accessToken:)`` and convert the result with
+/// ``ValidatedAccessToken/credentials(accessToken:)``.
+///
+/// - Note: The library does not obtain or refresh OAuth tokens or sign Extension JWTs.
+///   Call ``TwitchClient/switchCredentials(to:chatBehavior:)`` when your app refreshes
+///   or changes tokens.
+/// - SeeAlso: <doc:Authentication>, ``TwitchAuthenticationError``
 public struct TwitchCredentials: Sendable {
-  /// The authentication mechanism represented by these credentials.
+  /// The authentication mechanism represented by a ``TwitchCredentials`` value.
   public enum Kind: Sendable, Equatable {
-    /// A token authorized by the associated Twitch account.
+    /// A user OAuth access token authorized by the associated Twitch account.
     case user(UserIdentity)
-    /// A token representing the issuing application, without a user account.
+    /// An app OAuth access token representing the issuing application without a user.
     case app
-    /// An externally signed Extension Backend Service JWT, separate from OAuth.
+    /// An externally signed Extension Backend Service (EBS) JWT, separate from OAuth.
     case extensionJWT
   }
 
-  /// The account that authorized a user access token.
+  /// The Twitch account that authorized a user OAuth access token.
   public struct UserIdentity: Sendable, Equatable {
-    /// The authorized account’s Twitch user ID.
+    /// The authorized account's numeric Twitch user ID.
     public let id: String
-    /// The authorized account’s lowercase login.
+    /// The authorized account's lowercase login name.
     public let login: String
 
-    /// Creates an account identity, normalizing the login to lowercase.
+    /// Creates an account identity, normalizing `login` to lowercase.
+    ///
+    /// - Parameters:
+    ///   - id: The account's Twitch user ID.
+    ///   - login: The account's login name. Normalized to lowercase.
     public init(id: String, login: String) {
       self.id = id
       self.login = login.lowercased()
     }
   }
 
-  /// The OAuth token without a leading `oauth:` prefix, or an externally signed EBS JWT.
+  /// The bearer token without any leading `oauth:` prefix, or an externally signed EBS JWT.
   public let accessToken: String
-  /// The issuing OAuth application’s client ID, or the extension’s client ID for an EBS JWT.
+  /// The issuing OAuth application's client ID, or the extension's client ID for an EBS JWT.
   public let clientID: String
-  /// Whether these credentials represent an OAuth user, OAuth app, or Extension JWT.
+  /// Whether these credentials represent a user OAuth token, app OAuth token, or EBS JWT.
   public let kind: Kind
-  /// Granted OAuth scopes, if known. `nil` means unknown, not an empty grant.
-  /// Managed chat only enables scope-gated optional enrichment with positive evidence.
+  /// The granted OAuth scopes for this token, if known.
+  ///
+  /// A `nil` value means scopes are unknown rather than empty. Helix and EventSub always
+  /// let Twitch enforce scopes on the server, while optional scope-gated managed chat
+  /// features (such as ``ChatConfiguration/moderationEnrichment`` and
+  /// ``ChatConfiguration/prefillModeratedChannels``) only activate when the required
+  /// scopes are positively known to be present.
   public let scopes: Set<String>?
 
-  /// The authorized account, or `nil` for app tokens and Extension JWTs.
+  /// The authorized account identity, or `nil` for app tokens and Extension JWTs.
   public var user: UserIdentity? {
     if case .user(let identity) = kind { identity } else { nil }
   }
 
-  /// The authorized account ID, or `nil` for app tokens and Extension JWTs.
+  /// The authorized account's Twitch user ID, or `nil` for app tokens and Extension JWTs.
   public var userID: String? { user?.id }
-  /// The authorized account login, or `nil` for app tokens and Extension JWTs.
+  /// The authorized account's lowercase login, or `nil` for app tokens and Extension JWTs.
   public var userLogin: String? { user?.login }
 
-  /// Creates credentials for an authenticated Twitch account.
+  /// Creates credentials for an authenticated Twitch user account.
+  ///
+  /// - Parameters:
+  ///   - accessToken: The user OAuth access token. Any leading `oauth:` prefix is stripped.
+  ///   - clientID: The client ID of the Twitch application that issued the token.
+  ///   - userID: The authorized account's Twitch user ID.
+  ///   - userLogin: The authorized account's login name. Normalized to lowercase.
+  ///   - scopes: Known granted OAuth scopes, or `nil` if unknown. Pass scopes (or construct
+  ///     credentials via ``ValidatedAccessToken/credentials(accessToken:)``) when using
+  ///     scope-gated managed chat features.
   public init(
     accessToken: String, clientID: String, userID: String, userLogin: String,
     scopes: Set<String>? = nil
@@ -58,7 +90,14 @@ public struct TwitchCredentials: Sendable {
       kind: .user(.init(id: userID, login: userLogin)), scopes: scopes)
   }
 
-  /// Creates credentials with an explicit token kind.
+  /// Creates credentials with an explicit authentication kind.
+  ///
+  /// - Parameters:
+  ///   - accessToken: The OAuth access token or externally signed EBS JWT. Any leading
+  ///     `oauth:` prefix is stripped.
+  ///   - clientID: The issuing application or extension client ID.
+  ///   - kind: The credential kind (user OAuth, app OAuth, or Extension JWT).
+  ///   - scopes: Known granted OAuth scopes, or `nil` if unknown.
   public init(
     accessToken: String, clientID: String, kind: Kind, scopes: Set<String>? = nil
   ) {
@@ -68,17 +107,31 @@ public struct TwitchCredentials: Sendable {
     self.scopes = scopes
   }
 
-  /// Creates app credentials from an existing token.
+  /// Creates app OAuth credentials from an existing client-credentials token.
   ///
-  /// Obtaining or replacing an expired token remains the caller’s responsibility.
+  /// App tokens represent an application rather than a signed-in user. Obtaining and
+  /// replacing expired app tokens remains the caller's responsibility.
+  ///
+  /// - Parameters:
+  ///   - accessToken: The app OAuth access token. Any leading `oauth:` prefix is stripped.
+  ///   - clientID: The client ID of the Twitch application that issued the token.
+  /// - Returns: Credentials configured with ``Kind/app``.
   public static func app(accessToken: String, clientID: String) -> Self {
     .init(accessToken: accessToken, clientID: clientID, kind: .app)
   }
 
-  /// Creates credentials for an externally signed Extension Backend Service JWT.
+  /// Creates credentials for an externally signed Extension Backend Service (EBS) JWT.
   ///
-  /// The caller signs the JWT with the endpoint’s required claims. These credentials
-  /// can only authorize JWT-compatible Helix requests, not IRC or EventSub.
+  /// Your backend must sign the JWT with the claims required by the target extension
+  /// endpoint. The client sends the token as a `Bearer` header without validating or
+  /// signing its claims. Extension JWT credentials authorize only JWT-compatible Helix
+  /// endpoints and cannot be used with OAuth-only endpoints, token validation, EventSub,
+  /// or IRC.
+  ///
+  /// - Parameters:
+  ///   - token: The externally signed EBS JWT.
+  ///   - clientID: The Twitch extension's client ID.
+  /// - Returns: Credentials configured with ``Kind/extensionJWT``.
   public static func extensionJWT(token: String, clientID: String) -> Self {
     .init(accessToken: token, clientID: clientID, kind: .extensionJWT)
   }

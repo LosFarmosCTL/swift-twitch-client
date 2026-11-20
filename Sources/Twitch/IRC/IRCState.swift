@@ -1,53 +1,60 @@
 import Foundation
 import TwitchIRC
 
-/// A snapshot of session connectivity, channel membership, and recovery progress.
+/// A diagnostic snapshot of an IRC transport's connectivity, channels, and recovery state.
+///
+/// Exposed via ``ChatState/ircReader`` and ``ChatState/ircWriter`` when IRC is configured
+/// as the managed chat reader or writer.
+///
+/// - SeeAlso: <doc:ManagedChat>, ``ChatState``, ``IRCRecovery``, ``IRCChannelStatus``
 public struct IRCState: Sendable {
-  /// The IRC session’s connection, recovery, or terminal state.
+  /// The connection lifecycle state of an IRC reader pool or writer session.
   public enum Status: Sendable, Equatable {
-    /// The session has not started connecting.
+    /// No connection has been started yet.
     case idle
-    /// The session is establishing its initial connections.
+    /// Initial connections are performing the IRC WebSocket handshake and login.
     case connecting
-    /// The session’s connections are ready.
+    /// All active connections are established and ready.
     case connected
-    /// The session is recovering one or more connections.
+    /// One or more connections are undergoing automatic recovery (see ``IRCState/recoveries``).
     case reconnecting
-    /// The session has permanently shut down.
+    /// The IRC transport has permanently shut down.
     case shutdown
-    /// The session or channel has failed; carries the failure reason.
+    /// The transport failed terminally (for example, authentication failed).
     case failed(IRCChannelFailure)
   }
 
-  /// The IRC session’s connection lifecycle state.
+  /// The overall lifecycle status of this IRC transport.
   public internal(set) var status: Status = .idle
-  /// The desired channel login names mapped to their current membership states.
+  /// Desired channel logins (lowercase, without `#`) mapped to their current IRC join status.
   public internal(set) var channels: [String: IRCChannelStatus] = [:]
-  /// The connection recovery operations currently in progress.
+  /// Active connection recovery operations currently in progress.
   public internal(set) var recoveries: [IRCRecovery] = []
-  /// The latest account-wide IRC user state received from Twitch, when provided.
+  /// The latest `GLOBALUSERSTATE` received from Twitch on this transport, if authenticated.
   public internal(set) var globalUserState: GlobalUserState?
 }
 
-/// An in-progress recovery operation for an IRC connection.
+/// Details of an in-progress recovery for a single IRC WebSocket connection.
+///
+/// - SeeAlso: ``IRCState/recoveries``, <doc:ManagedChat>
 public struct IRCRecovery: Sendable, Equatable {
-  /// Whether the recovering connection receives chat or sends messages.
+  /// Whether an IRC connection belongs to the read pool or the dedicated write transport.
   public enum Role: Sendable, Equatable {
-    /// A connection used to receive channel messages.
+    /// A pooled connection used to join channels and receive chat messages.
     case read
-    /// The connection used to send messages.
+    /// The dedicated authenticated connection used to send outgoing IRC commands.
     case write
   }
 
-  /// The server request or connection failure that triggered recovery.
+  /// The server signal or transport failure that triggered connection recovery.
   public enum Reason: Sendable, Equatable {
-    /// Twitch requested a replacement connection.
+    /// Twitch sent an IRC `RECONNECT` command requesting a replacement connection.
     case serverRequestedReconnect
-    /// The connection closed unexpectedly.
+    /// The WebSocket closed unexpectedly.
     case connectionClosed
-    /// The connection did not complete its handshake before the deadline.
+    /// The IRC login and capability handshake did not complete before the deadline.
     case handshakeTimedOut
-    /// The connection failed; carries a diagnostic description.
+    /// The WebSocket transport failed; carries a diagnostic description of the error.
     case connectionFailed(String)
 
     internal init(error: Error) {
@@ -60,17 +67,17 @@ public struct IRCRecovery: Sendable, Equatable {
     }
   }
 
-  /// The identifier of the connection being recovered.
+  /// The local identifier of the connection being replaced.
   public let connectionID: UUID
-  /// The role of the connection being recovered.
+  /// Whether the recovering connection is a reader or writer.
   public let role: Role
-  /// The channels affected by this connection recovery.
+  /// The channel logins hosted by this connection that are being rejoined.
   public internal(set) var channels: Set<String>
-  /// The reason supplied for this action.
+  /// The event or failure that triggered this recovery.
   public let reason: Reason
 
-  /// The recovery attempt number.
+  /// The 1-based retry attempt counter for this recovery sequence.
   public let attempt: Int
-  /// The scheduled retry time, or `nil` while establishing the replacement connection.
+  /// When the next reconnect attempt is scheduled, or `nil` while an attempt is actively connecting.
   public internal(set) var retryAt: Date?
 }

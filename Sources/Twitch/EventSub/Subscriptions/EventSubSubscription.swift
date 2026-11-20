@@ -1,16 +1,21 @@
-/// A typed EventSub subscription description.
+/// A typed description of a Twitch EventSub subscription topic and condition.
 ///
-/// Use a static factory to select an event and its conditions. Pass the description to
-/// a client’s event stream, listener, or publisher API to observe events.
+/// Construct a subscription with one of the static factory methods (such as
+/// ``streamOnline(broadcasterID:)`` or ``channelFollow(broadcasterID:moderatorID:)``),
+/// then pass it to ``TwitchClient/eventStream(for:bufferingPolicy:)``,
+/// ``TwitchClient/eventListener(for:callback:)``, or ``TwitchClient/eventPublisher(for:)``.
+/// Creating a subscription value performs no network I/O.
 ///
-/// The client receives events over WebSockets using its user access token, which must
-/// include the scopes required by the selected event. Built-in factories pair a fixed
-/// Twitch schema with its event model. Where multiple versions are supported, each
-/// version has its own factory and model.
+/// Direct WebSocket subscriptions require user OAuth credentials whose scopes satisfy the
+/// selected topic. Built-in factories pair a fixed Twitch schema version with its typed
+/// ``Event`` model; when Twitch publishes multiple schema versions, each version has its
+/// own factory and model. For topics not covered by a built-in factory, use
+/// ``custom(type:version:condition:decoding:)``.
 ///
-/// Transport-specific app-token and prior-grant rules apply when creating subscriptions
-/// through Helix with webhook or conduit transport; see the linked Twitch reference on
-/// each factory.
+/// - Note: To create webhook or conduit subscriptions with an app access token, call
+///   ``HelixEndpoint/createEventSubSubscription(using:for:isBatchingEnabled:)`` through
+///   Helix directly.
+/// - SeeAlso: <doc:EventSub>, ``Event``, ``EventSubNotification``
 public struct EventSubSubscription<EventNotification: Event>: Sendable {
   let type: String
   let version: String
@@ -18,16 +23,21 @@ public struct EventSubSubscription<EventNotification: Event>: Sendable {
 }
 
 extension EventSubSubscription {
-  /// Creates a subscription for a Twitch event type and schema version not covered
-  /// by the built-in factories. Use the default for Helix creation, or supply a
-  /// model to decode the payload when observing notifications over WebSocket.
+  /// Creates a subscription for a Twitch EventSub topic or version without a built-in factory.
+  ///
+  /// Supply a custom `Event`-conforming type in `decoding` to decode notification
+  /// payloads over WebSocket, or leave the default ``VoidEvent`` when creating a raw
+  /// subscription through Helix or ignoring the payload.
   ///
   /// - Parameters:
-  ///   - type: The Twitch subscription type.
-  ///   - version: The Twitch subscription schema version.
-  ///   - condition: The subscription condition using Twitch's wire keys.
-  ///   - decoding: The WebSocket payload model. Defaults to `VoidEvent`, which
-  ///     ignores the payload.
+  ///   - type: The Twitch EventSub subscription type string (for example, `"stream.online"`).
+  ///   - version: The Twitch EventSub schema version string (for example, `"1"`).
+  ///   - condition: The condition dictionary using Twitch's exact wire keys (for example,
+  ///     `["broadcaster_user_id": "1234"]`).
+  ///   - decoding: The ``Event`` type used to decode incoming notification payloads.
+  ///     Defaults to ``VoidEvent``, which ignores payload contents.
+  /// - Returns: A typed `EventSubSubscription` ready to pass to a client observation method
+  ///   or ``HelixEndpoint/createEventSubSubscription(using:for:isBatchingEnabled:)``.
   public static func custom(
     type: String, version: String, condition: [String: String],
     decoding _: EventNotification.Type = VoidEvent.self

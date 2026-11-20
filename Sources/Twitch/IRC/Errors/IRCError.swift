@@ -1,17 +1,23 @@
-/// An input-validation, connection, or session-lifecycle error from Twitch IRC.
+/// An error thrown by IRC command validation, handshake, or raw send operations.
+///
+/// - SeeAlso: ``TwitchClient/sendIRC(_:)``, ``IRCState``, <doc:ManagedChat>
 public enum IRCError: Error {
-  /// Caller input cannot be safely represented in the given IRC field.
+  /// A command parameter contains characters (such as CR, LF, or NUL) that cannot be
+  /// safely serialized onto the IRC wire protocol.
+  ///
+  /// - Parameter parameter: The name of the invalid IRC field.
   case invalidInput(parameter: String)
-  /// The connection did not complete its handshake before the deadline.
+  /// The IRC connection did not complete login and capability negotiation before the deadline.
   case handshakeTimedOut
-  /// Twitch rejected the required IRC capabilities.
+  /// Twitch rejected the required `CAP REQ` capabilities during connection setup.
   case capabilitiesRejected
-  /// Twitch rejected the IRC login.
+  /// Twitch rejected the IRC OAuth credentials (`Login authentication failed`).
   case loginFailed
-  /// The session has already started connecting.
+  /// An internal IRC session was asked to start after already starting.
   case alreadyConnected
-  /// The session has been shut down.
+  /// The IRC transport is disconnected or has been shut down.
   case disconnected
-  /// Raw IRC sends require IRC to be configured as the chat writer.
+  /// ``TwitchClient/sendIRC(_:)`` was called when ``ChatConfiguration/writer`` is not
+  /// ``ChatConfiguration/Writer/irc``.
   case writerNotConfigured
 }

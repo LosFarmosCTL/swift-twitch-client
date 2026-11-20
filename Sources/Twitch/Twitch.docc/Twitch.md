@@ -1,226 +1,178 @@
 # ``Twitch``
 
-Access Twitch Helix, EventSub, and IRC with typed, sendable Swift APIs.
+Access Twitch chat, EventSub, and the Helix API with typed, sendable Swift 6 APIs.
 
 ## Overview
 
-Use Helix to query profiles, streams, and channel data or perform actions such as
-updating a channel. Use EventSub to react to live activity, including stream starts,
-follows, and reward redemptions. Use IRC to receive and send chat messages through
-an independently managed session.
+`Twitch` wraps Twitch's three core interfaces behind a single actor, ``TwitchClient``:
 
-Create a ``TwitchClient`` with ``TwitchCredentials`` for Helix and EventSub. The
-examples below run in an asynchronous, throwing context, with the token and account
-identity supplied by your app.
+- **Managed chat (and raw IRC)** — unified channel membership, normalized chat events, and
+  paced sending over your choice of IRC (authenticated or anonymous) or EventSub for reading,
+  and Helix or IRC for writing, while still exposing raw parsed IRC frames when you need them.
+- **EventSub** — pooled WebSocket connections that deliver typed, real-time notifications via
+  `AsyncThrowingStream`, callbacks, or Combine, handling welcomes, keepalives, reconnect
+  handoffs, and shared subscriptions automatically.
+- **Helix** — typed HTTP requests for querying and updating Twitch resources (profiles, streams,
+  chat settings, clips, subscriptions, moderation, and more), with response metadata and
+  explicit rate-limit visibility.
+
+### Quick Tour
+
+Start by validating an OAuth access token (or constructing ``TwitchCredentials`` directly) and
+creating a ``TwitchClient``. The client opens no connections until you actually make a request,
+subscribe to an event, or join a channel.
 
 ```swift
 import Twitch
 
-let credentials = TwitchCredentials(
-  accessToken: token,
-  clientID: clientID,
-  userID: userID,
-  userLogin: login
-)
-let twitch = TwitchClient(credentials: credentials)
-```
+let token = "<user OAuth access token>"
+let validated = try await TwitchClient.validateAccessToken(accessToken: token)
+let credentials = validated.credentials(accessToken: token)
 
-Credentials must have the scopes and account roles required by the selected
-operation. The library does not obtain or refresh OAuth tokens.
-
-### Query and update data with Helix
-
-Choose a typed ``HelixEndpoint`` factory, then execute its request through the client.
-For example, look up a Twitch user's profile:
-
-```swift
-let response = try await twitch.helix(for: .getUsers(userIDs: [userID]))
-let users = response.value
-
-for user in users {
-  print(user.displayName)
-}
-```
-
-Factories describe requests without performing network I/O. The result type depends
-on the endpoint. Request failures throw ``HelixError``, and cancellation throws
-`CancellationError`. Helix also supports completion handlers. Each Helix response includes HTTP and rate-limit metadata.
-Requests do not wait or retry automatically; see <doc:RateLimiting>.
-
-Some extension endpoints require an Extension Backend Service (EBS) JWT instead of a
-Twitch OAuth access token. Use `TwitchCredentials.extensionJWT(token:clientID:)` with
-an externally signed JWT and the extension’s client ID. The client sends the JWT as
-a Bearer token; it does not sign JWTs. Do not pass an EBS JWT to `validateAccessToken`,
-which validates OAuth tokens. JWT credentials cannot authorize OAuth-only endpoints,
-IRC, or EventSub.
-
-### React to live activity with EventSub
-
-Choose an ``EventSubSubscription`` factory and consume its typed notifications.
-This example observes when a broadcaster starts streaming:
-
-```swift
-let notifications = try await twitch.eventStream(
-  for: .streamOnline(broadcasterID: userID)
-)
-
-for try await notification in notifications {
-  print("\(notification.event.broadcasterDisplayName) started streaming")
-}
-```
-
-The client receives notifications over WebSockets. Matching subscription descriptions
-share one Twitch subscription. Cancelling the consuming task removes its observer.
-When the last observer leaves, the client schedules unsubscription.
-Connection failures and revocations finish the stream with an ``EventSubError``.
-Call ``TwitchClient/resetEventSub()`` to close all EventSub connections and finish
-their consumers. Callbacks and Combine publishers are also available where supported.
-
-Streams, callbacks, and publishers deliver an ``EventSubNotification`` with the
-typed event, its notification and subscription IDs, and `sentAt`, the time Twitch
-sent the notification.
-
-### Inspect decoding failures
-
-Use ``TwitchClient/decodingDiagnostics()`` or configure a callback with
-``TwitchDiagnostics``. Both deliver the same structured reports from Helix and
-EventSub, including Helix requests made by managed chat and EventSub.
-
-```swift
-let reports = await twitch.decodingDiagnostics()
-for await report in reports {
-  print(report.stage, report.details.pathDescription)
-}
-```
-
-Register before starting the operations you want to observe. Each stream buffers
-the newest 64 pending reports and survives credential changes and EventSub resets.
-
-```swift
 let twitch = TwitchClient(
   credentials: credentials,
-  diagnostics: .init(onDecodingFailure: { diagnostic in
-    print(diagnostic.source, diagnostic.stage, diagnostic.details.pathDescription)
-  })
+  chat: .init(reader: .irc(.authenticated), writer: .helix)
 )
 ```
 
-The callback runs synchronously and may be called concurrently, with no main-actor
-guarantee. Static Helix requests also accept `diagnostics:`. Reports omit payload
-bodies and original Swift errors. Coding paths and EventSub identifiers can contain
-user data. Malformed EventSub messages are skipped, and a Helix result with malformed
-optional pagination remains usable without a cursor.
-
-Helix requests still throw on parsing failures. Both parsing error cases carry a
-``HelixDecodingFailure`` with the original error, structured details, and response data.
-If you previously extracted the raw body directly from either case, use
-`failure.responseData`. HTTP 429 still produces ``HelixError/rateLimited(_:)`` even
-when its body cannot be decoded.
+From there, the same client drives Helix, EventSub, and chat together:
 
 ```swift
-do {
-  _ = try await twitch.helix(for: .getUsers())
-} catch HelixError.parsingResponseFailed(let failure) {
-  print(failure.details.kind, failure.details.pathDescription)
-  let original = failure.underlyingError as? DecodingError
+// 1. Look up a channel with Helix
+let response = try await twitch.helix(for: .getUsers(userLogins: ["twitchdev"]))
+guard let broadcaster = response.value.first else { return }
+
+// 2. React to live EventSub notifications in the background
+let streamTask = Task {
+  let events = try await twitch.eventStream(
+    for: .streamOnline(broadcasterID: broadcaster.id)
+  )
+  for try await notification in events {
+    print("\(notification.event.broadcasterDisplayName) is live!")
+  }
+}
+
+// 3. Observe and participate in managed chat
+let chatStream = await twitch.messageStream()
+try await twitch.join(login: "twitchdev")
+try await twitch.sendMessage("Hello chat!", login: "twitchdev")
+
+for await event in chatStream {
+  if case .message(let message) = event.payload {
+    print("\(message.author.displayName ?? "unknown"): \(message.text)")
+  }
 }
 ```
 
-Coding paths use decoder keys and array indices. Key decoding strategies can change
-the spelling of keys from the original payload.
+> Note: Obtaining and refreshing OAuth tokens remains your application's responsibility. When
+> you refresh or switch accounts, call ``TwitchClient/switchCredentials(to:chatBehavior:)`` to
+> update the client cleanly without recreating it.
 
-### Manage chat from TwitchClient
+### Where to Go Next
 
-Choose a reader and writer with ``ChatConfiguration``. Register a message stream before
-joining to receive the first normalized events, then call `join` to await channel readiness.
-Use `requestJoin` to start setup without waiting for readiness. Cancelling an observer or
-readiness wait leaves the channel joined. Call `part` to withdraw membership and
-``TwitchClient/shutdownChat()`` to close the managed transports and finish the observers.
+Each subsystem has a dedicated guide covering architecture, gotchas, and production patterns:
 
-``TwitchClient/chatStateUpdates()`` yields the latest membership, connection, and send
-eligibility. `sendMessage` returns the immediate send outcome. A successful IRC write
-isn't a delivery receipt; Twitch's later rejection notices appear as `notice` events
-on the chat stream and aren't tied to a specific send.
-Managed sends apply process-local sender limits and channel pacing.
-These local checks are not Twitch's server-side send or join limits.
-Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
-See <doc:Authentication> for read and write scopes by transport.
+- Start with <doc:Authentication> to understand user tokens, app tokens, Extension JWTs, scope
+  requirements, and credential rotation.
+- Read <doc:Helix> and <doc:RateLimiting> before making production API calls so you know how
+  errors, pagination, and HTTP 429 responses behave.
+- Read <doc:EventSub> to learn about subscription sharing, buffering policies, reconnection,
+  and custom topics.
+- Read <doc:ManagedChat> to choose reader/writer transports, handle send pacing and
+  moderation enrichment, or access raw IRC.
+- Read <doc:Diagnostics> to hook up structured decoding-failure reports for catching Twitch
+  schema changes safely in production.
 
-On watchOS, use Helix over HTTPS. Direct EventSub and IRC are not supported on
-Apple Watch: watchOS blocks the WebSocket connections they need in ordinary apps.
-See [Apple TN3135](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos).
+### Platform Support
 
-Credential switches preserve desired channels by default. Pass `chatBehavior: .partChannels`
-to clear them. A preserved anonymous IRC reader stays connected, and account-bound
-transports restart with the new credentials.
+`Twitch` targets Swift 6 language mode on macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, and Linux.
 
-For transport-specific access, use the raw IRC stream, listener, or publisher on
-``TwitchClient``. Each delivery identifies the read or write connection that received it.
-Raw sends use the configured IRC writer and apply IRC wire validation.
+> Important: **watchOS** restricts direct WebSocket connections in ordinary apps (see
+> [Apple TN3135](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos)).
+> Use Helix over HTTPS on watchOS; direct EventSub and IRC connections are not supported.
 
-#### Moderation events
-
-The chat reader reports what changed in chat: a single deletion produces
-`messageDeleted`, and clearing messages produces `messagesCleared`. A targeted
-IRC `CLEARCHAT` also reports the ban or timeout as a `moderation` event, including
-the timeout duration when Twitch supplies it. An EventSub chat clear does not say
-why messages were cleared, so it does not produce a ban or timeout on its own.
-
-Opt-in moderation enrichment uses EventSub when the account has the required role
-and scopes. It adds `moderation` events to the same stream without replacing
-reports from the chat reader. A moderator's deletion can therefore appear as both
-`messageDeleted` and `moderation`. IRC and EventSub can also report the same ban or
-timeout independently; consumers can use the richer details when available.
+> Warning: On **Linux**, `FoundationNetworking` relies on `libcurl`, which only enables
+> WebSocket support by default starting in `libcurl 8.11.0`. Helix HTTP requests work on any
+> supported Linux environment, while connecting EventSub or IRC WebSockets on older `libcurl`
+> builds will trap at runtime. Combine publisher APIs are available only on Apple platforms.
 
 ## Topics
 
-### Client and authentication
+### Guides
 
 - <doc:Authentication>
+- <doc:Helix>
+- <doc:RateLimiting>
+- <doc:EventSub>
+- <doc:ManagedChat>
+- <doc:Diagnostics>
+
+### Client and Authentication
+
 - ``TwitchClient``
 - ``TwitchCredentials``
-- ``TwitchDiagnostics``
-- ``TwitchDecodingDiagnostic``
-- ``TwitchDecodingFailureDetails``
 - ``ValidatedAccessToken``
 - ``AccessTokenValidationError``
 - ``TwitchAuthenticationError``
 - ``TwitchCancellable``
 
-### Helix requests
+### Helix API
 
-- <doc:RateLimiting>
 - ``HelixEndpoint``
-- ``HelixError``
-- ``HelixDecodingFailure``
 - ``HelixResponse``
 - ``HelixResponseMetadata``
 - ``HelixRateLimit``
+- ``HelixError``
 - ``HelixRateLimitError``
-- ``ChatSettingsUpdate``
+- ``HelixDecodingFailure``
 
-### EventSub notifications
+### EventSub
 
-- ``Event``
 - ``EventSubSubscription``
 - ``EventSubNotification``
 - ``EventSubListenerEvent``
+- ``Event``
+- ``VoidEvent``
 - ``EventSubError``
 - ``EventSubRevocation``
 
-### Managed chat
+### Managed Chat
 
 - ``ChatConfiguration``
+- ``ChatCredentialSwitchBehavior``
+- ``ChatSendingPolicy``
 - ``ChatChannel``
 - ``ChatEvent``
+- ``ChatMessage``
+- ``ChatNotification``
+- ``ChatMessageDeletion``
+- ``ChatModeration``
+- ``ChatUser``
+- ``ChatBadge``
 - ``ChatState``
-- ``ChatSendingPolicy``
+- ``ChatChannelState``
+- ``ChatComponentStatus``
+- ``ChatRoomSettings``
+- ``ChatPrivilege``
 - ``ChatSendEligibility``
+- ``ChatSendOutcome``
+- ``ChatCredentialChange``
+- ``ChatDeparture``
+- ``ChatError``
+- ``ChatSendError``
+
+### Raw IRC
+
 - ``IRCMessage``
 - ``IRCListenerEvent``
-
 - ``IRCState``
 - ``IRCRecovery``
 - ``IRCChannelStatus``
 - ``IRCChannelFailure``
 - ``IRCError``
+
+### Diagnostics
+
+- ``TwitchDiagnostics``
+- ``TwitchDecodingDiagnostic``
+- ``TwitchDecodingFailureDetails``

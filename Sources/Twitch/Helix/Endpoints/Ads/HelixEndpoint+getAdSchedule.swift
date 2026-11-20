@@ -54,6 +54,7 @@ public struct AdSchedule: Decodable, Sendable {
     case nextAdAt, lastAdAt, duration, prerollFreeTime, snoozeCount, snoozeRefreshAt
   }
 
+  /// Decodes the ad schedule, mapping zero-valued timestamps to `nil`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.nextAdAt = try container.decodeAdDate(forKey: .nextAdAt)

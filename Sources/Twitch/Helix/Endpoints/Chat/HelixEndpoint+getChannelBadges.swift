@@ -51,7 +51,7 @@ public struct Badge: Decodable, Sendable {
 
   /// The action performed when a viewer clicks the badge, when provided.
   public let clickAction: String?
-  /// The URL for click, when provided.
+  /// The destination URL opened when a viewer clicks the badge, when provided.
   public let clickURL: String?
 
   enum CodingKeys: String, CodingKey {

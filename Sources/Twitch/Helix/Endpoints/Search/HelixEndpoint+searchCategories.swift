@@ -47,7 +47,7 @@ public struct Category: Decodable, Sendable {
   public let id: String
   /// The name supplied by Twitch.
   public let name: String
-  /// The URL for box art.
+  /// The URL of the category's box art image.
   public let boxArtURL: String
 
   enum CodingKeys: String, CodingKey {

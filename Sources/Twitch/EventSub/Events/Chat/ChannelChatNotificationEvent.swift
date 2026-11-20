@@ -20,7 +20,7 @@ public struct ChannelChatNotificationEvent: Event {
 
   /// The identifier of the message.
   public let messageID: String
-  /// The message content or explanatory text supplied by Twitch.
+  /// The structured notification message text and fragments.
   public let message: ChannelChatMessageEvent.Message
   /// The system-generated chat message.
   public let systemMessage: String
@@ -336,13 +336,16 @@ public struct ChannelChatNotificationEvent: Event {
 /// A viewer’s watch streak and Channel Points award.
 @MemberwiseInit(.public)
 public struct WatchStreakNotice: Decodable, Sendable {
+  /// The number of consecutive broadcasts the viewer has watched.
   public let streakCount: Int
+  /// The number of Channel Points awarded for reaching this watch streak milestone.
   public let channelPointsAwarded: Int
 }
 
 /// A viewer’s time as a channel moderator, in months.
 @MemberwiseInit(.public)
 public struct ModiversaryNotice: Decodable, Sendable {
+  /// The cumulative number of months the viewer has been a moderator in the channel.
   public let months: Int
 }
 
@@ -610,7 +613,7 @@ public struct RaidNotice: Decodable, Sendable {
   public let userLogin: String
   /// The number of viewers reported by Twitch.
   public let viewerCount: Int
-  /// The URL for profile image.
+  /// The URL of the raiding broadcaster's profile image.
   public let profileImageURL: String
 
   enum CodingKeys: String, CodingKey {

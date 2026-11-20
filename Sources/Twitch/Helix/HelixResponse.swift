@@ -4,21 +4,32 @@ import Foundation
   import FoundationNetworking
 #endif
 
-/// An endpoint's result together with metadata from the same HTTP response.
+/// A Helix endpoint's decoded value paired with metadata from the HTTP response.
+///
+/// Every Helix request returns a `HelixResponse` so you can inspect both the payload
+/// (``value``) and HTTP/rate-limit headers (``metadata``). Endpoints with an empty HTTP
+/// body return `HelixResponse<Void>`, which is `@discardableResult` on ``TwitchClient``.
+///
+/// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, ``HelixResponseMetadata``
 public struct HelixResponse<Value> {
-  /// The value produced by the endpoint, or `()` for an empty-body endpoint.
+  /// The decoded endpoint result, or `()` for an empty-body endpoint.
   public let value: Value
-  /// The HTTP status and rate-limit headers for this response.
+  /// The HTTP status code and parsed rate-limit headers from this response.
   public let metadata: HelixResponseMetadata
 }
 
 extension HelixResponse: Sendable where Value: Sendable {}
 
-/// Metadata reported by one Helix HTTP response, without local capacity estimates.
+/// HTTP status and rate-limit headers observed on a single Helix response.
+///
+/// Metadata reflects one response at the time it was processed rather than a live
+/// estimate of remaining capacity.
+///
+/// - SeeAlso: ``HelixRateLimit``, <doc:RateLimiting>
 public struct HelixResponseMetadata: Sendable, Equatable {
-  /// The HTTP response status code.
+  /// The HTTP status code returned by Twitch.
   public let statusCode: Int
-  /// The valid rate-limit header fields, or `nil` when none are available.
+  /// Parsed rate-limit headers from this response, or `nil` when none were valid or present.
   public let rateLimit: HelixRateLimit?
 
   internal init(response: HTTPURLResponse) {
