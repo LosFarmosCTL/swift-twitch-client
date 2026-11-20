@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelBitsUse(broadcasterID: String, version: String = "1")
+  public static func channelBitsUse(broadcasterID: String)
     -> EventSubSubscription<ChannelBitsUseEvent>
   {
     .init(
-      type: EventType.channelBitsUse.rawValue, version: version,
+      type: "channel.bits.use", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelCheer(broadcasterID: String, version: String = "1")
+  public static func channelCheer(broadcasterID: String)
     -> EventSubSubscription<ChannelCheerEvent>
   {
     .init(
-      type: EventType.channelCheer.rawValue, version: version,
+      type: "channel.cheer", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

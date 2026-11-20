@@ -80,9 +80,11 @@ struct UsersTests {
       url: url,
       body: MockedData.getUserBlocklistJSON)
 
-    let (blocks, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getUserBlocklist(userIDs: ["135093069", "27419011"], limit: 2))).value
+    let blocks = page.users
+    let cursor = page.cursor
 
     #expect(cursor == "next-blocks")
 

@@ -9,10 +9,10 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-global-chat-badges
   /// ) for request limits and account requirements.
   public static func getGlobalBadges()
-    -> HelixEndpoint<[BadgeSet], BadgeSet, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[BadgeSet]>
   {
     .init(
       method: "GET", path: "chat/badges/global",
-      authentication: .either, makeResponse: { $0.data })
+      authentication: .either, responseType: BadgeSet.self, makeResponse: { $0.data })
   }
 }

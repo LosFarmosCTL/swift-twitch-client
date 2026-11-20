@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets live streams from channels the authenticated user follows.
@@ -16,15 +17,12 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(streams: [Stream], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``FollowedStreamsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getFollowedStreams(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (streams: [Stream], cursor: String?),
-    Stream, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<FollowedStreamsResponse> {
     .init(
       method: "GET", path: "streams/followed",
       authentication: .user,
@@ -34,6 +32,18 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: Stream.self,
+      makeResponse: {
+        FollowedStreamsResponse(streams: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
+}
+
+/// A page of followed streams.
+@MemberwiseInit(.public)
+public struct FollowedStreamsResponse: Sendable {
+  /// The streams on this page.
+  public let streams: [Stream]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

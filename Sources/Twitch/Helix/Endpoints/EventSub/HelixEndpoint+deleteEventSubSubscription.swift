@@ -13,10 +13,7 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - subscriptionID: The identifier of the subscription.
-  public static func deleteEventSubSubscription(subscriptionID: String) -> HelixEndpoint<
-    EmptyResponse, EmptyResponse,
-    HelixEndpointResponseTypes.Void
-  > {
+  public static func deleteEventSubSubscription(subscriptionID: String) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "eventsub/subscriptions",
       authentication: .either,

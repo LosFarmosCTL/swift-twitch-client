@@ -11,12 +11,12 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-user-extensions
   /// ) for request limits and account requirements.
   public static func getUserExtensions()
-    -> HelixEndpoint<[UserExtension], UserExtension, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[UserExtension]>
   {
     .init(
       method: "GET", path: "users/extensions/list",
       authentication: .user,
-      makeResponse: { $0.data })
+      responseType: UserExtension.self, makeResponse: { $0.data })
   }
 }
 

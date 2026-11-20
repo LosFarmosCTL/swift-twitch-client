@@ -15,13 +15,14 @@ extension HelixEndpoint {
   public static func updateConduit(
     conduitID: String,
     shardCount: Int
-  ) -> HelixEndpoint<Conduit, Conduit, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Conduit> {
     .init(
       method: "PATCH", path: "eventsub/conduits",
       authentication: .app,
       body: { _ in
         UpdateConduitRequest(id: conduitID, shardCount: shardCount)
       },
+      responseType: Conduit.self,
       makeResponse: {
         let conduit = try $0.requireFirst()
 

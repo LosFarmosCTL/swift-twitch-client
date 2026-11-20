@@ -36,10 +36,7 @@ extension HelixEndpoint {
     limit: Int? = nil,
     after cursor: String? = nil,
     isFeatured: Bool? = nil
-  ) -> HelixEndpoint<
-    (clips: [Clip], cursor: String?),
-    Clip, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ClipsResponse> {
     .init(
       method: "GET", path: "clips",
       authentication: .either,
@@ -54,7 +51,8 @@ extension HelixEndpoint {
           ("is_featured", isFeatured.map(String.init)),
         ] + clipIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Clip.self,
+      makeResponse: { ClipsResponse(clips: $0.data, cursor: $0.pagination?.cursor) })
   }
 }
 
@@ -119,4 +117,13 @@ public struct Clip: Decodable, Sendable {
     case vodOffset
     case isFeatured
   }
+}
+
+/// A page of clips.
+@MemberwiseInit(.public)
+public struct ClipsResponse: Sendable {
+  /// The clips on this page.
+  public let clips: [Clip]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

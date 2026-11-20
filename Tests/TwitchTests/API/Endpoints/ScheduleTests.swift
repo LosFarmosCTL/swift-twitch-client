@@ -17,10 +17,12 @@ struct ScheduleTests {
     await harness.session.stub(url: url, body: MockedData.getChannelStreamScheduleJSON)
 
     let startTime = try Date("2021-07-01T18:00:00Z", strategy: .iso8601)
-    let (schedule, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getChannelStreamSchedule(for: "141981764", startTime: startTime, limit: 1)))
       .value
+    let schedule = page.schedule
+    let cursor = page.cursor
 
     #expect(cursor == nil)
     #expect(schedule.broadcasterID == "141981764")

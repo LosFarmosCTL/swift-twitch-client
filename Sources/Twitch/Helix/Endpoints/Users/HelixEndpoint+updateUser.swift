@@ -12,7 +12,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - description: The profile description to set for the authenticated user.
   public static func updateUser(description: String)
-    -> HelixEndpoint<User, User, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<User>
   {
     .init(
       method: "PUT", path: "users",
@@ -20,6 +20,7 @@ extension HelixEndpoint {
       queryItems: { _ in
         [("description", description)]
       },
+      responseType: User.self,
       makeResponse: {
         let user = try $0.requireFirst()
 

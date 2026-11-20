@@ -26,11 +26,7 @@ extension HelixEndpoint {
     rewardID: String,
     status: CustomRewardRedemptionStatus,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<
-    [CustomRewardRedemption],
-    CustomRewardRedemption,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[CustomRewardRedemption]> {
     .init(
       method: "PATCH", path: "channel_points/custom_rewards/redemptions",
       authentication: .user,
@@ -46,6 +42,7 @@ extension HelixEndpoint {
       body: { _ in
         UpdateRedemptionStatusBody(status: status)
       },
+      responseType: CustomRewardRedemption.self,
       makeResponse: { $0.data })
   }
 }

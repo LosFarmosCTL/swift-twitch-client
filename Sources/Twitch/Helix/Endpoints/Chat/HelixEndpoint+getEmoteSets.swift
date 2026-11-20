@@ -17,13 +17,14 @@ extension HelixEndpoint {
   ///   - setIDs: The set IDs to include in the request.
   public static func getEmoteSets(
     _ setIDs: [EmoteSetID]
-  ) -> HelixEndpoint<EmoteSetsResponse, SetEmote, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<EmoteSetsResponse> {
     .init(
       method: "GET", path: "chat/emotes/set",
       authentication: .either,
       queryItems: { _ in
         setIDs.map { ("emote_set_id", $0) }
       },
+      responseType: SetEmote.self,
       makeResponse: {
         let template = try $0.require(\.template)
 

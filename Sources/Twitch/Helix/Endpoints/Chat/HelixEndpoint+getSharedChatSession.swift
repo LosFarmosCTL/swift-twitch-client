@@ -13,14 +13,12 @@ extension HelixEndpoint {
   /// - Parameter broadcasterID: The channel broadcaster’s user ID.
   public static func getSharedChatSession(
     for broadcasterID: String
-  ) -> HelixEndpoint<
-    SharedChatSession?, SharedChatSession, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<SharedChatSession?> {
     .init(
       method: "GET", path: "shared_chat/session",
       authentication: .user,
       queryItems: { _ in [("broadcaster_id", broadcasterID)] },
-      makeResponse: { $0.data.first })
+      responseType: SharedChatSession.self, makeResponse: { $0.data.first })
   }
 }
 

@@ -22,7 +22,7 @@ extension HelixEndpoint {
     predictionID: String,
     status: PredictionEndStatus,
     winningOutcomeID: String? = nil
-  ) -> HelixEndpoint<Prediction, Prediction, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Prediction> {
     .init(
       method: "PATCH", path: "predictions",
       authentication: .user,
@@ -31,6 +31,7 @@ extension HelixEndpoint {
           broadcasterID: try credentials.requireUser().id,
           id: predictionID, status: status, winningOutcomeID: winningOutcomeID)
       },
+      responseType: Prediction.self,
       makeResponse: {
         let prediction = try $0.requireFirst()
 

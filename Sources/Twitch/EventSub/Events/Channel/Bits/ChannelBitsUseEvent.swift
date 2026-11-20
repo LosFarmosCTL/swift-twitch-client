@@ -93,6 +93,8 @@ public struct ChannelBitsUseEvent: Event {
         case cheermote(Cheermote)
         /// A text message fragment.
         case text
+        /// An unfamiliar fragment kind. The fragment's text remains available.
+        case unknown(String)
 
         enum CodingKeys: String, CodingKey {
           case type, emote, cheermote
@@ -100,7 +102,11 @@ public struct ChannelBitsUseEvent: Event {
 
         init(from decoder: Decoder) throws {
           let container = try decoder.container(keyedBy: CodingKeys.self)
-          let type = try container.decode(FragmentType.self, forKey: .type)
+          let rawType = try container.decode(String.self, forKey: .type)
+          guard let type = FragmentType(rawValue: rawType) else {
+            self = .unknown(rawType)
+            return
+          }
 
           switch type {
           case .emote:
@@ -112,7 +118,7 @@ public struct ChannelBitsUseEvent: Event {
           }
         }
 
-        private enum FragmentType: String, Decodable, Sendable {
+        private enum FragmentType: String {
           case emote, cheermote, text
         }
       }

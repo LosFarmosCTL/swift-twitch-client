@@ -11,14 +11,12 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   public static func autoModMessageHold(
     broadcasterID: String,
-    moderatorID: String,
-    version: String = "2"
+    moderatorID: String
   ) -> EventSubSubscription<AutoModMessageHoldEvent> {
     .init(
-      type: EventType.autoModMessageHold.rawValue, version: version,
+      type: "automod.message.hold", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -37,14 +35,12 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   public static func autoModMessageUpdate(
     broadcasterID: String,
-    moderatorID: String,
-    version: String = "2"
+    moderatorID: String
   ) -> EventSubSubscription<AutoModMessageUpdateEvent> {
     .init(
-      type: EventType.autoModMessageUpdate.rawValue, version: version,
+      type: "automod.message.update", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -63,14 +59,12 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func autoModSettingsUpdate(
     broadcasterID: String,
-    moderatorID: String,
-    version: String = "1"
+    moderatorID: String
   ) -> EventSubSubscription<AutoModSettingsUpdateEvent> {
     .init(
-      type: EventType.autoModSettingsUpdate.rawValue, version: version,
+      type: "automod.settings.update", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -89,14 +83,12 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func autoModTermsUpdate(
     broadcasterID: String,
-    moderatorID: String,
-    version: String = "1"
+    moderatorID: String
   ) -> EventSubSubscription<AutoModTermsUpdateEvent> {
     .init(
-      type: EventType.autoModTermsUpdate.rawValue, version: version,
+      type: "automod.terms.update", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,

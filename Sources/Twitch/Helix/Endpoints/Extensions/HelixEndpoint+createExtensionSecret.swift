@@ -22,10 +22,7 @@ extension HelixEndpoint {
   public static func createExtensionSecret(
     extensionID: String,
     delay: Int? = nil
-  ) -> HelixEndpoint<
-    ExtensionSecretsResponse, ExtensionSecretsResponse,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ExtensionSecretsResponse> {
     .init(
       method: "POST", path: "extensions/jwt/secrets",
       authentication: .extensionJWT,
@@ -35,6 +32,7 @@ extension HelixEndpoint {
           ("delay", delay.map(String.init)),
         ]
       },
+      responseType: ExtensionSecretsResponse.self,
       makeResponse: { response in
         let secrets = try response.requireFirst()
 

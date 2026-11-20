@@ -5,8 +5,60 @@ import Testing
 
 extension ManagedChatEventSubTests {
   @Test
-  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride() async throws {
+  func optionalRevocationKeepsChatAndVIPAndDeletionDedupSurvivesTransition() async throws {
     let client = await client(moderation: true)
+    try await client.join(to: channel)
+    let raw = try await client.eventStream(
+      for: .channelChatMessageDelete(broadcasterID: channel.id, userID: "999"))
+    let events = await client.messageStream()
+    await client.setChatPrivilege(
+      ChatPrivilege(isModerator: true, isVIP: true), in: channel.id)
+    _ = try #require(
+      await client.chatStateUpdates().first {
+        $0.channels[self.channel.id]?.moderation == .ready
+      })
+    #expect(await postCount() == 7)
+
+    await session.simulateIncoming(
+      .string(try deletion(messageID: "deleted", envelopeID: "basic")))
+    var rawIterator = raw.makeAsyncIterator()
+    _ = try #require(try await rawIterator.next())
+    await session.simulateIncoming(.string(try moderationDeletion(messageID: "deleted")))
+    let deletedMessage = try #require(await nextDeletion(in: events))
+    #expect(deletedMessage.text == "original text")
+    #expect(deletedMessage.moderator?.id == "moderator")
+
+    let later = await client.messageStream()
+    await session.simulateIncoming(
+      .string(
+        MockedMessages.customized(
+          MockedMessages.mockRevocationMessage.replacingOccurrences(
+            of: "authorization_revoked", with: "new_authorization_reason"),
+          subscriptionID: "channel.moderate-123")))
+    let state = try #require(
+      await client.chatStateUpdates().first {
+        if case .failed = $0.channels[self.channel.id]?.moderation { true } else { false }
+      })
+    #expect(state.channels[channel.id]?.status == .ready)
+    #expect(state.channels[channel.id]?.privilege.isVIP == true)
+    #expect(state.channels[channel.id]?.privilege.isModerator == true)
+    #expect(
+      state.channels[channel.id]?.moderationRevocation?.rawValue == "new_authorization_reason")
+    await session.simulateIncoming(
+      .string(try deletion(messageID: "deleted", envelopeID: "duplicate")))
+    await session.simulateIncoming(
+      .string(try deletion(messageID: "next", envelopeID: "next")))
+    let next = try #require(await nextDeletion(in: later))
+    #expect(next.messageID == "next")
+    #expect(next.text == nil)
+    #expect(await postCount() == 7)
+    await client.shutdownChat()
+    await client.resetEventSub()
+  }
+
+  @Test(arguments: [false, true])
+  func moderationRoleUpdatesDoNotPersistAnUnrelatedOverride(warningScope: Bool) async throws {
+    let client = await client(moderation: true, warningScope: warningScope)
     try await client.join(to: channel)
     let events = await client.messageStream()
     await client.setChatPrivilege(ChatPrivilege(isModerator: true, isVIP: true), in: channel.id)
@@ -17,7 +69,10 @@ extension ManagedChatEventSubTests {
 
     await session.simulateIncoming(
       .string(
-        try notification(MockedMessages.channelModerateTimeoutUser, type: "channel.moderate") {
+        try notification(
+          MockedMessages.channelModerateTimeoutUser, type: "channel.moderate",
+          version: warningScope ? "2" : "1"
+        ) {
           var event = $0
           event["action"] = "unvip"
           event["unvip"] = ["user_id": "999", "user_login": "sender", "user_name": "Sender"]
@@ -73,5 +128,38 @@ extension ManagedChatEventSubTests {
     #expect(await postCount() == 7)
     await client.shutdownChat()
     await client.resetEventSub()
+  }
+
+  private func nextDeletion(in events: AsyncStream<ChatEvent>) async
+    -> ChatMessageDeletion?
+  {
+    for await event in events {
+      if case .messageDeleted(let deletion) = event.payload { return deletion }
+    }
+    return nil
+  }
+
+  private func deletion(messageID: String, envelopeID: String) throws -> String {
+    try notification(
+      MockedMessages.channelChatMessageDelete, type: "channel.chat.message_delete",
+      envelopeID: envelopeID
+    ) {
+      var event = $0
+      event["message_id"] = messageID
+      return event
+    }
+  }
+
+  private func moderationDeletion(messageID: String) throws -> String {
+    try notification(MockedMessages.channelModerateTimeoutUser, type: "channel.moderate") {
+      var event = $0
+      event["moderator_user_id"] = "moderator"
+      event["action"] = "delete"
+      event["delete"] = [
+        "user_id": "author", "user_login": "author", "user_name": "Author",
+        "message_id": messageID, "message_body": "original text",
+      ]
+      return event
+    }
   }
 }

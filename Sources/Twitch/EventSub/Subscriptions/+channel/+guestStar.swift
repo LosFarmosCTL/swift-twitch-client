@@ -8,18 +8,20 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelguest_star_sessionbegin
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-session-begin
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"beta"`.
+  ///
+  /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
+  ///   and its behavior without notice.
   public static func channelGuestStarSessionBegin(
-    broadcasterID: String, moderatorID: String, version: String = "beta"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelGuestStarSessionBeginEvent> {
     .init(
-      type: EventType.channelGuestStarSessionBegin.rawValue, version: version,
+      type: "channel.guest_star_session.begin", version: "beta",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -34,18 +36,20 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelguest_star_sessionend
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-session-end
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"beta"`.
+  ///
+  /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
+  ///   and its behavior without notice.
   public static func channelGuestStarSessionEnd(
-    broadcasterID: String, moderatorID: String, version: String = "beta"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelGuestStarSessionEndEvent> {
     .init(
-      type: EventType.channelGuestStarSessionEnd.rawValue, version: version,
+      type: "channel.guest_star_session.end", version: "beta",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -61,18 +65,20 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelguest_star_guestupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-guest-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"beta"`.
+  ///
+  /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
+  ///   and its behavior without notice.
   public static func channelGuestStarGuestUpdate(
-    broadcasterID: String, moderatorID: String, version: String = "beta"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelGuestStarGuestUpdateEvent> {
     .init(
-      type: EventType.channelGuestStarGuestUpdate.rawValue, version: version,
+      type: "channel.guest_star_guest.update", version: "beta",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -88,21 +94,23 @@ extension EventSubSubscription {
   /// moderator of the channel.
   ///
   /// See the [Twitch reference](
-  /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelguest_star_settingsupdate
+  /// https://dev.twitch.tv/docs/eventsub/reference/guest-star#channel-guest-star-settings-update
   /// ) for conditions and transport-specific authorization.
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"beta"`.
+  ///
+  /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
+  ///   and its behavior without notice.
   ///
   /// - Returns: A subscription that decodes `ChannelGuestStarSettingsUpdateEvent`
   ///   payloads.
   public static func channelGuestStarSettingsUpdate(
-    broadcasterID: String, moderatorID: String, version: String = "beta"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelGuestStarSettingsUpdateEvent> {
     .init(
-      type: EventType.channelGuestStarSettingsUpdate.rawValue, version: version,
+      type: "channel.guest_star_settings.update", version: "beta",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,

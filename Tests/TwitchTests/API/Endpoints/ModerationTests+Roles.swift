@@ -13,9 +13,11 @@ extension ModerationTests {
       url: url,
       body: MockedData.getModeratedChannelsJSON)
 
-    let (channels, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getModeratedChannels())).value
+    let channels = page.channels
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6")
 
@@ -34,7 +36,9 @@ extension ModerationTests {
       url: url,
       body: MockedData.getModeratorsJSON)
 
-    let (mods, cursor) = (try await harness.twitch.helix(for: .getModerators())).value
+    let page = (try await harness.twitch.helix(for: .getModerators())).value
+    let mods = page.moderators
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI6I")
 
@@ -84,7 +88,9 @@ extension ModerationTests {
       url: url,
       body: MockedData.getVIPsJSON)
 
-    let (vips, cursor) = (try await harness.twitch.helix(for: .getVIPs())).value
+    let page = (try await harness.twitch.helix(for: .getVIPs())).value
+    let vips = page.vips
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6NX19")
 

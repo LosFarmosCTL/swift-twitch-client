@@ -11,14 +11,12 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   public static func channelFollow(
     broadcasterID: String,
-    moderatorID: String,
-    version: String = "2"
+    moderatorID: String
   ) -> EventSubSubscription<ChannelFollowEvent> {
     .init(
-      type: EventType.channelFollow.rawValue, version: version,
+      type: "channel.follow", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,

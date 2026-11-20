@@ -15,7 +15,7 @@ extension HelixEndpoint {
   ///   - color: The new chat name color to assign to the authenticated user.
   public static func updateUserColor(
     to color: HelixColor
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PUT", path: "chat/color",
       authentication: .user,

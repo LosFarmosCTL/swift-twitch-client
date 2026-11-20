@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func userUpdate(userID: String, version: String = "1")
+  public static func userUpdate(userID: String)
     -> EventSubSubscription<UserUpdateEvent>
   {
     .init(
-      type: EventType.userUpdate.rawValue, version: version,
+      type: "user.update", version: "1",
       condition: [
         "user_id": userID
       ])

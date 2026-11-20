@@ -1,7 +1,7 @@
 import Foundation
 import MemberwiseInit
 
-/// An EventSub notification for channel moderate.
+/// A version 2 EventSub channel moderation notification, including warning actions.
 @MemberwiseInit(.public)
 // swiftlint:disable:next type_body_length
 public struct ChannelModerateEvent: Event {
@@ -60,6 +60,37 @@ public struct ChannelModerateEvent: Event {
     case sharedChatUnban
     case sharedChatUntimeout
     case sharedChatDelete
+  }
+
+  private enum ActionType: String {
+    case ban, timeout
+    case unban, untimeout
+    case clear
+    case emoteOnly = "emoteonly"
+    case emoteOnlyOff = "emoteonlyoff"
+    case followerMode = "followers"
+    case followerModeOff = "followersoff"
+    case uniqueChat = "uniquechat"
+    case uniqueChatOff = "uniquechatoff"
+    case slow
+    case slowOff = "slowoff"
+    case subOnlyMode = "subscribers"
+    case subOnlyModeOff = "subscribersoff"
+    case raid, unraid
+    case vip, unvip
+    case mod, unmod
+    case delete, warn
+    case addBlockedTerm = "add_blocked_term"
+    case removeBlockedTerm = "remove_blocked_term"
+    case addPermittedTerm = "add_permitted_term"
+    case removePermittedTerm = "remove_permitted_term"
+    case approveUnbanRequest = "approve_unban_request"
+    case denyUnbanRequest = "deny_unban_request"
+    case sharedChatBan = "shared_chat_ban"
+    case sharedChatTimeout = "shared_chat_timeout"
+    case sharedChatUnban = "shared_chat_unban"
+    case sharedChatUntimeout = "shared_chat_untimeout"
+    case sharedChatDelete = "shared_chat_delete"
   }
 
   /// Decodes a moderation event and its action-specific payload.
@@ -154,12 +185,20 @@ public struct ChannelModerateEvent: Event {
     case sharedChatUntimeout(User)
     /// Deletes the associated message from the source channel during shared chat.
     case sharedChatDelete(Delete)
+    /// An unfamiliar moderation action identified by its discriminator.
+    case unknown(String)
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
 
-      switch try container.decode(ActionType.self, forKey: .action) {
+      let rawAction = try container.decode(String.self, forKey: .action)
+      guard let action = ActionType(rawValue: rawAction) else {
+        self = .unknown(rawAction)
+        return
+      }
+
+      switch action {
       case .ban:
         self = .ban(try container.decode(Ban.self, forKey: .ban))
       case .timeout:
@@ -240,37 +279,6 @@ public struct ChannelModerateEvent: Event {
         self = .sharedChatDelete(
           try container.decode(Delete.self, forKey: .sharedChatDelete))
       }
-    }
-
-    enum ActionType: String, Codable {
-      case ban, timeout
-      case unban, untimeout
-      case clear
-      case emoteOnly = "emoteonly"
-      case emoteOnlyOff = "emoteonlyoff"
-      case followerMode = "followers"
-      case followerModeOff = "followersoff"
-      case uniqueChat = "uniquechat"
-      case uniqueChatOff = "uniquechatoff"
-      case slow
-      case slowOff = "slowoff"
-      case subOnlyMode = "subscribers"
-      case subOnlyModeOff = "subscribersoff"
-      case raid, unraid
-      case vip, unvip
-      case mod, unmod
-      case delete, warn
-      case addBlockedTerm = "add_blocked_term"
-      case removeBlockedTerm = "remove_blocked_term"
-      case addPermittedTerm = "add_permitted_term"
-      case removePermittedTerm = "remove_permitted_term"
-      case approveUnbanRequest = "approve_unban_request"
-      case denyUnbanRequest = "deny_unban_request"
-      case sharedChatBan = "shared_chat_ban"
-      case sharedChatTimeout = "shared_chat_timeout"
-      case sharedChatUnban = "shared_chat_unban"
-      case sharedChatUntimeout = "shared_chat_untimeout"
-      case sharedChatDelete = "shared_chat_delete"
     }
 
     /// The account identity of a user affected by a moderation action.

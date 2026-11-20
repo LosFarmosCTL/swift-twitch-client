@@ -22,25 +22,24 @@ extension EventSubNotification where Payload == any Event {
 
 internal struct EventSubNotificationFrame: Sendable {
   let subscription: EventSubMessage.Subscription
-  let notification: EventSubNotification<any Event>
+  let messageID: String
+  let sentAt: Date
+  // Keep the original frame for decoding after the subscription ID is confirmed.
+  let data: Data
 
-  enum CodingKeys: CodingKey {
-    case subscription, event
+  func decode<E: Event>(
+    as _: E.Type, using decoder: JSONDecoder
+  ) throws -> EventSubNotification<any Event> {
+    let event = try decoder.decode(Envelope<E>.self, from: data).payload.event
+    return EventSubNotification<any Event>(
+      event: event, messageID: messageID, sentAt: sentAt, subscriptionID: subscription.id)
   }
 
-  init(from decoder: any Decoder, messageID: String, sentAt: Date) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-
-    subscription = try container.decode(EventSubMessage.Subscription.self, forKey: .subscription)
-
-    guard let type = EventType(rawValue: subscription.type) else {
-      throw DecodingError.dataCorruptedError(
-        forKey: .subscription, in: container,
-        debugDescription: "Unsupported EventSub type: \(subscription.type)")
+  private struct Envelope<E: Event>: Decodable {
+    struct Payload: Decodable {
+      let event: E
     }
 
-    notification = EventSubNotification<any Event>(
-      event: try container.decode(type.event, forKey: .event),
-      messageID: messageID, sentAt: sentAt, subscriptionID: subscription.id)
+    let payload: Payload
   }
 }

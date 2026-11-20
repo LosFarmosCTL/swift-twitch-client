@@ -31,17 +31,25 @@ struct ManagedChatEventSubTests {
     try await client.join(to: other)
     #expect(await postCount() == 12)
     let message = try notification(
-      MockedMessages.channelChatMessage, type: "channel.chat.message")
+      MockedMessages.channelChatMessage, type: "channel.chat.message"
+    ) {
+      var event = $0
+      event["message_type"] = "future_message"
+      return event
+    }
     await session.simulateIncoming(.string(message))
     let normalized = try #require(
       await events.first { if case .message = $0.payload { true } else { false } })
     if case .message(let message) = normalized.payload {
+      #expect(message.text == "Hi chat [GIF]")
+      #expect(message.isIntroduction == false)
       #expect(message.isFirstMessage == nil)
       #expect(message.isReturningChatter == nil)
       #expect(message.contentFilterFlags == nil)
     }
     var rawIterator = raw.makeAsyncIterator()
     let original = try #require(try await rawIterator.next())
+    #expect(original.event.messageType.rawValue == "future_message")
     #expect(normalized.timestamp == original.sentAt)
 
     await session.simulateIncoming(
@@ -96,7 +104,9 @@ struct ManagedChatEventSubTests {
     await session.simulateIncoming(
       .string(
         MockedMessages.customized(
-          MockedMessages.mockRevocationMessage, subscriptionID: "channel.chat.clear-123")))
+          MockedMessages.mockRevocationMessage.replacingOccurrences(
+            of: "authorization_revoked", with: "future_revocation_reason"),
+          subscriptionID: "channel.chat.clear-123")))
 
     var iterator = events.makeAsyncIterator()
     let message = await iterator.next()
@@ -104,7 +114,8 @@ struct ManagedChatEventSubTests {
     await gate.release()
 
     if case .message = message?.payload {} else { Issue.record("The earlier message was lost") }
-    if case .membershipEnded(.subscriptionRevoked) = departure?.payload {
+    if case .membershipEnded(.subscriptionRevoked(let status)) = departure?.payload {
+      #expect(status.rawValue == "future_revocation_reason")
     } else {
       Issue.record("The managed channel did not report the revocation")
     }
@@ -115,59 +126,6 @@ struct ManagedChatEventSubTests {
     #expect(await client.chatState.channels.isEmpty)
 
     withExtendedLifetime((rawMessages, rawClears)) {}
-    await client.shutdownChat()
-    await client.resetEventSub()
-  }
-
-  @Test
-  func optionalRevocationKeepsChatAndVIPAndDeletionDedupSurvivesTransition() async throws {
-    let client = await client(moderation: true)
-    try await client.join(to: channel)
-    let raw = try await client.eventStream(
-      for: .channelChatMessageDelete(broadcasterID: channel.id, userID: "999"))
-    let events = await client.messageStream()
-    await client.setChatPrivilege(
-      ChatPrivilege(isModerator: true, isVIP: true), in: channel.id)
-    _ = try #require(
-      await client.chatStateUpdates().first {
-        $0.channels[self.channel.id]?.moderation == .ready
-      })
-    #expect(await postCount() == 7)
-
-    await session.simulateIncoming(
-      .string(try deletion(messageID: "deleted", envelopeID: "basic")))
-    var rawIterator = raw.makeAsyncIterator()
-    _ = try #require(try await rawIterator.next())
-    await session.simulateIncoming(.string(try moderationDeletion(messageID: "deleted")))
-    let deletedMessage = try #require(await nextDeletion(in: events))
-    #expect(deletedMessage.text == "original text")
-    #expect(deletedMessage.moderator?.id == "moderator")
-
-    let later = await client.messageStream()
-    await session.simulateIncoming(
-      .string(
-        MockedMessages.customized(
-          MockedMessages.mockRevocationMessage.replacingOccurrences(
-            of: "authorization_revoked", with: "new_authorization_reason"),
-          subscriptionID: "channel.moderate-123")))
-    let state = try #require(
-      await client.chatStateUpdates().first {
-        if case .failed = $0.channels[self.channel.id]?.moderation { true } else { false }
-      })
-    #expect(state.channels[channel.id]?.status == .ready)
-    #expect(state.channels[channel.id]?.privilege.isVIP == true)
-    #expect(state.channels[channel.id]?.privilege.isModerator == true)
-    #expect(
-      state.channels[channel.id]?.moderationRevocation
-        == .unknown("new_authorization_reason"))
-    await session.simulateIncoming(
-      .string(try deletion(messageID: "deleted", envelopeID: "duplicate")))
-    await session.simulateIncoming(
-      .string(try deletion(messageID: "next", envelopeID: "next")))
-    let next = try #require(await nextDeletion(in: later))
-    #expect(next.messageID == "next")
-    #expect(next.text == nil)
-    #expect(await postCount() == 7)
     await client.shutdownChat()
     await client.resetEventSub()
   }
@@ -274,19 +232,22 @@ struct ManagedChatEventSubTests {
 
 extension ManagedChatEventSubTests {
   func client(
-    moderation: Bool = false, welcome: Bool = true, prefill: Bool = false
+    moderation: Bool = false, welcome: Bool = true, prefill: Bool = false,
+    warningScope: Bool = false
   ) async
     -> TwitchClient
   {
+    var scopes: Set<String> = [
+      "moderator:read:blocked_terms", "moderator:read:chat_settings",
+      "moderator:read:unban_requests",
+      "moderator:read:banned_users", "moderator:read:chat_messages",
+      "moderator:read:moderators", "moderator:read:vips",
+      "user:read:moderated_channels",
+    ]
+    if warningScope { scopes.insert("moderator:read:warnings") }
     let credentials = TwitchCredentials(
       accessToken: "token", clientID: "app", userID: "999", userLogin: "sender",
-      scopes: [
-        "moderator:read:blocked_terms", "moderator:read:chat_settings",
-        "moderator:read:unban_requests",
-        "moderator:read:banned_users", "moderator:read:chat_messages",
-        "moderator:read:moderators", "moderator:read:vips",
-        "user:read:moderated_channels",
-      ])
+      scopes: scopes)
     let url = URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!
     await session.stub(url: url, method: "POST") { request in
       let body = try #require(request.httpBody)
@@ -334,21 +295,12 @@ extension ManagedChatEventSubTests {
         .utf8))
   }
 
-  private func nextDeletion(in events: AsyncStream<ChatEvent>) async
-    -> ChatMessageDeletion?
-  {
-    for await event in events {
-      if case .messageDeleted(let deletion) = event.payload { return deletion }
-    }
-    return nil
-  }
-
   func postCount() async -> Int {
     await session.requests().filter { $0.httpMethod == "POST" }.count
   }
 
   func notification(
-    _ fixture: String, type: String, envelopeID: String = UUID().uuidString,
+    _ fixture: String, type: String, version: String = "1", envelopeID: String = UUID().uuidString,
     transform: ([String: Any]) -> [String: Any] = { $0 }
   ) throws -> String {
     var root =
@@ -356,40 +308,18 @@ extension ManagedChatEventSubTests {
         JSONSerialization.jsonObject(with: Data(fixture.utf8)) as? [String: Any])
     var metadata = try #require(root["metadata"] as? [String: Any])
     metadata["message_id"] = envelopeID
+    metadata["subscription_type"] = type
+    metadata["subscription_version"] = version
     root["metadata"] = metadata
     var payload = try #require(root["payload"] as? [String: Any])
     var subscription = try #require(payload["subscription"] as? [String: Any])
     subscription["id"] = type + "-123"
     subscription["type"] = type
-    subscription["version"] = "1"
+    subscription["version"] = version
     payload["subscription"] = subscription
     payload["event"] = transform(try #require(payload["event"] as? [String: Any]))
     root["payload"] = payload
     return try #require(
       String(data: JSONSerialization.data(withJSONObject: root), encoding: .utf8))
-  }
-
-  private func deletion(messageID: String, envelopeID: String) throws -> String {
-    try notification(
-      MockedMessages.channelChatMessageDelete, type: "channel.chat.message_delete",
-      envelopeID: envelopeID
-    ) {
-      var event = $0
-      event["message_id"] = messageID
-      return event
-    }
-  }
-
-  private func moderationDeletion(messageID: String) throws -> String {
-    try notification(MockedMessages.channelModerateTimeoutUser, type: "channel.moderate") {
-      var event = $0
-      event["moderator_user_id"] = "moderator"
-      event["action"] = "delete"
-      event["delete"] = [
-        "user_id": "author", "user_login": "author", "user_name": "Author",
-        "message_id": messageID, "message_body": "original text",
-      ]
-      return event
-    }
   }
 }

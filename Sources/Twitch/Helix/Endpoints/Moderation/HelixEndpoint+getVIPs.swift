@@ -26,10 +26,7 @@ extension HelixEndpoint {
     userIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (vips: [VIP], cursor: String?),
-    VIP, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<VIPsResponse> {
     .init(
       method: "GET", path: "channels/vips",
       authentication: .user,
@@ -39,7 +36,8 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ] + userIDs.map { ("user_id", $0) }
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: VIP.self,
+      makeResponse: { VIPsResponse(vips: $0.data, cursor: $0.pagination?.cursor) })
   }
 }
 
@@ -58,4 +56,13 @@ public struct VIP: Decodable, Sendable {
     case login = "userLogin"
     case displayName = "userName"
   }
+}
+
+/// A page of channel VIPs.
+@MemberwiseInit(.public)
+public struct VIPsResponse: Sendable {
+  /// The vips on this page.
+  public let vips: [VIP]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

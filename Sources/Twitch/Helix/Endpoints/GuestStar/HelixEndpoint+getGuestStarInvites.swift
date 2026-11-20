@@ -26,10 +26,7 @@ extension HelixEndpoint {
     broadcasterID: String? = nil,
     moderatorID: String? = nil,
     sessionID: String
-  ) -> HelixEndpoint<
-    [GuestStarInvite], GuestStarInvite,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[GuestStarInvite]> {
     .init(
       method: "GET", path: "guest_star/invites",
       authentication: .user,
@@ -46,7 +43,7 @@ extension HelixEndpoint {
           ("session_id", sessionID),
         ]
       },
-      makeResponse: { $0.data })
+      responseType: GuestStarInvite.self, makeResponse: { $0.data })
   }
 }
 

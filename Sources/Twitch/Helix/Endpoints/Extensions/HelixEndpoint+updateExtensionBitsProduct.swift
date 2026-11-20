@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   /// Creates or updates a Bits product sold by an extension.
@@ -24,10 +25,7 @@ extension HelixEndpoint {
     inDevelopment: Bool? = nil,
     expiration: Date? = nil,
     isBroadcast: Bool? = nil
-  ) -> HelixEndpoint<
-    [ExtensionBitsProduct], ExtensionBitsProduct,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[ExtensionBitsProduct]> {
     .init(
       method: "PUT", path: "bits/extensions",
       authentication: .app,
@@ -40,11 +38,12 @@ extension HelixEndpoint {
           expiration: expiration,
           isBroadcast: isBroadcast)
       },
-      makeResponse: { $0.data })
+      responseType: ExtensionBitsProduct.self, makeResponse: { $0.data })
   }
 }
 
 /// The Bits price to assign to an extension product.
+@MemberwiseInit(.public)
 public struct ExtensionBitsProductCostRequest: Encodable, Sendable {
   /// The product price in Bits.
   public let amount: Int

@@ -6,9 +6,7 @@ internal enum ChatChannelReference: Hashable, Sendable {
 
   init(login: String) { self = .login(IRCWireMessage.channelLogin(login)) }
 
-  fileprivate func endpoint() throws -> HelixEndpoint<
-    [User], User, HelixEndpointResponseTypes.Normal
-  > {
+  fileprivate func endpoint() throws -> HelixEndpoint<[User]> {
     switch self {
     case .id(let id):
       guard !id.isEmpty else { throw ChatError.invalidChannel }
@@ -82,7 +80,7 @@ extension ManagedChat {
 
   private func startLookup(
     _ reference: ChatChannelReference,
-    endpoint: HelixEndpoint<[User], User, HelixEndpointResponseTypes.Normal>
+    endpoint: HelixEndpoint<[User]>
   ) -> ChannelLookup {
     let id = UUID()
     let task = Task { [weak client, credentials, network] in

@@ -12,7 +12,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - userID: The Twitch user ID.
   public static func unblockUser(_ userID: String)
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     return .init(
       method: "DELETE", path: "users/blocks",

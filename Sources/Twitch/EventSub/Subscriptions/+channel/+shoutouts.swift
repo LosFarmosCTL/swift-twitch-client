@@ -12,12 +12,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelShoutoutCreate(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelShoutoutCreateEvent> {
     .init(
-      type: EventType.channelShoutoutCreate.rawValue, version: version,
+      type: "channel.shoutout.create", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,
@@ -37,12 +36,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - moderatorID: The Twitch user ID of the moderator.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelShoutoutReceive(
-    broadcasterID: String, moderatorID: String, version: String = "1"
+    broadcasterID: String, moderatorID: String
   ) -> EventSubSubscription<ChannelShoutoutReceiveEvent> {
     .init(
-      type: EventType.channelShoutoutReceive.rawValue, version: version,
+      type: "channel.shoutout.receive", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "moderator_user_id": moderatorID,

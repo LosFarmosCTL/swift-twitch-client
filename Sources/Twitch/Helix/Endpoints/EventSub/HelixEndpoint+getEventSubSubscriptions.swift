@@ -20,11 +20,7 @@ extension HelixEndpoint {
   public static func getEventSubSubscriptions(
     filter: EventSubSubscriptionFilter? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    GetEventSubSubscriptionsResponse,
-    GetEventSubSubscriptionsResponse.Subscription,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<GetEventSubSubscriptionsResponse> {
     .init(
       method: "GET", path: "eventsub/subscriptions",
       authentication: .either,
@@ -38,6 +34,7 @@ extension HelixEndpoint {
         items.append(("after", cursor))
         return items
       },
+      responseType: GetEventSubSubscriptionsResponse.Subscription.self,
       makeResponse: { response in
         let total = try response.require(\.total)
         let totalCost = try response.require(\.totalCost)

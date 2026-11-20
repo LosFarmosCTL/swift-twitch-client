@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelGoalBegin(broadcasterID: String, version: String = "1")
+  public static func channelGoalBegin(broadcasterID: String)
     -> EventSubSubscription<ChannelGoalBeginEvent>
   {
     .init(
-      type: EventType.channelGoalBegin.rawValue, version: version,
+      type: "channel.goal.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelGoalProgress(broadcasterID: String, version: String = "1")
+  public static func channelGoalProgress(broadcasterID: String)
     -> EventSubSubscription<ChannelGoalProgressEvent>
   {
     .init(
-      type: EventType.channelGoalProgress.rawValue, version: version,
+      type: "channel.goal.progress", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelGoalEnd(broadcasterID: String, version: String = "1")
+  public static func channelGoalEnd(broadcasterID: String)
     -> EventSubSubscription<ChannelGoalEndEvent>
   {
     .init(
-      type: EventType.channelGoalEnd.rawValue, version: version,
+      type: "channel.goal.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

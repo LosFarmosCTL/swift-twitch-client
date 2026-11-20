@@ -10,12 +10,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatClear(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatClearEvent> {
     .init(
-      type: EventType.channelChatClear.rawValue, version: version,
+      type: "channel.chat.clear", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -34,12 +33,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatClearUserMessages(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatClearUserMessagesEvent> {
     .init(
-      type: EventType.channelChatClearUserMessages.rawValue, version: version,
+      type: "channel.chat.clear_user_messages", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -57,12 +55,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatMessage(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatMessageEvent> {
     .init(
-      type: EventType.channelChatMessage.rawValue, version: version,
+      type: "channel.chat.message", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -80,12 +77,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatMessageDelete(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatMessageDeleteEvent> {
     .init(
-      type: EventType.channelChatMessageDelete.rawValue, version: version,
+      type: "channel.chat.message_delete", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -103,12 +99,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatNotification(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatNotificationEvent> {
     .init(
-      type: EventType.channelChatNotification.rawValue, version: version,
+      type: "channel.chat.notification", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -126,12 +121,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatSettingsUpdate(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatSettingsUpdateEvent> {
     .init(
-      type: EventType.channelChatSettingsUpdate.rawValue, version: version,
+      type: "channel.chat_settings.update", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -149,12 +143,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatUserMessageHold(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatUserMessageHoldEvent> {
     .init(
-      type: EventType.channelChatUserMessageHold.rawValue, version: version,
+      type: "channel.chat.user_message_hold", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,
@@ -173,12 +166,11 @@ extension EventSubSubscription {
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   ///   - userID: The Twitch user ID.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelChatUserMessageUpdate(
-    broadcasterID: String, userID: String, version: String = "1"
+    broadcasterID: String, userID: String
   ) -> EventSubSubscription<ChannelChatUserMessageUpdateEvent> {
     .init(
-      type: EventType.channelChatUserMessageUpdate.rawValue, version: version,
+      type: "channel.chat.user_message_update", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID,
         "user_id": userID,

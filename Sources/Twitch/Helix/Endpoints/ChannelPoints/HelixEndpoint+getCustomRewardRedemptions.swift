@@ -35,11 +35,7 @@ extension HelixEndpoint {
     sort: CustomRewardRedemptionSort? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (redemptions: [CustomRewardRedemption], cursor: String?),
-    CustomRewardRedemption,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<CustomRewardRedemptionsResponse> {
     .init(
       method: "GET", path: "channel_points/custom_rewards/redemptions",
       authentication: .user,
@@ -56,7 +52,11 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + redemptionIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: CustomRewardRedemption.self,
+      makeResponse: {
+        CustomRewardRedemptionsResponse(
+          redemptions: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -133,4 +133,13 @@ public enum CustomRewardRedemptionSort: String, Codable, Sendable {
   case oldest = "OLDEST"
   /// Orders results from newest to oldest. Encoded as `"NEWEST"`.
   case newest = "NEWEST"
+}
+
+/// A page of custom reward redemptions.
+@MemberwiseInit(.public)
+public struct CustomRewardRedemptionsResponse: Sendable {
+  /// The redemptions on this page.
+  public let redemptions: [CustomRewardRedemption]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

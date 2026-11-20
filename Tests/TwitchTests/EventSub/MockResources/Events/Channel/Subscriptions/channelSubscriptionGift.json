@@ -3,7 +3,7 @@
     "message_id": "__EVENTSUB_EVENT_MESSAGE_ID__",
     "message_type": "notification",
     "message_timestamp": "2025-08-30T01:10:13.390973799Z",
-    "subscription_type": "hannel.subscription.gift",
+    "subscription_type": "channel.subscription.gift",
     "subscription_version": "1"
   },
   "payload": {

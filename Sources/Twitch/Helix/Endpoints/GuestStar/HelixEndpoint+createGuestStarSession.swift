@@ -11,15 +11,14 @@ extension HelixEndpoint {
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/#create-guest-star-session
   /// ) for request limits and account requirements.
-  public static func createGuestStarSession() -> HelixEndpoint<
-    GuestStarSession, GuestStarSession, HelixEndpointResponseTypes.Normal
-  > {
+  public static func createGuestStarSession() -> HelixEndpoint<GuestStarSession> {
     .init(
       method: "POST", path: "guest_star/session",
       authentication: .user,
       queryItems: { credentials in
         [("broadcaster_id", try credentials.requireUser().id)]
       },
+      responseType: GuestStarSession.self,
       makeResponse: { response in
         let session = try response.requireFirst()
 

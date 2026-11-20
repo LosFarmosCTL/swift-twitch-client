@@ -19,19 +19,21 @@ extension ManagedChat {
 
     guard !member.moderationBlocked, member.moderationTask == nil else { return }
 
-    let version =
-      scopes.isDisjoint(with: ["moderator:read:warnings", "moderator:manage:warnings"])
-      ? "1" : "2"
-    startChatModeration(member, moderatorID: user.id, version: version)
+    let canReadWarnings = !scopes.isDisjoint(with: [
+      "moderator:read:warnings", "moderator:manage:warnings",
+    ])
+    let topic =
+      canReadWarnings
+      ? ChatEventSubTopics.Topic(.channelModerate(broadcasterID: id, moderatorID: user.id))
+      : ChatEventSubTopics.Topic(.channelModerateV1(broadcasterID: id, moderatorID: user.id))
+    startChatModeration(member, topic: topic)
   }
 
-  private func startChatModeration(_ member: Membership, moderatorID: String, version: String) {
+  private func startChatModeration(_ member: Membership, topic: ChatEventSubTopics.Topic) {
     let id = member.channel.id
     let generation = UUID()
     member.moderation = .connecting
 
-    let topic = ChatEventSubTopics.Topic(
-      .channelModerate(broadcasterID: id, moderatorID: moderatorID, version: version))
     let task = observeChatTopics([topic]) { chat, update in
       chat.acceptModerationTopic(update, id: id, generation: generation)
     }
@@ -49,7 +51,10 @@ extension ManagedChat {
       membership.moderation = .ready
       publishChatState()
     case .event(let notification):
-      if let event = notification.event as? ChannelModerateEvent {
+      let event =
+        notification.event as? ChannelModerateEvent
+        ?? (notification.event as? ChannelModerateV1Event)?.moderation
+      if let event {
         receiveChatModerationEvent(
           event, timestamp: notification.sentAt, channel: membership.channel)
       }

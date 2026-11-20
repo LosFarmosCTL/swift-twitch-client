@@ -22,7 +22,7 @@ extension HelixEndpoint {
     from fromBroadcasterID: String,
     to toBroadcasterID: String,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "chat/shoutouts",
       authentication: .either,

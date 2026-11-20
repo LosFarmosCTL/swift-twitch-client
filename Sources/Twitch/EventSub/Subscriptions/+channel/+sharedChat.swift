@@ -10,15 +10,14 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes `ChannelSharedChatSessionBeginEvent`
   ///   payloads.
   public static func channelSharedChatSessionBegin(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelSharedChatSessionBeginEvent> {
     .init(
-      type: EventType.channelSharedChatSessionBegin.rawValue, version: version,
+      type: "channel.shared_chat.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -35,15 +34,14 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   ///
   /// - Returns: A subscription that decodes `ChannelSharedChatSessionUpdateEvent`
   ///   payloads.
   public static func channelSharedChatSessionUpdate(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelSharedChatSessionUpdateEvent> {
     .init(
-      type: EventType.channelSharedChatSessionUpdate.rawValue, version: version,
+      type: "channel.shared_chat.update", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -60,12 +58,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
   public static func channelSharedChatSessionEnd(
-    broadcasterID: String, version: String = "1"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelSharedChatSessionEndEvent> {
     .init(
-      type: EventType.channelSharedChatSessionEnd.rawValue, version: version,
+      type: "channel.shared_chat.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

@@ -29,10 +29,7 @@ extension HelixEndpoint {
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (entitlements: [DropsEntitlement], cursor: String?), DropsEntitlement,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<DropsEntitlementsResponse> {
     .init(
       method: "GET", path: "entitlements/drops",
       authentication: .either,
@@ -50,7 +47,10 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + entitlementIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: DropsEntitlement.self,
+      makeResponse: {
+        DropsEntitlementsResponse(entitlements: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -89,4 +89,13 @@ public enum DropsEntitlementFulfillmentStatus: String, Codable, Sendable {
   case claimed = "CLAIMED"
   /// The reward or entitlement has been fulfilled. Encoded as `"FULFILLED"`.
   case fulfilled = "FULFILLED"
+}
+
+/// A page of drops entitlements.
+@MemberwiseInit(.public)
+public struct DropsEntitlementsResponse: Sendable {
+  /// The entitlements on this page.
+  public let entitlements: [DropsEntitlement]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

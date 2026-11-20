@@ -27,10 +27,7 @@ extension HelixEndpoint {
     predictionIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (predictions: [Prediction], cursor: String?), Prediction,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<PredictionsResponse> {
     .init(
       method: "GET", path: "predictions",
       authentication: .user,
@@ -41,7 +38,10 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + predictionIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Prediction.self,
+      makeResponse: {
+        PredictionsResponse(predictions: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -152,4 +152,13 @@ public struct PredictionOutcome: Decodable, Sendable {
       case channelPointsWon
     }
   }
+}
+
+/// A page of predictions.
+@MemberwiseInit(.public)
+public struct PredictionsResponse: Sendable {
+  /// The predictions on this page.
+  public let predictions: [Prediction]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

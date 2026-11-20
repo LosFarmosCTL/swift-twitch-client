@@ -1,4 +1,5 @@
 import Foundation
+import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets game categories ordered by viewer count.
@@ -19,10 +20,7 @@ extension HelixEndpoint {
   public static func getTopGames(
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (games: [Game], cursor: String?),
-    Game, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<TopGamesResponse> {
     .init(
       method: "GET", path: "games/top",
       authentication: .either,
@@ -31,6 +29,16 @@ extension HelixEndpoint {
           ("after", cursor),
           ("first", limit.map(String.init)),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: Game.self,
+      makeResponse: { TopGamesResponse(games: $0.data, cursor: $0.pagination?.cursor) })
   }
+}
+
+/// A page of top games.
+@MemberwiseInit(.public)
+public struct TopGamesResponse: Sendable {
+  /// The games on this page.
+  public let games: [Game]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }
