@@ -15,10 +15,10 @@ public enum HelixError: Error, Sendable {
   /// Twitch returned HTTP 429; carries response metadata and the original error body.
   case rateLimited(HelixRateLimitError)
 
-  /// The success response could not be decoded; carries the raw response body.
-  case parsingResponseFailed(responseData: Data)
-  /// The error response could not be decoded; carries the HTTP status and raw body.
-  case parsingErrorFailed(status: Int, responseData: Data)
+  /// The success response could not be decoded.
+  case parsingResponseFailed(HelixDecodingFailure)
+  /// The error response could not be decoded.
+  case parsingErrorFailed(status: Int, failure: HelixDecodingFailure)
 
   /// The response contained no required data; carries the raw response body.
   case noDataInResponse(responseData: Data)
@@ -45,10 +45,10 @@ extension HelixError: CustomStringConvertible {
       return "Twitch Error: \(name) (\(status)): \(message)"
     case .rateLimited(let error):
       return "Rate Limited: \(error.message ?? "Too Many Requests")"
-    case .parsingResponseFailed(let responseData):
-      return "Parsing Response Failed: \(responseData.debugDescription)"
-    case .parsingErrorFailed(let status, let responseData):
-      return "Parsing Error Failed: \(status) \(responseData.debugDescription)"
+    case .parsingResponseFailed(let failure):
+      return "Parsing Response Failed: \(failure.details.pathDescription)"
+    case .parsingErrorFailed(let status, let failure):
+      return "Parsing Error Failed: \(status) \(failure.details.pathDescription)"
     case .noDataInResponse(let responseData):
       return "No Data in Response: \(responseData.debugDescription)"
     case .missingDataInResponse(let responseData):
@@ -79,10 +79,10 @@ extension HelixError: CustomStringConvertible {
         .init("Twitch Error: \(name) (\(status)): \(message)")
       case .rateLimited(let error):
         .init("Rate Limited: \(error.message ?? "Too Many Requests")")
-      case .parsingResponseFailed(let responseData):
-        .init("Parsing Response Failed: \(responseData.debugDescription)")
-      case .parsingErrorFailed(let status, let responseData):
-        .init("Parsing Error Failed: \(status) \(responseData.debugDescription)")
+      case .parsingResponseFailed(let failure):
+        .init("Parsing Response Failed: \(failure.details.pathDescription)")
+      case .parsingErrorFailed(let status, let failure):
+        .init("Parsing Error Failed: \(status) \(failure.details.pathDescription)")
       case .noDataInResponse(let responseData):
         .init("No Data in Response: \(responseData.debugDescription)")
       case .missingDataInResponse(let responseData):

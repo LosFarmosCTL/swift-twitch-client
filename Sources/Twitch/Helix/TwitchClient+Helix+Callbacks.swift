@@ -15,6 +15,7 @@ extension TwitchClient {
   ///   - endpoint: The typed request to execute.
   ///   - credentials: The credentials used to authorize the request.
   ///   - urlSession: The URL session used for network requests.
+  ///   - diagnostics: Opt-in decoding diagnostics for this request.
   ///   - completionHandler: Receives the endpoint result with metadata or a `HelixError`.
   /// - Returns: A handle whose `cancel()` method cancels the request task.
   @discardableResult
@@ -22,12 +23,13 @@ extension TwitchClient {
     for endpoint: HelixEndpoint<R>,
     credentials: TwitchCredentials,
     urlSession: URLSession = URLSession(configuration: .default),
+    diagnostics: TwitchDiagnostics = .init(),
     completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {
     makeHelixTask(
       operation: {
         try await Self.helix(
-          for: endpoint, credentials: credentials, urlSession: urlSession)
+          for: endpoint, credentials: credentials, urlSession: urlSession, diagnostics: diagnostics)
       },
       completionHandler: completionHandler)
   }

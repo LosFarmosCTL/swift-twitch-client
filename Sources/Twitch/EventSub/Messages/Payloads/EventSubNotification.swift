@@ -21,6 +21,7 @@ extension EventSubNotification where Payload == any Event {
 }
 
 internal struct EventSubNotificationFrame: Sendable {
+  let connectionID: UUID
   let subscription: EventSubMessage.Subscription
   let messageID: String
   let sentAt: Date

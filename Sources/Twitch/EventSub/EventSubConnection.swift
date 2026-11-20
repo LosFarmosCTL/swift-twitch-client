@@ -17,6 +17,7 @@ internal actor EventSubConnection {
   private let eventSubURL: URL
   private let network: NetworkSession
   private let decoder: JSONDecoder
+  private let diagnostics: TwitchDiagnostics
   private let onUpdate: @Sendable (Update) async -> Void
 
   private var webSocket: WebSocketTask?
@@ -27,12 +28,14 @@ internal actor EventSubConnection {
 
   init(
     id: UUID, network: NetworkSession, decoder: JSONDecoder, eventSubURL: URL,
+    diagnostics: TwitchDiagnostics,
     onUpdate: @escaping @Sendable (Update) async -> Void
   ) {
     self.id = id
     self.network = network
     self.decoder = decoder
     self.eventSubURL = eventSubURL
+    self.diagnostics = diagnostics
     self.onUpdate = onUpdate
   }
 
@@ -144,7 +147,7 @@ internal actor EventSubConnection {
       await onUpdate(
         .notification(
           EventSubNotificationFrame(
-            subscription: subscription, messageID: message.metadata.messageID,
+            connectionID: id, subscription: subscription, messageID: message.metadata.messageID,
             sentAt: message.metadata.messageTimestamp, data: data)))
     case .revocation(let revocation):
       await onUpdate(.revocation(revocation))
@@ -162,8 +165,32 @@ internal actor EventSubConnection {
   ) -> (message: EventSubMessage, data: Data)? {
     guard case .string(let text) = frame else { return nil }
     let data = Data(text.utf8)
-    guard let message = try? decoder.decode(EventSubMessage.self, from: data) else { return nil }
-    return (message, data)
+    do {
+      return (try decoder.decode(EventSubMessage.self, from: data), data)
+    } catch is CancellationError {
+      return nil
+    } catch {
+      diagnostics.report(
+        .init(
+          source: .eventSub,
+          stage: .eventSubMessage,
+          details: .init(error: error),
+          payloadByteCount: data.count,
+          eventSubMetadata: .init(
+            connectionID: id,
+            messageID: nil,
+            messageType: nil,
+            sentAt: nil,
+            subscriptionID: nil,
+            subscriptionType: nil,
+            subscriptionVersion: nil,
+            channelID: nil
+          )
+        )
+      )
+
+      return nil
+    }
   }
 
   // MARK: - Shutdown

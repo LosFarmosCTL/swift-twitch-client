@@ -53,11 +53,15 @@ extension ManagedChat {
   }
 
   func startChatSettingsSnapshot(for attempt: MembershipAttempt) {
-    Task { [weak client, credentials, network] in
-      guard
-        let snapshot = try? await TwitchClient.helix(
-          for: .getChatSettings(of: attempt.channelID), credentials: credentials, network: network)
-      else { return }
+    Task { [weak client, credentials, network, diagnostics] in
+      let snapshot = try? await TwitchClient.helix(
+        for: .getChatSettings(of: attempt.channelID),
+        credentials: credentials,
+        network: network,
+        diagnostics: diagnostics
+      )
+
+      guard let snapshot else { return }
 
       await client?.withChat { $0.acceptChatSettingsSnapshot(snapshot.value, for: attempt) }
     }

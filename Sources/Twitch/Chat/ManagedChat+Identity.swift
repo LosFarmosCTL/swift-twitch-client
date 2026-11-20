@@ -83,11 +83,11 @@ extension ManagedChat {
     endpoint: HelixEndpoint<[User]>
   ) -> ChannelLookup {
     let id = UUID()
-    let task = Task { [weak client, credentials, network] in
+    let task = Task { [weak client, credentials, network, diagnostics] in
       let result: Result<ChatChannel, any Error>
       do {
         let response = try await TwitchClient.helix(
-          for: endpoint, credentials: credentials, network: network)
+          for: endpoint, credentials: credentials, network: network, diagnostics: diagnostics)
         guard let user = response.value.first else { throw ChatError.channelNotFound }
         result = .success(ChatChannel(id: user.id, login: user.login))
       } catch {

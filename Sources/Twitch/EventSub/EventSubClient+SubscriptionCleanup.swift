@@ -58,7 +58,11 @@ extension EventSubClient {
       // Cleanup uses the token that created the remote subscription.
       _ = try? await TwitchClient.helix(
         for: .deleteEventSubSubscription(subscriptionID: id),
-        credentials: subscription.credentials, network: network, decoder: decoder)
+        credentials: subscription.credentials,
+        network: network,
+        decoder: decoder,
+        diagnostics: diagnostics
+      )
     }
 
     completeCleanup(subscription, remoteID: id)

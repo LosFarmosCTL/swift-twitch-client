@@ -82,7 +82,7 @@ extension ManagedChat {
   ) async throws -> ChatSendOutcome {
     let response = try await TwitchClient.helix(
       for: .sendChatMessage(in: attempt.channelID, message: text, replyTo: messageID),
-      credentials: credentials, network: network,
+      credentials: credentials, network: network, diagnostics: diagnostics,
       beforeDispatch: {
         try self.commitSend(attempt)
         self.writerStatus = .ready
