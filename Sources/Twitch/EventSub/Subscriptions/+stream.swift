@@ -9,12 +9,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func streamOnline(broadcasterID: String, version: String = "1")
+  public static func streamOnline(broadcasterID: String)
     -> EventSubSubscription<StreamOnlineEvent>
   {
     .init(
-      type: EventType.streamOnline.rawValue, version: version,
+      type: "stream.online", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -30,12 +29,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func streamOffline(broadcasterID: String, version: String = "1")
+  public static func streamOffline(broadcasterID: String)
     -> EventSubSubscription<StreamOfflineEvent>
   {
     .init(
-      type: EventType.streamOffline.rawValue, version: version,
+      type: "stream.offline", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

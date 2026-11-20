@@ -104,7 +104,9 @@ internal actor EventSubConnection {
       try checkOpen()
       await timer.reset()
 
-      if case .welcome(let welcome) = decodePayload(from: frame) { return welcome }
+      if case .welcome(let welcome) = decodeMessage(from: frame)?.message.payload {
+        return welcome
+      }
     }
   }
 
@@ -136,9 +138,14 @@ internal actor EventSubConnection {
     // Shutdown can run while the timer is being reset.
     try checkOpen()
 
-    switch decodePayload(from: frame) {
-    case .notification(let notification):
-      await onUpdate(.notification(notification))
+    guard let (message, data) = decodeMessage(from: frame) else { return }
+    switch message.payload {
+    case .notification(let subscription):
+      await onUpdate(
+        .notification(
+          EventSubNotificationFrame(
+            subscription: subscription, messageID: message.metadata.messageID,
+            sentAt: message.metadata.messageTimestamp, data: data)))
     case .revocation(let revocation):
       await onUpdate(.revocation(revocation))
     case .reconnect(let reconnect):
@@ -150,9 +157,13 @@ internal actor EventSubConnection {
     try checkOpen()
   }
 
-  private func decodePayload(from frame: URLSessionWebSocketTask.Message) -> EventSubPayload? {
+  private func decodeMessage(
+    from frame: URLSessionWebSocketTask.Message
+  ) -> (message: EventSubMessage, data: Data)? {
     guard case .string(let text) = frame else { return nil }
-    return try? decoder.decode(EventSubMessage.self, from: Data(text.utf8)).payload
+    let data = Data(text.utf8)
+    guard let message = try? decoder.decode(EventSubMessage.self, from: data) else { return nil }
+    return (message, data)
   }
 
   // MARK: - Shutdown

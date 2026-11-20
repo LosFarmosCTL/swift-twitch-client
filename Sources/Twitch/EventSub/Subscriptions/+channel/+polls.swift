@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPollBegin(broadcasterID: String, version: String = "1")
+  public static func channelPollBegin(broadcasterID: String)
     -> EventSubSubscription<ChannelPollBeginEvent>
   {
     .init(
-      type: EventType.channelPollBegin.rawValue, version: version,
+      type: "channel.poll.begin", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPollProgress(broadcasterID: String, version: String = "1")
+  public static func channelPollProgress(broadcasterID: String)
     -> EventSubSubscription<ChannelPollProgressEvent>
   {
     .init(
-      type: EventType.channelPollProgress.rawValue, version: version,
+      type: "channel.poll.progress", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"1"`.
-  public static func channelPollEnd(broadcasterID: String, version: String = "1")
+  public static func channelPollEnd(broadcasterID: String)
     -> EventSubSubscription<ChannelPollEndEvent>
   {
     .init(
-      type: EventType.channelPollEnd.rawValue, version: version,
+      type: "channel.poll.end", version: "1",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

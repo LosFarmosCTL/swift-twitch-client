@@ -10,12 +10,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
-  public static func channelHypeTrainBegin(broadcasterID: String, version: String = "2")
+  public static func channelHypeTrainBegin(broadcasterID: String)
     -> EventSubSubscription<ChannelHypeTrainBeginEvent>
   {
     .init(
-      type: EventType.channelHypeTrainBegin.rawValue, version: version,
+      type: "channel.hype_train.begin", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -32,12 +31,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
   public static func channelHypeTrainProgress(
-    broadcasterID: String, version: String = "2"
+    broadcasterID: String
   ) -> EventSubSubscription<ChannelHypeTrainProgressEvent> {
     .init(
-      type: EventType.channelHypeTrainProgress.rawValue, version: version,
+      type: "channel.hype_train.progress", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])
@@ -54,12 +52,11 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - version: The EventSub subscription schema version. Defaults to `"2"`.
-  public static func channelHypeTrainEnd(broadcasterID: String, version: String = "2")
+  public static func channelHypeTrainEnd(broadcasterID: String)
     -> EventSubSubscription<ChannelHypeTrainEndEvent>
   {
     .init(
-      type: EventType.channelHypeTrainEnd.rawValue, version: version,
+      type: "channel.hype_train.end", version: "2",
       condition: [
         "broadcaster_user_id": broadcasterID
       ])

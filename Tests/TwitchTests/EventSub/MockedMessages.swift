@@ -24,6 +24,8 @@ enum MockedMessages {
   static let mockRevocationMessage = fromResource("revocationMessage")
   static let mockReconnectMessage = fromResource("reconnectMessage")
   static let mockEventMessage = fromResource("mockEventMessage")
+  static let mockVersion2EventMessage = mockEventMessage.replacingOccurrences(
+    of: #""1""#, with: #""2""#)
 
   // MARK: - AutoMod Messages
 
