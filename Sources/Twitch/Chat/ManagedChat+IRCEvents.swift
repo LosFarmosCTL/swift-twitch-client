@@ -66,7 +66,6 @@ extension ManagedChat {
       receiveChatIRCSettings(value, for: member)
       return
     case .clearMessage(let value):
-      guard member.moderation != .ready else { return }
       emitChatDeletion(
         ChatMessageDeletion(
           messageID: value.targetMessageID,
@@ -90,7 +89,7 @@ extension ManagedChat {
       ChatUser(id: value.targetUserID, login: $0, displayName: nil)
     }
 
-    if let user, memberships[channel.id]?.moderation != .ready {
+    if let user {
       let action: ChatModeration.Action
       if let seconds = value.banDuration {
         let until = timestamp?.addingTimeInterval(Double(seconds))

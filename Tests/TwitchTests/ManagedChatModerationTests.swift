@@ -5,6 +5,52 @@ import Testing
 
 extension ManagedChatEventSubTests {
   @Test
+  func ircModerationReportsDoNotDependOnEventSubDelivery() async throws {
+    let client = await client(moderation: true, welcome: false, reader: .irc(.anonymous))
+    let pending = Task { try await client.join(to: channel) }
+    let irc = await session.waitForTask(at: 0)
+    await irc.simulateIncoming(
+      .string(
+        ":tmi.twitch.tv CAP * ACK :twitch.tv/commands twitch.tv/tags\r\n"
+          + ":tmi.twitch.tv 001 justinfan12345 :Welcome, GLHF!"))
+    await irc.waitForSent("JOIN #swift")
+    await irc.simulateIncoming(.string("@room-id=123 :tmi.twitch.tv ROOMSTATE #swift"))
+    try await pending.value
+
+    await client.setChatPrivilege(ChatPrivilege(isModerator: true), in: channel.id)
+    let eventSub = await session.waitForTask(at: 1)
+    await eventSub.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    _ = try #require(
+      await client.chatStateUpdates().first {
+        $0.channels[channel.id]?.moderation == .ready
+      })
+
+    var events = await client.messageStream().makeAsyncIterator()
+    await irc.simulateIncoming(
+      .string(
+        "@login=sender;room-id=123;target-msg-id=deleted :tmi.twitch.tv CLEARMSG #swift :original text\r\n"
+          + "@ban-duration=60;room-id=123;target-user-id=999 :tmi.twitch.tv CLEARCHAT #swift :sender"
+      ))
+
+    guard case .messageDeleted(let deletion)? = await events.next()?.payload,
+      case .moderation(let moderation)? = await events.next()?.payload,
+      case .timeout(let user, let until, let duration, _) = moderation.action,
+      case .messagesCleared(let clearedUser)? = await events.next()?.payload
+    else {
+      Issue.record("Expected IRC deletion, timeout, and clear without EventSub reports")
+      return
+    }
+    #expect(deletion.messageID == "deleted")
+    #expect(deletion.text == "original text")
+    #expect(user.id == "999")
+    #expect(until == nil)
+    #expect(duration == .seconds(60))
+    #expect(clearedUser == user)
+    await client.shutdownChat()
+    await client.resetEventSub()
+  }
+
+  @Test
   func optionalRevocationKeepsChatAndVIPAndDeletionDedupSurvivesTransition() async throws {
     let client = await client(moderation: true)
     try await client.join(to: channel)
@@ -23,10 +69,11 @@ extension ManagedChatEventSubTests {
       .string(try deletion(messageID: "deleted", envelopeID: "basic")))
     var rawIterator = raw.makeAsyncIterator()
     _ = try #require(try await rawIterator.next())
-    await session.simulateIncoming(.string(try moderationDeletion(messageID: "deleted")))
     let deletedMessage = try #require(await nextDeletion(in: events))
-    #expect(deletedMessage.text == "original text")
-    #expect(deletedMessage.moderator?.id == "moderator")
+    #expect(deletedMessage.messageID == "deleted")
+    #expect(deletedMessage.moderator == nil)
+
+    try await expectEnrichedDeletion(on: client, messageID: "deleted")
 
     let later = await client.messageStream()
     await session.simulateIncoming(
@@ -152,6 +199,24 @@ extension ManagedChatEventSubTests {
       if case .messageDeleted(let deletion) = event.payload { return deletion }
     }
     return nil
+  }
+
+  private func expectEnrichedDeletion(on client: TwitchClient, messageID: String) async throws {
+    let events = await client.messageStream()
+    await session.simulateIncoming(.string(try moderationDeletion(messageID: messageID)))
+    let enriched = try #require(
+      await events.first {
+        if case .moderation = $0.payload { true } else { false }
+      })
+    guard case .moderation(let action) = enriched.payload,
+      case .eventSub(.delete(let details)) = action.action
+    else {
+      Issue.record("Expected the enriched delete action")
+      return
+    }
+    #expect(action.moderator?.id == "moderator")
+    #expect(details.messageID == messageID)
+    #expect(details.messageBody == "original text")
   }
 
   private func deletion(messageID: String, envelopeID: String) throws -> String {

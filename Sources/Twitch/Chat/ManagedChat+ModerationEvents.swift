@@ -21,8 +21,7 @@ extension ManagedChat {
       case .ban(let user, _) where isChatSender(user):
         senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .banned
       case .timeout(let user, let until, _, _) where isChatSender(user):
-        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .timeout(
-          until: until)
+        recordTimeout(until: until, in: channel.id)
       case .unban(let user) where isChatSender(user),
         .untimeout(let user) where isChatSender(user):
         senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .none
@@ -35,6 +34,18 @@ extension ManagedChat {
     publishChatState()
   }
 
+  private func recordTimeout(until: Date?, in channelID: String) {
+    let key = ChatChannelReference.id(channelID)
+    if until == nil,
+      case .timedOut(_, let deadline?) = senderEvidence[key]?.restriction,
+      deadline > .now
+    {
+      // An IRC report without a timestamp must not erase a known expiry.
+      return
+    }
+    senderEvidence[key, default: SenderEvidence()].restriction = .timeout(until: until)
+  }
+
   func receiveChatModerationEvent(
     _ event: ChannelModerateEvent, timestamp: Date?, channel: ChatChannel
   ) {
@@ -44,17 +55,6 @@ extension ManagedChat {
       displayName: event.moderatorDisplayName)
 
     switch event.action {
-    case .delete(let deletion), .sharedChatDelete(let deletion):
-      emitChatDeletion(
-        ChatMessageDeletion(
-          messageID: deletion.messageID,
-          author: ChatUser(
-            id: deletion.userID, login: deletion.userLogin,
-            displayName: deletion.userDisplayName),
-          text: deletion.messageBody, moderator: moderator), channel: channel,
-        timestamp: timestamp)
-      return
-
     case .mod(let user), .unmod(let user), .vip(let user), .unvip(let user):
       observeChatModerationRole(event, user: user, in: id)
     default: break

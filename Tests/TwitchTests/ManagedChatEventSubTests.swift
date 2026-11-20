@@ -233,7 +233,7 @@ struct ManagedChatEventSubTests {
 extension ManagedChatEventSubTests {
   func client(
     moderation: Bool = false, welcome: Bool = true, prefill: Bool = false,
-    warningScope: Bool = true
+    warningScope: Bool = true, reader: ChatConfiguration.Reader = .eventSub
   ) async
     -> TwitchClient
   {
@@ -277,7 +277,7 @@ extension ManagedChatEventSubTests {
     return TwitchClient(
       credentials: credentials,
       chat: .init(
-        reader: .eventSub, moderationEnrichment: moderation,
+        reader: reader, moderationEnrichment: moderation,
         prefillModeratedChannels: prefill), network: session)
   }
 

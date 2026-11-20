@@ -141,7 +141,6 @@ readiness wait leaves the channel joined. Call `part` to withdraw membership and
 state. Managed sends apply process-local sender limits and channel pacing.
 These local checks are not Twitch's server-side send or join limits.
 Raw `helix(for:)` sends and `sendIRC` remain available for direct requests.
-Moderation enrichment is opt-in and uses observed roles plus known token scopes.
 See <doc:Authentication> for read and write scopes by transport.
 
 On watchOS, use Helix over HTTPS. Direct EventSub and IRC are not supported on
@@ -155,6 +154,20 @@ transports restart with the new credentials.
 For transport-specific access, use the raw IRC stream, listener, or publisher on
 ``TwitchClient``. Each delivery identifies the read or write connection that received it.
 Raw sends use the configured IRC writer and apply IRC wire validation.
+
+#### Moderation events
+
+The chat reader reports what changed in chat: a single deletion produces
+`messageDeleted`, and clearing messages produces `messagesCleared`. A targeted
+IRC `CLEARCHAT` also reports the ban or timeout as a `moderation` event, including
+the timeout duration when Twitch supplies it. An EventSub chat clear does not say
+why messages were cleared, so it does not produce a ban or timeout on its own.
+
+Opt-in moderation enrichment uses EventSub when the account has the required role
+and scopes. It adds `moderation` events to the same stream without replacing
+reports from the chat reader. A moderator's deletion can therefore appear as both
+`messageDeleted` and `moderation`. IRC and EventSub can also report the same ban or
+timeout independently; consumers can use the richer details when available.
 
 ## Topics
 

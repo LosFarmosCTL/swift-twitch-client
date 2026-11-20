@@ -24,7 +24,6 @@ extension ManagedChat {
       payload = .notification(notification)
 
     case let event as ChannelChatMessageDeleteEvent:
-      guard memberships[id]?.moderation != .ready else { return }
       emitChatDeletion(
         ChatMessageDeletion(
           messageID: event.messageID,
