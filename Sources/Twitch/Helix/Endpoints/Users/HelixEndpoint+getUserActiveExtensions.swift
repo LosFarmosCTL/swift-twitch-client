@@ -16,16 +16,14 @@ extension HelixEndpoint {
   /// App tokens require an explicit target ID.
   public static func getUserActiveExtensions(
     userID: String? = nil
-  ) -> HelixEndpoint<
-    UserActiveExtensions, UserActiveExtensions,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<UserActiveExtensions> {
     .init(
       method: "GET", path: "users/extensions",
       authentication: .either,
       queryItems: { credentials in
         [("user_id", try credentials.resolveUserID(userID, parameter: "user_id"))]
       },
+      responseType: UserActiveExtensions.self,
       makeResponse: {
         let activeExtensions = try $0.requireFirst()
 

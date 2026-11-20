@@ -27,7 +27,7 @@ extension HelixEndpoint {
     shouldReinviteGuest: Bool? = nil,
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "guest_star/slot",
       authentication: .user,

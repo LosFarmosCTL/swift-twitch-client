@@ -32,9 +32,7 @@ extension HelixEndpoint {
     isSourceOnly: Bool? = nil,
     pin: Bool? = nil,
     senderID: String? = nil
-  ) -> HelixEndpoint<
-    ChatMessageResponse, ChatMessageResponse, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ChatMessageResponse> {
     .init(
       method: "POST", path: "chat/messages",
       authentication: .either,
@@ -58,6 +56,7 @@ extension HelixEndpoint {
           isSourceOnly: isSourceOnly,
           pin: pin)
       },
+      responseType: ChatMessageResponse.self,
       makeResponse: {
         let messageResponse = try $0.requireFirst()
 

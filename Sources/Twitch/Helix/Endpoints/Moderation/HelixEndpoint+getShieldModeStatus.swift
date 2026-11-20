@@ -23,10 +23,7 @@ extension HelixEndpoint {
     of broadcasterID: String,
     moderatorID: String? = nil
   )
-    -> HelixEndpoint<
-      ShieldModeStatus, ShieldModeStatus,
-      HelixEndpointResponseTypes.Normal
-    >
+    -> HelixEndpoint<ShieldModeStatus>
   {
     .init(
       method: "GET", path: "moderation/shield_mode",
@@ -41,6 +38,7 @@ extension HelixEndpoint {
           ),
         ]
       },
+      responseType: ShieldModeStatus.self,
       makeResponse: {
         let status = try $0.requireFirst()
 

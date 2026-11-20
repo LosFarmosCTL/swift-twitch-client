@@ -22,7 +22,7 @@ extension HelixEndpoint {
     vacationEndTime: Date? = nil,
     timezone: String? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PATCH", path: "schedule/settings",
       authentication: .user,

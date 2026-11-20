@@ -22,10 +22,7 @@ extension HelixEndpoint {
     of broadcasterID: String,
     isActive: Bool,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    ShieldModeStatus, ShieldModeStatus,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ShieldModeStatus> {
     .init(
       method: "PUT", path: "moderation/shield_mode",
       authentication: .either,
@@ -39,6 +36,7 @@ extension HelixEndpoint {
           ),
         ]
       }, body: { _ in ["is_active": isActive] },
+      responseType: ShieldModeStatus.self,
       makeResponse: {
         let status = try $0.requireFirst()
         return status

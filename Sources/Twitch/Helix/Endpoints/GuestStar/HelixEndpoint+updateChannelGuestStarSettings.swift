@@ -28,7 +28,7 @@ extension HelixEndpoint {
     isBrowserSourceAudioEnabled: Bool? = nil,
     groupLayout: GuestStarGroupLayout? = nil,
     regenerateBrowserSources: Bool? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PATCH", path: "guest_star/channel_settings",
       authentication: .user,

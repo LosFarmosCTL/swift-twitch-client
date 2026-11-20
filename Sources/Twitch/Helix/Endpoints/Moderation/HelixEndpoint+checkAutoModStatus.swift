@@ -19,7 +19,7 @@ extension HelixEndpoint {
     messages: (id: String, message: String)...,
     broadcasterID: String? = nil
   )
-    -> HelixEndpoint<[AutoModStatus], AutoModStatus, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[AutoModStatus]>
   {
     return self.checkAutoModStatus(messages: messages, broadcasterID: broadcasterID)
   }
@@ -42,7 +42,7 @@ extension HelixEndpoint {
   public static func checkAutoModStatus(
     messages: [(id: String, message: String)], broadcasterID: String? = nil
   )
-    -> HelixEndpoint<[AutoModStatus], AutoModStatus, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[AutoModStatus]>
   {
     .init(
       method: "POST", path: "moderation/enforcements/status",
@@ -63,7 +63,7 @@ extension HelixEndpoint {
           }
         ]
       },
-      makeResponse: { $0.data })
+      responseType: AutoModStatus.self, makeResponse: { $0.data })
   }
 }
 

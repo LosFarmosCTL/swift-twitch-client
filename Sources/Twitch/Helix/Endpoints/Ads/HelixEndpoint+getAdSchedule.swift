@@ -15,7 +15,7 @@ extension HelixEndpoint {
   /// - Parameter broadcasterID: The acting user ID. Required with app tokens; otherwise
   ///   defaults to the user token’s identity.
   public static func getAdSchedule(broadcasterID: String? = nil)
-    -> HelixEndpoint<[AdSchedule], AdSchedule, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[AdSchedule]>
   {
     .init(
       method: "GET", path: "channels/ads",
@@ -29,7 +29,7 @@ extension HelixEndpoint {
           )
         ]
       },
-      makeResponse: { $0.data }
+      responseType: AdSchedule.self, makeResponse: { $0.data }
     )
   }
 }

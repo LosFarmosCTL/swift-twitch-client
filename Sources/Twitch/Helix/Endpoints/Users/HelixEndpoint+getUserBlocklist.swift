@@ -21,10 +21,7 @@ extension HelixEndpoint {
     userIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (users: [BlockedUser], cursor: String?),
-    BlockedUser, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<UserBlocklistResponse> {
     .init(
       method: "GET", path: "users/blocks",
       authentication: .user,
@@ -35,8 +32,18 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + userIDs.map { ("user_id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: BlockedUser.self,
+      makeResponse: { UserBlocklistResponse(users: $0.data, cursor: $0.pagination?.cursor) })
   }
+}
+
+/// A page of users blocked by the broadcaster.
+@MemberwiseInit(.public)
+public struct UserBlocklistResponse: Sendable {
+  /// The users on this page.
+  public let users: [BlockedUser]
+  /// The cursor for the next page, if Twitch returned one.
+  public let cursor: String?
 }
 
 /// An account on the authenticated user’s block list.

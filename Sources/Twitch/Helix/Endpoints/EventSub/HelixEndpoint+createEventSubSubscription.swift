@@ -25,11 +25,7 @@ extension HelixEndpoint {
     using transport: EventSubTransport,
     for subscription: EventSubSubscription<some Event>,
     isBatchingEnabled: Bool? = nil
-  ) -> HelixEndpoint<
-    CreateEventSubSubscriptionResponse,
-    CreateEventSubSubscriptionResponse.Subscription,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<CreateEventSubSubscriptionResponse> {
     createEventSubSubscription(
       using: transport, type: subscription.type, version: subscription.version,
       condition: subscription.condition,
@@ -40,11 +36,7 @@ extension HelixEndpoint {
     using transport: EventSubTransport,
     type: String, version: String, condition: [String: String],
     isBatchingEnabled: Bool? = nil
-  ) -> HelixEndpoint<
-    CreateEventSubSubscriptionResponse,
-    CreateEventSubSubscriptionResponse.Subscription,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<CreateEventSubSubscriptionResponse> {
     .init(
       method: "POST", path: "eventsub/subscriptions",
       authentication: transport.authentication,
@@ -53,6 +45,7 @@ extension HelixEndpoint {
           type: type, version: version, condition: condition,
           transport: transport.transport, isBatchingEnabled: isBatchingEnabled)
       },
+      responseType: CreateEventSubSubscriptionResponse.Subscription.self,
       makeResponse: {
         let subscription = try $0.requireFirst()
 

@@ -23,7 +23,7 @@ extension HelixEndpoint {
   /// - Returns: An endpoint that yields subscription details when executed. The result is
   ///   `nil` only if Twitch returns a successful response with an empty data array.
   public static func checkSubscription(to broadcasterID: String, userID: String? = nil)
-    -> HelixEndpoint<Subscription?, Subscription, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<Subscription?>
   {
     .init(
       method: "GET", path: "subscriptions/user",
@@ -38,6 +38,7 @@ extension HelixEndpoint {
           ),
         ]
       },
+      responseType: Subscription.self,
       makeResponse: { response in
         return response.data.first
       })

@@ -46,7 +46,7 @@ extension HelixEndpoint {
     globalCooldownSeconds: Int? = nil,
     shouldRedemptionsSkipRequestQueue: Bool? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<CustomReward, CustomReward, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<CustomReward> {
     .init(
       method: "POST", path: "channel_points/custom_rewards",
       authentication: .user,
@@ -74,6 +74,7 @@ extension HelixEndpoint {
           globalCooldownSeconds: globalCooldownSeconds,
           shouldRedemptionsSkipRequestQueue: shouldRedemptionsSkipRequestQueue)
       },
+      responseType: CustomReward.self,
       makeResponse: {
         let reward = try $0.requireFirst()
 

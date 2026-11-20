@@ -22,7 +22,7 @@ extension HelixEndpoint {
     for broadcasterID: String? = nil,
     rewardIDs: [String] = [],
     onlyManageable: Bool? = nil
-  ) -> HelixEndpoint<[CustomReward], CustomReward, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[CustomReward]> {
     .init(
       method: "GET", path: "channel_points/custom_rewards",
       authentication: .user,
@@ -35,7 +35,7 @@ extension HelixEndpoint {
           ("only_manageable_rewards", onlyManageable.map(String.init)),
         ] + rewardIDs.map { ("id", $0) }
       },
-      makeResponse: { $0.data })
+      responseType: CustomReward.self, makeResponse: { $0.data })
   }
 }
 

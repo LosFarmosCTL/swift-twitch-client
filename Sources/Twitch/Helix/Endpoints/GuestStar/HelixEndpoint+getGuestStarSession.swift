@@ -27,10 +27,7 @@ extension HelixEndpoint {
   public static func getGuestStarSession(
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    GuestStarSession, GuestStarSession,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<GuestStarSession> {
     .init(
       method: "GET", path: "guest_star/session",
       authentication: .user,
@@ -46,6 +43,7 @@ extension HelixEndpoint {
           ),
         ]
       },
+      responseType: GuestStarSession.self,
       makeResponse: { response in
         let session = try response.requireFirst()
 

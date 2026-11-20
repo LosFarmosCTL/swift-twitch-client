@@ -14,9 +14,11 @@ struct StreamsTests {
       url: url,
       body: MockedData.getStreamsJSON)
 
-    let (streams, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getStreams(limit: 1))).value
+    let streams = page.streams
+    let cursor = page.cursor
 
     #expect(cursor == nil)
 
@@ -35,9 +37,11 @@ struct StreamsTests {
       url: url,
       body: MockedData.getFollowedStreamsJSON)
 
-    let (streams, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getFollowedStreams(limit: 1))).value
+    let streams = page.streams
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjp7IkN1cnNvciI6ImV5SnpJam8zT0RNMk5TNDBORFF4")
 
@@ -88,9 +92,11 @@ struct StreamsTests {
       url: url,
       body: MockedData.getStreamMarkersJSON)
 
-    let (markers, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getStreamMarkers(for: "1234", limit: 1))).value
+    let markers = page.users
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjoiMjk1MjA0Mzk3OjI1Mzpib29rbWFyazoxMDZiOGQ1Y")
 

@@ -71,8 +71,10 @@ extension ManagedChat {
     member.settings = ChatRoomSettings(
       emoteOnly: settings.emoteMode, subscribersOnly: settings.subscriberMode,
       uniqueMessages: settings.uniqueChatMode,
-      followersOnly: settings.followerModeDuration.map { .seconds($0 * 60) },
-      slowMode: settings.slowModeWaitTime.map { .seconds($0) }, isKnown: true)
+      followersOnly: settings.followerMode
+        ? settings.followerModeDuration.map { .seconds($0 * 60) } : nil,
+      slowMode: settings.slowMode ? settings.slowModeWaitTime.map { .seconds($0) } : nil,
+      isKnown: true)
     publishChatState()
   }
 }

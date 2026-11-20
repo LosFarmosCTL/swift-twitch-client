@@ -16,7 +16,7 @@ extension HelixEndpoint {
   public static func deleteChannelStreamScheduleSegment(
     segmentID: String,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "schedule/segment",
       authentication: .user,

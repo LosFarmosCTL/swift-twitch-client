@@ -22,7 +22,7 @@ extension HelixEndpoint {
     text: String,
     extensionID: String,
     extensionVersion: String
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void, > {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "extensions/chat",
       authentication: .extensionJWT,

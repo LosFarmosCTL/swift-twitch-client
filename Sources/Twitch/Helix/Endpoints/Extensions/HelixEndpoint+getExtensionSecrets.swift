@@ -17,10 +17,7 @@ extension HelixEndpoint {
   ///   - extensionID: The identifier of the extension.
   public static func getExtensionSecrets(
     extensionID: String
-  ) -> HelixEndpoint<
-    ExtensionSecretsResponse, ExtensionSecretsResponse,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ExtensionSecretsResponse> {
     .init(
       method: "GET", path: "extensions/jwt/secrets",
       authentication: .extensionJWT,
@@ -29,6 +26,7 @@ extension HelixEndpoint {
           ("extension_id", extensionID)
         ]
       },
+      responseType: ExtensionSecretsResponse.self,
       makeResponse: { response in
         let secrets = try response.requireFirst()
 

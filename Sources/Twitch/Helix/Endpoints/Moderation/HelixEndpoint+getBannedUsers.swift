@@ -22,17 +22,14 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(users: [BannedUser], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``BannedUsersResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getBannedUsers(
     userIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<
-    (users: [BannedUser], cursor: String?), BannedUser,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<BannedUsersResponse> {
     .init(
       method: "GET", path: "moderation/banned",
       authentication: .either,
@@ -47,8 +44,9 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + userIDs.map { ("user_id", $0) }
       },
+      responseType: BannedUser.self,
       makeResponse: {
-        ($0.data, $0.pagination?.cursor)
+        BannedUsersResponse(users: $0.data, cursor: $0.pagination?.cursor)
       })
   }
 }
@@ -91,4 +89,13 @@ public struct BannedUser: Decodable, Sendable {
     case moderatorDisplayName = "moderatorName"
   }
 
+}
+
+/// A page of banned users.
+@MemberwiseInit(.public)
+public struct BannedUsersResponse: Sendable {
+  /// The users on this page.
+  public let users: [BannedUser]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

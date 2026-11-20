@@ -6,11 +6,7 @@ import Foundation
 
 extension TwitchClient {
   internal nonisolated(nonsending) static func response(
-    for endpoint: HelixEndpoint<
-      some Any,
-      some Sendable & Decodable,
-      some HelixEndpointResponseType
-    >,
+    for endpoint: HelixEndpoint<some Any>,
     credentials: TwitchCredentials,
     network: NetworkSession,
     encoder: JSONEncoder = TwitchClient.makeEncoder(),

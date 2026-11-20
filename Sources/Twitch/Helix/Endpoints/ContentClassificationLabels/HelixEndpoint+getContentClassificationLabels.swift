@@ -14,16 +14,13 @@ extension HelixEndpoint {
   ///   - locale: The locale used for localized label text. Defaults to `"en-US"`.
   public static func getContentClassificationLabels(
     locale: String? = "en-US"
-  ) -> HelixEndpoint<
-    [ContentClassificationLabel], ContentClassificationLabel,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[ContentClassificationLabel]> {
     .init(
       method: "GET", path: "content_classification_labels",
       authentication: .either,
       queryItems: { _ in
         [("locale", locale)]
-      }, makeResponse: { $0.data })
+      }, responseType: ContentClassificationLabel.self, makeResponse: { $0.data })
   }
 }
 

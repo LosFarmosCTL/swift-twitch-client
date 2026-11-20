@@ -13,13 +13,14 @@ extension HelixEndpoint {
   ///   - shardCount: The number of shards assigned to the conduit.
   public static func createConduit(
     shardCount: Int
-  ) -> HelixEndpoint<Conduit, Conduit, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Conduit> {
     .init(
       method: "POST", path: "eventsub/conduits",
       authentication: .app,
       body: { _ in
         CreateConduitRequest(shardCount: shardCount)
       },
+      responseType: Conduit.self,
       makeResponse: {
         let conduit = try $0.requireFirst()
 

@@ -22,7 +22,7 @@ extension HelixEndpoint {
     of broadcasterID: String? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<FollowersResponse, Follower, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<FollowersResponse> {
     .init(
       method: "GET", path: "channels/followers",
       authentication: .user,
@@ -36,6 +36,7 @@ extension HelixEndpoint {
           ("after", cursor),
         ]
       },
+      responseType: Follower.self,
       makeResponse: {
         let total = try $0.require(\.total)
 
@@ -65,7 +66,7 @@ extension HelixEndpoint {
   ///   when Twitch returns no matching entry. A missing entry can also reflect
   ///   insufficient follower-detail authorization.
   public static func checkFollower(_ userID: String, follows broadcasterID: String? = nil)
-    -> HelixEndpoint<Follower?, Follower, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<Follower?>
   {
     .init(
       method: "GET", path: "channels/followers",
@@ -79,7 +80,7 @@ extension HelixEndpoint {
           ),
         ]
       },
-      makeResponse: { $0.data.first })
+      responseType: Follower.self, makeResponse: { $0.data.first })
   }
 }
 

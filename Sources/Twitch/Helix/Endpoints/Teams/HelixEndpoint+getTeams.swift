@@ -20,7 +20,7 @@ extension HelixEndpoint {
   public static func getTeams(
     teamName: String? = nil,
     teamID: String? = nil
-  ) -> HelixEndpoint<[Team], Team, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[Team]> {
     .init(
       method: "GET", path: "teams",
       authentication: .either,
@@ -30,7 +30,7 @@ extension HelixEndpoint {
           ("id", teamID),
         ]
       },
-      makeResponse: { $0.data })
+      responseType: Team.self, makeResponse: { $0.data })
   }
 }
 

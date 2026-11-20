@@ -10,12 +10,12 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/#get-conduits
   /// ) for request limits and account requirements.
   public static func getConduits()
-    -> HelixEndpoint<[Conduit], Conduit, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[Conduit]>
   {
     .init(
       method: "GET", path: "eventsub/conduits",
       authentication: .app,
-      makeResponse: { $0.data })
+      responseType: Conduit.self, makeResponse: { $0.data })
   }
 }
 

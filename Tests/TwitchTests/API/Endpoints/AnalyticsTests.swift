@@ -15,9 +15,10 @@ struct AnalyticsTests {
       url: url,
       body: MockedData.getExtensionAnalyticsJSON)
 
-    let (analytics, _) =
+    let page =
       (try await harness.twitch.helix(
         for: .getExtensionAnalytics())).value
+    let analytics = page.reports
 
     #expect(analytics.count == 1)
     #expect(analytics.contains(where: { $0.extensionID == "efgh" }))
@@ -34,7 +35,8 @@ struct AnalyticsTests {
       url: url,
       body: MockedData.getGameAnalyticsJSON)
 
-    let (analytics, _) = (try await harness.twitch.helix(for: .getGameAnalytics())).value
+    let page = (try await harness.twitch.helix(for: .getGameAnalytics())).value
+    let analytics = page.reports
 
     #expect(analytics.count == 1)
 

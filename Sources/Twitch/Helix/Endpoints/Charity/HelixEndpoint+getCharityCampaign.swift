@@ -15,7 +15,7 @@ extension HelixEndpoint {
   /// - Returns: An endpoint that yields the active campaign when executed, or `nil` when
   ///   Twitch returns no active campaign.
   public static func getCharityCampaign()
-    -> HelixEndpoint<CharityCampaign?, CharityCampaign, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<CharityCampaign?>
   {
     .init(
       method: "GET", path: "charity/campaigns",
@@ -23,7 +23,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [("broadcaster_id", try credentials.requireUser().id)]
       },
-      makeResponse: { $0.data.first })
+      responseType: CharityCampaign.self, makeResponse: { $0.data.first })
   }
 }
 

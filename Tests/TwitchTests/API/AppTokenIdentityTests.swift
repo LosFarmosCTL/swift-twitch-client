@@ -53,9 +53,10 @@ struct AppTokenIdentityTests {
   }
 
   @Test
-  func chatSettingsVariadicOverloadForwardsModerator() throws {
-    let endpoint: HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> =
-      .updateChatSettings(of: "channel", moderatorID: "actor", settings: .emoteMode)
+  func chatSettingsPatchForwardsModerator() throws {
+    let endpoint: HelixEndpoint<ChatSettings> =
+      .updateChatSettings(
+        of: "channel", moderatorID: "actor", settings: .init(emoteMode: true))
     let request = try endpoint.makeRequest(
       using: app, encoder: TwitchClient.makeEncoder())
     #expect(request.url?.query()?.contains("moderator_id=actor") == true)
@@ -63,7 +64,7 @@ struct AppTokenIdentityTests {
 
   @Test
   func autoModVariadicOverloadForwardsBroadcaster() throws {
-    let endpoint: HelixEndpoint<[AutoModStatus], AutoModStatus, HelixEndpointResponseTypes.Normal> =
+    let endpoint: HelixEndpoint<[AutoModStatus]> =
       .checkAutoModStatus(
         messages: (id: "message", message: "text"), broadcasterID: "actor")
     let request = try endpoint.makeRequest(
@@ -124,7 +125,7 @@ enum IdentityOperation: CaseIterable, Sendable {
       },
       .chatSettings: { credentials, actorID in
         try makeIdentityRequest(
-          .updateChatSettings(of: "channel", moderatorID: actorID, settings: []),
+          .updateChatSettings(of: "channel", moderatorID: actorID, settings: .init()),
           credentials)
       },
       .addTerm: { credentials, actorID in
@@ -245,10 +246,8 @@ enum IdentityOperation: CaseIterable, Sendable {
     ]
 }
 
-private func makeIdentityRequest<
-  R, H: Decodable & Sendable, E: HelixEndpointResponseType
->(
-  _ endpoint: HelixEndpoint<R, H, E>, _ credentials: TwitchCredentials
+private func makeIdentityRequest<R>(
+  _ endpoint: HelixEndpoint<R>, _ credentials: TwitchCredentials
 ) throws -> URLRequest {
   try endpoint.makeRequest(using: credentials, encoder: TwitchClient.makeEncoder())
 }

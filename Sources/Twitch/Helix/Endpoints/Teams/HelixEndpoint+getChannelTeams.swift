@@ -15,7 +15,7 @@ extension HelixEndpoint {
   /// App tokens require an explicit target ID.
   public static func getChannelTeams(
     for broadcasterID: String? = nil
-  ) -> HelixEndpoint<[Team], Team, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[Team]> {
     .init(
       method: "GET", path: "teams/channel",
       authentication: .either,
@@ -27,6 +27,6 @@ extension HelixEndpoint {
           )
         ]
       },
-      makeResponse: { $0.data })
+      responseType: Team.self, makeResponse: { $0.data })
   }
 }

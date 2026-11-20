@@ -17,7 +17,7 @@ extension HelixEndpoint {
   ///     Required for app tokens.
   public static func getClipsDownload(
     _ clipIDs: [String], broadcasterID: String, editorID: String? = nil
-  ) -> HelixEndpoint<[ClipDownload], ClipDownload, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[ClipDownload]> {
     .init(
       method: "GET", path: "clips/downloads",
       authentication: .either,
@@ -31,7 +31,7 @@ extension HelixEndpoint {
           ),
         ]
           + clipIDs.map { ("clip_id", $0) }
-      }, makeResponse: { $0.data })
+      }, responseType: ClipDownload.self, makeResponse: { $0.data })
   }
 }
 

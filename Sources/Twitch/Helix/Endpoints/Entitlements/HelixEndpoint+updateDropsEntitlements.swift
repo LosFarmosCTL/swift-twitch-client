@@ -17,10 +17,7 @@ extension HelixEndpoint {
   public static func updateDropsEntitlements(
     entitlementIDs: [String] = [],
     fulfillmentStatus: DropsEntitlementFulfillmentStatus? = nil
-  ) -> HelixEndpoint<
-    [DropsEntitlementUpdateResult], DropsEntitlementUpdateResult,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<[DropsEntitlementUpdateResult]> {
     .init(
       method: "PATCH", path: "entitlements/drops",
       authentication: .either,
@@ -29,7 +26,7 @@ extension HelixEndpoint {
           entitlementIDs: entitlementIDs,
           fulfillmentStatus: fulfillmentStatus)
       },
-      makeResponse: { $0.data })
+      responseType: DropsEntitlementUpdateResult.self, makeResponse: { $0.data })
   }
 }
 
