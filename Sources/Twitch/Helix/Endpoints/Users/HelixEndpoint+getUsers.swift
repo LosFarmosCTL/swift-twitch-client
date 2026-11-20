@@ -49,7 +49,7 @@ public struct User: Decodable, Sendable {
   /// The user’s staff, administrator, or global moderator role; an empty string indicates
   /// a regular user.
   public let type: String
-  /// The account’s broadcaster classification: partner, affiliate, or neither.
+  /// The account’s broadcaster classification.
   public let broadcasterType: BroadcasterType
 
   /// The descriptive text supplied by Twitch.
@@ -64,14 +64,27 @@ public struct User: Decodable, Sendable {
   /// The user’s email address, when authorized.
   public let email: String?
 
-  /// Whether a Twitch account is a Partner, Affiliate, or neither.
-  public enum BroadcasterType: String, Decodable, Sendable {
+  /// A Twitch broadcaster classification, preserving unfamiliar strings in `rawValue`.
+  public struct BroadcasterType: RawRepresentable, Decodable, Sendable, Hashable {
+    /// The exact classification string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a broadcaster classification from any string.
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
+
+    /// Decodes a broadcaster classification from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
     /// A Twitch Partner account.
-    case partner
+    public static let partner = Self(rawValue: "partner")
     /// A Twitch Affiliate account.
-    case affiliate
+    public static let affiliate = Self(rawValue: "affiliate")
     /// No value or classification applies. Encoded as `""`.
-    case none = ""
+    public static let none = Self(rawValue: "")
   }
 
   enum CodingKeys: String, CodingKey {
