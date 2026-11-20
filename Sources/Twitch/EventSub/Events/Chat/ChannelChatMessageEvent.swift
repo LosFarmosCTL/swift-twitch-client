@@ -74,23 +74,38 @@ public struct ChannelChatMessageEvent: Event {
     case isSourceOnly
   }
 
-  /// Whether a chat message is ordinary text, an introduction, or a rewarded message.
-  public enum MessageType: String, Decodable, Sendable {
+  /// A Twitch message classification. Unrecognized strings are preserved in `rawValue`.
+  public struct MessageType: RawRepresentable, Decodable, Sendable, Hashable {
+    /// The exact classification string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a message classification from any string.
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
+
+    /// Decodes a message classification from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
     /// An ordinary text chat message. Encoded as `"text"`.
-    case text = "text"
+    public static let text = Self(rawValue: "text")
     /// A message highlighted through a Channel Points redemption. Encoded as
     /// `"channel_points_highlighted"`.
-    case channelPointsHighlighted = "channel_points_highlighted"
+    public static let channelPointsHighlighted = Self(
+      rawValue: "channel_points_highlighted")
     /// A message sent using a Channel Points subscriber-only bypass. Encoded as
     /// `"channel_points_sub_only"`.
-    case channelPointsSubOnly = "channel_points_sub_only"
+    public static let channelPointsSubOnly = Self(rawValue: "channel_points_sub_only")
     /// A user introduction message. Encoded as `"user_intro"`.
-    case userIntro = "user_intro"
+    public static let userIntro = Self(rawValue: "user_intro")
     /// A message using a Bits Power-up effect. Encoded as `"power_ups_message_effect"`.
-    case powerUpsMessageEffect = "power_ups_message_effect"
+    public static let powerUpsMessageEffect = Self(rawValue: "power_ups_message_effect")
     /// A message using a Bits Power-up enlarged emote. Encoded as
     /// `"power_ups_gigantified_emote"`.
-    case powerUpsGigantifiedEmote = "power_ups_gigantified_emote"
+    public static let powerUpsGigantifiedEmote = Self(
+      rawValue: "power_ups_gigantified_emote")
   }
 
   /// A badge’s set, version, and additional information for the message author.
@@ -200,6 +215,8 @@ public struct ChannelChatMessageEvent: Event {
         case mention(Mention)
         /// An animated image format.
         case gif(GIF)
+        /// An unfamiliar fragment kind. The fragment's text remains available.
+        case unknown(String)
 
         enum CodingKeys: String, CodingKey {
           case type
@@ -211,7 +228,11 @@ public struct ChannelChatMessageEvent: Event {
 
         init(from decoder: Decoder) throws {
           let container = try decoder.container(keyedBy: CodingKeys.self)
-          let type = try container.decode(FragmentType.self, forKey: .type)
+          let rawType = try container.decode(String.self, forKey: .type)
+          guard let type = FragmentType(rawValue: rawType) else {
+            self = .unknown(rawType)
+            return
+          }
 
           switch type {
           case .text:
@@ -227,7 +248,7 @@ public struct ChannelChatMessageEvent: Event {
           }
         }
 
-        private enum FragmentType: String, Decodable, Sendable {
+        private enum FragmentType: String {
           case text, emote, cheermote, mention, gif
         }
       }

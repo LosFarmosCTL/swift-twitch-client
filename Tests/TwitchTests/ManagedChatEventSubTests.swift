@@ -31,17 +31,25 @@ struct ManagedChatEventSubTests {
     try await client.join(to: other)
     #expect(await postCount() == 12)
     let message = try notification(
-      MockedMessages.channelChatMessage, type: "channel.chat.message")
+      MockedMessages.channelChatMessage, type: "channel.chat.message"
+    ) {
+      var event = $0
+      event["message_type"] = "future_message"
+      return event
+    }
     await session.simulateIncoming(.string(message))
     let normalized = try #require(
       await events.first { if case .message = $0.payload { true } else { false } })
     if case .message(let message) = normalized.payload {
+      #expect(message.text == "Hi chat [GIF]")
+      #expect(message.isIntroduction == false)
       #expect(message.isFirstMessage == nil)
       #expect(message.isReturningChatter == nil)
       #expect(message.contentFilterFlags == nil)
     }
     var rawIterator = raw.makeAsyncIterator()
     let original = try #require(try await rawIterator.next())
+    #expect(original.event.messageType.rawValue == "future_message")
     #expect(normalized.timestamp == original.sentAt)
 
     await session.simulateIncoming(
@@ -96,7 +104,9 @@ struct ManagedChatEventSubTests {
     await session.simulateIncoming(
       .string(
         MockedMessages.customized(
-          MockedMessages.mockRevocationMessage, subscriptionID: "channel.chat.clear-123")))
+          MockedMessages.mockRevocationMessage.replacingOccurrences(
+            of: "authorization_revoked", with: "future_revocation_reason"),
+          subscriptionID: "channel.chat.clear-123")))
 
     var iterator = events.makeAsyncIterator()
     let message = await iterator.next()
@@ -104,7 +114,8 @@ struct ManagedChatEventSubTests {
     await gate.release()
 
     if case .message = message?.payload {} else { Issue.record("The earlier message was lost") }
-    if case .membershipEnded(.subscriptionRevoked) = departure?.payload {
+    if case .membershipEnded(.subscriptionRevoked(let status)) = departure?.payload {
+      #expect(status.rawValue == "future_revocation_reason")
     } else {
       Issue.record("The managed channel did not report the revocation")
     }
@@ -158,8 +169,7 @@ struct ManagedChatEventSubTests {
     #expect(state.channels[channel.id]?.privilege.isVIP == true)
     #expect(state.channels[channel.id]?.privilege.isModerator == true)
     #expect(
-      state.channels[channel.id]?.moderationRevocation
-        == .unknown("new_authorization_reason"))
+      state.channels[channel.id]?.moderationRevocation?.rawValue == "new_authorization_reason")
     await session.simulateIncoming(
       .string(try deletion(messageID: "deleted", envelopeID: "duplicate")))
     await session.simulateIncoming(

@@ -154,12 +154,20 @@ public struct ChannelModerateEvent: Event {
     case sharedChatUntimeout(User)
     /// Deletes the associated message from the source channel during shared chat.
     case sharedChatDelete(Delete)
+    /// An unfamiliar moderation action identified by its discriminator.
+    case unknown(String)
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
 
-      switch try container.decode(ActionType.self, forKey: .action) {
+      let rawAction = try container.decode(String.self, forKey: .action)
+      guard let action = ActionType(rawValue: rawAction) else {
+        self = .unknown(rawAction)
+        return
+      }
+
+      switch action {
       case .ban:
         self = .ban(try container.decode(Ban.self, forKey: .ban))
       case .timeout:
@@ -242,7 +250,7 @@ public struct ChannelModerateEvent: Event {
       }
     }
 
-    enum ActionType: String, Codable {
+    private enum ActionType: String {
       case ban, timeout
       case unban, untimeout
       case clear
