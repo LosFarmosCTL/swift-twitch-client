@@ -94,6 +94,7 @@ extension EventSubClient {
 
   func closeSession(_ sessionID: UUID) {
     guard let session = sessions.active.removeValue(forKey: sessionID) else { return }
+    stopReconcilingSubscriptions(in: sessionID)
 
     let connections = [session.connection] + Array(session.drainingConnections.values)
     _ = startClosingSession(sessionID, connections: connections, handshake: session.replacement)

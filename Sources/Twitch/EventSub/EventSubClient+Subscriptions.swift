@@ -14,6 +14,7 @@ extension EventSubClient {
   private func openSubscription(_ subscription: Subscription) async {
     var reservation: Reservation?
     var subscriptionID: String?
+    var dispatched = false
 
     do {
       let (slot, sessionID) = try await reserveSubscriptionSlot(revision: subscription.revision)
@@ -32,16 +33,32 @@ extension EventSubClient {
         credentials: subscription.credentials,
         network: network,
         decoder: decoder,
-        diagnostics: diagnostics)
+        diagnostics: diagnostics,
+        beforeDispatch: { dispatched = true })
 
       subscriptionID = response.value.subscription.id
       try activate(subscription, id: subscriptionID!)
     } catch {
       closeSubscription(subscription, error: setupError(error))
 
-      // A POST may succeed after the last observer has left.
-      await deleteAndRemove(subscription, id: subscriptionID, slot: reservation)
+      if dispatched, subscriptionID == nil, let reservation, Self.isUncertainCreate(error) {
+        reconcileCleanup(subscription, target: .unknownID, slot: reservation)
+      } else {
+        // A POST may succeed after the last observer has left.
+        await deleteAndRemove(subscription, id: subscriptionID, slot: reservation)
+      }
     }
+  }
+
+  private static func isUncertainCreate(_ error: any Error) -> Bool {
+    let status: Int
+    switch error {
+    case HelixError.rateLimited: return false
+    case HelixError.twitchError(_, let code, _), HelixError.parsingErrorFailed(let code, _):
+      status = code
+    default: return true
+    }
+    return status == 408 || !(400..<500).contains(status)
   }
 
   private func activate(_ subscription: Subscription, id: String) throws {
@@ -89,9 +106,11 @@ extension EventSubClient {
     var phase = Phase.reserving
     var observers: [UUID: Observer] = [:]
     var setupTask: Task<Void, Never>?
+    var reconciliation: (slot: Reservation, target: CleanupTarget, task: Task<Void, Never>)?
 
     // A nil registry means this entry has finished cleanup.
-    private(set) var cleanupWaiters: [UUID: AsyncStream<Void>.Continuation]? = [:]
+    private(set) var cleanupWaiters: [UUID: AsyncThrowingStream<Void, any Error>.Continuation]? =
+      [:]
 
     init(
       key: ConflictKey, eventType: any Event.Type, credentials: TwitchCredentials, revision: UInt64
@@ -102,15 +121,26 @@ extension EventSubClient {
       self.revision = revision
     }
 
-    nonisolated(nonsending) func waitUntilClosed() async {
+    nonisolated(nonsending) func waitUntilClosed(until deadline: ContinuousClock.Instant)
+      async throws
+    {
       guard cleanupWaiters != nil else { return }
 
       let id = UUID()
-      let (stream, completion) = AsyncStream<Void>.makeStream()
+      let (stream, completion) = AsyncThrowingStream<Void, any Error>.makeStream()
       cleanupWaiters?[id] = completion
-      defer { cleanupWaiters?[id] = nil }
+      let timeout = Task {
+        do {
+          try await ContinuousClock().sleep(until: deadline)
+          completion.finish(throwing: EventSubError.timedOut)
+        } catch {}
+      }
+      defer {
+        timeout.cancel()
+        cleanupWaiters?[id] = nil
+      }
 
-      for await _ in stream {}
+      for try await _ in stream {}
     }
 
     func finishCleanup() {

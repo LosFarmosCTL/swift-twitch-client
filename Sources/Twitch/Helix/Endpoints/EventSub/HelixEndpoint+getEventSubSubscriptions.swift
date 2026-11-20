@@ -21,6 +21,14 @@ extension HelixEndpoint {
     filter: EventSubSubscriptionFilter? = nil,
     after cursor: String? = nil
   ) -> HelixEndpoint<GetEventSubSubscriptionsResponse> {
+    getEventSubSubscriptions(filter: filter, after: cursor, requiresValidPagination: false)
+  }
+
+  internal static func getEventSubSubscriptions(
+    filter: EventSubSubscriptionFilter?,
+    after cursor: String?,
+    requiresValidPagination: Bool
+  ) -> HelixEndpoint<GetEventSubSubscriptionsResponse> {
     .init(
       method: "GET", path: "eventsub/subscriptions",
       authentication: .either,
@@ -35,6 +43,7 @@ extension HelixEndpoint {
         return items
       },
       responseType: GetEventSubSubscriptionsResponse.Subscription.self,
+      requiresValidPagination: requiresValidPagination,
       makeResponse: { response in
         let total = try response.require(\.total)
         let totalCost = try response.require(\.totalCost)

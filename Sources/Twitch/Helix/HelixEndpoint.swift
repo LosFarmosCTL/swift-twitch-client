@@ -41,6 +41,7 @@ public struct HelixEndpoint<Response>: Sendable {
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil },
     responseType: Payload.Type,
+    requiresValidPagination: Bool = false,
     makeResponse:
       @escaping @Sendable (DecodedHelixResponse<Payload>) throws -> Response
   ) {
@@ -61,7 +62,13 @@ public struct HelixEndpoint<Response>: Sendable {
           .init(underlyingError: error, responseData: data, metadata: metadata))
       }
 
-      if let error = payload.paginationFailure { onMalformedPagination(error) }
+      if let error = payload.paginationFailure {
+        if requiresValidPagination {
+          throw HelixError.parsingResponseFailed(
+            .init(underlyingError: error, responseData: data, metadata: metadata))
+        }
+        onMalformedPagination(error)
+      }
       return try makeResponse(DecodedHelixResponse(payload: payload, rawData: data))
     }
   }

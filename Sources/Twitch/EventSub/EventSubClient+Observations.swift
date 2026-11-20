@@ -44,8 +44,9 @@ extension EventSubClient {
   }
 
   private func waitForSubscriptionCleanup(_ key: ConflictKey, revision: UInt64) async throws {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(30))
     while let previous = subscriptions[key], case .closing = previous.phase {
-      await previous.waitUntilClosed()
+      try await previous.waitUntilClosed(until: deadline)
       try checkRevision(revision)
     }
   }
