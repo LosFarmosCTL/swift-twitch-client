@@ -2,21 +2,6 @@ import Foundation
 import TwitchIRC
 
 internal actor IRCConnectionPool {
-  struct Entry: Sendable {
-    let supervisor: IRCConnectionSupervisor
-
-    var channels: Set<String> = []
-    var ready = false
-    var recovery: IRCRecovery?
-    var globalUserState: GlobalUserState?
-    var task: Task<Void, Never>?
-  }
-
-  struct PendingJoin {
-    let token: UUID
-    let task: Task<Void, Never>
-  }
-
   private let network: NetworkSession
 
   let credentials: TwitchCredentials?
@@ -26,16 +11,13 @@ internal actor IRCConnectionPool {
   var state: State { currentState }
   private var currentState = State() {
     didSet {
-      let snapshot = snapshot
-      for observer in stateObservers.values { observer.yield(snapshot) }
+      if !updatingChannels { publishState() }
     }
   }
 
   var pendingJoins: [String: PendingJoin] = [:]
-  private(set) var established = false
-
-  var continuation: AsyncThrowingStream<IncomingMessage, Error>.Continuation?
-  var stateObservers: [UUID: AsyncStream<IRCState>.Continuation] = [:]
+  var updates: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
+  private var updatingChannels = false
 
   init(
     with credentials: TwitchCredentials? = nil,
@@ -49,49 +31,42 @@ internal actor IRCConnectionPool {
     self.rateLimiter = rateLimiter
   }
 
-  func start() throws -> AsyncThrowingStream<IncomingMessage, Error> {
+  func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
     try Task.checkCancellation()
-
     guard !state.ended else { throw state.terminalError ?? IRCError.disconnected }
     guard !state.active else { throw IRCError.alreadyConnected }
 
-    let (stream, continuation) = AsyncThrowingStream<IncomingMessage, Error>.makeStream()
-    self.continuation = continuation
-
-    updateState { state in
-      state.active = true
-
-      if state.entries.isEmpty {
-        _ = addEntry(to: &state)
-      }
-    }
+    let (stream, continuation) = AsyncThrowingStream<IRCConnectionUpdate, any Error>.makeStream()
+    updates = continuation
+    updateState { $0.active = true }
 
     for id in state.entries.keys { startRelay(id) }
-
     return stream
   }
 
-  func waitUntilConnected() async throws {
-    let updates = stateUpdates()
-    try await withTaskCancellationHandler {
-      for await _ in updates {
-        try Task.checkCancellation()
-
-        switch snapshot.status {
-        case .connected:
-          established = true
-          return
-        case .failed: throw state.terminalError ?? IRCError.disconnected
-        case .shutdown: throw IRCError.disconnected
-        default: break
-        }
-      }
-
-      try Task.checkCancellation()
-      throw IRCError.disconnected
-    } onCancel: {
-      Task { await self.disconnect() }
+  func setChannels(_ channels: [String], retrying: Set<String> = []) throws {
+    guard !state.ended else { throw IRCError.disconnected }
+    updatingChannels = true
+    defer {
+      updatingChannels = false
+      // Even an unchanged channel set may have a new managed readiness waiter.
+      publishState()
     }
+
+    let desired = Set(channels.map(IRCWireMessage.channelLogin))
+    for channel in Set(state.statuses.keys).subtracting(desired) {
+      try part(from: channel)
+    }
+    for channel in desired.subtracting(state.statuses.keys) {
+      try join(to: channel)
+    }
+    for channel in retrying {
+      try retryChannel(channel)
+    }
+  }
+
+  private func publishState() {
+    updates?.yield(.state(snapshot))
   }
 
   func disconnect(throwing error: Error? = nil) async {
@@ -117,10 +92,8 @@ internal actor IRCConnectionPool {
       }
     }
 
-    finishStateObservers()
-
-    continuation?.finish(throwing: error)
-    continuation = nil
+    updates?.finish(throwing: error)
+    updates = nil
 
     for entry in oldEntries.values { entry.task?.cancel() }
     for entry in oldEntries.values { await entry.supervisor.disconnect() }

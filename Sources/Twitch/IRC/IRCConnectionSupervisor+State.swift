@@ -25,38 +25,31 @@ extension IRCConnectionSupervisor {
     }
   }
 
-  var snapshot: IRCState { state.snapshot }
+  func waitUntilConnected() async throws {
+    try Task.checkCancellation()
+    if state.status == .connected { return }
+    if state.isEnded { throw state.terminalError ?? IRCError.disconnected }
 
-  func stateUpdates() -> AsyncStream<IRCState> {
     let id = UUID()
-    let (stream, observer) = AsyncStream<IRCState>.makeStream()
+    let (ready, reply) = AsyncThrowingStream<Void, any Error>.makeStream()
+    connectionWaiters[id] = reply
+    defer { connectionWaiters[id] = nil }
 
-    observer.yield(snapshot)
-
-    guard !state.isEnded else {
-      observer.finish()
-      return stream
-    }
-
-    stateObservers[id] = observer
-    observer.onTermination = { [weak self] _ in
-      Task {
-        await self?.removeStateObserver(id)
-      }
-    }
-
-    return stream
+    for try await _ in ready {}
+    try Task.checkCancellation()
   }
 
-  func finishStateObservers() {
-    for observer in stateObservers.values {
-      observer.finish()
+  func completeConnectionWaiters() {
+    let error: (any Error)?
+    if state.status == .connected {
+      error = nil
+    } else if state.isEnded {
+      error = state.terminalError ?? IRCError.disconnected
+    } else {
+      return
     }
 
-    stateObservers.removeAll()
-  }
-
-  private func removeStateObserver(_ id: UUID) {
-    stateObservers[id] = nil
+    for reply in connectionWaiters.values { reply.finish(throwing: error) }
+    connectionWaiters.removeAll()
   }
 }

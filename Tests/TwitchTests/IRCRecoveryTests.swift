@@ -103,12 +103,12 @@ struct IRCRecoveryTests {
   @Test
   func pendingMembershipIsReservedAndLateJoinIsParted() async throws {
     let pool = IRCConnectionPool(network: session)
-    let pending = Task { try await pool.connect() }
+    let updates = try await pool.start()
+    try await pool.join(to: "other")
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
-    var messages = try await pending.value.makeAsyncIterator()
 
-    try await pool.join(to: "other")
+    await socket.waitForSent("JOIN #other")
     try await pool.join(to: "#SWIFT")
     try await pool.join(to: "swift")
     await socket.waitForSent("JOIN #swift")
@@ -121,28 +121,27 @@ struct IRCRecoveryTests {
     await socket.simulateIncoming(
       .string(
         ":justinfan12345!justinfan12345@justinfan12345.tmi.twitch.tv JOIN #swift"))
-    _ = try await messages.next()
+    _ = try #require(try await updates.nextMessage())
 
     #expect(await socket.sentCount(prefix: "PART #swift") == 2)
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    #expect(await statuses.next() == ["other": .joining])
+    #expect(await pool.snapshot.channels == ["other": .joining])
 
     await pool.disconnect()
-    #expect(await statuses.next() == [:])
-    #expect(await statuses.next() == nil)
+    #expect(await pool.snapshot.channels.isEmpty)
+    #expect(try await updates.nextMessage() == nil)
   }
 
   @Test
   func pendingJoinsCountTowardCapacityAndFailureIsIsolated() async throws {
     let pool = IRCConnectionPool(network: session)
-    let pending = Task { try await pool.connect() }
-    let first = await session.waitForTask(at: 0)
-    await handshake(first)
-    var messages = try await pending.value.makeAsyncIterator()
-
-    for index in 0..<91 {
+    let updates = try await pool.start()
+    for index in 0..<90 {
       try await pool.join(to: "channel\(index)")
     }
+
+    let first = await session.waitForTask(at: 0)
+    await handshake(first)
+    try await pool.join(to: "channel90")
 
     let second = await session.waitForTask(at: 1)
     await handshake(second)
@@ -155,7 +154,7 @@ struct IRCRecoveryTests {
 
     await second.simulateIncoming(
       .string(":tester!tester@tester.tmi.twitch.tv JOIN #channel90"))
-    let message = try #require(try await messages.next())
+    let message = try #require(try await updates.nextMessage())
 
     if case .join(let join) = message {
       #expect(join.channel == "channel90")
@@ -175,12 +174,13 @@ struct IRCRecoveryTests {
   @Test
   func joinDuringInitialHandshakeUsesOneConnection() async throws {
     let pool = IRCConnectionPool(network: session)
-    let pending = Task { try await pool.connect() }
+    _ = try await pool.start()
+    #expect(await session.taskCount() == 0)
+    try await pool.join(to: "other")
     let socket = await session.waitForTask(at: 0)
     try await pool.join(to: "swift")
 
     await handshake(socket)
-    _ = try await pending.value
     await socket.waitForSent("JOIN #swift")
 
     #expect(await socket.sentCount(prefix: "JOIN #swift") == 1)
@@ -190,68 +190,15 @@ struct IRCRecoveryTests {
   }
 
   @Test
-  func writeConnectionRecoversAndAuthenticationFailureIsTerminal() async throws {
-    let pending = Task {
-      let client = TwitchIRCClient(.anonymous, network: session)
-
-      try await client.connect()
-
-      return client
-    }
-
-    let writer = await session.waitForTask(at: 0)
-    await handshake(writer)
-    let reader = await session.waitForTask(at: 1)
-    await handshake(reader)
-    let client = try await pending.value
-
-    var messages = await client.messageStream().makeAsyncIterator()
-    try await client.requestJoin(to: "swift")
-    var statuses = await client.channelStatusSnapshots().makeAsyncIterator()
-    _ = await statuses.next()
-
-    let updates = await client.stateUpdates()
-    await writer.simulateIncoming(.string(":tmi.twitch.tv RECONNECT"))
-    _ = try #require(await updates.first { $0.status == .reconnecting })
-    let replacement = await session.waitForTask(at: 2)
-    await handshake(replacement)
-
-    _ = try #require(await client.stateUpdates().first { $0.status == .connected })
-
-    #expect(await reader.didCancel == false)
-
-    await replacement.simulateIncoming(
-      .string(
-        ":tmi.twitch.tv NOTICE * :Login authentication failed"))
-    let error = await #expect(throws: IRCError.self) { try await messages.next() }
-
-    if case .loginFailed = error {
-    } else {
-      Issue.record("Expected terminal authentication failure")
-    }
-
-    #expect(await statuses.next() == ["swift": .failed(.authenticationFailed)])
-    #expect(await statuses.next() == nil)
-    await reader.waitForCancellation()
-    await replacement.waitForCancellation()
-
-    #expect(await reader.didCancel)
-    #expect(await replacement.didCancel)
-
-    await client.shutdown()
-  }
-
-  @Test
   func disconnectDuringAdditionalConnectionHandshake() async throws {
     let pool = IRCConnectionPool(network: session)
-    let pending = Task { try await pool.connect() }
-    let first = await session.waitForTask(at: 0)
-    await handshake(first)
-    _ = try await pending.value
-
-    for index in 0..<91 {
+    _ = try await pool.start()
+    for index in 0..<90 {
       try await pool.join(to: "channel\(index)")
     }
+    let first = await session.waitForTask(at: 0)
+    await handshake(first)
+    try await pool.join(to: "channel90")
 
     let second = await session.waitForTask(at: 1)
     await second.waitForSent("NICK")

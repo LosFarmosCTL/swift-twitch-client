@@ -5,93 +5,103 @@ extension IRCConnection {
   static func handshake(
     on socket: WebSocketTask,
     credentials: TwitchCredentials?,
-    timeout: Duration
+    timeout: Duration,
+    lifetime: IRCConnectionLifetime
   ) async throws -> [IncomingMessage] {
     try await withTaskCancellationHandler {
-      try await withThrowingTaskGroup(of: [IncomingMessage].self) { group in
-        group.addTask { try await performHandshake(on: socket, credentials: credentials) }
-
-        group.addTask {
-          try await Task.sleep(for: timeout)
-          throw IRCError.handshakeTimedOut
-        }
-
-        defer { group.cancelAll() }
-
-        do {
-          return try await group.next() ?? []
-        } catch {
-          await socket.cancel(with: .goingAway, reason: nil)
-          throw error
-        }
-      }
+      try await waitForHandshake(
+        on: socket, credentials: credentials, timeout: timeout, lifetime: lifetime)
     } onCancel: {
-      Task {
+      Task { await socket.cancel(with: .goingAway, reason: nil) }
+    }
+  }
+
+  private static func waitForHandshake(
+    on socket: WebSocketTask,
+    credentials: TwitchCredentials?,
+    timeout: Duration,
+    lifetime: IRCConnectionLifetime
+  ) async throws -> [IncomingMessage] {
+    try await withThrowingTaskGroup(of: [IncomingMessage].self) { group in
+      group.addTask {
+        try await sendLogin(on: socket, credentials: credentials, lifetime: lifetime)
+        return try await readHandshake(on: socket, authenticated: credentials != nil)
+      }
+      group.addTask {
+        try await Task.sleep(for: timeout)
+        throw IRCError.handshakeTimedOut
+      }
+
+      defer { group.cancelAll() }
+      do {
+        return try await group.next() ?? []
+      } catch {
         await socket.cancel(with: .goingAway, reason: nil)
+        throw error
       }
     }
   }
 
-  private static func performHandshake(
-    on socket: WebSocketTask,
-    credentials: TwitchCredentials?
-  ) async throws -> [IncomingMessage] {
+  private static let requiredCapabilities: [Capability] = [.commands, .tags]
+
+  private static func sendLogin(
+    on socket: WebSocketTask, credentials: TwitchCredentials?, lifetime: IRCConnectionLifetime
+  ) async throws {
+    try lifetime.check()
     await socket.resume()
-    try Task.checkCancellation()
+    try lifetime.check()
 
-    try await socket.send(
-      .string(OutgoingMessage.capabilities([.commands, .tags]).serialize()))
-
+    try await socket.send(.string(OutgoingMessage.capabilities(requiredCapabilities).serialize()))
     if let credentials {
-      try await socket.send(
-        .string(OutgoingMessage.pass(pass: credentials.accessToken).serialize()))
+      try await socket.send(.string(try IRCWireMessage(.pass(pass: credentials.accessToken)).text))
     }
 
     let login = credentials?.userLogin?.lowercased() ?? "justinfan12345"
-    try await socket.send(.string(OutgoingMessage.nick(name: login).serialize()))
+    try await socket.send(.string(try IRCWireMessage(.nick(name: login)).text))
+  }
 
-    var commandsAcknowledged = false
-    var tagsAcknowledged = false
-    var welcomeReceived = false
-    var userStateReceived = credentials == nil
-    var buffered: [IncomingMessage] = []
+  private static func readHandshake(
+    on socket: WebSocketTask, authenticated: Bool
+  ) async throws -> [IncomingMessage] {
+    var handshake = Handshake(waitingForUserState: authenticated)
 
-    while !(commandsAcknowledged
-      && tagsAcknowledged
-      && welcomeReceived
-      && userStateReceived)
-    {
+    while !handshake.isComplete {
       try Task.checkCancellation()
 
       for message in try await receive(on: socket) {
-        switch message {
-        case .capabilities(let capabilities):
-          guard capabilities.response == .acknowledged else {
-            throw IRCError.capabilitiesRejected
-          }
-
-          commandsAcknowledged =
-            commandsAcknowledged || capabilities.capabilities.contains(.commands)
-          tagsAcknowledged =
-            tagsAcknowledged || capabilities.capabilities.contains(.tags)
-
-        case .connectionNotice:
-          welcomeReceived = true
-
-        case .globalUserState:
-          userStateReceived = true
-          buffered.append(message)
-
-        case .reconnect:
-          throw IRCError.disconnected
-
-        default:
-          buffered.append(message)
-        }
+        try handshake.accept(message)
       }
     }
 
-    return buffered
+    return handshake.buffered
+  }
+
+  private struct Handshake {
+    var pendingCapabilities = Set(IRCConnection.requiredCapabilities)
+    var waitingForWelcome = true
+    var waitingForUserState: Bool
+    var buffered: [IncomingMessage] = []
+
+    var isComplete: Bool {
+      pendingCapabilities.isEmpty && !waitingForWelcome && !waitingForUserState
+    }
+
+    mutating func accept(_ message: IncomingMessage) throws {
+      switch message {
+      case .capabilities(let response):
+        guard response.response == .acknowledged else { throw IRCError.capabilitiesRejected }
+        pendingCapabilities.subtract(response.capabilities)
+      case .connectionNotice:
+        waitingForWelcome = false
+      case .globalUserState:
+        waitingForUserState = false
+        buffered.append(message)
+      case .reconnect:
+        throw IRCError.disconnected
+      default:
+        buffered.append(message)
+      }
+    }
   }
 
   static func receive(on socket: WebSocketTask) async throws -> [IncomingMessage] {
@@ -100,7 +110,6 @@ extension IRCConnection {
     }
 
     var messages: [IncomingMessage] = []
-
     for message in IncomingMessage.parse(ircOutput: text).compactMap(\.message) {
       if case .ping = message {
         try await socket.send(.string(OutgoingMessage.pong.serialize()))

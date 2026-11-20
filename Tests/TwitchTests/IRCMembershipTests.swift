@@ -8,16 +8,17 @@ struct IRCMembershipTests {
   private let session = MockNetworkSession()
 
   private func connect(joinTimeout: Duration = .seconds(15)) async throws
-    -> (IRCConnectionPool, MockWebSocketTask)
+    -> (IRCConnectionPool, MockWebSocketTask, AsyncThrowingStream<IRCConnectionUpdate, any Error>)
   {
     let pool = IRCConnectionPool(network: session, joinTimeout: joinTimeout)
-    let pending = Task { try await pool.connect() }
+    let updates = try await pool.start()
+    try await pool.join(to: "swift")
 
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
-    _ = try await pending.value
+    await socket.waitForSent("JOIN #swift")
 
-    return (pool, socket)
+    return (pool, socket, updates)
   }
 
   private func handshake(_ socket: MockWebSocketTask) async {
@@ -29,74 +30,56 @@ struct IRCMembershipTests {
 
   @Test(arguments: ["msg_channel_suspended", "msg_room_not_found"])
   func rejectedJoinIsObservableAndCanBeRetried(code: String) async throws {
-    let (pool, socket) = try await connect()
-    try await pool.join(to: "swift")
-
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    #expect(await statuses.next() == ["swift": .joining])
+    let (pool, socket, updates) = try await connect()
 
     await socket.simulateIncoming(
       .string(
         "@msg-id=\(code) :tmi.twitch.tv NOTICE #swift :Unavailable"))
 
-    #expect(
-      await statuses.next() == [
-        "swift": .failed(.joinRejected(code: code, message: "Unavailable"))
-      ])
+    _ = try #require(
+      try await updates.nextState {
+        $0.channels["swift"] == .failed(.joinRejected(code: code, message: "Unavailable"))
+      })
 
-    try await pool.retryChannel("swift")
+    try await pool.setChannels(["swift"], retrying: ["swift"])
     await socket.waitForSent("JOIN #swift", count: 2)
 
     #expect(await socket.sentCount(prefix: "JOIN #swift") == 2)
-    #expect(await statuses.next() == ["swift": .joining])
+    #expect(await pool.snapshot.channels == ["swift": .joining])
 
     await pool.disconnect()
   }
 
   @Test
   func timeoutIsObservableAndAcknowledgedRetryStaysJoined() async throws {
-    let (pool, socket) = try await connect(joinTimeout: .milliseconds(30))
-    try await pool.join(to: "swift")
+    let (pool, socket, updates) = try await connect(joinTimeout: .milliseconds(30))
+    _ = try #require(
+      try await updates.nextState { $0.channels["swift"] == .failed(.joinTimedOut) })
 
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    _ = await statuses.next()
-    #expect(await statuses.next() == ["swift": .failed(.joinTimedOut)])
-
-    try await pool.retryChannel("swift")
-    _ = await statuses.next()
+    try await pool.setChannels(["swift"], retrying: ["swift"])
+    await socket.waitForSent("JOIN #swift", count: 2)
     await socket.simulateIncoming(
       .string(
         "@room-id=123 :tmi.twitch.tv ROOMSTATE #swift"))
 
-    #expect(await statuses.next() == ["swift": .joined])
+    _ = try #require(try await updates.nextState { $0.channels["swift"] == .joined })
 
     try await pool.join(to: "other")
-    var observedTimeout = false
-
-    while let snapshot = await statuses.next() {
-      #expect(snapshot["swift"] == .joined)
-
-      if snapshot["other"] == .failed(.joinTimedOut) {
-        observedTimeout = true
-        break
-      }
-    }
-
-    #expect(observedTimeout)
+    let state = try #require(
+      try await updates.nextState { $0.channels["other"] == .failed(.joinTimedOut) })
+    #expect(state.channels["swift"] == .joined)
 
     await pool.disconnect()
   }
 
   @Test
   func emptySocketIsRetiredAndLaterJoinUsesNewSocket() async throws {
-    let (pool, socket) = try await connect()
-    try await pool.join(to: "swift")
+    let (pool, socket, _) = try await connect()
     try await pool.part(from: "swift")
     await socket.waitForCancellation()
 
     #expect(await socket.didCancel)
-    var statuses = await pool.channelStatusSnapshots().makeAsyncIterator()
-    #expect(await statuses.next() == [:])
+    #expect(await pool.snapshot.channels.isEmpty)
 
     try await pool.join(to: "other")
     let replacement = await session.waitForTask(at: 1)
@@ -109,8 +92,7 @@ struct IRCMembershipTests {
 
   @Test
   func partDuringReplacementHandshakeRetiresSocket() async throws {
-    let (pool, socket) = try await connect()
-    try await pool.join(to: "swift")
+    let (pool, socket, _) = try await connect()
 
     await socket.simulateIncoming(.string(":tmi.twitch.tv RECONNECT"))
     let replacement = await session.waitForTask(at: 1)

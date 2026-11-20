@@ -4,11 +4,10 @@ import Foundation
   import FoundationNetworking
 #endif
 
-/// An actor that provides authenticated access to Twitch Helix and EventSub.
+/// An actor that provides access to Twitch Helix, EventSub, and managed chat.
 ///
 /// Create a client with ``TwitchCredentials``, then execute typed ``HelixEndpoint``
-/// requests or observe ``EventSubSubscription`` events. IRC sessions created by this
-/// client have independent lifetimes.
+/// requests, observe ``EventSubSubscription`` events, or join chat with your chosen transports.
 public actor TwitchClient {
   internal private(set) var credentials: TwitchCredentials
   internal let network: NetworkSession
@@ -16,6 +15,10 @@ public actor TwitchClient {
   internal let encoder: JSONEncoder
   internal let decoder: JSONDecoder
 
+  internal let chat: ManagedChat
+  #if canImport(Combine)
+    nonisolated let ircPublishers: IRCMessagePublishers
+  #endif
   internal let eventSubClient: EventSubClient
   var eventSubRevision: UInt64 = 0
   var eventSubResetTask: Task<Void, Never>?
@@ -24,21 +27,25 @@ public actor TwitchClient {
   ///
   /// - Parameters:
   ///   - credentials: The credentials used to authorize the request.
+  ///   - chat: The fixed transports and behavior for managed chat.
   ///   - urlSession: The URL session used for network requests. Defaults to
   ///     `URLSession(configuration: .default)`.
   public init(
     credentials: TwitchCredentials,
+    chat: ChatConfiguration = .init(),
     urlSession: URLSession = URLSession(configuration: .default)
   ) {
     let network = URLSessionNetworkSession(session: urlSession)
 
     self.init(
       credentials: credentials,
+      chat: chat,
       network: network)
   }
 
   internal init(
     credentials: TwitchCredentials,
+    chat configuration: ChatConfiguration = .init(),
     network: NetworkSession
   ) {
     self.credentials = credentials
@@ -51,6 +58,13 @@ public actor TwitchClient {
       network: network,
       decoder: self.decoder,
       credentials: credentials)
+
+    let chat = ManagedChat(configuration: configuration, credentials: credentials, network: network)
+    self.chat = chat
+    #if canImport(Combine)
+      self.ircPublishers = chat.ircPublishers
+    #endif
+    chat.client = self
   }
 
   deinit {
@@ -58,16 +72,18 @@ public actor TwitchClient {
     Task { await eventSubClient.retire() }
   }
 
-  /// Replaces the credentials used by this client’s Helix and EventSub operations.
+  /// Replaces credentials and applies the selected managed chat membership policy.
   ///
-  /// EventSub observers finish when teardown begins. Create new subscriptions with the
-  /// new credentials. Independently created IRC sessions retain their captured credentials.
-  ///
-  /// - Parameters:
-  ///   - credentials: The credentials used to authorize the request.
-  public func switchCredentials(to credentials: TwitchCredentials) async {
+  /// Account-bound IRC transports restart as needed. Raw EventSub observers finish
+  /// when teardown begins.
+  public func switchCredentials(
+    to credentials: TwitchCredentials,
+    chatBehavior: ChatCredentialSwitchBehavior = .preserveChannels
+  ) async {
     self.credentials = credentials
-    await startEventSubReset().value
+    let reset = startEventSubReset()
+    chat.switchCredentials(to: credentials, behavior: chatBehavior)
+    await reset.value
   }
 
   internal static func makeEncoder() -> JSONEncoder {

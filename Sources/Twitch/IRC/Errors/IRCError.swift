@@ -1,5 +1,7 @@
-/// A connection or session-lifecycle error from Twitch IRC.
+/// An input-validation, connection, or session-lifecycle error from Twitch IRC.
 public enum IRCError: Error {
+  /// Caller input cannot be safely represented in the given IRC field.
+  case invalidInput(parameter: String)
   /// The connection did not complete its handshake before the deadline.
   case handshakeTimedOut
   /// Twitch rejected the required IRC capabilities.
@@ -10,6 +12,6 @@ public enum IRCError: Error {
   case alreadyConnected
   /// The session has been shut down.
   case disconnected
-  /// The session was created without a write connection.
-  case writeConnectionNotEnabled
+  /// Raw IRC sends require IRC to be configured as the chat writer.
+  case writerNotConfigured
 }
