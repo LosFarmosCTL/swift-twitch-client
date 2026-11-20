@@ -3,6 +3,10 @@ import Testing
 
 @testable import Twitch
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 @Suite(.timeLimit(.minutes(1)))
 struct ManagedChatEventSubTests {
   let session = MockNetworkSession()
