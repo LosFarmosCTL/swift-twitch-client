@@ -23,13 +23,42 @@ extension EventSubClient {
   func deliver(
     _ frame: EventSubNotificationFrame, to subscription: Subscription, in sessionID: UUID
   ) {
-    guard frame.subscription.type == subscription.key.type,
-      frame.subscription.version == subscription.key.version,
-      let notification = sessions.active[sessionID]?.notifications.decode(
-        frame, as: subscription.eventType, using: decoder)
-    else { return }
+    guard frame.subscription.type == subscription.key.type else { return }
+    guard frame.subscription.version == subscription.key.version else { return }
 
-    for observer in subscription.observers.values { observer.handler.yield(notification) }
+    do {
+      let notification = try sessions.active[sessionID]?.notifications.decode(
+        frame, as: subscription.eventType, using: decoder)
+
+      guard let notification else { return }
+
+      for observer in subscription.observers.values { observer.handler.yield(notification) }
+    } catch is CancellationError {
+      return
+    } catch {
+      let condition = subscription.key.condition
+      let channelID =
+        condition["broadcaster_user_id"]
+        ?? condition["from_broadcaster_user_id"] ?? condition["to_broadcaster_user_id"]
+      diagnostics.report(
+        .init(
+          source: .eventSub,
+          stage: .eventSubPayload,
+          details: .init(error: error),
+          payloadByteCount: frame.data.count,
+          eventSubMetadata: .init(
+            connectionID: frame.connectionID,
+            messageID: frame.messageID,
+            messageType: EventSubMessage.Metadata.MessageType.notification.rawValue,
+            sentAt: frame.sentAt,
+            subscriptionID: frame.subscription.id,
+            subscriptionType: subscription.key.type,
+            subscriptionVersion: subscription.key.version,
+            channelID: channelID?.isEmpty == false ? channelID : nil
+          )
+        )
+      )
+    }
   }
 
   private func bufferEarlyFrame(_ frame: Frame, in sessionID: UUID) {
@@ -77,13 +106,14 @@ extension EventSubClient {
     private var received = RecentIDs(capacity: 100)
 
     fileprivate mutating func decode(
-      _ frame: EventSubNotificationFrame, as eventType: any Event.Type, using decoder: JSONDecoder
-    ) -> EventSubNotification<any Event>? {
-      guard !received.contains(frame.messageID),
-        let notification = try? frame.decode(as: eventType, using: decoder)
-      else { return nil }
+      _ frame: EventSubNotificationFrame,
+      as eventType: any Event.Type,
+      using decoder: JSONDecoder
+    ) throws -> EventSubNotification<any Event>? {
+      guard !received.contains(frame.messageID) else { return nil }
 
       // Only a successfully decoded delivery should suppress a later replay.
+      let notification = try frame.decode(as: eventType, using: decoder)
       _ = received.insert(frame.messageID)
       return notification
     }

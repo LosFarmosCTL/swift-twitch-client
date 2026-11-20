@@ -60,7 +60,11 @@ extension EventSubClient {
   func makeSessionConnection(in sessionID: UUID, at url: URL) -> EventSubConnection {
     let socketID = UUID()
     return EventSubConnection(
-      id: socketID, network: network, decoder: decoder, eventSubURL: url
+      id: socketID,
+      network: network,
+      decoder: decoder,
+      eventSubURL: url,
+      diagnostics: diagnostics
     ) { [weak self] update in
       await self?.receiveSocket(update, in: sessionID, from: socketID)
     }

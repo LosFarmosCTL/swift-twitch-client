@@ -80,6 +80,55 @@ Streams, callbacks, and publishers deliver an ``EventSubNotification`` with the
 typed event, its notification and subscription IDs, and `sentAt`, the time Twitch
 sent the notification.
 
+### Inspect decoding failures
+
+Use ``TwitchClient/decodingDiagnostics()`` or configure a callback with
+``TwitchDiagnostics``. Both deliver the same structured reports from Helix and
+EventSub, including Helix requests made by managed chat and EventSub.
+
+```swift
+let reports = await twitch.decodingDiagnostics()
+for await report in reports {
+  print(report.stage, report.details.pathDescription)
+}
+```
+
+Register before starting the operations you want to observe. Each stream buffers
+the newest 64 pending reports and survives credential changes and EventSub resets.
+
+```swift
+let twitch = TwitchClient(
+  credentials: credentials,
+  diagnostics: .init(onDecodingFailure: { diagnostic in
+    print(diagnostic.source, diagnostic.stage, diagnostic.details.pathDescription)
+  })
+)
+```
+
+The callback runs synchronously and may be called concurrently, with no main-actor
+guarantee. Static Helix requests also accept `diagnostics:`. Reports omit payload
+bodies and original Swift errors. Coding paths and EventSub identifiers can contain
+user data. Malformed EventSub messages are skipped, and a Helix result with malformed
+optional pagination remains usable without a cursor.
+
+Helix requests still throw on parsing failures. Both parsing error cases carry a
+``HelixDecodingFailure`` with the original error, structured details, and response data.
+If you previously extracted the raw body directly from either case, use
+`failure.responseData`. HTTP 429 still produces ``HelixError/rateLimited(_:)`` even
+when its body cannot be decoded.
+
+```swift
+do {
+  _ = try await twitch.helix(for: .getUsers())
+} catch HelixError.parsingResponseFailed(let failure) {
+  print(failure.details.kind, failure.details.pathDescription)
+  let original = failure.underlyingError as? DecodingError
+}
+```
+
+Coding paths use decoder keys and array indices. Key decoding strategies can change
+the spelling of keys from the original payload.
+
 ### Manage chat from TwitchClient
 
 Choose a reader and writer with ``ChatConfiguration``. Register a message stream before
@@ -108,6 +157,9 @@ Raw sends use the configured IRC writer and apply IRC wire validation.
 - <doc:Authentication>
 - ``TwitchClient``
 - ``TwitchCredentials``
+- ``TwitchDiagnostics``
+- ``TwitchDecodingDiagnostic``
+- ``TwitchDecodingFailureDetails``
 - ``ValidatedAccessToken``
 - ``AccessTokenValidationError``
 - ``TwitchAuthenticationError``
@@ -118,6 +170,7 @@ Raw sends use the configured IRC writer and apply IRC wire validation.
 - <doc:RateLimiting>
 - ``HelixEndpoint``
 - ``HelixError``
+- ``HelixDecodingFailure``
 - ``HelixResponse``
 - ``HelixResponseMetadata``
 - ``HelixRateLimit``

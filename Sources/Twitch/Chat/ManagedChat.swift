@@ -4,6 +4,7 @@ import Foundation
 internal final class ManagedChat {
   let configuration: ChatConfiguration
   let network: NetworkSession
+  let diagnostics: TwitchDiagnostics
   let sendLimiter = ChatSendLimiter.shared
 
   weak var client: TwitchClient?
@@ -59,11 +60,13 @@ internal final class ManagedChat {
   init(
     configuration: ChatConfiguration,
     credentials: TwitchCredentials,
-    network: NetworkSession
+    network: NetworkSession,
+    diagnostics: TwitchDiagnostics
   ) {
     self.configuration = configuration
     self.credentials = credentials
     self.network = network
+    self.diagnostics = diagnostics
   }
 
   deinit {

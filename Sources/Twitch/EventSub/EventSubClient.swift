@@ -3,6 +3,7 @@ import Foundation
 internal actor EventSubClient {
   let network: NetworkSession
   let decoder: JSONDecoder
+  let diagnostics: TwitchDiagnostics
   private(set) var credentials: TwitchCredentials
   private(set) var revision: UInt64 = 0
   private(set) var isRetired = false
@@ -11,10 +12,16 @@ internal actor EventSubClient {
   var subscriptions: [ConflictKey: Subscription] = [:]
   var remoteSubscriptions: [String: Subscription] = [:]
 
-  init(network: NetworkSession, decoder: JSONDecoder, credentials: TwitchCredentials) {
+  init(
+    network: NetworkSession,
+    decoder: JSONDecoder,
+    credentials: TwitchCredentials,
+    diagnostics: TwitchDiagnostics = .init()
+  ) {
     self.network = network
     self.decoder = decoder
     self.credentials = credentials
+    self.diagnostics = diagnostics
   }
 
   func checkRevision(_ revision: UInt64) throws {

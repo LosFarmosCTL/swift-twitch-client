@@ -55,14 +55,14 @@ extension ManagedChat {
     let credentials = self.credentials
     let network = self.network
 
-    prefill = Task { [weak client] in
+    prefill = Task { [weak client, diagnostics] in
       var cursor: String?
       repeat {
         do {
           try Task.checkCancellation()
           let response = try await TwitchClient.helix(
             for: .getModeratedChannels(limit: 100, after: cursor),
-            credentials: credentials, network: network)
+            credentials: credentials, network: network, diagnostics: diagnostics)
           await client?.withChat {
             $0.acceptChatModeratedChannels(
               response.value.channels, revision: revision)

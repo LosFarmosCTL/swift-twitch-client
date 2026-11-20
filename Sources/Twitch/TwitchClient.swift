@@ -14,6 +14,8 @@ public actor TwitchClient {
 
   internal let encoder: JSONEncoder
   internal let decoder: JSONDecoder
+  internal let diagnostics: TwitchDiagnostics
+  private let diagnosticStreams = DecodingDiagnosticStreams()
 
   internal let chat: ManagedChat
   #if canImport(Combine)
@@ -30,26 +32,31 @@ public actor TwitchClient {
   ///   - chat: The fixed transports and behavior for managed chat.
   ///   - urlSession: The URL session used for network requests. Defaults to
   ///     `URLSession(configuration: .default)`.
+  ///   - diagnostics: Opt-in decoding diagnostics for Helix and EventSub.
   public init(
     credentials: TwitchCredentials,
     chat: ChatConfiguration = .init(),
-    urlSession: URLSession = URLSession(configuration: .default)
+    urlSession: URLSession = URLSession(configuration: .default),
+    diagnostics: TwitchDiagnostics = .init()
   ) {
     let network = URLSessionNetworkSession(session: urlSession)
 
     self.init(
       credentials: credentials,
       chat: chat,
-      network: network)
+      network: network, diagnostics: diagnostics)
   }
 
   internal init(
     credentials: TwitchCredentials,
     chat configuration: ChatConfiguration = .init(),
-    network: NetworkSession
+    network: NetworkSession,
+    diagnostics: TwitchDiagnostics = .init()
   ) {
+    let diagnostics = TwitchDiagnostics(diagnostics, streams: diagnosticStreams)
     self.credentials = credentials
     self.network = network
+    self.diagnostics = diagnostics
 
     self.encoder = Self.makeEncoder()
     self.decoder = Self.makeDecoder()
@@ -57,9 +64,11 @@ public actor TwitchClient {
     self.eventSubClient = EventSubClient(
       network: network,
       decoder: self.decoder,
-      credentials: credentials)
+      credentials: credentials, diagnostics: diagnostics)
 
-    let chat = ManagedChat(configuration: configuration, credentials: credentials, network: network)
+    let chat = ManagedChat(
+      configuration: configuration, credentials: credentials, network: network,
+      diagnostics: diagnostics)
     self.chat = chat
     #if canImport(Combine)
       self.ircPublishers = chat.ircPublishers
@@ -68,8 +77,22 @@ public actor TwitchClient {
   }
 
   deinit {
+    diagnosticStreams.finish()
     let eventSubClient = eventSubClient
     Task { await eventSubClient.retire() }
+  }
+
+  /// Observes new Helix and EventSub decoding failures from this client.
+  ///
+  /// Each call registers an independent observer before returning. It keeps the 64
+  /// newest pending reports, dropping the oldest when full. Reports from concurrent
+  /// requests or connections may arrive in either order.
+  ///
+  /// Cancel the consuming task to end observation. Breaking out of a loop can leave
+  /// a retained stream registered. Streams finish when the client is released.
+  /// Credential changes and EventSub resets preserve the stream and any buffered reports.
+  public func decodingDiagnostics() -> AsyncStream<TwitchDecodingDiagnostic> {
+    diagnosticStreams.stream()
   }
 
   /// Replaces credentials and applies the selected managed chat membership policy.

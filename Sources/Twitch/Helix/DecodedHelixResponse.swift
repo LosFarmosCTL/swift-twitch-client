@@ -33,6 +33,7 @@ internal struct DecodedHelixResponse<T: Decodable> {
 internal struct HelixResponsePayload<T: Decodable>: Decodable {
   let data: [T]
   let pagination: DecodedHelixResponse<T>.Pagination?
+  let paginationFailure: (any Error)?
   let points: Int?
   let template: String?
   let total: Int?
@@ -60,28 +61,46 @@ internal struct HelixResponsePayload<T: Decodable>: Decodable {
     // (for example, Get User Chat Color). Missing or malformed data still fails.
     if try container.decodeNil(forKey: .data) {
       self.data = []
-    } else if let data = try? container.decode([T].self, forKey: .data) {
-      self.data = data
-    } else if let single = try? container.decode(T.self, forKey: .data) {
-      self.data = [single]
     } else {
-      throw DecodingError.dataCorruptedError(
-        forKey: .data, in: container,
-        debugDescription: "Expected array or object for data.")
+      do {
+        self.data = try container.decode([T].self, forKey: .data)
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch let arrayError {
+        do {
+          self.data = [try container.decode(T.self, forKey: .data)]
+        } catch is CancellationError {
+          throw CancellationError()
+        } catch {
+          // A mismatch at `data` means the array decoder could not enter the value.
+          // Once it reaches an element, its error describes that element's failure.
+          if case DecodingError.typeMismatch(_, let context) = arrayError,
+            context.codingPath.count == container.codingPath.count + 1
+          {
+            throw error
+          }
+          throw arrayError
+        }
+      }
     }
 
-    let paginationDecoder = try? container.superDecoder(forKey: .pagination)
-    if let paginationDecoder,
-      let pagination = try? DecodedHelixResponse<T>.Pagination(from: paginationDecoder)
-    {
-      self.pagination = pagination
-    } else if let paginationDecoder,
-      let cursor = try? String(from: paginationDecoder)
-    {
-      self.pagination = DecodedHelixResponse.Pagination(cursor: cursor)
-    } else {
-      self.pagination = nil
+    var pagination: DecodedHelixResponse<T>.Pagination?
+    var paginationFailure: (any Error)?
+    if container.contains(.pagination), try !container.decodeNil(forKey: .pagination) {
+      let paginationDecoder = try container.superDecoder(forKey: .pagination)
+      do {
+        pagination = try DecodedHelixResponse<T>.Pagination(from: paginationDecoder)
+      } catch {
+        if let cursor = try? String(from: paginationDecoder) {
+          pagination = .init(cursor: cursor)
+        } else {
+          paginationFailure = error
+        }
+      }
     }
+
+    self.pagination = pagination
+    self.paginationFailure = paginationFailure
 
     self.points = try container.decodeIfPresent(Int.self, forKey: .points)
     self.template = try container.decodeIfPresent(String.self, forKey: .template)

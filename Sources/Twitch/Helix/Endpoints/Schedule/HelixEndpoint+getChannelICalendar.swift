@@ -22,7 +22,8 @@ extension HelixEndpoint {
       },
       makeRawResponse: { data in
         guard let calendar = String(data: data, encoding: .utf8) else {
-          throw HelixError.parsingResponseFailed(responseData: data)
+          throw DecodingError.dataCorrupted(
+            .init(codingPath: [], debugDescription: "Expected a UTF-8 iCalendar response."))
         }
 
         return calendar

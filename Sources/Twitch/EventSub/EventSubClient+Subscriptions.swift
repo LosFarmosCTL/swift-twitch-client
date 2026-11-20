@@ -26,7 +26,8 @@ extension EventSubClient {
           condition: key.condition),
         credentials: subscription.credentials,
         network: network,
-        decoder: decoder)
+        decoder: decoder,
+        diagnostics: diagnostics)
 
       subscriptionID = response.value.subscription.id
       try activate(subscription, id: subscriptionID!)

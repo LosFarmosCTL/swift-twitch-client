@@ -25,12 +25,13 @@ public struct HelixEndpoint<Response>: Sendable {
   private let baseURL = URL(string: "https://api.twitch.tv/helix")!
 
   private let authentication: HelixAuthentication
-  private let method: String
-  private let path: String
+  internal let method: String
+  internal let path: String
 
   private let makeQueryItems: @Sendable (TwitchCredentials) throws -> [(String, String?)]
   private let makeBody: @Sendable (TwitchCredentials) throws -> Encodable?
-  private let processResponse: @Sendable (Data, JSONDecoder) throws -> Response
+  private let processResponse:
+    @Sendable (Data, HelixResponseMetadata, JSONDecoder, (any Error) -> Void) throws -> Response
 
   internal init<Payload: Decodable & Sendable>(
     method: String, path: String,
@@ -49,10 +50,19 @@ public struct HelixEndpoint<Response>: Sendable {
 
     self.makeQueryItems = queryItems
     self.makeBody = body
-    self.processResponse = { data, decoder in
-      let decoded: DecodedHelixResponse<Payload> = try TwitchClient.decode(
-        data, decoder: decoder)
-      return try makeResponse(decoded)
+    self.processResponse = { data, metadata, decoder, onMalformedPagination in
+      let payload: HelixResponsePayload<Payload>
+      do {
+        payload = try decoder.decode(HelixResponsePayload<Payload>.self, from: data)
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch {
+        throw HelixError.parsingResponseFailed(
+          .init(underlyingError: error, responseData: data, metadata: metadata))
+      }
+
+      if let error = payload.paginationFailure { onMalformedPagination(error) }
+      return try makeResponse(DecodedHelixResponse(payload: payload, rawData: data))
     }
   }
 
@@ -71,7 +81,14 @@ public struct HelixEndpoint<Response>: Sendable {
 
     self.makeQueryItems = queryItems
     self.makeBody = body
-    self.processResponse = { data, _ in try makeRawResponse(data) }
+    self.processResponse = { data, metadata, _, _ in
+      do {
+        return try makeRawResponse(data)
+      } catch let error as DecodingError {
+        throw HelixError.parsingResponseFailed(
+          .init(underlyingError: error, responseData: data, metadata: metadata))
+      }
+    }
   }
 
   internal func makeRequest(
@@ -104,8 +121,11 @@ public struct HelixEndpoint<Response>: Sendable {
     return urlRequest
   }
 
-  internal func makeResponse(from data: Data, decoder: JSONDecoder) throws -> Response {
-    try processResponse(data, decoder)
+  internal func makeResponse(
+    from data: Data, metadata: HelixResponseMetadata, decoder: JSONDecoder,
+    onMalformedPagination: (any Error) -> Void
+  ) throws -> Response {
+    try processResponse(data, metadata, decoder, onMalformedPagination)
   }
 }
 

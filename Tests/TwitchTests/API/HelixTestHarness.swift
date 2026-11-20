@@ -9,13 +9,14 @@ struct HelixTestHarness {
       accessToken: "1234567989",
       clientID: "abcdefghijkl",
       userID: "1234",
-      userLogin: "user")
+      userLogin: "user"),
+    diagnostics: TwitchDiagnostics = .init()
   ) {
     let session = MockNetworkSession()
 
     self.session = session
     self.twitch = TwitchClient(
       credentials: credentials,
-      network: session)
+      network: session, diagnostics: diagnostics)
   }
 }
