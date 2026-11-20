@@ -46,9 +46,19 @@ jobs:
         run: swift test --force-resolved-versions
 
   ios:
-    name: iOS Simulator Build
+    name: ${{ matrix.platform }} Simulator Build
     runs-on: xcode-27
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: iOS
+            artifact: ios-build-diagnostics
+          - platform: tvOS
+            artifact: tvos-build-diagnostics
+          - platform: watchOS
+            artifact: watchos-build-diagnostics
     steps:
       - uses: actions/checkout@v5
 
@@ -60,13 +70,13 @@ jobs:
       - name: Install build tools
         run: brew install xcbeautify
 
-      - name: Build package for iOS Simulator
+      - name: Build package for ${{ matrix.platform }} Simulator
         run: |
           mkdir -p artifacts
           xcodebuild build \
             -scheme swift-twitch-client \
             -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'generic/platform=${{ matrix.platform }} Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TwitchDerivedData" \
             -resultBundlePath artifacts/Build.xcresult \
             -onlyUsePackageVersionsFromResolvedFile \
@@ -78,7 +88,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: ios-build-diagnostics
+          name: ${{ matrix.artifact }}
           path: artifacts/
           if-no-files-found: ignore
           retention-days: 7
