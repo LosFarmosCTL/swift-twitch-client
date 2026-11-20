@@ -17,8 +17,8 @@ extension EventSubClient {
     try await waitForSubscriptionCleanup(key, revision: revision)
     try checkRevision(revision)
 
-    let subscription = subscriptions[key] ?? startSubscription(key, eventType: E.self)
-    let (observer, handle) = attachObserver(handler, to: subscription)
+    let subscription = subscriptions[key] ?? startSubscription(key)
+    let (observer, handle) = attachObserver(handler, decoding: E.self, to: subscription)
 
     do {
       try await observer.waitUntilReady()
@@ -31,12 +31,12 @@ extension EventSubClient {
   }
 
   private func attachObserver(
-    _ handler: any EventSubHandler,
+    _ handler: any EventSubHandler, decoding eventType: any Event.Type,
     to subscription: Subscription
   ) -> (Observer, EventSubObservation) {
     let handle = EventSubObservation(key: subscription.key, id: UUID(), client: self)
 
-    let observer = Observer(handler: handler)
+    let observer = Observer(handler: handler, eventType: eventType)
     subscription.observers[handle.id] = observer
 
     if case .active = subscription.phase { observer.markReady() }
@@ -77,9 +77,13 @@ extension EventSubClient {
 
   struct Observer {
     let handler: any EventSubHandler
+    let eventType: any Event.Type
     private let setup = AsyncThrowingStream<Void, any Error>.makeStream()
 
-    init(handler: any EventSubHandler) { self.handler = handler }
+    init(handler: any EventSubHandler, eventType: any Event.Type) {
+      self.handler = handler
+      self.eventType = eventType
+    }
 
     func waitUntilReady() async throws { for try await _ in setup.stream {} }
 

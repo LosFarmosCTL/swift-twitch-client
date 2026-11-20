@@ -1,14 +1,14 @@
 /// Tracks a bounded window of IDs in arrival order.
-internal struct RecentIDs {
+internal struct RecentIDs<ID: Hashable> {
   private let capacity: Int
-  private var order: [String] = []
-  private var ids: Set<String> = []
+  private var order: [ID] = []
+  private var ids: Set<ID> = []
 
   init(capacity: Int) { self.capacity = capacity }
 
-  func contains(_ id: String) -> Bool { ids.contains(id) }
+  func contains(_ id: ID) -> Bool { ids.contains(id) }
 
-  mutating func insert(_ id: String) -> Bool {
+  mutating func insert(_ id: ID) -> Bool {
     guard ids.insert(id).inserted else { return false }
 
     order.append(id)

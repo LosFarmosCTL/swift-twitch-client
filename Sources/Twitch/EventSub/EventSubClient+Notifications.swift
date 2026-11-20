@@ -26,17 +26,33 @@ extension EventSubClient {
     guard frame.subscription.type == subscription.key.type else { return }
     guard frame.subscription.version == subscription.key.version else { return }
 
+    let byType = Dictionary(grouping: subscription.observers.values) {
+      ObjectIdentifier($0.eventType)
+    }
+
+    for observers in byType.values {
+      guard let eventType = observers.first?.eventType else { continue }
+      deliver(frame, decoding: eventType, to: observers, in: sessionID)
+    }
+  }
+
+  private func deliver(
+    _ frame: EventSubNotificationFrame,
+    decoding eventType: any Event.Type,
+    to observers: [Observer],
+    in sessionID: UUID
+  ) {
     do {
       let notification = try sessions.active[sessionID]?.notifications.decode(
-        frame, as: subscription.eventType, using: decoder)
+        frame, as: eventType, using: decoder)
 
       guard let notification else { return }
 
-      for observer in subscription.observers.values { observer.handler.yield(notification) }
+      for observer in observers { observer.handler.yield(notification) }
     } catch is CancellationError {
       return
     } catch {
-      let condition = subscription.key.condition
+      let condition = frame.subscription.condition
       let channelID =
         condition["broadcaster_user_id"]
         ?? condition["from_broadcaster_user_id"] ?? condition["to_broadcaster_user_id"]
@@ -52,8 +68,8 @@ extension EventSubClient {
             messageType: EventSubMessage.Metadata.MessageType.notification.rawValue,
             sentAt: frame.sentAt,
             subscriptionID: frame.subscription.id,
-            subscriptionType: subscription.key.type,
-            subscriptionVersion: subscription.key.version,
+            subscriptionType: frame.subscription.type,
+            subscriptionVersion: frame.subscription.version,
             channelID: channelID?.isEmpty == false ? channelID : nil
           )
         )
@@ -103,18 +119,24 @@ extension EventSubClient {
 
   struct NotificationBuffer {
     private var pending: [UUID: [String: PendingFrames]] = [:]
-    private var received = RecentIDs(capacity: 100)
+    private struct DeliveryID: Hashable {
+      let messageID: String
+      let eventType: ObjectIdentifier
+    }
+
+    private var received = RecentIDs<DeliveryID>(capacity: 100)
 
     fileprivate mutating func decode(
       _ frame: EventSubNotificationFrame,
       as eventType: any Event.Type,
       using decoder: JSONDecoder
     ) throws -> EventSubNotification<any Event>? {
-      guard !received.contains(frame.messageID) else { return nil }
+      let id = DeliveryID(messageID: frame.messageID, eventType: ObjectIdentifier(eventType))
+      guard !received.contains(id) else { return nil }
 
       // Only a successfully decoded delivery should suppress a later replay.
       let notification = try frame.decode(as: eventType, using: decoder)
-      _ = received.insert(frame.messageID)
+      _ = received.insert(id)
       return notification
     }
 

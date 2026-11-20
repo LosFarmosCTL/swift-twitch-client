@@ -3,9 +3,9 @@ import Foundation
 extension EventSubClient {
   // MARK: - Subscription setup
 
-  func startSubscription(_ key: ConflictKey, eventType: any Event.Type) -> Subscription {
+  func startSubscription(_ key: ConflictKey) -> Subscription {
     let subscription = Subscription(
-      key: key, eventType: eventType, credentials: credentials, revision: revision)
+      key: key, credentials: credentials, revision: revision)
     subscriptions[key] = subscription
     subscription.setupTask = Task { await openSubscription(subscription) }
     return subscription
@@ -99,7 +99,6 @@ extension EventSubClient {
     }
 
     let key: ConflictKey
-    let eventType: any Event.Type
     let credentials: TwitchCredentials
     let revision: UInt64
 
@@ -113,10 +112,9 @@ extension EventSubClient {
       [:]
 
     init(
-      key: ConflictKey, eventType: any Event.Type, credentials: TwitchCredentials, revision: UInt64
+      key: ConflictKey, credentials: TwitchCredentials, revision: UInt64
     ) {
       self.key = key
-      self.eventType = eventType
       self.credentials = credentials
       self.revision = revision
     }

@@ -18,7 +18,7 @@ extension ManagedChat {
     var moderationRevocation: EventSubRevocation.Status?
     var moderationTask: (generation: UUID, task: Task<Void, Never>)?
     var moderationBlocked = false
-    var deletedMessageIDs = RecentIDs(capacity: 4096)
+    var deletedMessageIDs = RecentIDs<String>(capacity: 4096)
 
     init(channel: ChatChannel, joinIntent: UInt64) {
       self.channel = channel

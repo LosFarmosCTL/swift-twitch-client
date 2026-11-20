@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import Twitch
@@ -35,5 +36,41 @@ struct EventSubUserTests {
         type: "user.update", version: "1", condition: condition, decoding: UserUpdateEvent.self),
       with: MockedMessages.userUpdate, requiringCondition: condition)
     #expect(typed?.userID == "1337")
+  }
+
+  @Test("Custom observers share a subscription but retry decoding independently")
+  func customObserversUseIndependentDecoders() async throws {
+    let url = try #require(URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
+    let response = MockedMessages.mockEventSubSubscription
+      .replacingOccurrences(of: "%type%", with: "mock")
+      .replacingOccurrences(of: "%version%", with: "1")
+    await harness.session.stub(url: url, method: "POST", body: Data(response.utf8))
+    await harness.session.simulateIncoming(.string(MockedMessages.welcomeMessage))
+    let plain = try await harness.twitch.eventStream(
+      for: .custom(type: "mock", version: "1", condition: [:]))
+    let typed = try await harness.twitch.eventStream(
+      for: .custom(type: "mock", version: "1", condition: [:], decoding: NumberEvent.self))
+
+    let original = MockedMessages.mockEventMessage
+    let replay = original.replacingOccurrences(of: #""event": {}"#, with: #""event": {"value":7}"#)
+    await harness.session.simulateIncoming(.string(original))
+    await harness.session.simulateIncoming(.string(replay))
+    await harness.session.simulateIncoming(
+      .string(MockedMessages.customized(replay, messageID: "next")))
+
+    var plainIterator = plain.makeAsyncIterator()
+    var typedIterator = typed.makeAsyncIterator()
+    let first = try #require(try await plainIterator.next())
+    #expect(first.messageID == MockedMessages.defaultEventMessageID)
+    #expect(try await plainIterator.next()?.messageID == "next")
+    let recovered = try #require(try await typedIterator.next())
+    #expect(recovered.messageID == first.messageID)
+    #expect(recovered.event.value == 7)
+    #expect(await harness.session.requests().filter { $0.httpMethod == "POST" }.count == 1)
+    await harness.twitch.resetEventSub()
+  }
+
+  private struct NumberEvent: Event {
+    let value: Int
   }
 }
