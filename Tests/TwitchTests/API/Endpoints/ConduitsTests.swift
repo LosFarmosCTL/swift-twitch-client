@@ -85,9 +85,11 @@ struct ConduitsTests {
       url: url,
       body: MockedData.getConduitShardsJSON)
 
-    let (shards, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getConduitShards(conduitID: "bfcfc993-26b1-b876-44d9-afe75a379dac"))).value
+    let shards = page.shards
+    let cursor = page.cursor
 
     #expect(cursor == nil)
     #expect(shards.count == 5)

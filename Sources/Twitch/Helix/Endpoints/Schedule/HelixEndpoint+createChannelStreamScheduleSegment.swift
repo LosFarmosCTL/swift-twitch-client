@@ -27,7 +27,7 @@ extension HelixEndpoint {
     categoryID: String? = nil,
     title: String? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<StreamSchedule, StreamSchedule, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<StreamSchedule> {
     .init(
       method: "POST", path: "schedule/segment",
       authentication: .user,
@@ -48,6 +48,7 @@ extension HelixEndpoint {
           categoryID: categoryID,
           title: title)
       },
+      responseType: StreamSchedule.self,
       makeResponse: { response in
         let schedule = try response.requireFirst()
 

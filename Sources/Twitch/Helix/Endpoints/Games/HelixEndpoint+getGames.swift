@@ -22,7 +22,7 @@ extension HelixEndpoint {
     gameIDs: [String] = [],
     gameNames: [String] = [],
     igdbIDs: [String] = []
-  ) -> HelixEndpoint<[Game], Game, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[Game]> {
     let idQueryItems = gameIDs.map { ("id", $0) }
     let nameQueryItems = gameNames.map { ("name", $0) }
     let igdbQueryItems = igdbIDs.map { ("igdb_id", $0) }
@@ -33,6 +33,7 @@ extension HelixEndpoint {
       queryItems: { _ in
         idQueryItems + nameQueryItems + igdbQueryItems
       },
+      responseType: Game.self,
       makeResponse: {
         $0.data
       })

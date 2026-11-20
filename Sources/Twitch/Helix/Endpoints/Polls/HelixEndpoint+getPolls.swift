@@ -26,10 +26,7 @@ extension HelixEndpoint {
     pollIDs: [String] = [],
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (polls: [Poll], cursor: String?),
-    Poll, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<PollsResponse> {
     .init(
       method: "GET", path: "polls",
       authentication: .user,
@@ -40,7 +37,8 @@ extension HelixEndpoint {
           ("after", cursor),
         ] + pollIDs.map { ("id", $0) }
       },
-      makeResponse: { ($0.data, $0.pagination?.cursor) })
+      responseType: Poll.self,
+      makeResponse: { PollsResponse(polls: $0.data, cursor: $0.pagination?.cursor) })
   }
 }
 
@@ -120,4 +118,13 @@ public enum PollStatus: String, Decodable, Sendable {
   case moderated = "MODERATED"
   /// The poll is not valid. Encoded as `"INVALID"`.
   case invalid = "INVALID"
+}
+
+/// A page of polls.
+@MemberwiseInit(.public)
+public struct PollsResponse: Sendable {
+  /// The polls on this page.
+  public let polls: [Poll]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

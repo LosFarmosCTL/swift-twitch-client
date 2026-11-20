@@ -17,7 +17,7 @@ extension HelixEndpoint {
   public static func setExtensionRequiredConfiguration(
     for broadcasterID: String, extensionID: String, extensionVersion: String,
     requiredConfiguration: String
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PUT", path: "extensions/required_configuration",
       authentication: .extensionJWT,

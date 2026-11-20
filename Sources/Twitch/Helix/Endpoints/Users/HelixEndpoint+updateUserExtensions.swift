@@ -17,10 +17,7 @@ extension HelixEndpoint {
     panel: [String: ExtensionSlotUpdate]? = nil,
     overlay: [String: ExtensionSlotUpdate]? = nil,
     component: [String: ExtensionSlotUpdate]? = nil
-  ) -> HelixEndpoint<
-    UserActiveExtensions, UserActiveExtensions,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<UserActiveExtensions> {
     .init(
       method: "PUT", path: "users/extensions",
       authentication: .user,
@@ -29,6 +26,7 @@ extension HelixEndpoint {
           data: ExtensionSlotsUpdate(
             panel: panel, overlay: overlay, component: component))
       },
+      responseType: UserActiveExtensions.self,
       makeResponse: {
         let activeExtensions = try $0.requireFirst()
 

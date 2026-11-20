@@ -15,7 +15,7 @@ extension HelixEndpoint {
   /// - Parameter broadcasterID: The acting user ID. Required with app tokens; otherwise
   ///   defaults to the user token’s identity.
   public static func snoozeNextAd(broadcasterID: String? = nil)
-    -> HelixEndpoint<SnoozeResult, SnoozeResult, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<SnoozeResult>
   {
     .init(
       method: "POST", path: "channels/ads/schedule/snooze",
@@ -29,6 +29,7 @@ extension HelixEndpoint {
           )
         ]
       },
+      responseType: SnoozeResult.self,
       makeResponse: { result in
         let response = try result.requireFirst()
 

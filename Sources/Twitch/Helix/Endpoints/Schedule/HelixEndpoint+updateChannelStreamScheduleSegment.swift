@@ -28,7 +28,7 @@ extension HelixEndpoint {
     isCancelled: Bool? = nil,
     timezone: String? = nil,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<StreamSchedule, StreamSchedule, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<StreamSchedule> {
     .init(
       method: "PATCH", path: "schedule/segment",
       authentication: .user,
@@ -50,6 +50,7 @@ extension HelixEndpoint {
           isCancelled: isCancelled,
           timezone: timezone)
       },
+      responseType: StreamSchedule.self,
       makeResponse: { response in
         let schedule = try response.requireFirst()
 

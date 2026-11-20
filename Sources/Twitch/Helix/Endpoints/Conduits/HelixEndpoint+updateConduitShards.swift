@@ -15,10 +15,7 @@ extension HelixEndpoint {
   public static func updateConduitShards(
     conduitID: String,
     shards: [ConduitShardUpdate]
-  ) -> HelixEndpoint<
-    ConduitShardUpdateResponse, ConduitShard,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<ConduitShardUpdateResponse> {
     .init(
       method: "PATCH", path: "eventsub/conduits/shards",
       authentication: .app,
@@ -31,6 +28,7 @@ extension HelixEndpoint {
               transport: shard.transport.transport)
           })
       },
+      responseType: ConduitShard.self,
       makeResponse: {
         ConduitShardUpdateResponse(
           shards: $0.data,

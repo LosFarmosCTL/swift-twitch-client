@@ -17,7 +17,7 @@ extension HelixEndpoint {
   public static func sendWhisper(
     to toUserID: String,
     message: String
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "whispers",
       authentication: .user,

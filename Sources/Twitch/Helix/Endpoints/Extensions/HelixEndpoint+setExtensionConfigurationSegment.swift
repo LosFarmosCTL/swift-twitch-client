@@ -25,7 +25,7 @@ extension HelixEndpoint {
     broadcasterID: String? = nil,
     content: String? = nil,
     version: String? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "PUT", path: "extensions/configurations",
       authentication: .extensionJWT,

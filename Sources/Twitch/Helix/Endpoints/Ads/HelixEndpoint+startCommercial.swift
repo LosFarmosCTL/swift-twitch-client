@@ -20,7 +20,7 @@ extension HelixEndpoint {
   public static func startCommercial(
     length: Int,
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<Commercial, Commercial, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Commercial> {
     .init(
       method: "POST", path: "channels/commercial",
       authentication: .either,
@@ -30,6 +30,7 @@ extension HelixEndpoint {
             broadcasterID, parameter: "broadcaster_id", matchingToken: true),
           length: length)
       },
+      responseType: Commercial.self,
       makeResponse: { result in
         let response = try result.requireFirst()
 

@@ -16,7 +16,7 @@ extension HelixEndpoint {
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
   public static func getCreatorGoals(broadcasterID: String? = nil)
-    -> HelixEndpoint<[CreatorGoal], CreatorGoal, HelixEndpointResponseTypes.Normal>
+    -> HelixEndpoint<[CreatorGoal]>
   {
     .init(
       method: "GET", path: "goals",
@@ -29,7 +29,7 @@ extension HelixEndpoint {
           )
         ]
       },
-      makeResponse: { $0.data })
+      responseType: CreatorGoal.self, makeResponse: { $0.data })
   }
 }
 

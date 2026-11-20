@@ -20,10 +20,7 @@ extension HelixEndpoint {
   public static func getChannelGuestStarSettings(
     broadcasterID: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<
-    GuestStarChannelSettings, GuestStarChannelSettings,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<GuestStarChannelSettings> {
     .init(
       method: "GET", path: "guest_star/channel_settings",
       authentication: .user,
@@ -39,6 +36,7 @@ extension HelixEndpoint {
           ),
         ]
       },
+      responseType: GuestStarChannelSettings.self,
       makeResponse: { response in
         let settings = try response.requireFirst()
 

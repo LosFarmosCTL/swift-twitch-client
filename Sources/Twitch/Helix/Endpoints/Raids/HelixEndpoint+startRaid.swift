@@ -18,7 +18,7 @@ extension HelixEndpoint {
   ///   - toBroadcasterID: The Twitch user ID of the destination broadcaster.
   public static func startRaid(
     to toBroadcasterID: String
-  ) -> HelixEndpoint<PendingRaid, PendingRaid, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<PendingRaid> {
     .init(
       method: "POST", path: "raids",
       authentication: .user,
@@ -28,6 +28,7 @@ extension HelixEndpoint {
           ("to_broadcaster_id", toBroadcasterID),
         ]
       },
+      responseType: PendingRaid.self,
       makeResponse: {
         let response = try $0.requireFirst()
 

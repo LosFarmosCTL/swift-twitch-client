@@ -19,7 +19,7 @@ extension HelixEndpoint {
   ///   - cursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
   ///
-  /// - Returns: An endpoint that yields `(reports: [GameReport], cursor: String?)` when
+  /// - Returns: An endpoint that yields ``GameAnalyticsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getGameAnalytics(
     gameID: String? = nil,
@@ -27,10 +27,7 @@ extension HelixEndpoint {
     range: DateInterval? = nil,
     limit: Int? = nil,
     after cursor: String? = nil
-  ) -> HelixEndpoint<
-    (reports: [GameReport], cursor: String?),
-    GameReport, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<GameAnalyticsResponse> {
     .init(
       method: "GET", path: "analytics/games",
       authentication: .user,
@@ -43,7 +40,10 @@ extension HelixEndpoint {
           ("first", limit.map(String.init)),
           ("after", cursor),
         ]
-      }, makeResponse: { ($0.data, $0.pagination?.cursor) })
+      }, responseType: GameReport.self,
+      makeResponse: {
+        GameAnalyticsResponse(reports: $0.data, cursor: $0.pagination?.cursor)
+      })
   }
 }
 
@@ -86,4 +86,13 @@ public struct GameReport: Decodable, Sendable {
 
     self.range = DateInterval(start: startedAt, end: endedAt)
   }
+}
+
+/// A page of game analytics.
+@MemberwiseInit(.public)
+public struct GameAnalyticsResponse: Sendable {
+  /// The reports on this page.
+  public let reports: [GameReport]
+  /// The next-page cursor, if Twitch returned one.
+  public let cursor: String?
 }

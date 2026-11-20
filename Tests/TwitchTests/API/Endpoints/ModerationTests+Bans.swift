@@ -14,7 +14,9 @@ extension ModerationTests {
       url: url,
       body: MockedData.getBannedUsersJSON)
 
-    let (bans, cursor) = (try await harness.twitch.helix(for: .getBannedUsers())).value
+    let page = (try await harness.twitch.helix(for: .getBannedUsers())).value
+    let bans = page.users
+    let cursor = page.cursor
 
     #expect(cursor == "eyJiIjpudWxsLCJhIjp7IkN1cnNvciI")
 
@@ -71,9 +73,11 @@ extension ModerationTests {
 
     await harness.session.stub(url: url, body: MockedData.getUnbanRequestsJSON)
 
-    let (requests, cursor) =
+    let page =
       (try await harness.twitch.helix(
         for: .getUnbanRequests(in: "274637212", status: .pending, limit: 20))).value
+    let requests = page.requests
+    let cursor = page.cursor
 
     #expect(cursor != nil)
     #expect(requests.count == 1)

@@ -14,14 +14,14 @@ extension HelixEndpoint {
   ///   - broadcasterID: The Twitch user ID of the broadcaster, when provided.
   public static func getCheermotes(
     broadcasterID: String? = nil
-  ) -> HelixEndpoint<[Cheermote], Cheermote, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<[Cheermote]> {
     .init(
       method: "GET", path: "bits/cheermotes",
       authentication: .either,
       queryItems: { _ in
         [("broadcaster_id", broadcasterID)]
       },
-      makeResponse: { $0.data })
+      responseType: Cheermote.self, makeResponse: { $0.data })
   }
 }
 

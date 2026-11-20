@@ -21,11 +21,14 @@ extension ChatTests {
         for: .getChatSettings(of: "713936733", moderatorID: "1234"))).value
 
     #expect(settings.broadcasterID == "713936733")
+    #expect(settings.slowMode == true)
     #expect(settings.slowModeWaitTime == 5)
+    #expect(settings.followerMode == true)
     #expect(settings.followerModeDuration == 0)
     #expect(settings.subscriberMode == true)
     #expect(settings.emoteMode == false)
     #expect(settings.uniqueChatMode == false)
+    #expect(settings.nonModeratorChatDelayEnabled == true)
     #expect(settings.nonModeratorChatDelay == 4)
   }
 
@@ -45,20 +48,25 @@ extension ChatTests {
     let settings =
       (try await harness.twitch.helix(
         for: .updateChatSettings(
-          of: "713936733", settings: .slowMode(5), .subscriberMode, .followerMode())))
+          of: "713936733",
+          settings: .init(
+            slowMode: true, slowModeWaitTime: 5, followerMode: true, subscriberMode: true))))
       .value
 
     #expect(settings.broadcasterID == "713936733")
+    #expect(settings.slowMode == true)
     #expect(settings.slowModeWaitTime == 5)
+    #expect(settings.followerMode == true)
     #expect(settings.followerModeDuration == 0)
     #expect(settings.subscriberMode == true)
     #expect(settings.emoteMode == false)
     #expect(settings.uniqueChatMode == false)
+    #expect(settings.nonModeratorChatDelayEnabled == true)
     #expect(settings.nonModeratorChatDelay == 4)
   }
 
   @Test
-  func disablingChatModesClearsDurationsAndLeavesOmittedSettingsOut() async throws {
+  func chatSettingsPatchSendsExplicitFlagsAndOmitsUnspecifiedFields() async throws {
     let url = try #require(
       URL(
         string:
@@ -70,12 +78,9 @@ extension ChatTests {
     _ = try await harness.twitch.helix(
       for: .updateChatSettings(
         of: "channel",
-        settings: [
-          .slowMode(10), .disable(.slowMode),
-          .followerMode(20), .disable(.followerMode),
-          .disable(.subscriberMode), .disable(.emoteMode), .disable(.uniqueChatMode),
-          .nonModeratorChatDelay(4), .disable(.nonModeratorChatDelay),
-        ]))
+        settings: .init(
+          slowMode: false, followerMode: false, subscriberMode: false,
+          emoteMode: false, uniqueChatMode: false, nonModeratorChatDelay: false)))
     let disabledBody = try #require(await harness.session.lastRequest()?.httpBody)
     #expect(
       try JSONDecoder().decode([String: Bool].self, from: disabledBody) == [
@@ -85,12 +90,26 @@ extension ChatTests {
 
     _ = try await harness.twitch.helix(
       for: .updateChatSettings(
-        of: "channel", settings: .disable(.slowMode), .slowMode(5)))
-    let enabledBody = try #require(await harness.session.lastRequest()?.httpBody)
-    let fields = try #require(
-      JSONSerialization.jsonObject(with: enabledBody) as? [String: Any])
-    #expect(fields.count == 2)
-    #expect(fields["slow_mode"] as? Bool == true)
-    #expect(fields["slow_mode_wait_time"] as? Int == 5)
+        of: "channel",
+        settings: .init(slowMode: false, followerMode: true, followerModeDuration: 0)))
+    let body = try #require(await harness.session.lastRequest()?.httpBody)
+    let fields = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
+    #expect(fields.count == 3)
+    #expect(fields["slow_mode"] as? Bool == false)
+    #expect(fields["follower_mode"] as? Bool == true)
+    #expect(fields["follower_mode_duration"] as? Int == 0)
+  }
+
+  @Test
+  func durationFieldsDoNotImplicitlyEnableModes() throws {
+    let patch = ChatSettingsUpdate(
+      slowModeWaitTime: 5, followerModeDuration: 0, nonModeratorChatDelayDuration: 4)
+    let data = try TwitchClient.makeEncoder().encode(patch)
+    let fields = try JSONDecoder().decode([String: Int].self, from: data)
+    #expect(
+      fields == [
+        "slow_mode_wait_time": 5, "follower_mode_duration": 0,
+        "non_moderator_chat_delay_duration": 4,
+      ])
   }
 }

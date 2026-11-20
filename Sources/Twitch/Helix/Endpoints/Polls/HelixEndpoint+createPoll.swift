@@ -25,7 +25,7 @@ extension HelixEndpoint {
     duration: Int,
     channelPointsVotingEnabled: Bool? = nil,
     channelPointsPerVote: Int? = nil
-  ) -> HelixEndpoint<Poll, Poll, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Poll> {
     .init(
       method: "POST", path: "polls",
       authentication: .user,
@@ -38,6 +38,7 @@ extension HelixEndpoint {
           channelPointsVotingEnabled: channelPointsVotingEnabled,
           channelPointsPerVote: channelPointsPerVote)
       },
+      responseType: Poll.self,
       makeResponse: {
         let poll = try $0.requireFirst()
 

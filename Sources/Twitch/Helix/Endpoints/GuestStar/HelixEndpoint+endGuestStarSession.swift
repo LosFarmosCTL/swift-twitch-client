@@ -18,10 +18,7 @@ extension HelixEndpoint {
   ///   - sessionID: The identifier of the session.
   public static func endGuestStarSession(
     sessionID: String
-  ) -> HelixEndpoint<
-    GuestStarSession, GuestStarSession,
-    HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<GuestStarSession> {
     .init(
       method: "DELETE", path: "guest_star/session",
       authentication: .user,
@@ -31,6 +28,7 @@ extension HelixEndpoint {
           ("session_id", sessionID),
         ]
       },
+      responseType: GuestStarSession.self,
       makeResponse: { response in
         let session = try response.requireFirst()
 

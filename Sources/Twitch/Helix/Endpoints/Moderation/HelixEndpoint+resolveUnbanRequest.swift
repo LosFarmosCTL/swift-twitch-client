@@ -18,7 +18,7 @@ extension HelixEndpoint {
   public static func resolveUnbanRequest(
     _ requestID: String, in broadcasterID: String, status: UnbanRequestResolution,
     resolutionText: String? = nil, moderatorID: String? = nil
-  ) -> HelixEndpoint<UnbanRequest, UnbanRequest, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<UnbanRequest> {
     .init(
       method: "PATCH", path: "moderation/unban_requests",
       authentication: .user,
@@ -33,7 +33,7 @@ extension HelixEndpoint {
           ("unban_request_id", requestID), ("status", status.rawValue),
           ("resolution_text", resolutionText),
         ]
-      }, makeResponse: { try $0.requireFirst() })
+      }, responseType: UnbanRequest.self, makeResponse: { try $0.requireFirst() })
   }
 }
 

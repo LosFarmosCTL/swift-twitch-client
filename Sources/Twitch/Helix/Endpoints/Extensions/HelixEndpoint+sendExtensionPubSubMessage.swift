@@ -22,7 +22,7 @@ extension HelixEndpoint {
     message: String,
     broadcasterID: String? = nil,
     isGlobalBroadcast: Bool? = nil
-  ) -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> {
+  ) -> HelixEndpoint<Void> {
     .init(
       method: "POST", path: "extensions/pubsub",
       authentication: .extensionJWT,

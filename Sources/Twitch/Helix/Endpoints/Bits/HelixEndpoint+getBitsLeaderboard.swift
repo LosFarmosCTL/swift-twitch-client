@@ -22,9 +22,7 @@ extension HelixEndpoint {
     period: BitsLeaderboardPeriod? = nil,
     startedAt: Date? = nil,
     userID: String? = nil
-  ) -> HelixEndpoint<
-    BitsLeaderboard, BitsLeaderboardEntry, HelixEndpointResponseTypes.Normal
-  > {
+  ) -> HelixEndpoint<BitsLeaderboard> {
     .init(
       method: "GET", path: "bits/leaderboard",
       authentication: .user,
@@ -36,6 +34,7 @@ extension HelixEndpoint {
           ("user_id", userID),
         ]
       },
+      responseType: BitsLeaderboardEntry.self,
       makeResponse: {
         let total = try $0.require(\.total)
 

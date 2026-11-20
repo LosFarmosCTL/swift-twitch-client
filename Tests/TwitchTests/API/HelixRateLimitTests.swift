@@ -37,14 +37,14 @@ struct HelixRateLimitTests {
   @Test
   func rawAndEmptyResponsesAndCallbacksExposeTheSameMetadata() async throws {
     await harness.session.stub(url: url, headers: headers, body: body)
-    let raw: HelixEndpoint<Data, EmptyResponse, HelixEndpointResponseTypes.Raw> = .init(
+    let raw: HelixEndpoint<Data> = .init(
       method: "GET", path: "metadata", authentication: .either, makeRawResponse: { $0 })
     let response = try await harness.twitch.helix(for: raw)
     #expect(response.value == body)
     #expect(response.metadata.rateLimit?.remaining == 0)
 
     await harness.session.stub(url: url, method: "DELETE", status: 204, headers: headers)
-    let empty: HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void> =
+    let empty: HelixEndpoint<Void> =
       .init(method: "DELETE", path: "metadata", authentication: .either)
     let deleted = try await harness.twitch.helix(for: empty)
     #expect(deleted.metadata.statusCode == 204)

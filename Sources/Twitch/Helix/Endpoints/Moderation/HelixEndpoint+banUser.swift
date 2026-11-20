@@ -27,7 +27,7 @@ extension HelixEndpoint {
     for duration: Duration? = nil,
     reason: String? = nil,
     moderatorID: String? = nil
-  ) -> HelixEndpoint<Ban, Ban, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<Ban> {
     .init(
       method: "POST", path: "moderation/bans",
       authentication: .either,
@@ -49,6 +49,7 @@ extension HelixEndpoint {
             duration: duration?.components.seconds)
         ]
       },
+      responseType: Ban.self,
       makeResponse: {
         let ban = try $0.requireFirst()
 

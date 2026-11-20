@@ -4,7 +4,7 @@ extension HelixEndpoint {
   private static func handleAutoModMessage(
     messageID: String, action: String, userID: String?
   )
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     .init(
       method: "POST", path: "moderation/automod/message",
@@ -33,7 +33,7 @@ extension HelixEndpoint {
   ///   - userID: The acting user; required for app tokens, otherwise defaults to the token’s user.
   ///   - messageID: The identifier of the message.
   public static func approveAutoModMessage(messageID: String, userID: String? = nil)
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     self.handleAutoModMessage(messageID: messageID, action: "ALLOW", userID: userID)
   }
@@ -51,7 +51,7 @@ extension HelixEndpoint {
   ///   - userID: The acting user; required for app tokens, otherwise defaults to the token’s user.
   ///   - messageID: The identifier of the message.
   public static func denyAutoModMessage(messageID: String, userID: String? = nil)
-    -> HelixEndpoint<EmptyResponse, EmptyResponse, HelixEndpointResponseTypes.Void>
+    -> HelixEndpoint<Void>
   {
     self.handleAutoModMessage(messageID: messageID, action: "DENY", userID: userID)
   }

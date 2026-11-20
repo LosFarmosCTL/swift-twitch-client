@@ -117,6 +117,3 @@ internal struct HelixErrorResponse: Sendable, Decodable {
   let status: Int
   let message: String
 }
-
-/// A placeholder payload type for endpoints without response data.
-public struct EmptyResponse: Sendable, Decodable {}

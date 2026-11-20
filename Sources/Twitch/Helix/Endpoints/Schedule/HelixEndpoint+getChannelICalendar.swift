@@ -13,7 +13,7 @@ extension HelixEndpoint {
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
   public static func getChannelICalendar(
     broadcasterID: String
-  ) -> HelixEndpoint<String, EmptyResponse, HelixEndpointResponseTypes.Raw> {
+  ) -> HelixEndpoint<String> {
     .init(
       method: "GET", path: "schedule/icalendar",
       authentication: .none,

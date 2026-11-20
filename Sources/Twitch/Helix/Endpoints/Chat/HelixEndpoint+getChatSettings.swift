@@ -18,13 +18,14 @@ extension HelixEndpoint {
   ///     it to exclude non-moderator chat delay information.
   public static func getChatSettings(
     of broadcasterID: String, moderatorID: String? = nil
-  ) -> HelixEndpoint<ChatSettings, ChatSettings, HelixEndpointResponseTypes.Normal> {
+  ) -> HelixEndpoint<ChatSettings> {
     .init(
       method: "GET", path: "chat/settings",
       authentication: .either,
       queryItems: { _ in
         [("broadcaster_id", broadcasterID), ("moderator_id", moderatorID)]
       },
+      responseType: ChatSettings.self,
       makeResponse: {
         let settings = try $0.requireFirst()
 
@@ -38,6 +39,15 @@ extension HelixEndpoint {
 public struct ChatSettings: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
+  /// Whether slow mode is enabled. Independent of the configured wait time.
+  @Init(default: false)
+  public let slowMode: Bool
+  /// Whether follower-only mode is enabled. A zero-minute duration still permits this mode.
+  @Init(default: false)
+  public let followerMode: Bool
+  /// Whether non-moderator delay is enabled, if Twitch returned moderator-only data.
+  @Init(default: nil)
+  public let nonModeratorChatDelayEnabled: Bool?
   /// The required delay between a user’s messages, in seconds, when slow mode is enabled.
   public let slowModeWaitTime: Int?
   /// The required following duration, in minutes, when follower-only mode is enabled.
@@ -55,6 +65,8 @@ public struct ChatSettings: Decodable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
+    case slowMode, followerMode
+    case nonModeratorChatDelay
     case slowModeWaitTime
     case followerModeDuration
     case subscriberMode
@@ -69,6 +81,10 @@ public struct ChatSettings: Decodable, Sendable {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
     self.broadcasterID = try container.decode(String.self, forKey: .broadcasterID)
+    self.slowMode = try container.decode(Bool.self, forKey: .slowMode)
+    self.followerMode = try container.decode(Bool.self, forKey: .followerMode)
+    self.nonModeratorChatDelayEnabled = try container.decodeIfPresent(
+      Bool.self, forKey: .nonModeratorChatDelay)
     self.slowModeWaitTime = try container.decodeIfPresent(
       Int.self, forKey: .slowModeWaitTime)
     self.followerModeDuration = try container.decodeIfPresent(
