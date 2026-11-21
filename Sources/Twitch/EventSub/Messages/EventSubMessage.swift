@@ -42,7 +42,7 @@ internal struct EventSubMessage: Decodable {
 
   private enum NotificationKeys: CodingKey { case subscription }
 
-  struct Subscription: Decodable, Sendable {
+  struct Subscription: Decodable, Sendable, Equatable, Hashable {
     let id: String
     let type: String
     let version: String
@@ -73,7 +73,7 @@ internal struct EventSubMessage: Decodable {
 
 /// Twitch can echo nullable condition parameters that the request omitted.
 @propertyWrapper
-struct EventSubCondition: Decodable, Sendable {
+struct EventSubCondition: Decodable, Sendable, Equatable, Hashable {
   var wrappedValue: [String: String]
 
   init(wrappedValue: [String: String]) {

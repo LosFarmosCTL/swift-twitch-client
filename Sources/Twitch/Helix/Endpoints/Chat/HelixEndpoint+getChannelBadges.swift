@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a broadcaster’s channel-specific chat badge sets.
@@ -24,12 +23,20 @@ extension HelixEndpoint {
 }
 
 /// A chat badge set and its available badge versions.
-@MemberwiseInit(.public)
 public struct BadgeSet: Decodable, Sendable {
   /// The identifier of the set.
   public let setID: String
   /// The chat badges.
   public let badges: [Badge]
+
+  /// Creates a `BadgeSet` value.
+  public init(
+    setID: String,
+    badges: [Badge] = []
+  ) {
+    self.setID = setID
+    self.badges = badges
+  }
 
   enum CodingKeys: String, CodingKey {
     case setID = "setId"
@@ -38,7 +45,6 @@ public struct BadgeSet: Decodable, Sendable {
 }
 
 /// A chat badge version with image URLs, title, and click behavior.
-@MemberwiseInit(.public)
 public struct Badge: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -53,6 +59,23 @@ public struct Badge: Decodable, Sendable {
   public let clickAction: String?
   /// The destination URL opened when a viewer clicks the badge, when provided.
   public let clickURL: String?
+
+  /// Creates a `Badge` value.
+  public init(
+    id: String,
+    images: BadgeImages,
+    title: String,
+    description: String,
+    clickAction: String? = nil,
+    clickURL: String? = nil
+  ) {
+    self.id = id
+    self.images = images
+    self.title = title
+    self.description = description
+    self.clickAction = clickAction
+    self.clickURL = clickURL
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -89,5 +112,16 @@ public struct Badge: Decodable, Sendable {
     public let url2x: URL
     /// The image URL at 4× scale.
     public let url4x: URL
+
+    /// Creates a `BadgeImages` value.
+    public init(
+      url1x: URL,
+      url2x: URL,
+      url4x: URL
+    ) {
+      self.url1x = url1x
+      self.url2x = url2x
+      self.url4x = url4x
+    }
   }
 }

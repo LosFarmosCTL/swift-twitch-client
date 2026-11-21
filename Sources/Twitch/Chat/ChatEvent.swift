@@ -1,5 +1,5 @@
 import Foundation
-import TwitchIRC
+public import TwitchIRC
 
 /// A normalized event emitted by ``TwitchClient/messageStream(bufferingPolicy:)``.
 ///
@@ -47,6 +47,17 @@ public struct ChatEvent: Sendable {
   public let timestamp: Date?
   /// The normalized event payload.
   public let payload: Payload
+
+  /// Creates a `ChatEvent` value.
+  public init(
+    channel: ChatChannel,
+    timestamp: Date? = nil,
+    payload: Payload
+  ) {
+    self.channel = channel
+    self.timestamp = timestamp
+    self.payload = payload
+  }
 }
 
 /// Identifying fields for a chatter or moderator in managed chat events.
@@ -60,6 +71,17 @@ public struct ChatUser: Sendable, Equatable {
   public let login: String?
   /// The user's display name, when supplied by the transport.
   public let displayName: String?
+
+  /// Creates a `ChatUser` value.
+  public init(
+    id: String? = nil,
+    login: String? = nil,
+    displayName: String? = nil
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+  }
 }
 
 /// A normalized chat badge attached to a ``ChatMessage``.
@@ -70,6 +92,17 @@ public struct ChatBadge: Sendable, Equatable {
   public let version: String
   /// Optional metadata associated with the badge (such as cumulative subscribed months).
   public let info: String?
+
+  /// Creates a `ChatBadge` value.
+  public init(
+    setID: String,
+    version: String,
+    info: String? = nil
+  ) {
+    self.setID = setID
+    self.version = version
+    self.info = info
+  }
 }
 
 /// A normalized chat message received from either IRC or EventSub.
@@ -126,6 +159,43 @@ public struct ChatMessage: Sendable {
   public let isSourceOnly: Bool?
   /// The raw IRC or EventSub payload for accessing transport-specific metadata.
   public let details: Details
+
+  /// Creates a `ChatMessage` value.
+  public init(
+    id: String,
+    author: ChatUser,
+    text: String,
+    color: String? = nil,
+    badges: [ChatBadge] = [],
+    replyToMessageID: String? = nil,
+    clientNonce: String? = nil,
+    isFirstMessage: Bool? = nil,
+    isReturningChatter: Bool? = nil,
+    contentFilterFlags: String? = nil,
+    isIntroduction: Bool? = nil,
+    sourceChannelID: String? = nil,
+    sourceMessageID: String? = nil,
+    sourceBadges: [ChatBadge]? = nil,
+    isSourceOnly: Bool? = nil,
+    details: Details
+  ) {
+    self.id = id
+    self.author = author
+    self.text = text
+    self.color = color
+    self.badges = badges
+    self.replyToMessageID = replyToMessageID
+    self.clientNonce = clientNonce
+    self.isFirstMessage = isFirstMessage
+    self.isReturningChatter = isReturningChatter
+    self.contentFilterFlags = contentFilterFlags
+    self.isIntroduction = isIntroduction
+    self.sourceChannelID = sourceChannelID
+    self.sourceMessageID = sourceMessageID
+    self.sourceBadges = sourceBadges
+    self.isSourceOnly = isSourceOnly
+    self.details = details
+  }
 }
 
 /// A normalized channel notification such as a subscription, raid, or announcement.
@@ -163,6 +233,29 @@ public struct ChatNotification: Sendable {
   public let isSourceOnly: Bool?
   /// The raw IRC or EventSub payload for accessing notice-specific fields.
   public let details: Details
+
+  /// Creates a `ChatNotification` value.
+  public init(
+    kind: String,
+    id: String? = nil,
+    author: ChatUser? = nil,
+    text: String? = nil,
+    systemMessage: String? = nil,
+    sourceChannelID: String? = nil,
+    sourceMessageID: String? = nil,
+    isSourceOnly: Bool? = nil,
+    details: Details
+  ) {
+    self.kind = kind
+    self.id = id
+    self.author = author
+    self.text = text
+    self.systemMessage = systemMessage
+    self.sourceChannelID = sourceChannelID
+    self.sourceMessageID = sourceMessageID
+    self.isSourceOnly = isSourceOnly
+    self.details = details
+  }
 }
 
 /// Details of a single deleted chat message.
@@ -171,7 +264,7 @@ public struct ChatNotification: Sendable {
 /// deletion IDs for the same channel are deduplicated locally.
 ///
 /// - SeeAlso: ``ChatEvent/Payload/messageDeleted(_:)``
-public struct ChatMessageDeletion: Sendable {
+public struct ChatMessageDeletion: Sendable, Equatable {
   /// The Twitch ID of the deleted message.
   public let messageID: String
   /// The deleted message's author, when supplied by the transport.
@@ -180,6 +273,19 @@ public struct ChatMessageDeletion: Sendable {
   public let text: String?
   /// The moderator who deleted the message, when available.
   public let moderator: ChatUser?
+
+  /// Creates a `ChatMessageDeletion` value.
+  public init(
+    messageID: String,
+    author: ChatUser? = nil,
+    text: String? = nil,
+    moderator: ChatUser? = nil
+  ) {
+    self.messageID = messageID
+    self.author = author
+    self.text = text
+    self.moderator = moderator
+  }
 }
 
 /// A moderation event emitted from IRC `CLEARCHAT` or opt-in EventSub moderation enrichment.
@@ -222,4 +328,15 @@ public struct ChatModeration: Sendable {
   public let sourceChannelID: String?
   /// The moderation action and its associated details.
   public let action: Action
+
+  /// Creates a `ChatModeration` value.
+  public init(
+    moderator: ChatUser? = nil,
+    sourceChannelID: String? = nil,
+    action: Action
+  ) {
+    self.moderator = moderator
+    self.sourceChannelID = sourceChannelID
+    self.action = action
+  }
 }

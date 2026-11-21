@@ -41,7 +41,7 @@ internal actor IRCConnection {
   }
 
   func connect() async throws -> AsyncThrowingStream<IncomingMessage, Error> {
-    guard !connecting, webSocket == nil else { throw IRCError.alreadyConnected }
+    guard !connecting, webSocket == nil else { throw IRCInternalError.alreadyConnected }
     try lifetime.check()
     if let credentials { try IRCWireMessage.validateCredentials(credentials) }
 

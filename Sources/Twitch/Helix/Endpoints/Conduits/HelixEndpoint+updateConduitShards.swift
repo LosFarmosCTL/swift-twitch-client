@@ -48,6 +48,15 @@ public struct ConduitShardUpdateResponse: Sendable {
   public let shards: [ConduitShard]
   /// The per-item errors.
   public let errors: [ConduitShardUpdateError]
+
+  /// Creates a `ConduitShardUpdateResponse` value.
+  public init(
+    shards: [ConduitShard] = [],
+    errors: [ConduitShardUpdateError] = []
+  ) {
+    self.shards = shards
+    self.errors = errors
+  }
 }
 
 /// The failure code and explanation for one shard that could not be updated.
@@ -58,10 +67,21 @@ public struct ConduitShardUpdateError: Sendable {
   public let message: String
   /// The Twitch error code for the shard update.
   public let code: String
+
+  /// Creates a `ConduitShardUpdateError` value.
+  public init(
+    id: String,
+    message: String,
+    code: String
+  ) {
+    self.id = id
+    self.message = message
+    self.code = code
+  }
 }
 
 /// The shard ID and destination to include in a conduit update request.
-public struct ConduitShardUpdate: Sendable {
+public struct ConduitShardUpdate: Sendable, Equatable {
   /// The identifier assigned by Twitch.
   public let id: String
   /// The EventSub delivery transport.
@@ -79,7 +99,7 @@ public struct ConduitShardUpdate: Sendable {
 }
 
 /// The webhook or WebSocket destination to assign to a conduit shard.
-public enum ConduitShardUpdateTransport: Sendable {
+public enum ConduitShardUpdateTransport: Sendable, Equatable {
   /// Delivers notifications to the callback URL using the associated signing secret.
   case webhook(callback: String, secret: String?)
   /// Delivers notifications to the associated WebSocket session ID.

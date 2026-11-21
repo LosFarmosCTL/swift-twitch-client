@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a creator goal ends.
-@MemberwiseInit(.public)
 public struct ChannelGoalEndEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -30,6 +28,33 @@ public struct ChannelGoalEndEvent: Event {
   public let startedAt: Date
   /// The time the activity ended.
   public let endedAt: Date
+
+  /// Creates a `ChannelGoalEndEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    type: String,
+    description: String? = nil,
+    isAchieved: Bool,
+    currentAmount: Int,
+    targetAmount: Int,
+    startedAt: Date,
+    endedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.type = type
+    self.description = description
+    self.isAchieved = isAchieved
+    self.currentAmount = currentAmount
+    self.targetAmount = targetAmount
+    self.startedAt = startedAt
+    self.endedAt = endedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

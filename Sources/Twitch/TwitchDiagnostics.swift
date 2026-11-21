@@ -117,6 +117,17 @@ public struct TwitchDecodingFailureDetails: Sendable, Equatable {
   /// or `nil` for other kinds.
   public let expectedType: String?
 
+  /// Creates a `TwitchDecodingFailureDetails` value.
+  public init(
+    kind: Kind,
+    codingPath: [PathComponent] = [],
+    expectedType: String? = nil
+  ) {
+    self.kind = kind
+    self.codingPath = codingPath
+    self.expectedType = expectedType
+  }
+
   /// A formatted dot-and-bracket path such as `data[0].broadcasterType`, or `$` at the root.
   public var pathDescription: String {
     let path = codingPath.reduce(into: "") { path, component in
@@ -214,6 +225,27 @@ public struct TwitchDecodingDiagnostic: Sendable, Equatable {
     public let subscriptionVersion: String?
     /// The broadcaster ID when the registered subscription targets a single channel.
     public let channelID: String?
+
+    /// Creates an `EventSubMetadata` value.
+    public init(
+      connectionID: UUID,
+      messageID: String? = nil,
+      messageType: String? = nil,
+      sentAt: Date? = nil,
+      subscriptionID: String? = nil,
+      subscriptionType: String? = nil,
+      subscriptionVersion: String? = nil,
+      channelID: String? = nil
+    ) {
+      self.connectionID = connectionID
+      self.messageID = messageID
+      self.messageType = messageType
+      self.sentAt = sentAt
+      self.subscriptionID = subscriptionID
+      self.subscriptionType = subscriptionType
+      self.subscriptionVersion = subscriptionVersion
+      self.channelID = channelID
+    }
   }
 
   /// The subsystem that reported the failure.
@@ -233,7 +265,8 @@ public struct TwitchDecodingDiagnostic: Sendable, Equatable {
   /// Connection, message, and subscription metadata for an EventSub failure, or `nil` for Helix.
   public let eventSubMetadata: EventSubMetadata?
 
-  internal init(
+  /// Creates a `TwitchDecodingDiagnostic` value.
+  public init(
     source: Source, stage: Stage, details: TwitchDecodingFailureDetails, payloadByteCount: Int,
     metadata: HelixResponseMetadata? = nil, requestMethod: String? = nil,
     requestPath: String? = nil, eventSubMetadata: EventSubMetadata? = nil

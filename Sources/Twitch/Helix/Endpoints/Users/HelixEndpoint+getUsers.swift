@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets Twitch profiles by user ID or login name.
@@ -37,7 +36,6 @@ extension HelixEndpoint {
 }
 
 /// A Twitch account’s public profile and authorized account metadata.
-@MemberwiseInit(.public)
 public struct User: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -63,6 +61,31 @@ public struct User: Decodable, Sendable {
 
   /// The user’s email address, when authorized.
   public let email: String?
+
+  /// Creates a `User` value.
+  public init(
+    id: String,
+    login: String,
+    displayName: String,
+    type: String,
+    broadcasterType: BroadcasterType,
+    description: String,
+    profileImageURL: String,
+    offlineImageURL: String,
+    createdAt: Date,
+    email: String? = nil
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+    self.type = type
+    self.broadcasterType = broadcasterType
+    self.description = description
+    self.profileImageURL = profileImageURL
+    self.offlineImageURL = offlineImageURL
+    self.createdAt = createdAt
+    self.email = email
+  }
 
   /// A Twitch broadcaster classification, preserving unfamiliar strings in `rawValue`.
   public struct BroadcasterType: RawRepresentable, Decodable, Sendable, Hashable {

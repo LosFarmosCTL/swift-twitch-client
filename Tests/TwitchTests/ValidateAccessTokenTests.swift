@@ -100,10 +100,22 @@ struct ValidateAccessTokenTests {
         network: session)
     }
 
-    guard case .invalidToken = error else {
-      Issue.record("Expected invalidToken, got \(String(describing: error))")
-      return
+    #expect(error == .invalidToken)
+  }
+
+  @Test
+  func unexpectedHTTPStatusDoesNotReportInvalidToken() async throws {
+    let session = MockNetworkSession()
+    let url = try #require(URL(string: "https://id.twitch.tv/oauth2/validate"))
+    await session.stub(url: url, status: 503)
+
+    let error = await #expect(throws: AccessTokenValidationError.self) {
+      try await TwitchClient.validateAccessToken(
+        accessToken: "valid-token",
+        network: session)
     }
+
+    #expect(error == .unexpectedResponse(statusCode: 503))
   }
 
   @Test

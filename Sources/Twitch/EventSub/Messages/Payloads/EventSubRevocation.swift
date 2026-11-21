@@ -7,10 +7,33 @@ import Foundation
 /// ``ChatChannelState/moderationRevocation`` for managed chat subscriptions.
 ///
 /// - SeeAlso: <doc:EventSub>, ``EventSubError``
-public struct EventSubRevocation: Decodable, Sendable {
-  internal let subscription: EventSubMessage.Subscription
+public struct EventSubRevocation: Decodable, Sendable, Equatable, Hashable {
+  internal let subscription: EventSubMessage.Subscription?
+  /// The Twitch ID of the revoked EventSub subscription.
+  public let subscriptionID: String
   /// The reason Twitch revoked the subscription.
   public let status: Status
+
+  /// Creates an `EventSubRevocation` value.
+  public init(
+    subscriptionID: String,
+    status: Status
+  ) {
+    self.subscription = nil
+    self.subscriptionID = subscriptionID
+    self.status = status
+  }
+
+  /// Returns a Boolean value indicating whether two revocations are equal.
+  public static func == (lhs: EventSubRevocation, rhs: EventSubRevocation) -> Bool {
+    lhs.subscriptionID == rhs.subscriptionID && lhs.status == rhs.status
+  }
+
+  /// Hashes the essential components of this revocation into the given hasher.
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(subscriptionID)
+    hasher.combine(status)
+  }
 
   /// A Twitch revocation reason, preserving unfamiliar status strings in ``rawValue``.
   public struct Status: RawRepresentable, Decodable, Sendable, Hashable {
@@ -49,7 +72,10 @@ public struct EventSubRevocation: Decodable, Sendable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    subscription = try container.decode(EventSubMessage.Subscription.self, forKey: .subscription)
+    let subscription = try container.decode(
+      EventSubMessage.Subscription.self, forKey: .subscription)
+    self.subscription = subscription
+    self.subscriptionID = subscription.id
     let fields = try container.nestedContainer(
       keyedBy: SubscriptionKeys.self, forKey: .subscription)
 

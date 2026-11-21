@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets users banned or timed out from the authenticated broadcaster’s channel.
@@ -52,7 +51,6 @@ extension HelixEndpoint {
 }
 
 /// An account banned or timed out in a channel, with moderation metadata.
-@MemberwiseInit(.public)
 public struct BannedUser: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -62,8 +60,7 @@ public struct BannedUser: Decodable, Sendable {
   public let userDisplayName: String
 
   /// The timeout expiry; `nil` for a permanent ban.
-  @InitRaw(default: nil, type: Date?.self)
-  @NilOnTypeMismatch public var expiresAt: Date?
+  public let expiresAt: Date?
   /// The time the resource was created.
   public let createdAt: Date
 
@@ -77,6 +74,29 @@ public struct BannedUser: Decodable, Sendable {
   /// The display name of the moderator.
   public let moderatorDisplayName: String
 
+  /// Creates a `BannedUser` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    expiresAt: Date? = nil,
+    createdAt: Date,
+    reason: String? = nil,
+    moderatorID: String,
+    moderatorLogin: String,
+    moderatorDisplayName: String
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.expiresAt = expiresAt
+    self.createdAt = createdAt
+    self.reason = reason
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+  }
+
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
     case userLogin
@@ -89,13 +109,34 @@ public struct BannedUser: Decodable, Sendable {
     case moderatorDisplayName = "moderatorName"
   }
 
+  /// Decodes a banned user, treating an empty `expires_at` timestamp as `nil`.
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    userID = try container.decode(String.self, forKey: .userID)
+    userLogin = try container.decode(String.self, forKey: .userLogin)
+    userDisplayName = try container.decode(String.self, forKey: .userDisplayName)
+    expiresAt = container.decodeLenientDateIfPresent(forKey: .expiresAt)
+    createdAt = try container.decode(Date.self, forKey: .createdAt)
+    reason = try container.decodeIfPresent(String.self, forKey: .reason)
+    moderatorID = try container.decode(String.self, forKey: .moderatorID)
+    moderatorLogin = try container.decode(String.self, forKey: .moderatorLogin)
+    moderatorDisplayName = try container.decode(String.self, forKey: .moderatorDisplayName)
+  }
 }
 
 /// A page of banned users.
-@MemberwiseInit(.public)
 public struct BannedUsersResponse: Sendable {
   /// The users on this page.
   public let users: [BannedUser]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `BannedUsersResponse` value.
+  public init(
+    users: [BannedUser] = [],
+    cursor: String? = nil
+  ) {
+    self.users = users
+    self.cursor = cursor
+  }
 }

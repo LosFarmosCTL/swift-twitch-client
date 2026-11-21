@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets downloadable analytics reports for games owned by the authenticated user’s
@@ -48,7 +47,6 @@ extension HelixEndpoint {
 }
 
 /// A downloadable game analytics report and its covered date range.
-@MemberwiseInit(.public)
 public struct GameReport: Decodable, Sendable {
   /// The identifier of the game.
   public let gameID: String
@@ -58,6 +56,19 @@ public struct GameReport: Decodable, Sendable {
   public let type: String
   /// The date range covered by the response.
   public let range: DateInterval
+
+  /// Creates a `GameReport` value.
+  public init(
+    gameID: String,
+    url: String,
+    type: String,
+    range: DateInterval
+  ) {
+    self.gameID = gameID
+    self.url = url
+    self.type = type
+    self.range = range
+  }
 
   enum CodingKeys: String, CodingKey {
     case gameID = "gameId"
@@ -89,10 +100,18 @@ public struct GameReport: Decodable, Sendable {
 }
 
 /// A page of game analytics.
-@MemberwiseInit(.public)
 public struct GameAnalyticsResponse: Sendable {
   /// The reports on this page.
   public let reports: [GameReport]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `GameAnalyticsResponse` value.
+  public init(
+    reports: [GameReport] = [],
+    cursor: String? = nil
+  ) {
+    self.reports = reports
+    self.cursor = cursor
+  }
 }

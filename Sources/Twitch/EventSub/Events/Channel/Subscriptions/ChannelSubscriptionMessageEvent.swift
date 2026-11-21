@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a subscriber shares a resubscription message.
-@MemberwiseInit(.public)
 public struct ChannelSubscriptionMessageEvent: Event {
   /// The Twitch user ID.
   public let userID: String
@@ -19,7 +17,7 @@ public struct ChannelSubscriptionMessageEvent: Event {
   public let broadcasterDisplayName: String
 
   /// The subscription tier.
-  public let tier: String
+  public let tier: SubscriptionTier
   /// The number of months included in the subscription.
   public let durationMonths: Int
   /// The total number of subscribed months.
@@ -29,6 +27,33 @@ public struct ChannelSubscriptionMessageEvent: Event {
 
   /// The message content or explanatory text supplied by Twitch.
   public let message: Message
+
+  /// Creates a `ChannelSubscriptionMessageEvent` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    tier: SubscriptionTier,
+    durationMonths: Int,
+    cumulativeMonths: Int,
+    streakMonths: Int? = nil,
+    message: Message
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.tier = tier
+    self.durationMonths = durationMonths
+    self.cumulativeMonths = cumulativeMonths
+    self.streakMonths = streakMonths
+    self.message = message
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
@@ -45,15 +70,33 @@ public struct ChannelSubscriptionMessageEvent: Event {
   }
 
   /// A resubscription message and the emote ranges needed to render it.
-  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     /// The text content.
     public let text: String
     /// The emote metadata.
     public let emotes: [Emote]
 
+    /// Creates a `Message` value.
+    public init(
+      text: String,
+      emotes: [Emote] = []
+    ) {
+      self.text = text
+      self.emotes = emotes
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case text, emotes
+    }
+
+    /// Decodes a resubscription message, treating a `null` `emotes` field as an empty list.
+    public init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+      text = try container.decode(String.self, forKey: .text)
+      emotes = try container.decodeIfPresent([Emote].self, forKey: .emotes) ?? []
+    }
+
     /// Emote metadata for a fragment of the chat message.
-    @MemberwiseInit(.public)
     public struct Emote: Decodable, Sendable {
       /// The beginning of the matched text range.
       public let begin: Int
@@ -61,6 +104,17 @@ public struct ChannelSubscriptionMessageEvent: Event {
       public let end: Int
       /// The identifier assigned by Twitch.
       public let id: String
+
+      /// Creates an `Emote` value.
+      public init(
+        begin: Int,
+        end: Int,
+        id: String
+      ) {
+        self.begin = begin
+        self.end = end
+        self.id = id
+      }
     }
   }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the extensions active on a user’s channel.
@@ -33,7 +32,6 @@ extension HelixEndpoint {
 }
 
 /// The active extension assignments for a user’s panel, overlay, and component slots.
-@MemberwiseInit(.public)
 public struct UserActiveExtensions: Decodable, Sendable {
   /// The panel extension slots, when provided.
   public let panel: [String: ExtensionSlot]?
@@ -41,11 +39,21 @@ public struct UserActiveExtensions: Decodable, Sendable {
   public let overlay: [String: ExtensionSlot]?
   /// The component extension slots, when provided.
   public let component: [String: ExtensionSlot]?
+
+  /// Creates a `UserActiveExtensions` value.
+  public init(
+    panel: [String: ExtensionSlot]? = nil,
+    overlay: [String: ExtensionSlot]? = nil,
+    component: [String: ExtensionSlot]? = nil
+  ) {
+    self.panel = panel
+    self.overlay = overlay
+    self.component = component
+  }
 }
 
 // swiftlint:disable identifier_name
 /// An extension installed in a numbered channel slot.
-@MemberwiseInit(.public)
 public struct ExtensionSlot: Decodable, Sendable {
   /// Whether the resource is active.
   public let isActive: Bool
@@ -59,6 +67,23 @@ public struct ExtensionSlot: Decodable, Sendable {
   public let x: Int?
   /// The vertical position, when provided.
   public let y: Int?
+
+  /// Creates an `ExtensionSlot` value.
+  public init(
+    isActive: Bool,
+    id: String? = nil,
+    version: String? = nil,
+    name: String? = nil,
+    x: Int? = nil,
+    y: Int? = nil
+  ) {
+    self.isActive = isActive
+    self.id = id
+    self.version = version
+    self.name = name
+    self.x = x
+    self.y = y
+  }
 
   enum CodingKeys: String, CodingKey {
     case isActive = "active"

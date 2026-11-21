@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Searches Twitch game categories by name.
@@ -41,7 +40,6 @@ extension HelixEndpoint {
 }
 
 /// A Twitch category returned by category search.
-@MemberwiseInit(.public)
 public struct Category: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -49,6 +47,17 @@ public struct Category: Decodable, Sendable {
   public let name: String
   /// The URL of the category's box art image.
   public let boxArtURL: String
+
+  /// Creates a `Category` value.
+  public init(
+    id: String,
+    name: String,
+    boxArtURL: String
+  ) {
+    self.id = id
+    self.name = name
+    self.boxArtURL = boxArtURL
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -58,10 +67,18 @@ public struct Category: Decodable, Sendable {
 }
 
 /// A page of search categories.
-@MemberwiseInit(.public)
 public struct SearchCategoriesResponse: Sendable {
   /// The categories on this page.
   public let categories: [Category]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `SearchCategoriesResponse` value.
+  public init(
+    categories: [Category] = [],
+    cursor: String? = nil
+  ) {
+    self.categories = categories
+    self.cursor = cursor
+  }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Creates a clip from a broadcaster’s stream.
@@ -43,12 +42,20 @@ extension HelixEndpoint {
 }
 
 /// The clip identifier and editing URL returned after creating a clip.
-@MemberwiseInit(.public)
 public struct ClipCreation: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
   /// The URL to open Twitch's clip editor for this clip.
   public let editURL: String
+
+  /// Creates a `ClipCreation` value.
+  public init(
+    id: String,
+    editURL: String
+  ) {
+    self.id = id
+    self.editURL = editURL
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

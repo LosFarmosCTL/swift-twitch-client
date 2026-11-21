@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets Twitch’s content classification labels in the requested locale.
@@ -25,7 +24,6 @@ extension HelixEndpoint {
 }
 
 /// A localized content classification label available for streams.
-@MemberwiseInit(.public)
 public struct ContentClassificationLabel: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -33,4 +31,15 @@ public struct ContentClassificationLabel: Decodable, Sendable {
   public let description: String
   /// The name supplied by Twitch.
   public let name: String
+
+  /// Creates a `ContentClassificationLabel` value.
+  public init(
+    id: String,
+    description: String,
+    name: String
+  ) {
+    self.id = id
+    self.description = description
+    self.name = name
+  }
 }

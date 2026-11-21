@@ -1,5 +1,3 @@
-import MemberwiseInit
-
 extension HelixEndpoint {
   /// Warns a viewer, preventing chat interaction until they acknowledge the warning.
   ///
@@ -38,7 +36,6 @@ extension HelixEndpoint {
 }
 
 /// A warning issued to a viewer in a channel.
-@MemberwiseInit(.public)
 public struct ChatWarning: Decodable, Sendable {
   /// The broadcaster’s user ID.
   public let broadcasterID: String
@@ -48,6 +45,19 @@ public struct ChatWarning: Decodable, Sendable {
   public let moderatorID: String
   /// The warning reason.
   public let reason: String
+
+  /// Creates a `ChatWarning` value.
+  public init(
+    broadcasterID: String,
+    userID: String,
+    moderatorID: String,
+    reason: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.userID = userID
+    self.moderatorID = moderatorID
+    self.reason = reason
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"

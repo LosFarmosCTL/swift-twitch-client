@@ -1,5 +1,3 @@
-import MemberwiseInit
-
 extension HelixEndpoint {
   /// Gets temporary download URLs for up to ten clips from a channel.
   ///
@@ -36,7 +34,6 @@ extension HelixEndpoint {
 }
 
 /// Temporary URLs for downloading the landscape and portrait versions of a clip.
-@MemberwiseInit(.public)
 public struct ClipDownload: Decodable, Sendable {
   /// The clip ID.
   public let clipID: String
@@ -44,6 +41,17 @@ public struct ClipDownload: Decodable, Sendable {
   public let landscapeDownloadURL: String?
   /// The portrait download URL, if available.
   public let portraitDownloadURL: String?
+
+  /// Creates a `ClipDownload` value.
+  public init(
+    clipID: String,
+    landscapeDownloadURL: String? = nil,
+    portraitDownloadURL: String? = nil
+  ) {
+    self.clipID = clipID
+    self.landscapeDownloadURL = landscapeDownloadURL
+    self.portraitDownloadURL = portraitDownloadURL
+  }
 
   enum CodingKeys: String, CodingKey {
     case clipID = "clipId"

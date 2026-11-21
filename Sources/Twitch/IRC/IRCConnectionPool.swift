@@ -34,7 +34,7 @@ internal actor IRCConnectionPool {
   func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
     try Task.checkCancellation()
     guard !state.ended else { throw state.terminalError ?? IRCError.disconnected }
-    guard !state.active else { throw IRCError.alreadyConnected }
+    guard !state.active else { throw IRCInternalError.alreadyConnected }
 
     let (stream, continuation) = AsyncThrowingStream<IRCConnectionUpdate, any Error>.makeStream()
     updates = continuation

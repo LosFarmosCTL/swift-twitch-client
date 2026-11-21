@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a channel’s chat settings change.
-@MemberwiseInit(.public)
 public struct ChannelChatSettingsUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -22,6 +19,27 @@ public struct ChannelChatSettingsUpdateEvent: Event {
   public let followerMode: Duration?
   /// The minimum interval between a viewer’s messages; `nil` disables slow mode.
   public let slowMode: Duration?
+
+  /// Creates a `ChannelChatSettingsUpdateEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    emoteMode: Bool,
+    subscriberMode: Bool,
+    uniqueChatMode: Bool,
+    followerMode: Duration? = nil,
+    slowMode: Duration? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.emoteMode = emoteMode
+    self.subscriberMode = subscriberMode
+    self.uniqueChatMode = uniqueChatMode
+    self.followerMode = followerMode
+    self.slowMode = slowMode
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

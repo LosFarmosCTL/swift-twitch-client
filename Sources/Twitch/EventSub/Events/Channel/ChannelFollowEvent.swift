@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a user follows the channel.
-@MemberwiseInit(.public)
 public struct ChannelFollowEvent: Event {
   /// The Twitch user ID.
   public let userID: String
@@ -19,6 +17,25 @@ public struct ChannelFollowEvent: Event {
   public let broadcasterDisplayName: String
   /// The time the user followed the channel.
   public let followedAt: Date
+
+  /// Creates a `ChannelFollowEvent` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    followedAt: Date
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.followedAt = followedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

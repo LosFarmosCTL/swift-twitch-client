@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a broadcaster raids another channel.
-@MemberwiseInit(.public)
 public struct ChannelRaidEvent: Event {
   /// The Twitch user ID of the source broadcaster.
   public let fromBroadcasterID: String
@@ -18,6 +15,25 @@ public struct ChannelRaidEvent: Event {
 
   /// The viewer count reported by Twitch.
   public let viewers: Int
+
+  /// Creates a `ChannelRaidEvent` value.
+  public init(
+    fromBroadcasterID: String,
+    fromBroadcasterLogin: String,
+    fromBroadcasterDisplayName: String,
+    toBroadcasterID: String,
+    toBroadcasterLogin: String,
+    toBroadcasterDisplayName: String,
+    viewers: Int
+  ) {
+    self.fromBroadcasterID = fromBroadcasterID
+    self.fromBroadcasterLogin = fromBroadcasterLogin
+    self.fromBroadcasterDisplayName = fromBroadcasterDisplayName
+    self.toBroadcasterID = toBroadcasterID
+    self.toBroadcasterLogin = toBroadcasterLogin
+    self.toBroadcasterDisplayName = toBroadcasterDisplayName
+    self.viewers = viewers
+  }
 
   enum CodingKeys: String, CodingKey {
     case fromBroadcasterID = "fromBroadcasterUserId"

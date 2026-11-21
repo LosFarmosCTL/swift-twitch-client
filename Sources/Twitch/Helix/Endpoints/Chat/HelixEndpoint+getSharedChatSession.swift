@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s active shared chat session, or `nil` when it is not in one.
@@ -23,7 +22,6 @@ extension HelixEndpoint {
 }
 
 /// An active shared chat session and the channels participating in it.
-@MemberwiseInit(.public)
 public struct SharedChatSession: Decodable, Sendable {
   /// The session ID.
   public let sessionID: String
@@ -36,6 +34,21 @@ public struct SharedChatSession: Decodable, Sendable {
   /// When the session was last updated.
   public let updatedAt: Date
 
+  /// Creates a `SharedChatSession` value.
+  public init(
+    sessionID: String,
+    hostBroadcasterID: String,
+    participants: [Participant] = [],
+    createdAt: Date,
+    updatedAt: Date
+  ) {
+    self.sessionID = sessionID
+    self.hostBroadcasterID = hostBroadcasterID
+    self.participants = participants
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case sessionID = "sessionId"
     case hostBroadcasterID = "hostBroadcasterId"
@@ -43,10 +56,16 @@ public struct SharedChatSession: Decodable, Sendable {
   }
 
   /// A channel participating in shared chat.
-  @MemberwiseInit(.public)
   public struct Participant: Decodable, Sendable {
     /// The participating broadcaster’s user ID.
     public let broadcasterID: String
+
+    /// Creates a `Participant` value.
+    public init(
+      broadcasterID: String
+    ) {
+      self.broadcasterID = broadcasterID
+    }
 
     enum CodingKeys: String, CodingKey {
       case broadcasterID = "broadcasterId"

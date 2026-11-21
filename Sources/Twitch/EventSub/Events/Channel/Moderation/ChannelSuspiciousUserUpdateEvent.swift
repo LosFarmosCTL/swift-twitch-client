@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a suspicious user’s moderation status changes.
-@MemberwiseInit(.public)
 public struct ChannelSuspiciousUserUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -26,6 +23,31 @@ public struct ChannelSuspiciousUserUpdateEvent: Event {
 
   /// The moderation status assigned to the suspicious user.
   public let lowTrustStatus: ChannelSuspiciousUserMessageEvent.LowTrustStatus
+
+  /// Creates a `ChannelSuspiciousUserUpdateEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    moderatorID: String,
+    moderatorDisplayName: String,
+    moderatorLogin: String,
+    userID: String,
+    userDisplayName: String,
+    userLogin: String,
+    lowTrustStatus: ChannelSuspiciousUserMessageEvent.LowTrustStatus
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.moderatorID = moderatorID
+    self.moderatorDisplayName = moderatorDisplayName
+    self.moderatorLogin = moderatorLogin
+    self.userID = userID
+    self.userDisplayName = userDisplayName
+    self.userLogin = userLogin
+    self.lowTrustStatus = lowTrustStatus
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

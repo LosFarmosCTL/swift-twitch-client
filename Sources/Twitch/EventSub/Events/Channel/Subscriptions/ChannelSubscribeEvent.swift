@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user subscribes to the channel.
-@MemberwiseInit(.public)
 public struct ChannelSubscribeEvent: Event {
   /// The Twitch user ID.
   public let userID: String
@@ -21,6 +18,27 @@ public struct ChannelSubscribeEvent: Event {
   public let tier: SubscriptionTier
   /// Whether the subscription was gifted.
   public let isGift: Bool
+
+  /// Creates a `ChannelSubscribeEvent` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    tier: SubscriptionTier,
+    isGift: Bool
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.tier = tier
+    self.isGift = isGift
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

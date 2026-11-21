@@ -1,10 +1,8 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a Guest Star session begins.
 ///
 /// Uses Twitch’s beta Guest Star schema, which Twitch may change without notice.
-@MemberwiseInit(.public)
 public struct ChannelGuestStarSessionBeginEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -17,6 +15,21 @@ public struct ChannelGuestStarSessionBeginEvent: Event {
   public let sessionID: String
   /// The time the activity started.
   public let startedAt: Date
+
+  /// Creates a `ChannelGuestStarSessionBeginEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    sessionID: String,
+    startedAt: Date
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.sessionID = sessionID
+    self.startedAt = startedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

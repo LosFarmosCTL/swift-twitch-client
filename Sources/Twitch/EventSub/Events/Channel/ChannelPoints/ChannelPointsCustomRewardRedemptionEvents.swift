@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 /// The payload for channel points custom reward redemption update notifications.
 ///
@@ -9,7 +8,6 @@ public typealias ChannelPointsCustomRewardRedemptionUpdateEvent =
 
 /// An EventSub notification delivered when a viewer redeems a custom Channel Points
 /// reward.
-@MemberwiseInit(.public)
 public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -38,6 +36,33 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
   /// The time the reward was redeemed.
   public let redeemedAt: Date
 
+  /// Creates a `ChannelPointsCustomRewardRedemptionAddEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    userInput: String,
+    status: String,
+    reward: Reward,
+    redeemedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.userInput = userInput
+    self.status = status
+    self.reward = reward
+    self.redeemedAt = redeemedAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterUserId"
@@ -53,7 +78,6 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
   }
 
   /// The identity, title, prompt, and Channel Points cost of the redeemed reward.
-  @MemberwiseInit(.public)
   public struct Reward: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -63,17 +87,18 @@ public struct ChannelPointsCustomRewardRedemptionAddEvent: Event {
     public let cost: Int
     /// The prompt shown when viewers redeem the reward.
     public let prompt: String
-  }
 
-  /// The fulfillment state reported for a custom reward redemption.
-  public enum Status: String, Decodable, Sendable {
-    /// A value Twitch did not classify or this client does not recognize.
-    case unknown
-    /// The reward redemption is awaiting fulfillment.
-    case unfulfilled
-    /// The reward or entitlement has been fulfilled.
-    case fulfilled
-    /// The operation was cancelled. Encoded as `"canceled"`.
-    case cancelled = "canceled"
+    /// Creates a `Reward` value.
+    public init(
+      id: String,
+      title: String,
+      cost: Int,
+      prompt: String
+    ) {
+      self.id = id
+      self.title = title
+      self.cost = cost
+      self.prompt = prompt
+    }
   }
 }

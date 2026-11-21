@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Creates or updates a Bits product sold by an extension.
@@ -43,18 +42,44 @@ extension HelixEndpoint {
 }
 
 /// The Bits price to assign to an extension product.
-@MemberwiseInit(.public)
 public struct ExtensionBitsProductCostRequest: Encodable, Sendable {
   /// The product price in Bits.
   public let amount: Int
   /// The cost currency; Twitch uses `"bits"`.
   public let type: ExtensionBitsProductCostType
+
+  /// Creates an `ExtensionBitsProductCostRequest` value.
+  public init(
+    amount: Int,
+    type: ExtensionBitsProductCostType
+  ) {
+    self.amount = amount
+    self.type = type
+  }
 }
 
-/// The currency used to price an extension product; Twitch currently uses Bits.
-public enum ExtensionBitsProductCostType: String, Codable, Sendable {
+/// The currency used to price an extension product, preserving unfamiliar values in
+/// `rawValue`.
+public struct ExtensionBitsProductCostType: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact cost type string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a cost type from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a cost type from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this cost type as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// Prices the product in Bits.
-  case bits
+  public static let bits = Self(rawValue: "bits")
 }
 
 private struct UpdateExtensionBitsProductRequestBody: Encodable, Sendable {

@@ -56,24 +56,43 @@ extension HelixEndpoint {
   }
 }
 
-/// Content labels that identify sensitive topics in a stream.
-public enum ContentClassificationLabelID: String, Codable, Sendable {
+/// Content labels that identify sensitive topics in a stream, preserving unfamiliar
+/// values in `rawValue`.
+public struct ContentClassificationLabelID: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact label identifier string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a content classification label ID from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a content classification label ID from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this content classification label ID as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// A mature-rated game. Twitch applies this label automatically from the category;
   /// it cannot be toggled through the channel-update endpoint. Encoded as `"MatureGame"`.
-  case matureGame = "MatureGame"
+  public static let matureGame = Self(rawValue: "MatureGame")
   /// Content depicting drugs or intoxication. Encoded as `"DrugsIntoxication"`.
-  case drugsIntoxication = "DrugsIntoxication"
+  public static let drugsIntoxication = Self(rawValue: "DrugsIntoxication")
   /// Content containing sexual themes. Encoded as `"SexualThemes"`.
-  case sexualThemes = "SexualThemes"
+  public static let sexualThemes = Self(rawValue: "SexualThemes")
   /// Content containing graphic violence. Encoded as `"ViolentGraphic"`.
-  case violentGraphic = "ViolentGraphic"
+  public static let violentGraphic = Self(rawValue: "ViolentGraphic")
   /// Content containing gambling. Encoded as `"Gambling"`.
-  case gambling = "Gambling"
+  public static let gambling = Self(rawValue: "Gambling")
   /// Content containing profanity or vulgarity. Encoded as `"ProfanityVulgarity"`.
-  case profanityVulgarity = "ProfanityVulgarity"
+  public static let profanityVulgarity = Self(rawValue: "ProfanityVulgarity")
   /// Content discussing debated social issues or politics. Encoded as
   /// `"DebatedSocialIssuesAndPolitics"`.
-  case debatedSocialIssuesAndPolitics = "DebatedSocialIssuesAndPolitics"
+  public static let debatedSocialIssuesAndPolitics = Self(
+    rawValue: "DebatedSocialIssuesAndPolitics")
 }
 
 internal struct UpdateChannelRequestBody: Encodable, Sendable {

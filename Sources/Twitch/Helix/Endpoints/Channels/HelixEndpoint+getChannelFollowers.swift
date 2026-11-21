@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a broadcaster’s followers and follower count.
@@ -96,10 +95,20 @@ public struct FollowersResponse: Sendable {
 
   /// The pagination cursor to pass when requesting another page.
   public let cursor: String?
+
+  /// Creates a `FollowersResponse` value.
+  public init(
+    total: Int,
+    followers: [Follower] = [],
+    cursor: String? = nil
+  ) {
+    self.total = total
+    self.followers = followers
+    self.cursor = cursor
+  }
 }
 
 /// A channel follower’s identity and the time the follow began.
-@MemberwiseInit(.public)
 public struct Follower: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -109,6 +118,19 @@ public struct Follower: Decodable, Sendable {
   public let userDisplayName: String
   /// The time the user followed the channel.
   public let followedAt: Date
+
+  /// Creates a `Follower` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    followedAt: Date
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.followedAt = followedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

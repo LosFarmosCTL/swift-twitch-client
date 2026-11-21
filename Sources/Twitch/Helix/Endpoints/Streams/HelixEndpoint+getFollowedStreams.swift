@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets live streams from channels the authenticated user follows.
@@ -40,10 +39,18 @@ extension HelixEndpoint {
 }
 
 /// A page of followed streams.
-@MemberwiseInit(.public)
 public struct FollowedStreamsResponse: Sendable {
   /// The streams on this page.
   public let streams: [Stream]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `FollowedStreamsResponse` value.
+  public init(
+    streams: [Stream] = [],
+    cursor: String? = nil
+  ) {
+    self.streams = streams
+    self.cursor = cursor
+  }
 }

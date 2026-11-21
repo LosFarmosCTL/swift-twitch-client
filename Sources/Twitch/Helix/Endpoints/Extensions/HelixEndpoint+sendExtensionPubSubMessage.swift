@@ -37,7 +37,7 @@ extension HelixEndpoint {
 }
 
 /// The viewers or channels that should receive an extension PubSub message.
-public enum ExtensionPubSubMessageTarget: Sendable {
+public enum ExtensionPubSubMessageTarget: Sendable, Equatable {
   /// Sends the message to viewers in the broadcaster’s channel.
   case broadcast
   /// Sends the message to all channels using the extension.

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets game categories by Twitch ID, name, or IGDB ID.
@@ -41,7 +40,6 @@ extension HelixEndpoint {
 }
 
 /// A Twitch game or category with its box art and external game identifier.
-@MemberwiseInit(.public)
 public struct Game: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -51,6 +49,19 @@ public struct Game: Decodable, Sendable {
   public let boxArtURL: String
   /// The identifier of the igdb.
   public let igdbID: String
+
+  /// Creates a `Game` value.
+  public init(
+    id: String,
+    name: String,
+    boxArtURL: String,
+    igdbID: String
+  ) {
+    self.id = id
+    self.name = name
+    self.boxArtURL = boxArtURL
+    self.igdbID = igdbID
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s unban requests filtered by status.
@@ -54,7 +53,6 @@ public enum UnbanRequestStatus: String, Sendable {
 }
 
 /// A viewer’s unban request and its moderation history.
-@MemberwiseInit(.public)
 public struct UnbanRequest: Decodable, Sendable {
   /// The unban request ID.
   public let id: String
@@ -87,6 +85,41 @@ public struct UnbanRequest: Decodable, Sendable {
   /// The resolver’s explanation, if any.
   public let resolutionText: String?
 
+  /// Creates a `UnbanRequest` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    moderatorID: String? = nil,
+    moderatorLogin: String? = nil,
+    moderatorDisplayName: String? = nil,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    text: String,
+    status: String,
+    createdAt: Date,
+    resolvedAt: Date? = nil,
+    resolutionText: String? = nil
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.text = text
+    self.status = status
+    self.createdAt = createdAt
+    self.resolvedAt = resolvedAt
+    self.resolutionText = resolutionText
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterId"
@@ -103,10 +136,18 @@ public struct UnbanRequest: Decodable, Sendable {
 }
 
 /// A page of unban requests.
-@MemberwiseInit(.public)
 public struct UnbanRequestsResponse: Sendable {
   /// The requests on this page.
   public let requests: [UnbanRequest]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `UnbanRequestsResponse` value.
+  public init(
+    requests: [UnbanRequest] = [],
+    cursor: String? = nil
+  ) {
+    self.requests = requests
+    self.cursor = cursor
+  }
 }

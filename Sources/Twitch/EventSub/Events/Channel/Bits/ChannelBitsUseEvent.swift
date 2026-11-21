@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a viewer uses Bits in a channel.
-@MemberwiseInit(.public)
 public struct ChannelBitsUseEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -24,6 +21,29 @@ public struct ChannelBitsUseEvent: Event {
 
   /// What the Bits paid for, with associated details.
   public let type: BitsUseType
+
+  /// Creates a `ChannelBitsUseEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    bits: Int,
+    message: Message? = nil,
+    type: BitsUseType
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.bits = bits
+    self.message = message
+    self.type = type
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
@@ -53,12 +73,20 @@ public struct ChannelBitsUseEvent: Event {
   }
 
   /// A chat message’s full text and ordered content fragments.
-  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     /// The text content.
     public let text: String
     /// The ordered message fragments.
     public let fragments: [Fragment]
+
+    /// Creates a `Message` value.
+    public init(
+      text: String,
+      fragments: [Fragment] = []
+    ) {
+      self.text = text
+      self.fragments = fragments
+    }
 
     enum CodingKeys: String, CodingKey {
       case text
@@ -66,12 +94,20 @@ public struct ChannelBitsUseEvent: Event {
     }
 
     /// A run of message text with its content type and any associated metadata.
-    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       /// The text content.
       public let text: String
       /// The category of content represented by this fragment.
       public let type: FragmentType
+
+      /// Creates a `Fragment` value.
+      public init(
+        text: String,
+        type: FragmentType
+      ) {
+        self.text = text
+        self.type = type
+      }
 
       enum CodingKeys: String, CodingKey {
         case text, type
@@ -124,7 +160,6 @@ public struct ChannelBitsUseEvent: Event {
       }
 
       /// Emote metadata for a fragment of the chat message.
-      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         /// The identifier assigned by Twitch.
         public let id: String
@@ -133,7 +168,20 @@ public struct ChannelBitsUseEvent: Event {
         /// The identifier of the owner.
         public let ownerID: String
         /// The supported image formats.
-        public let format: [String]
+        public let format: [ChannelChatMessageEvent.Message.Fragment.Emote.Format]
+
+        /// Creates an `Emote` value.
+        public init(
+          id: String,
+          setID: String,
+          ownerID: String,
+          format: [ChannelChatMessageEvent.Message.Fragment.Emote.Format] = []
+        ) {
+          self.id = id
+          self.setID = setID
+          self.ownerID = ownerID
+          self.format = format
+        }
 
         enum CodingKeys: String, CodingKey {
           case id
@@ -141,15 +189,9 @@ public struct ChannelBitsUseEvent: Event {
           case ownerID = "ownerId"
           case format
         }
-
-        enum Format: String, Decodable, Sendable {
-          case gif = "animated"
-          case png = "static"
-        }
       }
 
       /// A Cheermote’s prefix, Bits amount, and contribution tier.
-      @MemberwiseInit(.public)
       public struct Cheermote: Decodable, Sendable {
         /// The prefix used to identify the Cheermote in chat.
         public let prefix: String
@@ -157,78 +199,118 @@ public struct ChannelBitsUseEvent: Event {
         public let bits: Int
         /// The Cheermote tier.
         public let tier: Int
+
+        /// Creates a `Cheermote` value.
+        public init(
+          prefix: String,
+          bits: Int,
+          tier: Int
+        ) {
+          self.prefix = prefix
+          self.bits = bits
+          self.tier = tier
+        }
       }
     }
   }
 }
 
-/// Whether a viewer spent Bits on a Cheer or a Power-up.
-public enum BitsUseType: Sendable {
-  /// Bits were spent on a Cheer.
-  case cheer
-  /// Bits purchased a Power-up; includes its type and any emote or message effect.
-  case powerUp(PowerUp)
-  /// Bits purchased a broadcaster-defined Power-up.
-  case customPowerUp(CustomPowerUp)
-  /// An unfamiliar Bits use type, preserved as sent by Twitch.
-  case unknown(String)
+extension ChannelBitsUseEvent {
+  /// Whether a viewer spent Bits on a Cheer or a Power-up.
+  public enum BitsUseType: Sendable {
+    /// Bits were spent on a Cheer.
+    case cheer
+    /// Bits purchased a Power-up; includes its type and any emote or message effect.
+    case powerUp(PowerUp)
+    /// Bits purchased a broadcaster-defined Power-up.
+    case customPowerUp(CustomPowerUp)
+    /// An unfamiliar Bits use type, preserved as sent by Twitch.
+    case unknown(String)
 
-  /// The identity and display title included with a custom Power-up purchase.
-  @MemberwiseInit(.public)
-  public struct CustomPowerUp: Decodable, Sendable {
-    /// The title shown to viewers.
-    public let title: String
-    /// The identifier of the custom Power-up reward.
-    public let rewardID: String
+    /// The identity and display title included with a custom Power-up purchase.
+    public struct CustomPowerUp: Decodable, Sendable {
+      /// The title shown to viewers.
+      public let title: String
+      /// The identifier of the custom Power-up reward.
+      public let rewardID: String
+
+      /// Creates a `CustomPowerUp` value.
+      public init(
+        title: String,
+        rewardID: String
+      ) {
+        self.title = title
+        self.rewardID = rewardID
+      }
+
+      enum CodingKeys: String, CodingKey {
+        case title
+        case rewardID = "rewardId"
+      }
+    }
+
+    /// A purchased Power-up’s type and any emote or message-effect metadata.
+    public struct PowerUp: Decodable, Sendable {
+      /// The Power-up identifier supplied by Twitch.
+      public let type: String
+      /// The emote details, when provided.
+      public let emote: Emote?
+      /// The identifier of the message effect, when provided.
+      public let messageEffectID: String?
+
+      /// Creates a `PowerUp` value.
+      public init(
+        type: String,
+        emote: Emote? = nil,
+        messageEffectID: String? = nil
+      ) {
+        self.type = type
+        self.emote = emote
+        self.messageEffectID = messageEffectID
+      }
+
+      enum CodingKeys: String, CodingKey {
+        case type, emote
+        case messageEffectID = "messageEffectId"
+      }
+
+      /// Emote metadata included with a Power-up purchase.
+      public struct Emote: Decodable, Sendable {
+        /// The identifier assigned by Twitch.
+        public let id: String
+        /// The name supplied by Twitch.
+        public let name: String
+
+        /// Creates an `Emote` value.
+        public init(
+          id: String,
+          name: String
+        ) {
+          self.id = id
+          self.name = name
+        }
+      }
+    }
 
     enum CodingKeys: String, CodingKey {
-      case title
-      case rewardID = "rewardId"
-    }
-  }
-
-  /// A purchased Power-up’s type and any emote or message-effect metadata.
-  @MemberwiseInit(.public)
-  public struct PowerUp: Decodable, Sendable {
-    /// The Power-up identifier supplied by Twitch.
-    public let type: String
-    /// The emote details, when provided.
-    public let emote: Emote?
-    /// The identifier of the message effect, when provided.
-    public let messageEffectID: String?
-
-    enum CodingKeys: String, CodingKey {
-      case type, emote
-      case messageEffectID = "messageEffectId"
+      case type, cheer, powerUp, customPowerUp
     }
 
-    /// Emote metadata for a fragment of the chat message.
-    public struct Emote: Decodable, Sendable {
-      /// The identifier assigned by Twitch.
-      public let id: String
-      /// The name supplied by Twitch.
-      public let name: String
-    }
-  }
+    init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
 
-  enum CodingKeys: String, CodingKey {
-    case type, cheer, powerUp, customPowerUp
-  }
-
-  init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-
-    let type = try container.decode(String.self, forKey: .type)
-    switch type {
-    case "cheer":
-      self = .cheer
-    case "power_up":
-      let powerUp = try container.decode(PowerUp.self, forKey: .powerUp)
-      self = .powerUp(powerUp)
-    case "custom_power_up":
-      self = .customPowerUp(try container.decode(CustomPowerUp.self, forKey: .customPowerUp))
-    default:
-      self = .unknown(type)
+      let type = try container.decode(String.self, forKey: .type)
+      switch type {
+      case "cheer":
+        self = .cheer
+      case "power_up":
+        let powerUp = try container.decode(PowerUp.self, forKey: .powerUp)
+        self = .powerUp(powerUp)
+      case "custom_power_up":
+        self = .customPowerUp(try container.decode(CustomPowerUp.self, forKey: .customPowerUp))
+      default:
+        self = .unknown(type)
+      }
     }
   }
 }

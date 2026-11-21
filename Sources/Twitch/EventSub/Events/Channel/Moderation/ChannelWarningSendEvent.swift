@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a moderator warns a user.
-@MemberwiseInit(.public)
 public struct ChannelWarningSendEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -28,6 +25,33 @@ public struct ChannelWarningSendEvent: Event {
   public let reason: String?
   /// The channel chat rules cited in the warning, when provided.
   public let chatRulesCited: [String]?
+
+  /// Creates a `ChannelWarningSendEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    moderatorID: String,
+    moderatorLogin: String,
+    moderatorDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    reason: String? = nil,
+    chatRulesCited: [String]? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.reason = reason
+    self.chatRulesCited = chatRulesCited
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user receives a whisper.
-@MemberwiseInit(.public)
 public struct UserWhisperMessageEvent: Event {
   /// The Twitch user ID of the sending user.
   public let fromUserID: String
@@ -21,6 +18,27 @@ public struct UserWhisperMessageEvent: Event {
   public let whisperID: String
   /// The text of the whisper.
   public let whisper: String
+
+  /// Creates a `UserWhisperMessageEvent` value.
+  public init(
+    fromUserID: String,
+    fromUserDisplayName: String,
+    fromUserLogin: String,
+    toUserID: String,
+    toUserDisplayName: String,
+    toUserLogin: String,
+    whisperID: String,
+    whisper: String
+  ) {
+    self.fromUserID = fromUserID
+    self.fromUserDisplayName = fromUserDisplayName
+    self.fromUserLogin = fromUserLogin
+    self.toUserID = toUserID
+    self.toUserDisplayName = toUserDisplayName
+    self.toUserLogin = toUserLogin
+    self.whisperID = whisperID
+    self.whisper = whisper
+  }
 
   enum CodingKeys: String, CodingKey {
     case fromUserID = "fromUserId"

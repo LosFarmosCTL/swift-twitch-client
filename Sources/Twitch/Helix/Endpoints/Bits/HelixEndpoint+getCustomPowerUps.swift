@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s custom Bits Power-ups.
@@ -35,7 +34,6 @@ extension HelixEndpoint {
 }
 
 /// A broadcaster’s custom Bits Power-up and its redemption restrictions.
-@MemberwiseInit(.public)
 public struct CustomPowerUp: Decodable, Sendable {
   /// The broadcaster’s user ID.
   public let broadcasterID: String
@@ -75,6 +73,49 @@ public struct CustomPowerUp: Decodable, Sendable {
   public let redemptionsRedeemedCurrentStream: Int?
   /// The cooldown expiry, if currently cooling down.
   public let cooldownExpiresAt: Date?
+
+  /// Creates a `CustomPowerUp` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    id: String,
+    title: String,
+    prompt: String,
+    bits: Int,
+    image: CustomRewardImage? = nil,
+    defaultImage: CustomRewardImage,
+    backgroundColor: String,
+    isEnabled: Bool,
+    isUserInputRequired: Bool,
+    maxPerStreamSetting: RewardSetting,
+    maxPerUserPerStreamSetting: RewardSetting,
+    globalCooldownSetting: RewardSetting,
+    isPaused: Bool,
+    isInStock: Bool,
+    redemptionsRedeemedCurrentStream: Int? = nil,
+    cooldownExpiresAt: Date? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.id = id
+    self.title = title
+    self.prompt = prompt
+    self.bits = bits
+    self.image = image
+    self.defaultImage = defaultImage
+    self.backgroundColor = backgroundColor
+    self.isEnabled = isEnabled
+    self.isUserInputRequired = isUserInputRequired
+    self.maxPerStreamSetting = maxPerStreamSetting
+    self.maxPerUserPerStreamSetting = maxPerUserPerStreamSetting
+    self.globalCooldownSetting = globalCooldownSetting
+    self.isPaused = isPaused
+    self.isInStock = isInStock
+    self.redemptionsRedeemedCurrentStream = redemptionsRedeemedCurrentStream
+    self.cooldownExpiresAt = cooldownExpiresAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"

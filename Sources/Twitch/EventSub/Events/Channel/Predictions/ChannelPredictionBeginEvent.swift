@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 /// The payload for channel prediction progress notifications.
 ///
@@ -7,7 +6,6 @@ import MemberwiseInit
 public typealias ChannelPredictionProgressEvent = ChannelPredictionBeginEvent
 
 /// An EventSub notification delivered when a channel prediction begins.
-@MemberwiseInit(.public)
 public struct ChannelPredictionBeginEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -28,6 +26,27 @@ public struct ChannelPredictionBeginEvent: Event {
   /// The time the prediction is scheduled to lock.
   public let locksAt: Date
 
+  /// Creates a `ChannelPredictionBeginEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    outcomes: [Outcome] = [],
+    startedAt: Date,
+    locksAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.outcomes = outcomes
+    self.startedAt = startedAt
+    self.locksAt = locksAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterUserId"
@@ -40,7 +59,6 @@ public struct ChannelPredictionBeginEvent: Event {
   }
 
   /// A prediction outcome’s identity, display color, and any participation totals.
-  @MemberwiseInit(.public)
   public struct Outcome: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -57,16 +75,44 @@ public struct ChannelPredictionBeginEvent: Event {
     /// The top predictors for this outcome, when provided.
     public let topPredictors: [TopPredictor]?
 
-    /// The display color assigned to a prediction outcome.
-    public enum Color: String, Decodable, Sendable {
+    /// Creates an `Outcome` value.
+    public init(
+      id: String,
+      title: String,
+      color: Color,
+      users: Int? = nil,
+      channelPoints: Int? = nil,
+      topPredictors: [TopPredictor]? = nil
+    ) {
+      self.id = id
+      self.title = title
+      self.color = color
+      self.users = users
+      self.channelPoints = channelPoints
+      self.topPredictors = topPredictors
+    }
+
+    /// The display color assigned to a prediction outcome, preserving unfamiliar values
+    /// in `rawValue`.
+    public struct Color: RawRepresentable, Decodable, Sendable, Hashable {
+      /// The exact color string supplied by Twitch or the caller.
+      public let rawValue: String
+
+      /// Creates an outcome color from any raw string.
+      public init(rawValue: String) { self.rawValue = rawValue }
+
+      /// Decodes an outcome color from a single string.
+      public init(from decoder: Decoder) throws {
+        self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+      }
+
       /// The pink prediction outcome.
-      case pink
+      public static let pink = Self(rawValue: "pink")
       /// The blue color option.
-      case blue
+      public static let blue = Self(rawValue: "blue")
     }
 
     /// A leading viewer’s identity, wager, and any winnings for this outcome.
-    @MemberwiseInit(.public)
     public struct TopPredictor: Decodable, Sendable {
       /// The Twitch user ID.
       public let userID: String
@@ -79,6 +125,21 @@ public struct ChannelPredictionBeginEvent: Event {
       public let channelPointsUsed: Int
       /// The Channel Points awarded for the prediction outcome, when provided.
       public let channelPointsWon: Int?
+
+      /// Creates a `TopPredictor` value.
+      public init(
+        userID: String,
+        userLogin: String,
+        userDisplayName: String,
+        channelPointsUsed: Int,
+        channelPointsWon: Int? = nil
+      ) {
+        self.userID = userID
+        self.userLogin = userLogin
+        self.userDisplayName = userDisplayName
+        self.channelPointsUsed = channelPointsUsed
+        self.channelPointsWon = channelPointsWon
+      }
 
       enum CodingKeys: String, CodingKey {
         case userID = "userId"

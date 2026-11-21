@@ -67,7 +67,7 @@ extension HelixError: CustomStringConvertible {
   public var description: String {
     switch self {
     case .authenticationError(let error):
-      return error.description
+      return "Authentication Error: \(error.description)"
     case .cancelled:
       return "Cancelled"
     case .networkError(let error):
@@ -93,11 +93,14 @@ extension HelixError: CustomStringConvertible {
 }
 
 #if !os(Linux)
+  extension LocalizedStringResource.BundleDescription {
+    static var twitchModule: Self { .atURL(Bundle.module.bundleURL) }
+  }
+
   extension HelixError: CustomLocalizedStringResourceConvertible {
     /// The localized string resource describing this error.
     public var localizedStringResource: LocalizedStringResource {
-      let bundle = LocalizedStringResource.BundleDescription.atURL(
-        Bundle.module.bundleURL)
+      let bundle = LocalizedStringResource.BundleDescription.twitchModule
 
       return switch self {
       case .authenticationError(let error):
@@ -109,19 +112,20 @@ extension HelixError: CustomStringConvertible {
       case .unexpectedError(let error):
         .init("Unexpected Error: \(error.localizedDescription)", bundle: bundle)
       case .twitchError(let name, let status, let message):
-        .init("Twitch Error: \(name) (\(status)): \(message)")
+        .init("Twitch Error: \(name) (\(status)): \(message)", bundle: bundle)
       case .rateLimited(let error):
-        .init("Rate Limited: \(error.message ?? "Too Many Requests")")
+        .init("Rate Limited: \(error.message ?? "Too Many Requests")", bundle: bundle)
       case .parsingResponseFailed(let failure):
-        .init("Parsing Response Failed: \(failure.details.pathDescription)")
+        .init("Parsing Response Failed: \(failure.details.pathDescription)", bundle: bundle)
       case .parsingErrorFailed(let status, let failure):
-        .init("Parsing Error Failed: \(status) \(failure.details.pathDescription)")
+        .init(
+          "Parsing Error Failed: \(status) \(failure.details.pathDescription)", bundle: bundle)
       case .noDataInResponse(let responseData):
-        .init("No Data in Response: \(responseData.debugDescription)")
+        .init("No Data in Response: \(responseData.debugDescription)", bundle: bundle)
       case .missingDataInResponse(let responseData):
-        .init("Missing Data in Response: \(responseData.debugDescription)")
+        .init("Missing Data in Response: \(responseData.debugDescription)", bundle: bundle)
       case .nonEmptyResponse(let responseData):
-        .init("Non Empty Response: \(responseData.debugDescription)")
+        .init("Non Empty Response: \(responseData.debugDescription)", bundle: bundle)
       }
     }
   }

@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a channel prediction ends.
-@MemberwiseInit(.public)
 public struct ChannelPredictionEndEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -18,8 +16,8 @@ public struct ChannelPredictionEndEvent: Event {
   public let title: String
   /// The prediction outcomes.
   public let outcomes: [ChannelPredictionBeginEvent.Outcome]
-  /// The identifier of the winning outcome.
-  public let winningOutcomeID: String
+  /// The identifier of the winning outcome, or `nil` when the prediction was canceled.
+  public let winningOutcomeID: String?
 
   /// Whether the prediction was resolved or canceled.
   public let status: Status
@@ -27,6 +25,31 @@ public struct ChannelPredictionEndEvent: Event {
   public let startedAt: Date
   /// The time the activity ended.
   public let endedAt: Date
+
+  /// Creates a `ChannelPredictionEndEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    outcomes: [ChannelPredictionBeginEvent.Outcome] = [],
+    winningOutcomeID: String? = nil,
+    status: Status,
+    startedAt: Date,
+    endedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.outcomes = outcomes
+    self.winningOutcomeID = winningOutcomeID
+    self.status = status
+    self.startedAt = startedAt
+    self.endedAt = endedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -41,11 +64,23 @@ public struct ChannelPredictionEndEvent: Event {
     case endedAt
   }
 
-  /// Whether the prediction was resolved or canceled.
-  public enum Status: String, Decodable, Sendable {
+  /// Whether the prediction was resolved or canceled, preserving unfamiliar values in
+  /// `rawValue`.
+  public struct Status: RawRepresentable, Decodable, Sendable, Hashable {
+    /// The exact status string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a prediction status from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a prediction status from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
     /// The prediction has a declared winning outcome.
-    case resolved
+    public static let resolved = Self(rawValue: "resolved")
     /// The operation was cancelled. Encoded as `"canceled"`.
-    case cancelled = "canceled"
+    public static let cancelled = Self(rawValue: "canceled")
   }
 }

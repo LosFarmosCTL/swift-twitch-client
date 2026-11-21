@@ -56,7 +56,7 @@ struct AppTokenIdentityTests {
   func chatSettingsPatchForwardsModerator() throws {
     let endpoint: HelixEndpoint<ChatSettings> =
       .updateChatSettings(
-        of: "channel", moderatorID: "actor", settings: .init(emoteMode: true))
+        of: "channel", settings: .init(emoteMode: true), moderatorID: "actor")
     let request = try endpoint.makeRequest(
       using: app, encoder: TwitchClient.makeEncoder())
     #expect(request.url?.query()?.contains("moderator_id=actor") == true)
@@ -125,7 +125,7 @@ enum IdentityOperation: CaseIterable, Sendable {
       },
       .chatSettings: { credentials, actorID in
         try makeIdentityRequest(
-          .updateChatSettings(of: "channel", moderatorID: actorID, settings: .init()),
+          .updateChatSettings(of: "channel", settings: .init(), moderatorID: actorID),
           credentials)
       },
       .addTerm: { credentials, actorID in

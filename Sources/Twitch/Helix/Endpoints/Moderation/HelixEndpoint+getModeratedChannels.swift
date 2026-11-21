@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the channels moderated by the authenticated user.
@@ -49,7 +48,6 @@ extension HelixEndpoint {
 }
 
 /// A channel in which the authenticated user is a moderator.
-@MemberwiseInit(.public)
 public struct ModeratedChannel: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -57,6 +55,17 @@ public struct ModeratedChannel: Decodable, Sendable {
   public let login: String
   /// The display name shown on Twitch.
   public let displayName: String
+
+  /// Creates a `ModeratedChannel` value.
+  public init(
+    id: String,
+    login: String,
+    displayName: String
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case id = "broadcasterId"
@@ -66,10 +75,18 @@ public struct ModeratedChannel: Decodable, Sendable {
 }
 
 /// A page of moderated channels.
-@MemberwiseInit(.public)
 public struct ModeratedChannelsResponse: Sendable {
   /// The channels on this page.
   public let channels: [ModeratedChannel]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `ModeratedChannelsResponse` value.
+  public init(
+    channels: [ModeratedChannel] = [],
+    cursor: String? = nil
+  ) {
+    self.channels = channels
+    self.cursor = cursor
+  }
 }

@@ -16,9 +16,20 @@ public struct HelixResponse<Value> {
   public let value: Value
   /// The HTTP status code and parsed rate-limit headers from this response.
   public let metadata: HelixResponseMetadata
+
+  /// Creates a `HelixResponse` value.
+  public init(
+    value: Value,
+    metadata: HelixResponseMetadata
+  ) {
+    self.value = value
+    self.metadata = metadata
+  }
 }
 
 extension HelixResponse: Sendable where Value: Sendable {}
+extension HelixResponse: Equatable where Value: Equatable {}
+extension HelixResponse: Hashable where Value: Hashable {}
 
 /// HTTP status and rate-limit headers observed on a single Helix response.
 ///
@@ -26,11 +37,20 @@ extension HelixResponse: Sendable where Value: Sendable {}
 /// estimate of remaining capacity.
 ///
 /// - SeeAlso: ``HelixRateLimit``, <doc:RateLimiting>
-public struct HelixResponseMetadata: Sendable, Equatable {
+public struct HelixResponseMetadata: Sendable, Equatable, Hashable {
   /// The HTTP status code returned by Twitch.
   public let statusCode: Int
   /// Parsed rate-limit headers from this response, or `nil` when none were valid or present.
   public let rateLimit: HelixRateLimit?
+
+  /// Creates a `HelixResponseMetadata` value.
+  public init(
+    statusCode: Int,
+    rateLimit: HelixRateLimit? = nil
+  ) {
+    self.statusCode = statusCode
+    self.rateLimit = rateLimit
+  }
 
   internal init(response: HTTPURLResponse) {
     self.statusCode = response.statusCode

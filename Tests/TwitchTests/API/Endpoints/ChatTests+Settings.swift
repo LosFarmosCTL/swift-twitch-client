@@ -28,8 +28,8 @@ extension ChatTests {
     #expect(settings.subscriberMode == true)
     #expect(settings.emoteMode == false)
     #expect(settings.uniqueChatMode == false)
-    #expect(settings.nonModeratorChatDelayEnabled == true)
-    #expect(settings.nonModeratorChatDelay == 4)
+    #expect(settings.nonModeratorChatDelay == true)
+    #expect(settings.nonModeratorChatDelayDuration == 4)
   }
 
   @Test
@@ -61,8 +61,8 @@ extension ChatTests {
     #expect(settings.subscriberMode == true)
     #expect(settings.emoteMode == false)
     #expect(settings.uniqueChatMode == false)
-    #expect(settings.nonModeratorChatDelayEnabled == true)
-    #expect(settings.nonModeratorChatDelay == 4)
+    #expect(settings.nonModeratorChatDelay == true)
+    #expect(settings.nonModeratorChatDelayDuration == 4)
   }
 
   @Test

@@ -6,7 +6,7 @@
 /// client and does not restrict direct Helix or EventSub APIs.
 ///
 /// - SeeAlso: <doc:ManagedChat>, ``ChatSendingPolicy``, ``ChatCredentialSwitchBehavior``
-public struct ChatConfiguration: Sendable {
+public struct ChatConfiguration: Sendable, Equatable {
   /// Whether an IRC chat reader connects anonymously or using the client's user credentials.
   public enum IRCAuthentication: Sendable, Equatable {
     /// Connect to Twitch IRC as an anonymous `justinfan` reader without OAuth credentials.

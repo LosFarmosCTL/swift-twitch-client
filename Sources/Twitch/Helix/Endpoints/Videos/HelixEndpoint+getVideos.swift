@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets videos by ID, broadcaster, or game category.
@@ -100,7 +99,6 @@ public enum VideoTypeFilter: String, Sendable {
 }
 
 /// A Twitch video’s identity, playback metadata, and muted segments.
-@MemberwiseInit(.public)
 public struct Video: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -137,6 +135,45 @@ public struct Video: Decodable, Sendable {
   /// The muted portions of the video, when provided.
   public let mutedSegments: [MutedSegment]?
 
+  /// Creates a `Video` value.
+  public init(
+    id: String,
+    streamID: String? = nil,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    title: String,
+    description: String,
+    createdAt: Date,
+    publishedAt: Date? = nil,
+    url: String,
+    thumbnailURL: String,
+    viewable: String,
+    viewCount: Int,
+    language: String,
+    type: VideoType,
+    duration: String,
+    mutedSegments: [MutedSegment]? = nil
+  ) {
+    self.id = id
+    self.streamID = streamID
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.title = title
+    self.description = description
+    self.createdAt = createdAt
+    self.publishedAt = publishedAt
+    self.url = url
+    self.thumbnailURL = thumbnailURL
+    self.viewable = viewable
+    self.viewCount = viewCount
+    self.language = language
+    self.type = type
+    self.duration = duration
+    self.mutedSegments = mutedSegments
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case streamID = "streamId"
@@ -158,34 +195,62 @@ public struct Video: Decodable, Sendable {
   }
 }
 
-/// Whether a video is a past broadcast, highlight, or upload.
-public enum VideoType: String, Decodable, Sendable {
+/// Whether a video is a past broadcast, highlight, or upload, preserving unfamiliar values
+/// in `rawValue`.
+public struct VideoType: RawRepresentable, Decodable, Sendable, Hashable {
+  /// The exact video type string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a video type from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a video type from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
   /// A past Premiere, returned when querying by video ID.
-  case pastPremiere = "past_premiere"
+  public static let pastPremiere = Self(rawValue: "past_premiere")
   /// A Premiere upload, returned when querying by video ID.
-  case premiereUpload = "premiere_upload"
+  public static let premiereUpload = Self(rawValue: "premiere_upload")
   /// A past broadcast.
-  case archive
+  public static let archive = Self(rawValue: "archive")
   /// A highlighted section of a broadcast.
-  case highlight
+  public static let highlight = Self(rawValue: "highlight")
   /// An uploaded video.
-  case upload
+  public static let upload = Self(rawValue: "upload")
 }
 
 /// A muted interval within a Twitch video.
-@MemberwiseInit(.public)
 public struct MutedSegment: Decodable, Sendable {
   /// The muted segment’s duration, in seconds.
   public let duration: Int
   /// The offset from the beginning of the content.
   public let offset: Int
+
+  /// Creates a `MutedSegment` value.
+  public init(
+    duration: Int,
+    offset: Int
+  ) {
+    self.duration = duration
+    self.offset = offset
+  }
 }
 
 /// A page of videos.
-@MemberwiseInit(.public)
 public struct VideosResponse: Sendable {
   /// The videos on this page.
   public let videos: [Video]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `VideosResponse` value.
+  public init(
+    videos: [Video] = [],
+    cursor: String? = nil
+  ) {
+    self.videos = videos
+    self.cursor = cursor
+  }
 }

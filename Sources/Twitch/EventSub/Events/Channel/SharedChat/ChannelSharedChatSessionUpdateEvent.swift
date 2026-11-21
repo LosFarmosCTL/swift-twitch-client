@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a shared chat session’s participants change.
-@MemberwiseInit(.public)
 public struct ChannelSharedChatSessionUpdateEvent: Event {
   /// The identifier of the session.
   public let sessionID: String
@@ -22,6 +19,27 @@ public struct ChannelSharedChatSessionUpdateEvent: Event {
 
   /// The broadcaster channels participating in the shared chat session.
   public let participants: [ChannelSharedChatSessionBeginEvent.Participant]
+
+  /// Creates a `ChannelSharedChatSessionUpdateEvent` value.
+  public init(
+    sessionID: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    hostBroadcasterID: String,
+    hostBroadcasterDisplayName: String,
+    hostBroadcasterLogin: String,
+    participants: [ChannelSharedChatSessionBeginEvent.Participant] = []
+  ) {
+    self.sessionID = sessionID
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.hostBroadcasterID = hostBroadcasterID
+    self.hostBroadcasterDisplayName = hostBroadcasterDisplayName
+    self.hostBroadcasterLogin = hostBroadcasterLogin
+    self.participants = participants
+  }
 
   enum CodingKeys: String, CodingKey {
     case sessionID = "sessionId"

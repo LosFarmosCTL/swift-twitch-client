@@ -1,8 +1,4 @@
 import Foundation
-import MemberwiseInit
-
-/// A Twitch emote set identifier.
-public typealias EmoteSetID = String
 
 extension HelixEndpoint {
   /// Gets emotes from the requested emote sets.
@@ -16,7 +12,7 @@ extension HelixEndpoint {
   /// - Parameters:
   ///   - setIDs: The set IDs to include in the request.
   public static func getEmoteSets(
-    _ setIDs: [EmoteSetID]
+    _ setIDs: [String]
   ) -> HelixEndpoint<EmoteSetsResponse> {
     .init(
       method: "GET", path: "chat/emotes/set",
@@ -35,17 +31,24 @@ extension HelixEndpoint {
 }
 
 /// The emotes in the requested sets and their image URL template.
-@MemberwiseInit(.public)
-public struct EmoteSetsResponse: Decodable, Sendable {
+public struct EmoteSetsResponse: Sendable {
   /// The emote metadata.
   public let emotes: [SetEmote]
 
   /// The URL template used to construct image URLs.
   public let template: String
+
+  /// Creates an `EmoteSetsResponse` value.
+  public init(
+    emotes: [SetEmote] = [],
+    template: String
+  ) {
+    self.emotes = emotes
+    self.template = template
+  }
 }
 
 /// An emote belonging to a requested emote set.
-@MemberwiseInit(.public)
 public struct SetEmote: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -63,6 +66,27 @@ public struct SetEmote: Decodable, Sendable {
   public let scale: [Emote.Scale]
   /// The supported image themes.
   public let themeMode: [Emote.ThemeMode]
+
+  /// Creates a `SetEmote` value.
+  public init(
+    id: String,
+    name: String,
+    type: String,
+    setID: String,
+    ownerID: String,
+    format: [Emote.Format] = [],
+    scale: [Emote.Scale] = [],
+    themeMode: [Emote.ThemeMode] = []
+  ) {
+    self.id = id
+    self.name = name
+    self.type = type
+    self.setID = setID
+    self.ownerID = ownerID
+    self.format = format
+    self.scale = scale
+    self.themeMode = themeMode
+  }
 
   enum CodingKeys: String, CodingKey {
     case id, name

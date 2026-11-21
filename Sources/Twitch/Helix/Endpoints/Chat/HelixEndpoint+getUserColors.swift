@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the chat name colors of the requested users.
@@ -25,7 +24,6 @@ extension HelixEndpoint {
 }
 
 /// A user’s chat display color.
-@MemberwiseInit(.public)
 public struct UserColor: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -35,6 +33,19 @@ public struct UserColor: Decodable, Sendable {
   public let userDisplayName: String
   /// The color reported by Twitch.
   public let color: String
+
+  /// Creates a `UserColor` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    color: String
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.color = color
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a user is banned or timed out in a channel.
-@MemberwiseInit(.public)
 public struct ChannelBanEvent: Event {
   /// The Twitch user ID.
   public let userID: String
@@ -33,6 +31,37 @@ public struct ChannelBanEvent: Event {
   public let endsAt: Date?
   /// Whether the ban is permanent.
   public let isPermanent: Bool
+
+  /// Creates a `ChannelBanEvent` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    moderatorID: String,
+    moderatorLogin: String,
+    moderatorDisplayName: String,
+    reason: String,
+    bannedAt: Date,
+    endsAt: Date? = nil,
+    isPermanent: Bool
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+    self.reason = reason
+    self.bannedAt = bannedAt
+    self.endsAt = endsAt
+    self.isPermanent = isPermanent
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user sends a channel chat message.
-@MemberwiseInit(.public)
 public struct ChannelChatMessageEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -51,6 +48,51 @@ public struct ChannelChatMessageEvent: Event {
   /// provided.
   public let isSourceOnly: Bool?
 
+  /// Creates a `ChannelChatMessageEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    chatterID: String,
+    chatterLogin: String,
+    chatterDisplayName: String,
+    messageID: String,
+    message: Message,
+    messageType: MessageType,
+    color: String? = nil,
+    badges: [Badge] = [],
+    reply: Reply? = nil,
+    cheer: Cheer? = nil,
+    channelPointsCustomRewardID: String? = nil,
+    sourceBroadcasterID: String? = nil,
+    sourceBroadcasterLogin: String? = nil,
+    sourceBroadcasterDisplayName: String? = nil,
+    sourceMessageID: String? = nil,
+    sourceBadges: [Badge]? = nil,
+    isSourceOnly: Bool? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.chatterID = chatterID
+    self.chatterLogin = chatterLogin
+    self.chatterDisplayName = chatterDisplayName
+    self.messageID = messageID
+    self.message = message
+    self.messageType = messageType
+    self.color = color
+    self.badges = badges
+    self.reply = reply
+    self.cheer = cheer
+    self.channelPointsCustomRewardID = channelPointsCustomRewardID
+    self.sourceBroadcasterID = sourceBroadcasterID
+    self.sourceBroadcasterLogin = sourceBroadcasterLogin
+    self.sourceBroadcasterDisplayName = sourceBroadcasterDisplayName
+    self.sourceMessageID = sourceMessageID
+    self.sourceBadges = sourceBadges
+    self.isSourceOnly = isSourceOnly
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
@@ -73,7 +115,9 @@ public struct ChannelChatMessageEvent: Event {
     case sourceBadges
     case isSourceOnly
   }
+}
 
+extension ChannelChatMessageEvent {
   /// A Twitch message classification. Unrecognized strings are preserved in `rawValue`.
   public struct MessageType: RawRepresentable, Decodable, Sendable, Hashable {
     /// The exact classification string supplied by Twitch or the caller.
@@ -109,7 +153,6 @@ public struct ChannelChatMessageEvent: Event {
   }
 
   /// A badge’s set, version, and additional information for the message author.
-  @MemberwiseInit(.public)
   public struct Badge: Decodable, Sendable {
     /// The identifier of the set.
     public let setID: String
@@ -119,6 +162,17 @@ public struct ChannelChatMessageEvent: Event {
     /// months.
     public let info: String
 
+    /// Creates a `Badge` value.
+    public init(
+      setID: String,
+      id: String,
+      info: String
+    ) {
+      self.setID = setID
+      self.id = id
+      self.info = info
+    }
+
     enum CodingKeys: String, CodingKey {
       case setID = "setId"
       case id, info
@@ -126,7 +180,6 @@ public struct ChannelChatMessageEvent: Event {
   }
 
   /// The parent message and root thread of a chat reply, including their authors.
-  @MemberwiseInit(.public)
   public struct Reply: Decodable, Sendable {
     /// The identifier of the parent.
     public let parentID: String
@@ -149,6 +202,29 @@ public struct ChannelChatMessageEvent: Event {
     /// The display name of the author of the thread’s root message.
     public let threadUserDisplayName: String
 
+    /// Creates a `Reply` value.
+    public init(
+      parentID: String,
+      parentBody: String,
+      parentUserID: String,
+      parentUserLogin: String,
+      parentUserDisplayName: String,
+      threadID: String,
+      threadUserID: String,
+      threadUserLogin: String,
+      threadUserDisplayName: String
+    ) {
+      self.parentID = parentID
+      self.parentBody = parentBody
+      self.parentUserID = parentUserID
+      self.parentUserLogin = parentUserLogin
+      self.parentUserDisplayName = parentUserDisplayName
+      self.threadID = threadID
+      self.threadUserID = threadUserID
+      self.threadUserLogin = threadUserLogin
+      self.threadUserDisplayName = threadUserDisplayName
+    }
+
     enum CodingKeys: String, CodingKey {
       case parentID = "parentMessageId"
       case parentBody = "parentMessageBody"
@@ -163,19 +239,33 @@ public struct ChannelChatMessageEvent: Event {
   }
 
   /// The total Bits included in a chat message’s Cheer.
-  @MemberwiseInit(.public)
   public struct Cheer: Decodable, Sendable {
     /// The number of Bits.
     public let bits: Int
+
+    /// Creates a `Cheer` value.
+    public init(
+      bits: Int
+    ) {
+      self.bits = bits
+    }
   }
 
   /// A chat message’s full text and ordered content fragments.
-  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     /// The text content.
     public let text: String
     /// The ordered message fragments.
     public let fragments: [Fragment]
+
+    /// Creates a `Message` value.
+    public init(
+      text: String,
+      fragments: [Fragment] = []
+    ) {
+      self.text = text
+      self.fragments = fragments
+    }
 
     enum CodingKeys: String, CodingKey {
       case text
@@ -183,12 +273,20 @@ public struct ChannelChatMessageEvent: Event {
     }
 
     /// A run of message text with its content type and any associated metadata.
-    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       /// The category of content represented by this fragment.
       public let type: FragmentType
       /// The text content.
       public let text: String
+
+      /// Creates a `Fragment` value.
+      public init(
+        type: FragmentType,
+        text: String
+      ) {
+        self.type = type
+        self.text = text
+      }
 
       enum CodingKeys: String, CodingKey {
         case type
@@ -254,12 +352,20 @@ public struct ChannelChatMessageEvent: Event {
       }
 
       /// The identifier and media URL of a GIF embedded in a chat message.
-      @MemberwiseInit(.public)
       public struct GIF: Decodable, Sendable {
         /// The identifier of the GIF.
         public let gifID: String
         /// The media URL of the GIF.
         public let url: String
+
+        /// Creates a `GIF` value.
+        public init(
+          gifID: String,
+          url: String
+        ) {
+          self.gifID = gifID
+          self.url = url
+        }
 
         enum CodingKeys: String, CodingKey {
           case gifID = "gifId"
@@ -268,7 +374,6 @@ public struct ChannelChatMessageEvent: Event {
       }
 
       /// Emote metadata for a fragment of the chat message.
-      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         /// The identifier assigned by Twitch.
         public let id: String
@@ -279,23 +384,47 @@ public struct ChannelChatMessageEvent: Event {
         /// The supported image formats.
         public let format: [Format]
 
+        /// Creates an `Emote` value.
+        public init(
+          id: String,
+          setID: String,
+          ownerID: String,
+          format: [Format] = []
+        ) {
+          self.id = id
+          self.setID = setID
+          self.ownerID = ownerID
+          self.format = format
+        }
+
         enum CodingKeys: String, CodingKey {
           case id, format
           case setID = "emoteSetId"
           case ownerID = "ownerId"
         }
 
-        /// The animated or static image variants available for an emote.
-        public enum Format: String, Decodable, Sendable {
+        /// The animated or static image variant available for an emote, preserving
+        /// unfamiliar values in `rawValue`.
+        public struct Format: RawRepresentable, Decodable, Sendable, Hashable {
+          /// The exact image format string supplied by Twitch or the caller.
+          public let rawValue: String
+
+          /// Creates an emote format from any raw string.
+          public init(rawValue: String) { self.rawValue = rawValue }
+
+          /// Decodes an emote format from a single string.
+          public init(from decoder: Decoder) throws {
+            self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+          }
+
           /// An animated image format. Encoded as `"animated"`.
-          case gif = "animated"
+          public static let gif = Self(rawValue: "animated")
           /// A static image format. Encoded as `"static"`.
-          case png = "static"
+          public static let png = Self(rawValue: "static")
         }
       }
 
       /// A Cheermote’s prefix, Bits amount, and contribution tier.
-      @MemberwiseInit(.public)
       public struct Cheermote: Decodable, Sendable {
         /// The prefix used to identify the Cheermote in chat.
         public let prefix: String
@@ -303,10 +432,20 @@ public struct ChannelChatMessageEvent: Event {
         public let tier: Int
         /// The number of Bits.
         public let bits: Int
+
+        /// Creates a `Cheermote` value.
+        public init(
+          prefix: String,
+          tier: Int,
+          bits: Int
+        ) {
+          self.prefix = prefix
+          self.tier = tier
+          self.bits = bits
+        }
       }
 
       /// The account identity of a user mentioned in a chat message.
-      @MemberwiseInit(.public)
       public struct Mention: Decodable, Sendable {
         /// The Twitch user ID.
         public let userID: String
@@ -314,6 +453,17 @@ public struct ChannelChatMessageEvent: Event {
         public let userLogin: String
         /// The user’s display name.
         public let userDisplayName: String
+
+        /// Creates a `Mention` value.
+        public init(
+          userID: String,
+          userLogin: String,
+          userDisplayName: String
+        ) {
+          self.userID = userID
+          self.userLogin = userLogin
+          self.userDisplayName = userDisplayName
+        }
 
         enum CodingKeys: String, CodingKey {
           case userID = "userId"

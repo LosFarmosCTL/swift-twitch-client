@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a channel prediction is locked.
-@MemberwiseInit(.public)
 public struct ChannelPredictionLockEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -23,6 +21,27 @@ public struct ChannelPredictionLockEvent: Event {
   public let startedAt: Date
   /// The time the prediction was locked.
   public let lockedAt: Date
+
+  /// Creates a `ChannelPredictionLockEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    outcomes: [ChannelPredictionBeginEvent.Outcome] = [],
+    startedAt: Date,
+    lockedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.outcomes = outcomes
+    self.startedAt = startedAt
+    self.lockedAt = lockedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

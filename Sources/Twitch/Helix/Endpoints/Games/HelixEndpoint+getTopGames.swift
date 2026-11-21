@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets game categories ordered by viewer count.
@@ -35,10 +34,18 @@ extension HelixEndpoint {
 }
 
 /// A page of top games.
-@MemberwiseInit(.public)
 public struct TopGamesResponse: Sendable {
   /// The games on this page.
   public let games: [Game]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `TopGamesResponse` value.
+  public init(
+    games: [Game] = [],
+    cursor: String? = nil
+  ) {
+    self.games = games
+    self.cursor = cursor
+  }
 }

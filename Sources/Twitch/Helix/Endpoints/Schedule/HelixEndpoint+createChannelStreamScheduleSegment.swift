@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Adds a broadcast segment to a channel’s schedule.
@@ -68,7 +67,6 @@ private struct CreateChannelStreamScheduleSegmentRequestBody: Encodable, Sendabl
 }
 
 /// A broadcaster’s scheduled stream segments and vacation settings.
-@MemberwiseInit(.public)
 public struct StreamSchedule: Decodable, Sendable {
   /// The stream schedule segments.
   public let segments: [StreamScheduleSegment]
@@ -81,6 +79,21 @@ public struct StreamSchedule: Decodable, Sendable {
   /// The vacation schedule settings, when provided.
   public let vacation: StreamScheduleVacation?
 
+  /// Creates a `StreamSchedule` value.
+  public init(
+    segments: [StreamScheduleSegment] = [],
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    vacation: StreamScheduleVacation? = nil
+  ) {
+    self.segments = segments
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.vacation = vacation
+  }
+
   enum CodingKeys: String, CodingKey {
     case segments
     case broadcasterID = "broadcasterId"
@@ -91,7 +104,6 @@ public struct StreamSchedule: Decodable, Sendable {
 }
 
 /// A scheduled broadcast’s timing, category, title, and recurrence.
-@MemberwiseInit(.public)
 public struct StreamScheduleSegment: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -108,6 +120,25 @@ public struct StreamScheduleSegment: Decodable, Sendable {
   /// Whether the schedule segment recurs weekly.
   public let isRecurring: Bool
 
+  /// Creates a `StreamScheduleSegment` value.
+  public init(
+    id: String,
+    startTime: Date,
+    endTime: Date? = nil,
+    title: String,
+    cancelledUntil: Date? = nil,
+    category: StreamScheduleCategory? = nil,
+    isRecurring: Bool
+  ) {
+    self.id = id
+    self.startTime = startTime
+    self.endTime = endTime
+    self.title = title
+    self.cancelledUntil = cancelledUntil
+    self.category = category
+    self.isRecurring = isRecurring
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case startTime
@@ -120,19 +151,35 @@ public struct StreamScheduleSegment: Decodable, Sendable {
 }
 
 /// The Twitch category assigned to a scheduled stream segment.
-@MemberwiseInit(.public)
 public struct StreamScheduleCategory: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
   /// The name supplied by Twitch.
   public let name: String
+
+  /// Creates a `StreamScheduleCategory` value.
+  public init(
+    id: String,
+    name: String
+  ) {
+    self.id = id
+    self.name = name
+  }
 }
 
 /// The period during which a broadcaster’s schedule is on vacation.
-@MemberwiseInit(.public)
 public struct StreamScheduleVacation: Decodable, Sendable {
   /// The scheduled start time.
   public let startTime: Date
   /// The scheduled end time.
   public let endTime: Date
+
+  /// Creates a `StreamScheduleVacation` value.
+  public init(
+    startTime: Date,
+    endTime: Date
+  ) {
+    self.startTime = startTime
+    self.endTime = endTime
+  }
 }

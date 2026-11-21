@@ -14,18 +14,24 @@ extension TwitchClient {
   ///
   /// - Important: Only pass OAuth user or app access tokens to this method. Do not submit
   ///   Extension Backend Service (EBS) JWTs.
-  /// - Parameter accessToken: The OAuth access token. Any leading `oauth:` prefix is
-  ///   stripped automatically.
+  /// - Parameters:
+  ///   - accessToken: The OAuth access token. Any leading `oauth:` prefix is
+  ///     stripped automatically.
+  ///   - urlSession: The `URLSession` used for HTTP transport. Defaults to
+  ///     `URLSession.shared`.
   /// - Returns: A ``ValidatedAccessToken`` describing the token's kind, client ID,
   ///   optional account identity, granted scopes, and remaining lifetime.
-  /// - Throws: ``AccessTokenValidationError/invalidToken`` if Twitch returns a non-200
-  ///   response, a transport or decoding error, or `CancellationError` when cancelled.
+  /// - Throws: ``AccessTokenValidationError/invalidToken`` if Twitch returns HTTP 401,
+  ///   ``AccessTokenValidationError/unexpectedResponse(statusCode:)`` for other non-200
+  ///   HTTP statuses, a transport or decoding error, or `CancellationError` when cancelled.
   /// - SeeAlso: <doc:Authentication>, ``ValidatedAccessToken``
-  public static func validateAccessToken(accessToken: String) async throws
+  public static func validateAccessToken(
+    accessToken: String,
+    urlSession: URLSession = .shared
+  ) async throws
     -> ValidatedAccessToken
   {
-    let network = URLSessionNetworkSession(
-      session: URLSession(configuration: .default))
+    let network = URLSessionNetworkSession(session: urlSession)
 
     return try await validateAccessToken(accessToken: accessToken, network: network)
   }
@@ -50,8 +56,10 @@ extension TwitchClient {
       throw error
     }
 
-    guard response.statusCode == 200 else {
-      throw AccessTokenValidationError.invalidToken
+    switch response.statusCode {
+    case 200: break
+    case 401: throw AccessTokenValidationError.invalidToken
+    default: throw AccessTokenValidationError.unexpectedResponse(statusCode: response.statusCode)
     }
 
     let decoder = JSONDecoder()
@@ -61,7 +69,7 @@ extension TwitchClient {
   }
 }
 
-/// Token metadata returned by ``TwitchClient/validateAccessToken(accessToken:)``.
+/// Token metadata returned by ``TwitchClient/validateAccessToken(accessToken:urlSession:)``.
 ///
 /// Contains the issuing application's ``clientID``, the token ``kind`` (user or app),
 /// granted ``scopes``, and remaining lifetime (``expiresIn``). Call
@@ -69,7 +77,7 @@ extension TwitchClient {
 /// carrying this verified identity and scope set.
 ///
 /// - SeeAlso: <doc:Authentication>, ``TwitchCredentials``
-public struct ValidatedAccessToken: Decodable, Sendable {
+public struct ValidatedAccessToken: Decodable, Sendable, Equatable {
   /// The client ID of the Twitch application that issued the token.
   public let clientID: String
   /// The authorized account's lowercase login name, or `nil` for app access tokens.
@@ -91,7 +99,7 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   /// required scopes were granted.
   ///
   /// - Parameter accessToken: The same OAuth access token that was passed to
-  ///   ``TwitchClient/validateAccessToken(accessToken:)``.
+  ///   ``TwitchClient/validateAccessToken(accessToken:urlSession:)``.
   /// - Returns: Normalized ``TwitchCredentials`` matching the validated token.
   public func credentials(accessToken: String) -> TwitchCredentials {
     .init(accessToken: accessToken, clientID: clientID, kind: kind, scopes: Set(scopes))
@@ -105,6 +113,19 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   /// The remaining lifetime of the token in seconds, or `nil` when Twitch omits it or
   /// reports zero (for example, legacy non-expiring tokens).
   public let expiresIn: Int?
+
+  /// Creates a `ValidatedAccessToken` value.
+  public init(
+    clientID: String,
+    kind: TwitchCredentials.Kind,
+    scopes: [String] = [],
+    expiresIn: Int? = nil
+  ) {
+    self.clientID = clientID
+    self.kind = kind
+    self.scopes = scopes
+    self.expiresIn = expiresIn
+  }
 
   enum CodingKeys: String, CodingKey {
     case clientID = "clientId"
@@ -144,10 +165,54 @@ public struct ValidatedAccessToken: Decodable, Sendable {
   }
 }
 
-/// An error thrown when Twitch rejects an OAuth access token during validation.
+/// An error thrown when validating an OAuth access token against Twitch fails.
 ///
-/// - SeeAlso: ``TwitchClient/validateAccessToken(accessToken:)``, <doc:Authentication>
-public enum AccessTokenValidationError: Error, Sendable {
-  /// Twitch rejected the token (for example, it is expired, revoked, or malformed).
+/// - SeeAlso: ``TwitchClient/validateAccessToken(accessToken:urlSession:)``, <doc:Authentication>
+public enum AccessTokenValidationError: Error, Sendable, Equatable, Hashable {
+  /// Twitch rejected the token with HTTP 401 (for example, it is expired, revoked, or
+  /// malformed).
   case invalidToken
+  /// Twitch returned an unexpected non-200 HTTP status code (such as HTTP 429 or 5xx).
+  ///
+  /// - Parameter statusCode: The HTTP status code returned by Twitch.
+  case unexpectedResponse(statusCode: Int)
+}
+
+extension AccessTokenValidationError: CustomStringConvertible {
+  /// A diagnostic description of the token-validation failure.
+  public var description: String {
+    switch self {
+    case .invalidToken:
+      "The access token is invalid, expired, or revoked."
+    case .unexpectedResponse(let statusCode):
+      "Token validation returned unexpected HTTP status \(statusCode)."
+    }
+  }
+}
+
+#if !os(Linux)
+  extension AccessTokenValidationError: CustomLocalizedStringResourceConvertible {
+    /// The localized string resource describing this error.
+    public var localizedStringResource: LocalizedStringResource {
+      switch self {
+      case .invalidToken:
+        .init("The access token is invalid, expired, or revoked.", bundle: .twitchModule)
+      case .unexpectedResponse(let statusCode):
+        .init(
+          "Token validation returned unexpected HTTP status \(statusCode).",
+          bundle: .twitchModule)
+      }
+    }
+  }
+#endif
+
+extension AccessTokenValidationError: LocalizedError {
+  /// A localized description suitable for presenting this error.
+  public var errorDescription: String? {
+    #if !os(Linux)
+      return String(localized: self.localizedStringResource)
+    #else
+      return self.description
+    #endif
+  }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a broadcaster’s streaming schedule, optionally filtered to specific segments.
@@ -39,10 +38,18 @@ extension HelixEndpoint {
 }
 
 /// A schedule page.
-@MemberwiseInit(.public)
 public struct ChannelStreamScheduleResponse: Sendable {
   /// The schedule on this page.
   public let schedule: StreamSchedule
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `ChannelStreamScheduleResponse` value.
+  public init(
+    schedule: StreamSchedule,
+    cursor: String? = nil
+  ) {
+    self.schedule = schedule
+    self.cursor = cursor
+  }
 }

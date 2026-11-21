@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user’s chat message is held for review.
-@MemberwiseInit(.public)
 public struct ChannelChatUserMessageHoldEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -21,6 +18,27 @@ public struct ChannelChatUserMessageHoldEvent: Event {
   public let messageID: String
   /// The message content or explanatory text supplied by Twitch.
   public let message: AutoModMessage
+
+  /// Creates a `ChannelChatUserMessageHoldEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    messageID: String,
+    message: AutoModMessage
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.messageID = messageID
+    self.message = message
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

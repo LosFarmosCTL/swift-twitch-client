@@ -54,8 +54,8 @@ let streamTask = Task {
 
 // 3. Observe and participate in managed chat
 let chatStream = await twitch.messageStream()
-try await twitch.join(login: "twitchdev")
-try await twitch.sendMessage("Hello chat!", login: "twitchdev")
+try await twitch.join(to: .login("twitchdev"))
+try await twitch.sendMessage("Hello chat!", in: .login("twitchdev"))
 
 for await event in chatStream {
   if case .message(let message) = event.payload {
@@ -129,6 +129,7 @@ Each subsystem has a dedicated guide covering architecture, gotchas, and product
 ### EventSub
 
 - ``EventSubSubscription``
+- ``EventSubTransport``
 - ``EventSubNotification``
 - ``EventSubListenerEvent``
 - ``Event``
@@ -142,6 +143,7 @@ Each subsystem has a dedicated guide covering architecture, gotchas, and product
 - ``ChatCredentialSwitchBehavior``
 - ``ChatSendingPolicy``
 - ``ChatChannel``
+- ``ChatChannelTarget``
 - ``ChatEvent``
 - ``ChatMessage``
 - ``ChatNotification``

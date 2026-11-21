@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a broadcaster receives a shoutout.
-@MemberwiseInit(.public)
 public struct ChannelShoutoutReceiveEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -22,6 +20,27 @@ public struct ChannelShoutoutReceiveEvent: Event {
   public let viewerCount: Int
   /// The time the activity started.
   public let startedAt: Date
+
+  /// Creates a `ChannelShoutoutReceiveEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    fromBroadcasterID: String,
+    fromBroadcasterLogin: String,
+    fromBroadcasterDisplayName: String,
+    viewerCount: Int,
+    startedAt: Date
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.fromBroadcasterID = fromBroadcasterID
+    self.fromBroadcasterLogin = fromBroadcasterLogin
+    self.fromBroadcasterDisplayName = fromBroadcasterDisplayName
+    self.viewerCount = viewerCount
+    self.startedAt = startedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 /// The payload for channel poll progress notifications.
 ///
@@ -7,7 +6,6 @@ import MemberwiseInit
 public typealias ChannelPollProgressEvent = ChannelPollBeginEvent
 
 /// An EventSub notification delivered when a channel poll begins.
-@MemberwiseInit(.public)
 public struct ChannelPollBeginEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -31,6 +29,29 @@ public struct ChannelPollBeginEvent: Event {
   public let startedAt: Date
   /// The time the activity is scheduled to end.
   public let endsAt: Date
+
+  /// Creates a `ChannelPollBeginEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    choices: [PollChoice] = [],
+    channelPointsVoting: Int? = nil,
+    startedAt: Date,
+    endsAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.choices = choices
+    self.channelPointsVoting = channelPointsVoting
+    self.startedAt = startedAt
+    self.endsAt = endsAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -68,7 +89,6 @@ public struct ChannelPollBeginEvent: Event {
   }
 
   /// A poll choice’s identity and title, with vote counts when provided.
-  @MemberwiseInit(.public)
   public struct PollChoice: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -78,6 +98,19 @@ public struct ChannelPollBeginEvent: Event {
     public let channelPointsVotes: Int?
     /// The number of votes for this choice, when provided.
     public let votes: Int?
+
+    /// Creates a `PollChoice` value.
+    public init(
+      id: String,
+      title: String,
+      channelPointsVotes: Int? = nil,
+      votes: Int? = nil
+    ) {
+      self.id = id
+      self.title = title
+      self.channelPointsVotes = channelPointsVotes
+      self.votes = votes
+    }
   }
 
   struct ChannelPointsVoting: Decodable, Sendable {

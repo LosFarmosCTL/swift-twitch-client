@@ -1,9 +1,6 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a Guest Star guest’s state changes.
 ///
 /// Uses Twitch’s beta Guest Star schema, which Twitch may change without notice.
-@MemberwiseInit(.public)
 public struct ChannelGuestStarGuestUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -47,6 +44,47 @@ public struct ChannelGuestStarGuestUpdateEvent: Event {
   /// The guest’s audio volume for the host, when provided.
   public let hostVolume: Int?
 
+  /// Creates a `ChannelGuestStarGuestUpdateEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    moderatorID: String? = nil,
+    moderatorDisplayName: String? = nil,
+    moderatorLogin: String? = nil,
+    guestID: String? = nil,
+    guestDisplayName: String? = nil,
+    guestLogin: String? = nil,
+    hostID: String,
+    hostDisplayName: String,
+    hostLogin: String,
+    sessionID: String,
+    slotID: String? = nil,
+    state: State? = nil,
+    hostVideoEnabled: Bool? = nil,
+    hostAudioEnabled: Bool? = nil,
+    hostVolume: Int? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.moderatorID = moderatorID
+    self.moderatorDisplayName = moderatorDisplayName
+    self.moderatorLogin = moderatorLogin
+    self.guestID = guestID
+    self.guestDisplayName = guestDisplayName
+    self.guestLogin = guestLogin
+    self.hostID = hostID
+    self.hostDisplayName = hostDisplayName
+    self.hostLogin = hostLogin
+    self.sessionID = sessionID
+    self.slotID = slotID
+    self.state = state
+    self.hostVideoEnabled = hostVideoEnabled
+    self.hostAudioEnabled = hostAudioEnabled
+    self.hostVolume = hostVolume
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterDisplayName = "broadcasterUserName"
@@ -68,19 +106,37 @@ public struct ChannelGuestStarGuestUpdateEvent: Event {
     case hostVolume
   }
 
-  /// A guest’s progress from invitation through joining or leaving a Guest Star session.
-  public enum State: String, Codable, Sendable {
+  /// A guest’s progress from invitation through joining or leaving a Guest Star session,
+  /// preserving unfamiliar values in `rawValue`.
+  public struct State: RawRepresentable, Codable, Sendable, Hashable {
+    /// The exact state string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a guest state from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a guest state from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
+    /// Encodes this guest state as its raw wire string.
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.singleValueContainer()
+      try container.encode(rawValue)
+    }
+
     /// The guest has been invited but has not accepted.
-    case invited
+    public static let invited = Self(rawValue: "invited")
     /// The guest has accepted the invitation.
-    case accepted
+    public static let accepted = Self(rawValue: "accepted")
     /// The guest is ready to join the session.
-    case ready
+    public static let ready = Self(rawValue: "ready")
     /// The guest is backstage and is not live.
-    case backstage
+    public static let backstage = Self(rawValue: "backstage")
     /// The guest is live in the session.
-    case live
+    public static let live = Self(rawValue: "live")
     /// The guest was removed from the session.
-    case removed
+    public static let removed = Self(rawValue: "removed")
   }
 }

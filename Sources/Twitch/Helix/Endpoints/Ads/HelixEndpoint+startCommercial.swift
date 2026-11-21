@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Starts a commercial break in the authenticated broadcaster’s stream.
@@ -50,7 +49,6 @@ private struct StartCommercialRequestBody: Encodable, Sendable {
 }
 
 /// The result of starting a commercial, including its length and retry delay.
-@MemberwiseInit(.public)
 public struct Commercial: Decodable, Sendable {
   /// The commercial length, in seconds.
   public let length: Int
@@ -58,4 +56,15 @@ public struct Commercial: Decodable, Sendable {
   public let message: String
   /// The number of seconds to wait before starting another commercial.
   public let retryAfter: Int
+
+  /// Creates a `Commercial` value.
+  public init(
+    length: Int,
+    message: String,
+    retryAfter: Int
+  ) {
+    self.length = length
+    self.message = message
+    self.retryAfter = retryAfter
+  }
 }

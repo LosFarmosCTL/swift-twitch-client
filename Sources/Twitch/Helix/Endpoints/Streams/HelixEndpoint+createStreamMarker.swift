@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Adds a marker to a broadcaster’s current stream.
@@ -41,7 +40,6 @@ private struct CreateStreamMarkerRequestBody: Encodable, Sendable {
 }
 
 /// A timestamped marker created in a broadcast.
-@MemberwiseInit(.public)
 public struct StreamMarker: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -51,4 +49,17 @@ public struct StreamMarker: Decodable, Sendable {
   public let positionSeconds: Int
   /// The descriptive text supplied by Twitch.
   public let description: String
+
+  /// Creates a `StreamMarker` value.
+  public init(
+    id: String,
+    createdAt: Date,
+    positionSeconds: Int,
+    description: String
+  ) {
+    self.id = id
+    self.createdAt = createdAt
+    self.positionSeconds = positionSeconds
+    self.description = description
+  }
 }

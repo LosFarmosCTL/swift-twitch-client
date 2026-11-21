@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s Shield Mode state.
@@ -48,7 +47,6 @@ extension HelixEndpoint {
 }
 
 /// A channel’s Shield Mode state and the moderator who last changed it.
-@MemberwiseInit(.public)
 public struct ShieldModeStatus: Decodable, Sendable {
   /// Whether the resource is active.
   public let isActive: Bool
@@ -60,8 +58,22 @@ public struct ShieldModeStatus: Decodable, Sendable {
   public let moderatorLogin: String
 
   /// The last activation time, when provided.
-  @InitRaw(default: nil, type: Date?.self)
-  @NilOnTypeMismatch public var lastActivatedAt: Date?
+  public let lastActivatedAt: Date?
+
+  /// Creates a `ShieldModeStatus` value.
+  public init(
+    isActive: Bool,
+    moderatorID: String,
+    moderatorDisplayName: String,
+    moderatorLogin: String,
+    lastActivatedAt: Date? = nil
+  ) {
+    self.isActive = isActive
+    self.moderatorID = moderatorID
+    self.moderatorDisplayName = moderatorDisplayName
+    self.moderatorLogin = moderatorLogin
+    self.lastActivatedAt = lastActivatedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case moderatorID = "moderatorId"
@@ -69,5 +81,15 @@ public struct ShieldModeStatus: Decodable, Sendable {
     case moderatorLogin
     case isActive
     case lastActivatedAt
+  }
+
+  /// Decodes Shield Mode status, treating an empty `last_activated_at` timestamp as `nil`.
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    isActive = try container.decode(Bool.self, forKey: .isActive)
+    moderatorID = try container.decode(String.self, forKey: .moderatorID)
+    moderatorDisplayName = try container.decode(String.self, forKey: .moderatorDisplayName)
+    moderatorLogin = try container.decode(String.self, forKey: .moderatorLogin)
+    lastActivatedAt = container.decodeLenientDateIfPresent(forKey: .lastActivatedAt)
   }
 }

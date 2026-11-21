@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the broadcaster’s active charity campaign.
@@ -28,7 +27,6 @@ extension HelixEndpoint {
 }
 
 /// A broadcaster’s active charity fundraiser and its current and target amounts.
-@MemberwiseInit(.public)
 public struct CharityCampaign: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -53,6 +51,31 @@ public struct CharityCampaign: Decodable, Sendable {
   /// The fundraising target, when provided.
   public let targetAmount: CharityAmount?
 
+  /// Creates a `CharityCampaign` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    charityName: String,
+    charityDescription: String,
+    charityLogo: String,
+    charityWebsite: String,
+    currentAmount: CharityAmount,
+    targetAmount: CharityAmount? = nil
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.charityName = charityName
+    self.charityDescription = charityDescription
+    self.charityLogo = charityLogo
+    self.charityWebsite = charityWebsite
+    self.currentAmount = currentAmount
+    self.targetAmount = targetAmount
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterId"
@@ -68,7 +91,6 @@ public struct CharityCampaign: Decodable, Sendable {
 }
 
 /// A monetary amount represented by an integer value, decimal precision, and currency.
-@MemberwiseInit(.public)
 public struct CharityAmount: Decodable, Sendable {
   /// The integer monetary amount; divide by ten raised to `decimalPlaces` to obtain
   /// currency units.
@@ -77,4 +99,15 @@ public struct CharityAmount: Decodable, Sendable {
   public let decimalPlaces: Int
   /// The ISO 4217 currency code.
   public let currency: String
+
+  /// Creates a `CharityAmount` value.
+  public init(
+    value: Int,
+    decimalPlaces: Int,
+    currency: String
+  ) {
+    self.value = value
+    self.decimalPlaces = decimalPlaces
+    self.currency = currency
+  }
 }

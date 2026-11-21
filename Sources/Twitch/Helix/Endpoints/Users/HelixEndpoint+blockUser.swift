@@ -32,7 +32,7 @@ extension HelixEndpoint {
 }
 
 /// The context in which a user block originated.
-public enum UserBlockSourceContext: String, Decodable, Sendable {
+public enum UserBlockSourceContext: String, Sendable, Equatable, Hashable {
   /// The action originated in chat.
   case chat
   /// The action originated in whispers.
@@ -40,7 +40,7 @@ public enum UserBlockSourceContext: String, Decodable, Sendable {
 }
 
 /// The reason for blocking a user.
-public enum UserBlockReason: String, Decodable, Sendable {
+public enum UserBlockReason: String, Sendable, Equatable, Hashable {
   /// Blocks the user for harassment.
   case harassment
   /// Blocks the user for spam.

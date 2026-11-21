@@ -29,7 +29,7 @@ extension HelixEndpoint {
 }
 
 /// The named chat colors and custom hexadecimal colors accepted by Twitch.
-public enum HelixColor: Sendable {
+public enum HelixColor: Sendable, Equatable {
   /// The blue chat color.
   case blue
   /// The blue violet color option.

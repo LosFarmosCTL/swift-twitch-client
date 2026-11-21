@@ -47,7 +47,7 @@ extension TwitchClient {
   ///   failures; `CancellationError` if the calling task is cancelled.
   /// - SeeAlso: <doc:Helix>, <doc:RateLimiting>, ``helixTask(for:completionHandler:)``
   @discardableResult
-  public func helix<R>(for endpoint: HelixEndpoint<R>) async throws -> HelixResponse<R> {
+  public func helix<R: Sendable>(for endpoint: HelixEndpoint<R>) async throws -> HelixResponse<R> {
     try await Self.helix(
       for: endpoint, credentials: credentials, network: network,
       encoder: encoder, decoder: decoder, diagnostics: diagnostics)

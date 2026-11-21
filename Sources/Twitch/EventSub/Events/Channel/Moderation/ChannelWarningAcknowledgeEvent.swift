@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user acknowledges a channel warning.
-@MemberwiseInit(.public)
 public struct ChannelWarningAcknowledgeEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -16,6 +13,23 @@ public struct ChannelWarningAcknowledgeEvent: Event {
   public let userLogin: String
   /// The user’s display name.
   public let userDisplayName: String
+
+  /// Creates a `ChannelWarningAcknowledgeEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

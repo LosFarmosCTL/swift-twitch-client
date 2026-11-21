@@ -19,11 +19,11 @@ extension ManagedChatTests {
 
     await stubSending()
     #expect(
-      try await client.sendMessage("hello", to: channel)
+      try await client.sendMessage("hello", in: channel)
         == .accepted(messageID: "message"))
 
     let refusal = await #expect(throws: ChatSendError.self) {
-      try await client.sendMessage("too soon", to: channel)
+      try await client.sendMessage("too soon", in: channel)
     }
     #expect({ if case .refused(.channelCooldown) = refusal { true } else { false } }())
     #expect(await session.requestCount() == 1)
@@ -50,7 +50,7 @@ extension ManagedChatTests {
       }
     }
 
-    let original = Task { try await client.sendMessage("old account", to: channel) }
+    let original = Task { try await client.sendMessage("old account", in: channel) }
     await beforeResponse.waitUntilEntered()
     await client.switchCredentials(to: second)
 
@@ -59,7 +59,7 @@ extension ManagedChatTests {
       body: Data(#"{"data":[{"message_id":"new-message","is_sent":true,"drop_reason":null}]}"#.utf8)
     )
     #expect(
-      try await client.sendMessage("new account", to: channel)
+      try await client.sendMessage("new account", in: channel)
         == .accepted(messageID: "new-message"))
 
     await beforeResponse.release()
@@ -84,7 +84,7 @@ extension ManagedChatTests {
     let sharedUpdates = await anotherClient.chatStateUpdates()
 
     for index in 0..<50 {
-      try await client.sendMessage("\(index)", to: own)
+      try await client.sendMessage("\(index)", in: own)
     }
 
     let sharedLimit = await sharedUpdates.first { state in
@@ -95,7 +95,7 @@ extension ManagedChatTests {
 
     let refusal = await #expect(throws: ChatSendError.self) {
       try await client.sendMessage(
-        "ordinary", to: channel, waitingForChannelCooldown: .seconds(30))
+        "ordinary", in: channel, waitingForChannelCooldown: .seconds(30))
     }
     #expect({ if case .refused(.accountWindow) = refusal { true } else { false } }())
     #expect(await session.requestCount() == 50)
@@ -105,16 +105,16 @@ extension ManagedChatTests {
     #expect({ if case .accountWindow = refreshed { true } else { false } }())
 
     for index in 50..<100 {
-      try await client.sendMessage("\(index)", to: own)
+      try await client.sendMessage("\(index)", in: own)
     }
 
     await #expect(throws: ChatSendError.self) {
-      try await client.sendMessage("101", to: own)
+      try await client.sendMessage("101", in: own)
     }
     #expect(await session.requestCount() == 100)
 
     await #expect(throws: ChatSendError.self) {
-      try await anotherClient.sendMessage("shared budget", to: own)
+      try await anotherClient.sendMessage("shared budget", in: own)
     }
     #expect(await session.requestCount() == 100)
     await anotherClient.shutdownChat()
@@ -132,10 +132,10 @@ extension ManagedChatTests {
   func ircSendingStartsOnlyWriterAndCancellationDoesNotCancelAnotherSend() async throws {
     let client = client(writer: .irc)
     let own = ChatChannel(id: first.userID!, login: "first")
-    let cancelled = Task { try await client.sendMessage("cancelled", to: own) }
+    let cancelled = Task { try await client.sendMessage("cancelled", in: own) }
     let socket = await session.waitForTask(at: 0)
     let remaining = Task {
-      try await client.sendMessage("sent", to: own, clientNonce: "nonce")
+      try await client.sendMessage("sent", in: own, clientNonce: "nonce")
     }
 
     cancelled.cancel()
@@ -169,7 +169,7 @@ extension ManagedChatTests {
       chat: .init(writer: .irc, sending: .init(ordinaryChannelInterval: .seconds(30))),
       network: session)
     let events = await client.messageStream()
-    let firstSend = Task { try await client.sendMessage("ordinary", to: channel) }
+    let firstSend = Task { try await client.sendMessage("ordinary", in: channel) }
     let writer = await session.waitForTask(at: 0)
     await handshake(writer, authenticated: first)
     _ = try await firstSend.value
@@ -189,13 +189,13 @@ extension ManagedChatTests {
       await events.first { if case .notice = $0.payload { true } else { false } })
     #expect(await client.sendEligibility(in: channel.id) == .eligible)
 
-    try await client.sendMessage("as vip", to: channel)
+    try await client.sendMessage("as vip", in: channel)
     let target = try #require(first.userID)
     await writer.simulateIncoming(
       .string("@msg-id=msg_banned;target-user-id=\(target) :tmi.twitch.tv NOTICE #swift :Banned"))
     _ = try #require(
       await client.chatStateUpdates().first { $0.sendEligibility[channel.id] == .banned })
-    let outcome = try await client.sendMessage("let Twitch decide", to: channel)
+    let outcome = try await client.sendMessage("let Twitch decide", in: channel)
     #expect(outcome == .written(clientNonce: nil))
     #expect(await writer.sentCount(prefix: "PRIVMSG #swift") == 3)
     #expect(await client.chatState.channels.isEmpty)
@@ -219,7 +219,7 @@ extension ManagedChatTests {
         .utf8))
 
     let rateLimit = await #expect(throws: HelixError.self) {
-      try await client.sendMessage("first", to: own)
+      try await client.sendMessage("first", in: own)
     }
     #expect({ if case .rateLimited = rateLimit { true } else { false } }())
 
@@ -232,7 +232,7 @@ extension ManagedChatTests {
     await #expect(
       throws: ChatSendError.rejected(code: "msg_rejected", message: "Rejected")
     ) {
-      try await client.sendMessage("second", to: own)
+      try await client.sendMessage("second", in: own)
     }
 
     // Local evidence only, not a guarantee of server eligibility.

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Applies a suspicious-user status to a viewer in a channel.
@@ -80,7 +79,6 @@ public enum SuspiciousUserTreatment: String, Sendable {
 }
 
 /// The result of changing a viewer’s suspicious-user treatment.
-@MemberwiseInit(.public)
 public struct SuspiciousUserStatus: Decodable, Sendable {
   /// The viewer’s user ID.
   public let userID: String
@@ -94,6 +92,23 @@ public struct SuspiciousUserStatus: Decodable, Sendable {
   public let status: String
   /// Reasons for suspicion, such as `MANUALLY_ADDED` or `DETECTED_BAN_EVADER`.
   public let types: [String]
+
+  /// Creates a `SuspiciousUserStatus` value.
+  public init(
+    userID: String,
+    broadcasterID: String,
+    moderatorID: String,
+    updatedAt: Date,
+    status: String,
+    types: [String] = []
+  ) {
+    self.userID = userID
+    self.broadcasterID = broadcasterID
+    self.moderatorID = moderatorID
+    self.updatedAt = updatedAt
+    self.status = status
+    self.types = types
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

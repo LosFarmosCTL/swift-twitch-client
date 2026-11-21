@@ -21,9 +21,9 @@ extension ManagedIRCTests {
     #expect(await client.sendEligibility(in: channel.id) == .eligible)
     #expect(await writer.sentCount(prefix: "JOIN") == 0)
 
-    try await client.sendMessage("managed", to: channel)
+    try await client.sendMessage("managed", in: channel)
     await #expect(throws: ChatSendError.self) {
-      try await client.sendMessage("blocked", to: channel)
+      try await client.sendMessage("blocked", in: channel)
     }
     try await client.sendIRC(.privateMessage(to: "swift", message: "raw three"))
 
@@ -73,7 +73,7 @@ extension ManagedIRCTests {
       try await client.sendIRC(.join(to: "swift other"))
     }
     await #expect(throws: ChatSendError.invalidMessage) {
-      try await client.sendMessage("hello\r\nJOIN #other", to: channel)
+      try await client.sendMessage("hello\r\nJOIN #other", in: channel)
     }
     #expect(await session.taskCount() == 0)
     let pending = Task {
@@ -108,7 +108,7 @@ extension ManagedIRCTests {
     #expect(await writer.sentCount(prefix: "JOIN") == 0)
 
     try await client.sendMessage(
-      text, to: channel, replyTo: "parent;tag", clientNonce: "nonce \\")
+      text, in: channel, replyTo: "parent;tag", clientNonce: "nonce \\")
     #expect(
       await writer.sentCount(
         prefix:

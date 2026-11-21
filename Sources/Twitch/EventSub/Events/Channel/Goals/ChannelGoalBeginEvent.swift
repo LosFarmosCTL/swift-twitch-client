@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 /// The payload for channel goal progress notifications.
 ///
@@ -7,7 +6,6 @@ import MemberwiseInit
 public typealias ChannelGoalProgressEvent = ChannelGoalBeginEvent
 
 /// An EventSub notification delivered when a creator goal begins.
-@MemberwiseInit(.public)
 public struct ChannelGoalBeginEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -31,6 +29,29 @@ public struct ChannelGoalBeginEvent: Event {
 
   /// The time the activity started.
   public let startedAt: Date
+
+  /// Creates a `ChannelGoalBeginEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    type: String,
+    description: String? = nil,
+    currentAmount: Int,
+    targetAmount: Int,
+    startedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.type = type
+    self.description = description
+    self.currentAmount = currentAmount
+    self.targetAmount = targetAmount
+    self.startedAt = startedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

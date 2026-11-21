@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s AutoMod configuration.
@@ -48,7 +47,6 @@ extension HelixEndpoint {
 }
 
 /// A channel’s current AutoMod configuration and moderator identity.
-@MemberwiseInit(.public)
 public struct AutoModSettings: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -73,6 +71,33 @@ public struct AutoModSettings: Decodable, Sendable {
   public let raceEthnicityOrReligion: Int
   /// The AutoMod filtering level for sex based terms.
   public let sexBasedTerms: Int
+
+  /// Creates an `AutoModSettings` value.
+  public init(
+    broadcasterID: String,
+    moderatorID: String,
+    overallLevel: Int? = nil,
+    disability: Int,
+    aggression: Int,
+    sexualitySexOrGender: Int,
+    misogyny: Int,
+    bullying: Int,
+    swearing: Int,
+    raceEthnicityOrReligion: Int,
+    sexBasedTerms: Int
+  ) {
+    self.broadcasterID = broadcasterID
+    self.moderatorID = moderatorID
+    self.overallLevel = overallLevel
+    self.disability = disability
+    self.aggression = aggression
+    self.sexualitySexOrGender = sexualitySexOrGender
+    self.misogyny = misogyny
+    self.bullying = bullying
+    self.swearing = swearing
+    self.raceEthnicityOrReligion = raceEthnicityOrReligion
+    self.sexBasedTerms = sexBasedTerms
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"

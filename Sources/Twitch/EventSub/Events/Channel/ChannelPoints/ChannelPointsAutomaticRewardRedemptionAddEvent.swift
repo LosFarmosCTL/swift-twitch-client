@@ -1,9 +1,7 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a viewer redeems an automatic Channel Points
 /// reward.
-@MemberwiseInit(.public)
 public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -24,10 +22,34 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   /// The reward details.
   public let reward: Reward
   /// The message content or explanatory text supplied by Twitch.
-  @Init(default: nil)
   public let message: Message?
   /// The time the reward was redeemed.
   public let redeemedAt: Date
+
+  /// Creates a `ChannelPointsAutomaticRewardRedemptionAddEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    id: String,
+    reward: Reward,
+    message: Message? = nil,
+    redeemedAt: Date
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.id = id
+    self.reward = reward
+    self.message = message
+    self.redeemedAt = redeemedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
@@ -43,7 +65,6 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
   }
 
   /// The automatic reward’s type, Channel Points cost, and any unlocked emote.
-  @MemberwiseInit(.public)
   public struct Reward: Decodable, Sendable {
     /// The automatic reward redeemed by the viewer.
     public let type: RewardType
@@ -52,42 +73,83 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
     /// The emote details, when provided.
     public let emote: Emote?
 
-    /// Emote metadata for a fragment of the chat message.
+    /// Creates a `Reward` value.
+    public init(
+      type: RewardType,
+      channelPoints: Int,
+      emote: Emote? = nil
+    ) {
+      self.type = type
+      self.channelPoints = channelPoints
+      self.emote = emote
+    }
+
+    /// Emote metadata included with an automatic reward redemption.
     public struct Emote: Decodable, Sendable {
       /// The identifier assigned by Twitch.
       public let id: String
       /// The human-readable emote token.
       public let name: String
+
+      /// Creates an `Emote` value.
+      public init(
+        id: String,
+        name: String
+      ) {
+        self.id = id
+        self.name = name
+      }
     }
 
-    /// The built-in Channel Points reward redeemed by the viewer.
-    public enum RewardType: String, Decodable, Sendable {
+    /// The built-in Channel Points reward redeemed by the viewer, preserving unfamiliar
+    /// values in `rawValue`.
+    public struct RewardType: RawRepresentable, Decodable, Sendable, Hashable {
+      /// The exact reward type string supplied by Twitch or the caller.
+      public let rawValue: String
+
+      /// Creates a reward type from any raw string.
+      public init(rawValue: String) { self.rawValue = rawValue }
+
+      /// Decodes a reward type from a single string.
+      public init(from decoder: Decoder) throws {
+        self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+      }
+
       /// Allows one message to bypass subscriber-only chat. Encoded as
       /// `"single_message_bypass_sub_mode"`.
-      case singleMessageBypassSubMode = "single_message_bypass_sub_mode"
+      public static let singleMessageBypassSubMode = Self(
+        rawValue: "single_message_bypass_sub_mode")
       /// Highlights the redeemed chat message. Encoded as `"send_highlighted_message"`.
-      case sendHighlightedMessage = "send_highlighted_message"
+      public static let sendHighlightedMessage = Self(rawValue: "send_highlighted_message")
       /// Unlocks a random subscriber emote. Encoded as `"random_sub_emote_unlock"`.
-      case randomSubEmoteUnlock = "random_sub_emote_unlock"
+      public static let randomSubEmoteUnlock = Self(rawValue: "random_sub_emote_unlock")
       /// Unlocks the subscriber emote chosen by the viewer. Encoded as
       /// `"chosen_sub_emote_unlock"`.
-      case chosenSubEmoteUnlock = "chosen_sub_emote_unlock"
+      public static let chosenSubEmoteUnlock = Self(rawValue: "chosen_sub_emote_unlock")
       /// Unlocks a modified version of a chosen subscriber emote. Encoded as
       /// `"chosen_modified_sub_emote_unlock"`.
-      case chosenModifiedSubEmoteUnlock = "chosen_modified_sub_emote_unlock"
+      public static let chosenModifiedSubEmoteUnlock = Self(
+        rawValue: "chosen_modified_sub_emote_unlock")
     }
   }
 
   /// A chat message’s full text and ordered content fragments.
-  @MemberwiseInit(.public)
   public struct Message: Decodable, Sendable {
     /// The text content.
     public let text: String
     /// The ordered message fragments.
     public let fragments: [Fragment]
 
+    /// Creates a `Message` value.
+    public init(
+      text: String,
+      fragments: [Fragment] = []
+    ) {
+      self.text = text
+      self.fragments = fragments
+    }
+
     /// A run of message text with its content type and any associated metadata.
-    @MemberwiseInit(.public)
     public struct Fragment: Decodable, Sendable {
       /// The category of content represented by this fragment.
       public let type: FragmentType
@@ -95,6 +157,17 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
       public let text: String
       /// The emote details, when provided.
       public let emote: Emote?
+
+      /// Creates a `Fragment` value.
+      public init(
+        type: FragmentType,
+        text: String,
+        emote: Emote? = nil
+      ) {
+        self.type = type
+        self.text = text
+        self.emote = emote
+      }
 
       enum CodingKeys: String, CodingKey {
         case type
@@ -111,19 +184,37 @@ public struct ChannelPointsAutomaticRewardRedemptionAddEvent: Event {
         type = try container.decode(FragmentType.self, forKey: .type)
       }
 
-      /// The content kind of a message fragment and any associated metadata.
-      public enum FragmentType: String, Decodable, Sendable {
+      /// The content kind of a message fragment, preserving unfamiliar values in
+      /// `rawValue`.
+      public struct FragmentType: RawRepresentable, Decodable, Sendable, Hashable {
+        /// The exact fragment type string supplied by Twitch or the caller.
+        public let rawValue: String
+
+        /// Creates a fragment type from any raw string.
+        public init(rawValue: String) { self.rawValue = rawValue }
+
+        /// Decodes a fragment type from a single string.
+        public init(from decoder: Decoder) throws {
+          self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+        }
+
         /// A text message fragment.
-        case text
+        public static let text = Self(rawValue: "text")
         /// An emote message fragment.
-        case emote
+        public static let emote = Self(rawValue: "emote")
       }
 
       /// Emote metadata for a fragment of the chat message.
-      @MemberwiseInit(.public)
       public struct Emote: Decodable, Sendable {
         /// The identifier assigned by Twitch.
         public let id: String
+
+        /// Creates an `Emote` value.
+        public init(
+          id: String
+        ) {
+          self.id = id
+        }
       }
     }
   }

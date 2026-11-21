@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Creates an EventSub subscription using the specified transport.
@@ -61,7 +60,7 @@ extension HelixEndpoint {
 }
 
 /// The webhook, WebSocket, or conduit destination for EventSub notifications.
-public enum EventSubTransport: Sendable {
+public enum EventSubTransport: Sendable, Equatable {
   /// Delivers notifications to the callback URL using the associated signing secret.
   case webhook(callback: String, secret: String)
   /// Delivers notifications to the associated WebSocket session ID.
@@ -106,8 +105,20 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
   /// The maximum EventSub subscription cost allowed.
   public let maxTotalCost: Int
 
+  /// Creates a `CreateEventSubSubscriptionResponse` value.
+  public init(
+    subscription: Subscription,
+    total: Int,
+    totalCost: Int,
+    maxTotalCost: Int
+  ) {
+    self.subscription = subscription
+    self.total = total
+    self.totalCost = totalCost
+    self.maxTotalCost = maxTotalCost
+  }
+
   /// The EventSub subscription created by the request, including its delivery state.
-  @MemberwiseInit(.public)
   public struct Subscription: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -119,7 +130,6 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     public let version: String
     /// The conditions selecting which events the subscription receives.
     public var condition: [String: String] { decodedCondition }
-    @InitRaw(.public, label: "condition", type: [String: String].self)
     @EventSubCondition private var decodedCondition: [String: String]
     /// The time the resource was created.
     public let createdAt: Date
@@ -130,6 +140,29 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     /// Present when notification batching is enabled; omission means false.
     public let isBatchingEnabled: Bool?
 
+    /// Creates a `Subscription` value.
+    public init(
+      id: String,
+      status: String,
+      type: String,
+      version: String,
+      condition: [String: String] = [:],
+      createdAt: Date,
+      transport: Transport,
+      cost: Int,
+      isBatchingEnabled: Bool? = nil
+    ) {
+      self.id = id
+      self.status = status
+      self.type = type
+      self.version = version
+      self._decodedCondition = EventSubCondition(wrappedValue: condition)
+      self.createdAt = createdAt
+      self.transport = transport
+      self.cost = cost
+      self.isBatchingEnabled = isBatchingEnabled
+    }
+
     private enum CodingKeys: String, CodingKey {
       case id, status, type, version, createdAt, transport, cost, isBatchingEnabled
       case decodedCondition = "condition"
@@ -137,7 +170,6 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
   }
 
   /// The destination assigned to a newly created EventSub subscription.
-  @MemberwiseInit(.public)
   public struct Transport: Decodable, Sendable {
     /// The EventSub delivery method.
     public let method: String
@@ -157,6 +189,23 @@ public struct CreateEventSubSubscriptionResponse: Sendable {
     // only included if method is "conduit"
     /// The identifier of the conduit, when provided.
     public let conduitID: String?
+
+    /// Creates a `Transport` value.
+    public init(
+      method: String,
+      callback: String? = nil,
+      secret: String? = nil,
+      sessionID: String? = nil,
+      connectedAt: Date? = nil,
+      conduitID: String? = nil
+    ) {
+      self.method = method
+      self.callback = callback
+      self.secret = secret
+      self.sessionID = sessionID
+      self.connectedAt = connectedAt
+      self.conduitID = conduitID
+    }
 
     enum CodingKeys: String, CodingKey {
       case method

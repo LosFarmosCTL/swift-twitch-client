@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets an extension’s signing secrets and their validity periods.
@@ -36,16 +35,23 @@ extension HelixEndpoint {
 }
 
 /// The extension secrets returned by Twitch and their version.
-@MemberwiseInit(.public)
 public struct ExtensionSecretsResponse: Decodable, Sendable {
   /// The configuration format version.
   public let formatVersion: Int
   /// The extension secrets.
   public let secrets: [ExtensionSecret]
+
+  /// Creates an `ExtensionSecretsResponse` value.
+  public init(
+    formatVersion: Int,
+    secrets: [ExtensionSecret] = []
+  ) {
+    self.formatVersion = formatVersion
+    self.secrets = secrets
+  }
 }
 
 /// An extension signing secret and its activation and expiration times.
-@MemberwiseInit(.public)
 public struct ExtensionSecret: Decodable, Sendable {
   /// The base64-encoded extension secret.
   public let content: String
@@ -53,4 +59,15 @@ public struct ExtensionSecret: Decodable, Sendable {
   public let activeAt: Date
   /// The time the resource expires.
   public let expiresAt: Date
+
+  /// Creates an `ExtensionSecret` value.
+  public init(
+    content: String,
+    activeAt: Date,
+    expiresAt: Date
+  ) {
+    self.content = content
+    self.activeAt = activeAt
+    self.expiresAt = expiresAt
+  }
 }

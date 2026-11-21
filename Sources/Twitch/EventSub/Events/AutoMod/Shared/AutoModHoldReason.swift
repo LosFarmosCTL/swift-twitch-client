@@ -1,5 +1,3 @@
-import MemberwiseInit
-
 /// The filtering category, blocked term, or blocked link that caused a message hold.
 public enum AutoModHoldReason: Sendable {
   /// AutoMod matched a filtering category; includes its level and text boundaries.
@@ -8,9 +6,10 @@ public enum AutoModHoldReason: Sendable {
   case blockedTerm(BlockedTerm)
   /// The message matched a blocked link; includes its matching text boundaries.
   case blockedLink(BlockedTerm)
+  /// An unfamiliar hold reason, preserved as sent by Twitch.
+  case unknown(String)
 
   /// The filtering category, severity level, and text ranges responsible for a hold.
-  @MemberwiseInit(.public)
   public struct AutoMod: Decodable, Sendable {
     /// The name of the AutoMod filtering category that caught the message.
     public let category: String
@@ -18,20 +17,36 @@ public enum AutoModHoldReason: Sendable {
     public let level: Int
     /// The locations of held content within the message.
     public let boundaries: [Boundary]
+
+    /// Creates an `AutoMod` value.
+    public init(
+      category: String,
+      level: Int,
+      boundaries: [Boundary] = []
+    ) {
+      self.category = category
+      self.level = level
+      self.boundaries = boundaries
+    }
   }
 
   /// The blocked terms found in a message and the text ranges they matched.
-  @MemberwiseInit(.public)
   public struct BlockedTerm: Decodable, Sendable {
     /// The blocked terms found in the message, with their owners and text ranges.
     public let terms: [Term]
+
+    /// Creates a `BlockedTerm` value.
+    public init(
+      terms: [Term] = []
+    ) {
+      self.terms = terms
+    }
 
     enum CodingKeys: String, CodingKey {
       case terms = "termsFound"
     }
 
     /// A matched blocked term’s ID, text range, and owning broadcaster.
-    @MemberwiseInit(.public)
     public struct Term: Decodable, Sendable {
       /// The identifier of the term.
       public let termID: String
@@ -44,6 +59,21 @@ public enum AutoModHoldReason: Sendable {
       /// The display name of the owner broadcaster.
       public let ownerBroadcasterDisplayName: String
 
+      /// Creates a `Term` value.
+      public init(
+        termID: String,
+        boundary: Boundary,
+        ownerBroadcasterID: String,
+        ownerBroadcasterLogin: String,
+        ownerBroadcasterDisplayName: String
+      ) {
+        self.termID = termID
+        self.boundary = boundary
+        self.ownerBroadcasterID = ownerBroadcasterID
+        self.ownerBroadcasterLogin = ownerBroadcasterLogin
+        self.ownerBroadcasterDisplayName = ownerBroadcasterDisplayName
+      }
+
       enum CodingKeys: String, CodingKey {
         case termID = "termId"
         case boundary
@@ -55,12 +85,20 @@ public enum AutoModHoldReason: Sendable {
   }
 
   /// An inclusive range of held text, expressed as zero-based message offsets.
-  @MemberwiseInit(.public)
   public struct Boundary: Decodable, Sendable {
     /// The zero-based, inclusive start offset of the held text within the message.
     public let startPosition: Int
     /// The zero-based, inclusive end offset of the held text within the message.
     public let endPosition: Int
+
+    /// Creates a `Boundary` value.
+    public init(
+      startPosition: Int,
+      endPosition: Int
+    ) {
+      self.startPosition = startPosition
+      self.endPosition = endPosition
+    }
 
     enum CodingKeys: String, CodingKey {
       case startPosition = "startPos"
@@ -77,7 +115,12 @@ public enum AutoModHoldReason: Sendable {
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    let reason = try container.decode(HoldReason.self, forKey: .reason)
+    let rawReason = try container.decode(String.self, forKey: .reason)
+    guard let reason = HoldReason(rawValue: rawReason) else {
+      self = .unknown(rawReason)
+      return
+    }
+
     switch reason {
     case .autoMod:
       let autoModReason = try container.decode(

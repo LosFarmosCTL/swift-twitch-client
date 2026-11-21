@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Starts a raid.
@@ -38,12 +37,20 @@ extension HelixEndpoint {
 }
 
 /// A raid that has been initiated but has not yet completed.
-@MemberwiseInit(.public)
 public struct PendingRaid: Decodable, Sendable {
   /// The time the resource was created.
   public let createdAt: Date
   /// Whether the content is marked as mature.
   public let isMature: Bool
+
+  /// Creates a `PendingRaid` value.
+  public init(
+    createdAt: Date,
+    isMature: Bool
+  ) {
+    self.createdAt = createdAt
+    self.isMature = isMature
+  }
 
   enum CodingKeys: String, CodingKey {
     case createdAt

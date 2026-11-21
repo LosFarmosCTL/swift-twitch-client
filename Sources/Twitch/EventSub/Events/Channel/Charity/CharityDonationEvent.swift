@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a viewer donates to a charity campaign.
-@MemberwiseInit(.public)
 public struct CharityDonationEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -34,6 +31,37 @@ public struct CharityDonationEvent: Event {
   /// The amount contributed or donated.
   public let amount: CharityAmount
 
+  /// Creates a `CharityDonationEvent` value.
+  public init(
+    id: String,
+    campaignID: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    charityName: String,
+    charityDescription: String,
+    charityLogo: String,
+    charityWebsite: String,
+    amount: CharityAmount
+  ) {
+    self.id = id
+    self.campaignID = campaignID
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.charityName = charityName
+    self.charityDescription = charityDescription
+    self.charityLogo = charityLogo
+    self.charityWebsite = charityWebsite
+    self.amount = amount
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case campaignID = "campaignId"
@@ -51,7 +79,6 @@ public struct CharityDonationEvent: Event {
   }
 
   /// A monetary amount represented by an integer value, decimal precision, and currency.
-  @MemberwiseInit(.public)
   public struct CharityAmount: Decodable, Sendable {
     /// The integer monetary amount; divide by ten raised to `decimalPlaces` to obtain
     /// currency units.
@@ -60,6 +87,17 @@ public struct CharityDonationEvent: Event {
     public let decimalPlaces: Int
     /// The ISO 4217 currency code.
     public let currency: String
+
+    /// Creates a `CharityAmount` value.
+    public init(
+      value: Int,
+      decimalPlaces: Int,
+      currency: String
+    ) {
+      self.value = value
+      self.decimalPlaces = decimalPlaces
+      self.currency = currency
+    }
 
     private enum CodingKeys: CodingKey {
       case value, decimalPlaces, decimalPlace, currency

@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a chat message is deleted.
-@MemberwiseInit(.public)
 public struct ChannelChatMessageDeleteEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -19,6 +16,25 @@ public struct ChannelChatMessageDeleteEvent: Event {
 
   /// The identifier of the message.
   public let messageID: String
+
+  /// Creates a `ChannelChatMessageDeleteEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    targetID: String,
+    targetLogin: String,
+    targetDisplayName: String,
+    messageID: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.targetID = targetID
+    self.targetLogin = targetLogin
+    self.targetDisplayName = targetDisplayName
+    self.messageID = messageID
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

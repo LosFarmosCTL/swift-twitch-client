@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets clips by ID, broadcaster, or game category.
@@ -57,7 +56,6 @@ extension HelixEndpoint {
 }
 
 /// A Twitch clip’s broadcaster, creator, playback, and source-video metadata.
-@MemberwiseInit(.public)
 public struct Clip: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -98,6 +96,45 @@ public struct Clip: Decodable, Sendable {
   /// Whether the resource is featured.
   public let isFeatured: Bool
 
+  /// Creates a `Clip` value.
+  public init(
+    id: String,
+    url: String,
+    embedURL: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    creatorID: String,
+    creatorDisplayName: String,
+    videoID: String,
+    gameID: String,
+    language: String,
+    title: String,
+    viewCount: Int,
+    createdAt: Date,
+    thumbnailURL: String,
+    duration: Double,
+    vodOffset: Int? = nil,
+    isFeatured: Bool
+  ) {
+    self.id = id
+    self.url = url
+    self.embedURL = embedURL
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.creatorID = creatorID
+    self.creatorDisplayName = creatorDisplayName
+    self.videoID = videoID
+    self.gameID = gameID
+    self.language = language
+    self.title = title
+    self.viewCount = viewCount
+    self.createdAt = createdAt
+    self.thumbnailURL = thumbnailURL
+    self.duration = duration
+    self.vodOffset = vodOffset
+    self.isFeatured = isFeatured
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case url
@@ -120,10 +157,18 @@ public struct Clip: Decodable, Sendable {
 }
 
 /// A page of clips.
-@MemberwiseInit(.public)
 public struct ClipsResponse: Sendable {
   /// The clips on this page.
   public let clips: [Clip]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `ClipsResponse` value.
+  public init(
+    clips: [Clip] = [],
+    cursor: String? = nil
+  ) {
+    self.clips = clips
+    self.cursor = cursor
+  }
 }

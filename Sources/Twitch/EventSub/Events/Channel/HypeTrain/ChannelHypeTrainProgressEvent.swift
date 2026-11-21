@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a Hype Train receives contributions.
-@MemberwiseInit(.public)
 public struct ChannelHypeTrainProgressEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -38,6 +36,39 @@ public struct ChannelHypeTrainProgressEvent: Event {
 
   /// The Hype Train category reported by Twitch.
   public let type: ChannelHypeTrainBeginEvent.HypeTrainType
+
+  /// Creates a `ChannelHypeTrainProgressEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    total: Int,
+    progress: Int,
+    goal: Int,
+    level: Int,
+    topContributions: [ChannelHypeTrainBeginEvent.HypeTrainContribution] = [],
+    startedAt: Date,
+    expiresAt: Date,
+    sharedTrainParticipants: [ChannelHypeTrainBeginEvent.Broadcaster]? = nil,
+    isSharedTrain: Bool,
+    type: ChannelHypeTrainBeginEvent.HypeTrainType
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.total = total
+    self.progress = progress
+    self.goal = goal
+    self.level = level
+    self.topContributions = topContributions
+    self.startedAt = startedAt
+    self.expiresAt = expiresAt
+    self.sharedTrainParticipants = sharedTrainParticipants
+    self.isSharedTrain = isSharedTrain
+    self.type = type
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

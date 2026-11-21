@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when AutoMod holds a message for review.
-@MemberwiseInit(.public)
 public struct AutoModMessageHoldEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -27,6 +25,31 @@ public struct AutoModMessageHoldEvent: Event {
   public let heldAt: Date
   /// Why AutoMod held the message (either an AutoMod category or matched blocked terms).
   public let reason: AutoModHoldReason
+
+  /// Creates an `AutoModMessageHoldEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    messageID: String,
+    message: AutoModMessage,
+    heldAt: Date,
+    reason: AutoModHoldReason
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.messageID = messageID
+    self.message = message
+    self.heldAt = heldAt
+    self.reason = reason
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

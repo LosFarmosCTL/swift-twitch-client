@@ -16,10 +16,13 @@
 ///   ``HelixEndpoint/createEventSubSubscription(using:for:isBatchingEnabled:)`` through
 ///   Helix directly.
 /// - SeeAlso: <doc:EventSub>, ``Event``, ``EventSubNotification``
-public struct EventSubSubscription<EventNotification: Event>: Sendable {
-  let type: String
-  let version: String
-  let condition: [String: String]
+public struct EventSubSubscription<EventNotification: Event>: Sendable, Equatable, Hashable {
+  /// The Twitch EventSub subscription type string (for example, `"stream.online"`).
+  public let type: String
+  /// The Twitch EventSub schema version string (for example, `"1"`).
+  public let version: String
+  /// The condition dictionary using Twitch's wire keys (for example, `["broadcaster_user_id": "1234"]`).
+  public let condition: [String: String]
 }
 
 extension EventSubSubscription {

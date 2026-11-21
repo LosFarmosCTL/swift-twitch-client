@@ -31,7 +31,7 @@ separate ``TwitchClient`` instances.
 ### Validate OAuth Tokens at Startup
 
 The easiest and safest way to build ``TwitchCredentials`` from a user or app OAuth token is to
-validate it with ``TwitchClient/validateAccessToken(accessToken:)``:
+validate it with ``TwitchClient/validateAccessToken(accessToken:urlSession:)``:
 
 ```swift
 let token = "<user or app OAuth token>"
@@ -140,7 +140,7 @@ Your backend is responsible for signing the JWT with the claims required by the 
 Twitch's [Extension JWT schema](https://dev.twitch.tv/docs/extensions/reference/#jwt-schema)).
 The client transmits it as a `Bearer` token without validating or signing claims.
 
-> Important: Do **not** pass an EBS JWT to ``TwitchClient/validateAccessToken(accessToken:)``,
+> Important: Do **not** pass an EBS JWT to ``TwitchClient/validateAccessToken(accessToken:urlSession:)``,
 > EventSub, or IRC. OAuth-only Helix endpoints reject JWT credentials with
 > ``TwitchAuthenticationError/oauthAccessTokenRequired``, and JWT-only endpoints reject OAuth
 > credentials with ``TwitchAuthenticationError/extensionJWTRequired``.

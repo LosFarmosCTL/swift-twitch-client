@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s Bits leaderboard.
@@ -72,10 +71,22 @@ public struct BitsLeaderboard: Sendable {
   public let startDate: Date?
   /// The end of the date range, when provided.
   public let endDate: Date?
+
+  /// Creates a `BitsLeaderboard` value.
+  public init(
+    leaders: [BitsLeaderboardEntry] = [],
+    total: Int,
+    startDate: Date? = nil,
+    endDate: Date? = nil
+  ) {
+    self.leaders = leaders
+    self.total = total
+    self.startDate = startDate
+    self.endDate = endDate
+  }
 }
 
 /// A user’s rank and contribution total on a Bits leaderboard.
-@MemberwiseInit(.public)
 public struct BitsLeaderboardEntry: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -87,6 +98,21 @@ public struct BitsLeaderboardEntry: Decodable, Sendable {
   public let rank: Int
   /// The number of Bits the user cheered during the reporting period.
   public let score: Int
+
+  /// Creates a `BitsLeaderboardEntry` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    rank: Int,
+    score: Int
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.rank = rank
+    self.score = score
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

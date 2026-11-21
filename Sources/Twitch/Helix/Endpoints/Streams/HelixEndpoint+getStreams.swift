@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets live streams matching the supplied filters.
@@ -17,9 +16,9 @@ extension HelixEndpoint {
   ///   - type: The stream type filter; `nil` uses Twitch’s default of all stream types.
   ///   - languages: The language codes to include. Defaults to `[]`.
   ///   - limit: The maximum number of results to request; `nil` uses Twitch’s default.
-  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   ///   - afterCursor: The pagination cursor for the next page; `nil` starts without an
   ///     after cursor.
+  ///   - beforeCursor: The pagination cursor for the previous page; `nil` omits it.
   ///
   /// - Returns: An endpoint that yields ``StreamsResponse`` when
   ///   executed. The cursor is `nil` when there is no next page.
@@ -30,8 +29,8 @@ extension HelixEndpoint {
     type: StreamTypeFilter? = nil,
     languages: [String] = [],
     limit: Int? = nil,
-    before beforeCursor: String? = nil,
-    after afterCursor: String? = nil
+    after afterCursor: String? = nil,
+    before beforeCursor: String? = nil
   ) -> HelixEndpoint<StreamsResponse> {
     let userIDs = userIDs.compactMap { ("user_id", $0) }
     let userLogins = userLogins.compactMap { ("user_login", $0) }
@@ -62,7 +61,6 @@ public enum StreamTypeFilter: String, Sendable {
 }
 
 /// A live broadcast’s channel identity, category, title, and audience metadata.
-@MemberwiseInit(.public)
 public struct Stream: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -95,6 +93,37 @@ public struct Stream: Decodable, Sendable {
   /// The URL template for the stream's preview thumbnail image.
   public let thumbnailURL: String
 
+  /// Creates a `Stream` value.
+  public init(
+    id: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    gameID: String,
+    gameName: String,
+    type: String,
+    title: String,
+    language: String,
+    tags: [String]? = nil,
+    viewerCount: Int,
+    startedAt: Date,
+    thumbnailURL: String
+  ) {
+    self.id = id
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.gameID = gameID
+    self.gameName = gameName
+    self.type = type
+    self.title = title
+    self.language = language
+    self.tags = tags
+    self.viewerCount = viewerCount
+    self.startedAt = startedAt
+    self.thumbnailURL = thumbnailURL
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case userID = "userId"
@@ -113,10 +142,18 @@ public struct Stream: Decodable, Sendable {
 }
 
 /// A page of streams.
-@MemberwiseInit(.public)
 public struct StreamsResponse: Sendable {
   /// The streams on this page.
   public let streams: [Stream]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `StreamsResponse` value.
+  public init(
+    streams: [Stream] = [],
+    cursor: String? = nil
+  ) {
+    self.streams = streams
+    self.cursor = cursor
+  }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s ongoing Guest Star session.
@@ -42,16 +41,23 @@ extension HelixEndpoint {
 }
 
 /// A Guest Star session and its participating guests.
-@MemberwiseInit(.public)
 public struct GuestStarSession: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
   /// The Guest Star guests.
   public let guests: [GuestStarGuest]
+
+  /// Creates a `GuestStarSession` value.
+  public init(
+    id: String,
+    guests: [GuestStarGuest] = []
+  ) {
+    self.id = id
+    self.guests = guests
+  }
 }
 
 /// A guest’s slot assignment, media settings, and session timing.
-@MemberwiseInit(.public)
 public struct GuestStarGuest: Decodable, Sendable {
   /// The identifier of the slot.
   public let slotID: String
@@ -68,6 +74,25 @@ public struct GuestStarGuest: Decodable, Sendable {
   /// The video settings.
   public let videoSettings: GuestStarMediaSettings
 
+  /// Creates a `GuestStarGuest` value.
+  public init(
+    slotID: String,
+    userID: String,
+    isLive: Bool,
+    volume: Int,
+    assignedAt: Date,
+    audioSettings: GuestStarMediaSettings,
+    videoSettings: GuestStarMediaSettings
+  ) {
+    self.slotID = slotID
+    self.userID = userID
+    self.isLive = isLive
+    self.volume = volume
+    self.assignedAt = assignedAt
+    self.audioSettings = audioSettings
+    self.videoSettings = videoSettings
+  }
+
   enum CodingKeys: String, CodingKey {
     case slotID = "slotId"
     case userID = "userId"
@@ -80,7 +105,6 @@ public struct GuestStarGuest: Decodable, Sendable {
 }
 
 /// A Guest Star media device’s availability and host and guest enablement.
-@MemberwiseInit(.public)
 public struct GuestStarMediaSettings: Decodable, Sendable {
   /// Whether the host has enabled this media, when provided.
   public let isHostEnabled: Bool?
@@ -88,4 +112,15 @@ public struct GuestStarMediaSettings: Decodable, Sendable {
   public let isGuestEnabled: Bool?
   /// Whether the resource is available.
   public let isAvailable: Bool
+
+  /// Creates a `GuestStarMediaSettings` value.
+  public init(
+    isHostEnabled: Bool? = nil,
+    isGuestEnabled: Bool? = nil,
+    isAvailable: Bool
+  ) {
+    self.isHostEnabled = isHostEnabled
+    self.isGuestEnabled = isGuestEnabled
+    self.isAvailable = isAvailable
+  }
 }

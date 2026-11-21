@@ -17,7 +17,23 @@ public struct EventSubNotification<Payload: Sendable>: Sendable {
   public let sentAt: Date
   /// The ID of the Twitch EventSub subscription that produced this notification.
   public let subscriptionID: String
+
+  /// Creates an `EventSubNotification` value.
+  public init(
+    event: Payload,
+    messageID: String,
+    sentAt: Date = Date(),
+    subscriptionID: String
+  ) {
+    self.event = event
+    self.messageID = messageID
+    self.sentAt = sentAt
+    self.subscriptionID = subscriptionID
+  }
 }
+
+extension EventSubNotification: Equatable where Payload: Equatable {}
+extension EventSubNotification: Hashable where Payload: Hashable {}
 
 extension EventSubNotification where Payload == any Event {
   func typed<R: Event>(as _: R.Type) -> EventSubNotification<R>? {

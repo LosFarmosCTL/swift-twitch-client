@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s channel editors.
@@ -25,7 +24,6 @@ extension HelixEndpoint {
 }
 
 /// An account authorized to edit a broadcaster’s channel.
-@MemberwiseInit(.public)
 public struct Editor: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -33,6 +31,17 @@ public struct Editor: Decodable, Sendable {
   public let userDisplayName: String
   /// The time the resource was created.
   public let createdAt: Date
+
+  /// Creates an `Editor` value.
+  public init(
+    userID: String,
+    userDisplayName: String,
+    createdAt: Date
+  ) {
+    self.userID = userID
+    self.userDisplayName = userDisplayName
+    self.createdAt = createdAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets EventSub subscriptions matching the supplied filters.
@@ -74,8 +73,22 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
   /// The pagination cursor to pass when requesting another page.
   public let cursor: String?
 
+  /// Creates a `GetEventSubSubscriptionsResponse` value.
+  public init(
+    subscriptions: [Subscription] = [],
+    total: Int,
+    totalCost: Int,
+    maxTotalCost: Int,
+    cursor: String? = nil
+  ) {
+    self.subscriptions = subscriptions
+    self.total = total
+    self.totalCost = totalCost
+    self.maxTotalCost = maxTotalCost
+    self.cursor = cursor
+  }
+
   /// An existing EventSub subscription’s conditions, destination, and delivery state.
-  @MemberwiseInit(.public)
   public struct Subscription: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -87,7 +100,6 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
     public let version: String
     /// The conditions selecting which events the subscription receives.
     public var condition: [String: String] { decodedCondition }
-    @InitRaw(.public, label: "condition", type: [String: String].self)
     @EventSubCondition private var decodedCondition: [String: String]
     /// The time the resource was created.
     public let createdAt: Date
@@ -98,6 +110,29 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
     /// Present when notification batching is enabled; omission means false.
     public let isBatchingEnabled: Bool?
 
+    /// Creates a `Subscription` value.
+    public init(
+      id: String,
+      status: String,
+      type: String,
+      version: String,
+      condition: [String: String] = [:],
+      createdAt: Date,
+      transport: Transport,
+      cost: Int,
+      isBatchingEnabled: Bool? = nil
+    ) {
+      self.id = id
+      self.status = status
+      self.type = type
+      self.version = version
+      self._decodedCondition = EventSubCondition(wrappedValue: condition)
+      self.createdAt = createdAt
+      self.transport = transport
+      self.cost = cost
+      self.isBatchingEnabled = isBatchingEnabled
+    }
+
     private enum CodingKeys: String, CodingKey {
       case id, status, type, version, createdAt, transport, cost, isBatchingEnabled
       case decodedCondition = "condition"
@@ -105,7 +140,6 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
   }
 
   /// An existing subscription’s destination and WebSocket connection timestamps.
-  @MemberwiseInit(.public)
   public struct Transport: Decodable, Sendable {
     /// The EventSub delivery method.
     public let method: String
@@ -125,6 +159,25 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
     /// The identifier of the conduit, when provided.
     public let conduitID: String?
 
+    /// Creates a `Transport` value.
+    public init(
+      method: String,
+      callback: String? = nil,
+      secret: String? = nil,
+      sessionID: String? = nil,
+      connectedAt: Date? = nil,
+      disconnectedAt: Date? = nil,
+      conduitID: String? = nil
+    ) {
+      self.method = method
+      self.callback = callback
+      self.secret = secret
+      self.sessionID = sessionID
+      self.connectedAt = connectedAt
+      self.disconnectedAt = disconnectedAt
+      self.conduitID = conduitID
+    }
+
     enum CodingKeys: String, CodingKey {
       case method
 
@@ -141,7 +194,7 @@ public struct GetEventSubSubscriptionsResponse: Sendable {
 }
 
 /// A single criterion used to select EventSub subscriptions.
-public enum EventSubSubscriptionFilter: Sendable {
+public enum EventSubSubscriptionFilter: Sendable, Equatable {
   /// Includes subscriptions with the specified delivery or revocation status.
   case status(EventSubSubscriptionStatus)
   /// Includes subscriptions for an event type, such as `channel.follow`.

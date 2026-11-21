@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when Shield Mode is enabled.
-@MemberwiseInit(.public)
 public struct ChannelShieldModeBeginEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -20,6 +18,25 @@ public struct ChannelShieldModeBeginEvent: Event {
 
   /// The time the activity started.
   public let startedAt: Date
+
+  /// Creates a `ChannelShieldModeBeginEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    moderatorID: String,
+    moderatorLogin: String,
+    moderatorDisplayName: String,
+    startedAt: Date
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+    self.startedAt = startedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

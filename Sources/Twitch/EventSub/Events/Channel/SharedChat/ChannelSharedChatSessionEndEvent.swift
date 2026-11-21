@@ -1,8 +1,5 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when the subscribed channel leaves a shared chat
 /// session or that session ends.
-@MemberwiseInit(.public)
 public struct ChannelSharedChatSessionEndEvent: Event {
   /// The identifier of the session.
   public let sessionID: String
@@ -20,6 +17,25 @@ public struct ChannelSharedChatSessionEndEvent: Event {
   public let hostBroadcasterDisplayName: String
   /// The login name of the host broadcaster.
   public let hostBroadcasterLogin: String
+
+  /// Creates a `ChannelSharedChatSessionEndEvent` value.
+  public init(
+    sessionID: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    hostBroadcasterID: String,
+    hostBroadcasterDisplayName: String,
+    hostBroadcasterLogin: String
+  ) {
+    self.sessionID = sessionID
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.hostBroadcasterID = hostBroadcasterID
+    self.hostBroadcasterDisplayName = hostBroadcasterDisplayName
+    self.hostBroadcasterLogin = hostBroadcasterLogin
+  }
 
   enum CodingKeys: String, CodingKey {
     case sessionID = "sessionId"

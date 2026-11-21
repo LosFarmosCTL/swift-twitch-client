@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s current Hype Train and historical records.
@@ -39,7 +38,6 @@ extension HelixEndpoint {
 }
 
 /// A channel’s current Hype Train and historical records.
-@MemberwiseInit(.public)
 public struct HypeTrainStatus: Decodable, Sendable {
   /// The current progress toward the goal, when provided.
   public let current: HypeTrainCurrent?
@@ -47,10 +45,20 @@ public struct HypeTrainStatus: Decodable, Sendable {
   public let allTimeHigh: HypeTrainRecord?
   /// The all-time shared Hype Train record, when provided.
   public let sharedAllTimeHigh: HypeTrainRecord?
+
+  /// Creates a `HypeTrainStatus` value.
+  public init(
+    current: HypeTrainCurrent? = nil,
+    allTimeHigh: HypeTrainRecord? = nil,
+    sharedAllTimeHigh: HypeTrainRecord? = nil
+  ) {
+    self.current = current
+    self.allTimeHigh = allTimeHigh
+    self.sharedAllTimeHigh = sharedAllTimeHigh
+  }
 }
 
 /// An active Hype Train’s progress, participants, and leading contributions.
-@MemberwiseInit(.public)
 public struct HypeTrainCurrent: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -86,6 +94,39 @@ public struct HypeTrainCurrent: Decodable, Sendable {
   /// Whether the Hype Train spans multiple channels.
   public let isSharedTrain: Bool
 
+  /// Creates a `HypeTrainCurrent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    level: Int,
+    total: Int,
+    progress: Int,
+    goal: Int,
+    topContributions: [HypeTrainContribution] = [],
+    sharedTrainParticipants: [HypeTrainParticipant]? = nil,
+    startedAt: Date,
+    expiresAt: Date,
+    type: HypeTrainType,
+    isSharedTrain: Bool
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.level = level
+    self.total = total
+    self.progress = progress
+    self.goal = goal
+    self.topContributions = topContributions
+    self.sharedTrainParticipants = sharedTrainParticipants
+    self.startedAt = startedAt
+    self.expiresAt = expiresAt
+    self.type = type
+    self.isSharedTrain = isSharedTrain
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterUserId"
@@ -105,7 +146,6 @@ public struct HypeTrainCurrent: Decodable, Sendable {
 }
 
 /// A historical Hype Train record and when it was achieved.
-@MemberwiseInit(.public)
 public struct HypeTrainRecord: Decodable, Sendable {
   /// The current level.
   public let level: Int
@@ -113,10 +153,20 @@ public struct HypeTrainRecord: Decodable, Sendable {
   public let total: Int
   /// The time the record was achieved.
   public let achievedAt: Date
+
+  /// Creates a `HypeTrainRecord` value.
+  public init(
+    level: Int,
+    total: Int,
+    achievedAt: Date
+  ) {
+    self.level = level
+    self.total = total
+    self.achievedAt = achievedAt
+  }
 }
 
 /// A user’s contribution to a Hype Train.
-@MemberwiseInit(.public)
 public struct HypeTrainContribution: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -130,6 +180,21 @@ public struct HypeTrainContribution: Decodable, Sendable {
   /// The contributor’s points from this contribution category during the Hype Train.
   public let total: Int
 
+  /// Creates a `HypeTrainContribution` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    type: ContributionType,
+    total: Int
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.type = type
+    self.total = total
+  }
+
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
     case userLogin
@@ -138,19 +203,36 @@ public struct HypeTrainContribution: Decodable, Sendable {
     case total
   }
 
-  /// Whether Hype Train points came from Bits, subscriptions, or another source.
-  public enum ContributionType: String, Codable, Sendable {
+  /// Whether Hype Train points came from Bits, subscriptions, or another source,
+  /// preserving unfamiliar values in `rawValue`.
+  public struct ContributionType: RawRepresentable, Codable, Sendable, Hashable {
+    /// The exact contribution type string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a contribution type from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a contribution type from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
+    /// Encodes this contribution type as its raw wire string.
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.singleValueContainer()
+      try container.encode(rawValue)
+    }
+
     /// A contribution made with Bits.
-    case bits
+    public static let bits = Self(rawValue: "bits")
     /// A contribution made with a subscription.
-    case subscription
+    public static let subscription = Self(rawValue: "subscription")
     /// A contribution of another kind.
-    case other
+    public static let other = Self(rawValue: "other")
   }
 }
 
 /// A channel participating in a shared Hype Train.
-@MemberwiseInit(.public)
 public struct HypeTrainParticipant: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -159,6 +241,17 @@ public struct HypeTrainParticipant: Decodable, Sendable {
   /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
+  /// Creates a `HypeTrainParticipant` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
@@ -166,12 +259,30 @@ public struct HypeTrainParticipant: Decodable, Sendable {
   }
 }
 
-/// The regular, Treasure, and Golden Kappa categories of Hype Train.
-public enum HypeTrainType: String, Codable, Sendable {
+/// The regular, Treasure, and Golden Kappa categories of Hype Train, preserving
+/// unfamiliar values in `rawValue`.
+public struct HypeTrainType: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact Hype Train type string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a Hype Train type from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a Hype Train type from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this Hype Train type as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// A regular Hype Train.
-  case regular
+  public static let regular = Self(rawValue: "regular")
   /// A Treasure Train.
-  case treasure
+  public static let treasure = Self(rawValue: "treasure")
   /// A Golden Kappa Hype Train. Encoded as `"golden_kappa"`.
-  case goldenKappa = "golden_kappa"
+  public static let goldenKappa = Self(rawValue: "golden_kappa")
 }

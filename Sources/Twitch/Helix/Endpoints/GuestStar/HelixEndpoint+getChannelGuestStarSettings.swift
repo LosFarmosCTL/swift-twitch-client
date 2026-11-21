@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s Guest Star configuration.
@@ -40,7 +39,6 @@ extension HelixEndpoint {
 }
 
 /// A broadcaster’s Guest Star layout, slot, and moderator settings.
-@MemberwiseInit(.public)
 public struct GuestStarChannelSettings: Decodable, Sendable {
   /// Whether moderators can send guests live.
   public let isModeratorSendLiveEnabled: Bool
@@ -52,12 +50,49 @@ public struct GuestStarChannelSettings: Decodable, Sendable {
   public let groupLayout: GuestStarGroupLayout
   /// The browser source token; `nil` when the requester is not the broadcaster.
   public let browserSourceToken: String?
+
+  /// Creates a `GuestStarChannelSettings` value.
+  public init(
+    isModeratorSendLiveEnabled: Bool,
+    slotCount: Int,
+    isBrowserSourceAudioEnabled: Bool,
+    groupLayout: GuestStarGroupLayout,
+    browserSourceToken: String? = nil
+  ) {
+    self.isModeratorSendLiveEnabled = isModeratorSendLiveEnabled
+    self.slotCount = slotCount
+    self.isBrowserSourceAudioEnabled = isBrowserSourceAudioEnabled
+    self.groupLayout = groupLayout
+    self.browserSourceToken = browserSourceToken
+  }
 }
 
-/// Layouts used to arrange Guest Star participants in the browser source.
-public enum GuestStarGroupLayout: String, Codable, Sendable {
+/// Layouts used to arrange Guest Star participants in the browser source, preserving
+/// unfamiliar values in `rawValue`.
+public struct GuestStarGroupLayout: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact group layout string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a group layout from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a group layout from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this group layout as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// Arranges guests in a tiled layout. Encoded as `"TILED"`.
-  case tiledLayout = "TILED"
+  public static let tiledLayout = Self(rawValue: "TILED")
   /// Arranges guests around a shared screen. Encoded as `"SCREENSHARE"`.
-  case screenshareLayout = "SCREENSHARE"
+  public static let screenshareLayout = Self(rawValue: "SCREENSHARE")
+  /// Arranges guests in a horizontal strip. Encoded as `"HORIZONTAL_LAYOUT"`.
+  public static let horizontalLayout = Self(rawValue: "HORIZONTAL_LAYOUT")
+  /// Arranges guests in a vertical strip. Encoded as `"VERTICAL_LAYOUT"`.
+  public static let verticalLayout = Self(rawValue: "VERTICAL_LAYOUT")
 }

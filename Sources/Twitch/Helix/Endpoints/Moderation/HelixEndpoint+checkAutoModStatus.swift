@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Checks messages against a channel’s AutoMod settings.
@@ -68,12 +67,20 @@ extension HelixEndpoint {
 }
 
 /// The AutoMod verdict for a submitted message identifier.
-@MemberwiseInit(.public)
 public struct AutoModStatus: Decodable, Sendable {
   /// The identifier of the message.
   public let messageID: String
   /// Whether AutoMod permits the message.
   public let isPermitted: Bool
+
+  /// Creates an `AutoModStatus` value.
+  public init(
+    messageID: String,
+    isPermitted: Bool
+  ) {
+    self.messageID = messageID
+    self.isPermitted = isPermitted
+  }
 
   enum CodingKeys: String, CodingKey {
     case messageID = "msgId"

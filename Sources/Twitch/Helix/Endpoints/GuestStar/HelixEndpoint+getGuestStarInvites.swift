@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets pending invitations to a Guest Star session.
@@ -17,12 +16,12 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
+  ///   - sessionID: The identifier of the session.
   ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
   ///     client’s authenticated user ID.
-  ///   - sessionID: The identifier of the session.
   public static func getGuestStarInvites(
-    broadcasterID: String? = nil,
-    sessionID: String
+    sessionID: String,
+    broadcasterID: String? = nil
   ) -> HelixEndpoint<[GuestStarInvite]> {
     .init(
       method: "GET", path: "guest_star/invites",
@@ -42,7 +41,6 @@ extension HelixEndpoint {
 }
 
 /// A pending Guest Star invitation and the invited user’s readiness.
-@MemberwiseInit(.public)
 public struct GuestStarInvite: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -59,6 +57,25 @@ public struct GuestStarInvite: Decodable, Sendable {
   /// Whether the guest has an audio device available.
   public let isAudioAvailable: Bool
 
+  /// Creates a `GuestStarInvite` value.
+  public init(
+    userID: String,
+    invitedAt: Date,
+    status: GuestStarInviteStatus,
+    isVideoEnabled: Bool,
+    isAudioEnabled: Bool,
+    isVideoAvailable: Bool,
+    isAudioAvailable: Bool
+  ) {
+    self.userID = userID
+    self.invitedAt = invitedAt
+    self.status = status
+    self.isVideoEnabled = isVideoEnabled
+    self.isAudioEnabled = isAudioEnabled
+    self.isVideoAvailable = isVideoAvailable
+    self.isAudioAvailable = isAudioAvailable
+  }
+
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
     case invitedAt
@@ -70,12 +87,30 @@ public struct GuestStarInvite: Decodable, Sendable {
   }
 }
 
-/// An invited guest’s progress through the waiting room before joining a session.
-public enum GuestStarInviteStatus: String, Codable, Sendable {
+/// An invited guest’s progress through the waiting room before joining a session,
+/// preserving unfamiliar values in `rawValue`.
+public struct GuestStarInviteStatus: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact invite status string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates an invite status from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes an invite status from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this invite status as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// The guest has been invited but has not accepted. Encoded as `"INVITED"`.
-  case invited = "INVITED"
+  public static let invited = Self(rawValue: "INVITED")
   /// The guest has accepted the invitation. Encoded as `"ACCEPTED"`.
-  case accepted = "ACCEPTED"
+  public static let accepted = Self(rawValue: "ACCEPTED")
   /// The guest is ready to join the session. Encoded as `"READY"`.
-  case ready = "READY"
+  public static let ready = Self(rawValue: "READY")
 }

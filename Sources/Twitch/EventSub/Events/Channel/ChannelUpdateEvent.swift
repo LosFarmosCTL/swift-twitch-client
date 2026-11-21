@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a broadcaster updates channel metadata.
-@MemberwiseInit(.public)
 public struct ChannelUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -22,6 +19,27 @@ public struct ChannelUpdateEvent: Event {
 
   /// The content classification labels.
   public let contentClassificationLabels: [String]
+
+  /// Creates a `ChannelUpdateEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    language: String,
+    categoryID: String,
+    categoryName: String,
+    contentClassificationLabels: [String] = []
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.language = language
+    self.categoryID = categoryID
+    self.categoryName = categoryName
+    self.contentClassificationLabels = contentClassificationLabels
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

@@ -1,12 +1,18 @@
-import MemberwiseInit
-
 /// The text and fragments of a message held for moderation.
-@MemberwiseInit(.public)
 public struct AutoModMessage: Decodable, Sendable {
   /// The text content.
   public let text: String
   /// The ordered message fragments.
   public let fragments: [Fragment]
+
+  /// Creates an `AutoModMessage` value.
+  public init(
+    text: String,
+    fragments: [Fragment] = []
+  ) {
+    self.text = text
+    self.fragments = fragments
+  }
 
   enum CodingKeys: String, CodingKey {
     case text
@@ -14,7 +20,6 @@ public struct AutoModMessage: Decodable, Sendable {
   }
 
   /// A run of message text with its content type and any associated metadata.
-  @MemberwiseInit(.public)
   public struct Fragment: Decodable, Sendable {
     /// The category of content represented by this fragment.
     public let type: FragmentType
@@ -25,11 +30,26 @@ public struct AutoModMessage: Decodable, Sendable {
     /// The Cheermote details, when provided.
     public let cheermote: Cheermote?
     /// The mentioned account, when supplied.
-    @Init(default: nil)
     public let mention: ChannelChatMessageEvent.Message.Fragment.Mention?
     /// The embedded GIF, when supplied.
-    @Init(default: nil)
     public let gif: ChannelChatMessageEvent.Message.Fragment.GIF?
+
+    /// Creates a `Fragment` value.
+    public init(
+      type: FragmentType,
+      text: String,
+      emote: Emote? = nil,
+      cheermote: Cheermote? = nil,
+      mention: ChannelChatMessageEvent.Message.Fragment.Mention? = nil,
+      gif: ChannelChatMessageEvent.Message.Fragment.GIF? = nil
+    ) {
+      self.type = type
+      self.text = text
+      self.emote = emote
+      self.cheermote = cheermote
+      self.mention = mention
+      self.gif = gif
+    }
 
     enum CodingKeys: String, CodingKey {
       case type
@@ -67,27 +87,46 @@ public struct AutoModMessage: Decodable, Sendable {
       }
     }
 
-    /// The content kind of a message fragment and any associated metadata.
-    public enum FragmentType: String, Decodable, Sendable {
+    /// The content kind of a message fragment, preserving unfamiliar values in `rawValue`.
+    public struct FragmentType: RawRepresentable, Decodable, Sendable, Hashable {
+      /// The exact fragment type string supplied by Twitch or the caller.
+      public let rawValue: String
+
+      /// Creates a fragment type from any raw string.
+      public init(rawValue: String) { self.rawValue = rawValue }
+
+      /// Decodes a fragment type from a single string.
+      public init(from decoder: Decoder) throws {
+        self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+      }
+
       /// A text message fragment.
-      case text
+      public static let text = Self(rawValue: "text")
       /// An emote message fragment.
-      case emote
+      public static let emote = Self(rawValue: "emote")
       /// A cheermote message fragment.
-      case cheermote
+      public static let cheermote = Self(rawValue: "cheermote")
       /// A user mention fragment.
-      case mention
+      public static let mention = Self(rawValue: "mention")
       /// A GIF fragment.
-      case gif
+      public static let gif = Self(rawValue: "gif")
     }
 
     /// Emote metadata for a fragment of the chat message.
-    @MemberwiseInit(.public)
     public struct Emote: Decodable, Sendable {
       /// The identifier assigned by Twitch.
       public let id: String
       /// The identifier of the set.
       public let setID: String
+
+      /// Creates an `Emote` value.
+      public init(
+        id: String,
+        setID: String
+      ) {
+        self.id = id
+        self.setID = setID
+      }
 
       enum CodingKeys: String, CodingKey {
         case id
@@ -96,7 +135,6 @@ public struct AutoModMessage: Decodable, Sendable {
     }
 
     /// A Cheermote’s prefix, Bits amount, and contribution tier.
-    @MemberwiseInit(.public)
     public struct Cheermote: Decodable, Sendable {
       /// The prefix used to identify the Cheermote in chat.
       public let prefix: String
@@ -104,6 +142,17 @@ public struct AutoModMessage: Decodable, Sendable {
       public let bits: Int
       /// The Cheermote tier.
       public let tier: Int
+
+      /// Creates a `Cheermote` value.
+      public init(
+        prefix: String,
+        bits: Int,
+        tier: Int
+      ) {
+        self.prefix = prefix
+        self.bits = bits
+        self.tier = tier
+      }
     }
   }
 }

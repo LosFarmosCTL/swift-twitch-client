@@ -1,5 +1,4 @@
 import Foundation
-import TwitchIRC
 
 extension TwitchClient {
   /// The latest snapshot of managed chat membership, transport status, and send eligibility.
@@ -42,65 +41,47 @@ extension TwitchClient {
   ///
   /// Because `channel` already contains both ID and login, no Helix lookup is performed—
   /// allowing anonymous IRC readers to join without OAuth credentials. Track readiness
-  /// through ``chatStateUpdates()`` or call ``join(to:)`` to await readiness.
+  /// through ``chatStateUpdates()`` or call `join(to:)` to await readiness.
   ///
   /// - Parameter channel: A resolved ``ChatChannel`` containing the broadcaster's ID and login.
   /// - Throws: ``ChatError/invalidChannel``, ``ChatError/shutdown``, or `CancellationError`.
-  /// - SeeAlso: ``join(to:)``, ``part(from:)``
+  /// - SeeAlso: ``ChatChannel``, ``ChatChannelTarget``, <doc:ManagedChat>
   public func requestJoin(to channel: ChatChannel) throws { try chat.requestJoin(to: channel) }
 
-  /// Resolves a channel by Twitch user ID via Helix, records desired membership, and starts
-  /// its reader without waiting for readiness.
+  /// Resolves a channel target via Helix if not cached, records desired membership, and
+  /// starts its reader without waiting for readiness.
   ///
-  /// - Parameter id: The broadcaster's numeric Twitch user ID.
+  /// - Parameter target: An unresolved ``ChatChannelTarget`` identifying the broadcaster
+  ///   by ID or login name.
   /// - Throws: ``ChatError``, ``HelixError`` if resolution fails, or `CancellationError`.
-  /// - SeeAlso: ``join(id:)``, ``requestJoin(to:)``
-  public func requestJoin(id: String) async throws {
-    try await chat.requestJoin(.id(id))
-  }
-
-  /// Resolves a channel by login name via Helix, records desired membership, and starts its
-  /// reader without waiting for readiness.
-  ///
-  /// - Parameter login: The broadcaster's login name (with or without a leading `#`).
-  /// - Throws: ``ChatError``, ``HelixError`` if resolution fails, or `CancellationError`.
-  /// - SeeAlso: ``join(login:)``, ``requestJoin(to:)``
-  public func requestJoin(login: String) async throws {
-    try await chat.requestJoin(.init(login: login))
+  /// - SeeAlso: ``ChatChannelTarget``, ``ChatChannel``, <doc:ManagedChat>
+  public func requestJoin(to target: ChatChannelTarget) async throws {
+    try await chat.requestJoin(.init(target))
   }
 
   /// Joins a resolved channel and suspends until its reader is ready.
   ///
   /// Because `channel` already contains both ID and login, no Helix lookup is performed.
   /// Cancelling the awaiting task cancels only the readiness wait and leaves the channel
-  /// joined; call ``part(from:)`` to withdraw membership.
+  /// joined; call `part(from:)` to withdraw membership.
   ///
   /// - Parameter channel: A resolved ``ChatChannel`` containing the broadcaster's ID and login.
   /// - Throws: ``ChatError`` (such as ``ChatError/setupFailed(_:)``, ``ChatError/parted``,
   ///   or ``ChatError/credentialsChanged``) or `CancellationError`.
-  /// - SeeAlso: <doc:ManagedChat>, ``requestJoin(to:)``, ``part(from:)``
+  /// - SeeAlso: ``ChatChannel``, ``ChatChannelTarget``, <doc:ManagedChat>
   public func join(to channel: ChatChannel) async throws { try await chat.join(to: channel) }
 
-  /// Resolves a channel by Twitch user ID via Helix, joins it, and suspends until ready.
+  /// Resolves a channel target via Helix if not cached, joins it, and suspends until ready.
   ///
   /// Cancelling the awaiting task preserves desired membership if resolution already
-  /// succeeded; call ``part(id:)`` to leave the channel.
+  /// succeeded; call `part(from:)` to leave the channel.
   ///
-  /// - Parameter id: The broadcaster's numeric Twitch user ID.
+  /// - Parameter target: An unresolved ``ChatChannelTarget`` identifying the broadcaster
+  ///   by ID or login name.
   /// - Throws: ``ChatError``, ``HelixError`` if resolution fails, or `CancellationError`.
-  /// - SeeAlso: ``join(to:)``, ``part(id:)``
-  public func join(id: String) async throws { try await chat.join(.id(id)) }
-
-  /// Resolves a channel by login name via Helix, joins it, and suspends until ready.
-  ///
-  /// Cancelling the awaiting task preserves desired membership if resolution already
-  /// succeeded; call ``part(login:)`` to leave the channel.
-  ///
-  /// - Parameter login: The broadcaster's login name (with or without a leading `#`).
-  /// - Throws: ``ChatError``, ``HelixError`` if resolution fails, or `CancellationError`.
-  /// - SeeAlso: ``join(to:)``, ``part(login:)``
-  public func join(login: String) async throws {
-    try await chat.join(.init(login: login))
+  /// - SeeAlso: ``ChatChannelTarget``, ``ChatChannel``, <doc:ManagedChat>
+  public func join(to target: ChatChannelTarget) async throws {
+    try await chat.join(.init(target))
   }
 
   /// Leaves a resolved channel and withdraws any pending join for it.
@@ -113,17 +94,19 @@ extension TwitchClient {
     chat.part(channelID: channel.id, login: channel.login)
   }
 
-  /// Leaves a channel by Twitch user ID and withdraws any pending join for it.
+  /// Leaves a channel identified by ID or login name and withdraws any pending join for it.
   ///
-  /// - Parameter id: The broadcaster's numeric Twitch user ID.
-  public func part(id: String) { chat.part(channelID: id) }
-
-  /// Resolves a channel login if not already cached, then leaves the channel.
+  /// Parting by ``ChatChannelTarget/id(_:)`` completes locally without contacting Helix.
+  /// Parting by ``ChatChannelTarget/login(_:)`` resolves the login via Helix if it is not
+  /// already cached.
   ///
-  /// - Parameter login: The broadcaster's login name (with or without a leading `#`).
-  /// - Throws: ``ChatError`` or ``HelixError`` if the login is uncached and lookup fails.
-  public func part(login: String) async throws {
-    try await chat.part(.init(login: login))
+  /// - Parameter target: The ``ChatChannelTarget`` to leave.
+  /// - Throws: ``ChatError`` or ``HelixError`` if an uncached login lookup fails.
+  public func part(from target: ChatChannelTarget) async throws {
+    switch target {
+    case .id(let id): chat.part(channelID: id)
+    case .login(let login): try await chat.part(.init(login: login))
+    }
   }
 
   /// Overrides managed chat's sender privilege evidence for a specific channel.
@@ -176,7 +159,7 @@ extension TwitchClient {
   /// - SeeAlso: <doc:ManagedChat>, ``sendEligibility(in:)``, ``ChatSendingPolicy``
   @discardableResult
   public func sendMessage(
-    _ text: String, to channel: ChatChannel, replyTo messageID: String? = nil,
+    _ text: String, in channel: ChatChannel, replyTo messageID: String? = nil,
     clientNonce: String? = nil, waitingForChannelCooldown maximumWait: Duration? = nil
   ) async throws -> ChatSendOutcome {
     try await chat.sendMessage(
@@ -184,46 +167,29 @@ extension TwitchClient {
       waitingForChannelCooldown: maximumWait)
   }
 
-  /// Resolves a channel by Twitch user ID via Helix and sends a chat message to it.
+  /// Resolves a channel target via Helix if not cached and sends a chat message to it.
   ///
   /// - Parameters:
   ///   - text: The message body (1–500 characters, free of CR/LF/NUL).
-  ///   - id: The destination broadcaster's numeric Twitch user ID.
+  ///   - target: The destination ``ChatChannelTarget`` identifying the broadcaster by ID or
+  ///     login name.
   ///   - messageID: Optional parent message ID to reply to.
+  ///   - clientNonce: Optional IRC `client-nonce` tag (IRC writer only; passing a value
+  ///     with a Helix writer throws ``ChatSendError/unsupportedClientNonce``).
   ///   - maximumWait: Optional maximum time to wait for a per-channel cooldown.
   /// - Returns: A ``ChatSendOutcome`` describing acceptance or wire write status.
   /// - Throws: ``ChatSendError``, ``ChatError``, ``TwitchAuthenticationError``,
   ///   ``HelixError``, ``IRCError``, or `CancellationError`.
-  /// - SeeAlso: ``sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
+  /// - SeeAlso: <doc:ManagedChat>, ``ChatChannelTarget``, ``sendEligibility(in:)``
   @discardableResult
   public func sendMessage(
-    _ text: String, id: String, replyTo messageID: String? = nil,
-    waitingForChannelCooldown maximumWait: Duration? = nil
+    _ text: String, in target: ChatChannelTarget, replyTo messageID: String? = nil,
+    clientNonce: String? = nil, waitingForChannelCooldown maximumWait: Duration? = nil
   ) async throws -> ChatSendOutcome {
-    let channel = try await chat.resolveChatChannel(.id(id))
+    let channel = try await chat.resolveChatChannel(.init(target))
     return try await chat.sendMessage(
-      text, to: channel, replyTo: messageID, waitingForChannelCooldown: maximumWait)
-  }
-
-  /// Resolves a channel by login name via Helix and sends a chat message to it.
-  ///
-  /// - Parameters:
-  ///   - text: The message body (1–500 characters, free of CR/LF/NUL).
-  ///   - login: The destination broadcaster's login name (with or without `#`).
-  ///   - messageID: Optional parent message ID to reply to.
-  ///   - maximumWait: Optional maximum time to wait for a per-channel cooldown.
-  /// - Returns: A ``ChatSendOutcome`` describing acceptance or wire write status.
-  /// - Throws: ``ChatSendError``, ``ChatError``, ``TwitchAuthenticationError``,
-  ///   ``HelixError``, ``IRCError``, or `CancellationError`.
-  /// - SeeAlso: ``sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
-  @discardableResult
-  public func sendMessage(
-    _ text: String, login: String, replyTo messageID: String? = nil,
-    waitingForChannelCooldown maximumWait: Duration? = nil
-  ) async throws -> ChatSendOutcome {
-    let channel = try await chat.resolveChatChannel(.init(login: login))
-    return try await chat.sendMessage(
-      text, to: channel, replyTo: messageID, waitingForChannelCooldown: maximumWait)
+      text, to: channel, replyTo: messageID, clientNonce: clientNonce,
+      waitingForChannelCooldown: maximumWait)
   }
 
   /// Returns the current account's process-local send eligibility in a channel.

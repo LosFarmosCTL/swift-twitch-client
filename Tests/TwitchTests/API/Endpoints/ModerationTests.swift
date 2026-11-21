@@ -87,4 +87,20 @@ struct ModerationTests {
     try await harness.twitch.helix(
       for: .deleteChatMessage(in: "5678", messageID: "9876"))
   }
+
+  @Test
+  func clearChat() async throws {
+    let url = try #require(
+      URL(
+        string:
+          "https://api.twitch.tv/helix/moderation/chat?broadcaster_id=5678&moderator_id=1234"
+      ))
+
+    await harness.session.stub(
+      url: url,
+      method: "DELETE",
+      status: 204)
+
+    try await harness.twitch.helix(for: .clearChat(in: "5678"))
+  }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s stream key.
@@ -31,9 +30,6 @@ extension HelixEndpoint {
   }
 }
 
-/// The authenticated broadcaster’s secret stream key.
-@MemberwiseInit(.public)
-public struct StreamKey: Decodable, Sendable {
-  /// The secret key used to broadcast to the channel.
-  public let streamKey: String
+private struct StreamKey: Decodable, Sendable {
+  let streamKey: String
 }

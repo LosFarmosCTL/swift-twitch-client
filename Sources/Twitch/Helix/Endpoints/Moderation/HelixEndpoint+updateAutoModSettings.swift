@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   private static func updateAutoModSettings(
@@ -74,8 +73,7 @@ extension HelixEndpoint {
 }
 
 /// The individual AutoMod category levels to include in a settings update request.
-@MemberwiseInit(.public)
-public struct AutoModConfiguration: Encodable, Sendable {
+public struct AutoModConfiguration: Encodable, Sendable, Equatable {
   /// The AutoMod filtering level for aggression.
   public let aggression: Int
   /// The AutoMod filtering level for bullying.
@@ -92,6 +90,27 @@ public struct AutoModConfiguration: Encodable, Sendable {
   public let sexualitySexOrGender: Int
   /// The AutoMod filtering level for swearing.
   public let swearing: Int
+
+  /// Creates an `AutoModConfiguration` value.
+  public init(
+    aggression: Int,
+    bullying: Int,
+    disability: Int,
+    misogyny: Int,
+    raceEthnicityOrReligion: Int,
+    sexBasedTerms: Int,
+    sexualitySexOrGender: Int,
+    swearing: Int
+  ) {
+    self.aggression = aggression
+    self.bullying = bullying
+    self.disability = disability
+    self.misogyny = misogyny
+    self.raceEthnicityOrReligion = raceEthnicityOrReligion
+    self.sexBasedTerms = sexBasedTerms
+    self.sexualitySexOrGender = sexualitySexOrGender
+    self.swearing = swearing
+  }
 
   enum CodingKeys: String, CodingKey {
     case aggression, bullying, disability, misogyny, swearing

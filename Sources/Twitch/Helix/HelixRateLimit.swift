@@ -15,7 +15,7 @@ import Foundation
 ///   concurrent requests. The library never sleeps, queues, or retries automatically based
 ///   on these values.
 /// - SeeAlso: <doc:RateLimiting>, ``HelixResponseMetadata``, ``HelixRateLimitError``
-public struct HelixRateLimit: Sendable, Equatable {
+public struct HelixRateLimit: Sendable, Equatable, Hashable {
   /// The total point capacity of the rate-limit bucket (`Ratelimit-Limit`), if present.
   public let limit: Int?
   /// The remaining points in the bucket after this request (`Ratelimit-Remaining`), if present.
@@ -25,6 +25,19 @@ public struct HelixRateLimit: Sendable, Equatable {
   public let resetAt: Date?
   /// The local wall-clock time when this response was processed.
   public let observedAt: Date
+
+  /// Creates a `HelixRateLimit` value.
+  public init(
+    limit: Int? = nil,
+    remaining: Int? = nil,
+    resetAt: Date? = nil,
+    observedAt: Date = Date()
+  ) {
+    self.limit = limit
+    self.remaining = remaining
+    self.resetAt = resetAt
+    self.observedAt = observedAt
+  }
 
   internal init?(response: HTTPURLResponse, observedAt: Date) {
     let limit = Self.points(response, field: "Ratelimit-Limit")

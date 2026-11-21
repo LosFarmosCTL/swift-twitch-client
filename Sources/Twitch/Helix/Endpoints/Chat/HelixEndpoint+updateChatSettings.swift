@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Updates a channel’s chat restrictions.
@@ -14,12 +13,12 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   ///   - settings: A patch containing the settings to change.
+  ///   - moderatorID: The acting moderator; required for app tokens, otherwise defaults to the token’s user.
   public static func updateChatSettings(
     of broadcasterID: String,
-    moderatorID: String? = nil,
-    settings: ChatSettingsUpdate
+    settings: ChatSettingsUpdate,
+    moderatorID: String? = nil
   ) -> HelixEndpoint<ChatSettings> {
     .init(
       method: "PATCH", path: "chat/settings",
@@ -46,33 +45,46 @@ extension HelixEndpoint {
 /// `true` enables it. To enable a mode, set its Boolean to `true` and supply any
 /// desired duration separately. Twitch validates duration ranges and combinations
 /// according to the endpoint reference.
-@MemberwiseInit(.public)
-public struct ChatSettingsUpdate: Encodable, Sendable {
+public struct ChatSettingsUpdate: Encodable, Sendable, Equatable {
   /// Whether to enable slow mode.
-  @Init(default: nil)
   public var slowMode: Bool?
   /// The interval between messages, in seconds (3–120). Pass `nil` to omit the field.
-  @Init(default: nil)
   public var slowModeWaitTime: Int?
   /// Whether to enable follower-only mode.
-  @Init(default: nil)
   public var followerMode: Bool?
   /// The required following time, in minutes (0–129600). Pass `nil` to omit the field.
-  @Init(default: nil)
   public var followerModeDuration: Int?
   /// Whether to restrict chat to subscribers.
-  @Init(default: nil)
   public var subscriberMode: Bool?
   /// Whether to restrict chat to emotes.
-  @Init(default: nil)
   public var emoteMode: Bool?
   /// Whether to restrict duplicate messages.
-  @Init(default: nil)
   public var uniqueChatMode: Bool?
   /// Whether to delay messages from non-moderators.
-  @Init(default: nil)
   public var nonModeratorChatDelay: Bool?
   /// The non-moderator delay, in seconds (2, 4, or 6). Pass `nil` to omit the field.
-  @Init(default: nil)
   public var nonModeratorChatDelayDuration: Int?
+
+  /// Creates a `ChatSettingsUpdate` value.
+  public init(
+    slowMode: Bool? = nil,
+    slowModeWaitTime: Int? = nil,
+    followerMode: Bool? = nil,
+    followerModeDuration: Int? = nil,
+    subscriberMode: Bool? = nil,
+    emoteMode: Bool? = nil,
+    uniqueChatMode: Bool? = nil,
+    nonModeratorChatDelay: Bool? = nil,
+    nonModeratorChatDelayDuration: Int? = nil
+  ) {
+    self.slowMode = slowMode
+    self.slowModeWaitTime = slowModeWaitTime
+    self.followerMode = followerMode
+    self.followerModeDuration = followerModeDuration
+    self.subscriberMode = subscriberMode
+    self.emoteMode = emoteMode
+    self.uniqueChatMode = uniqueChatMode
+    self.nonModeratorChatDelay = nonModeratorChatDelay
+    self.nonModeratorChatDelayDuration = nonModeratorChatDelayDuration
+  }
 }

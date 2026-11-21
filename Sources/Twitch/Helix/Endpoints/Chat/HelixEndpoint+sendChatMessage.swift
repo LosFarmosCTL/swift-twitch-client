@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Sends a chat message as the token’s user or an explicitly authorized app-token sender.
@@ -66,7 +65,6 @@ extension HelixEndpoint {
 }
 
 /// The message identifier and delivery verdict returned after sending a chat message.
-@MemberwiseInit(.public)
 public struct ChatMessageResponse: Decodable, Sendable {
   /// The identifier of the message.
   public let messageID: String
@@ -75,6 +73,17 @@ public struct ChatMessageResponse: Decodable, Sendable {
 
   /// The reason Twitch did not deliver the message, when provided.
   public let dropReason: DropReason?
+
+  /// Creates a `ChatMessageResponse` value.
+  public init(
+    messageID: String,
+    isSent: Bool,
+    dropReason: DropReason? = nil
+  ) {
+    self.messageID = messageID
+    self.isSent = isSent
+    self.dropReason = dropReason
+  }
 
   enum CodingKeys: String, CodingKey {
     case messageID = "messageId"
@@ -89,6 +98,15 @@ public struct ChatMessageResponse: Decodable, Sendable {
     public let code: String
     /// Twitch's human-readable explanation of why the message was dropped.
     public let message: String
+
+    /// Creates a `DropReason` value.
+    public init(
+      code: String,
+      message: String
+    ) {
+      self.code = code
+      self.message = message
+    }
   }
 }
 

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a Twitch team by ID or name.
@@ -35,7 +34,6 @@ extension HelixEndpoint {
 }
 
 /// A Twitch team’s identity, branding, and member list.
-@MemberwiseInit(.public)
 public struct Team: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -66,6 +64,37 @@ public struct Team: Decodable, Sendable {
   /// The display name of the broadcaster, when provided.
   public let broadcasterDisplayName: String?
 
+  /// Creates a `Team` value.
+  public init(
+    id: String,
+    teamName: String,
+    teamDisplayName: String,
+    info: String,
+    thumbnailURL: String? = nil,
+    backgroundImageURL: String? = nil,
+    banner: String? = nil,
+    createdAt: Date? = nil,
+    updatedAt: Date? = nil,
+    users: [TeamMember]? = nil,
+    broadcasterID: String? = nil,
+    broadcasterLogin: String? = nil,
+    broadcasterDisplayName: String? = nil
+  ) {
+    self.id = id
+    self.teamName = teamName
+    self.teamDisplayName = teamDisplayName
+    self.info = info
+    self.thumbnailURL = thumbnailURL
+    self.backgroundImageURL = backgroundImageURL
+    self.banner = banner
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+    self.users = users
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case teamName
@@ -84,7 +113,6 @@ public struct Team: Decodable, Sendable {
 }
 
 /// A broadcaster belonging to a Twitch team.
-@MemberwiseInit(.public)
 public struct TeamMember: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -92,6 +120,17 @@ public struct TeamMember: Decodable, Sendable {
   public let userLogin: String
   /// The user’s display name.
   public let userDisplayName: String
+
+  /// Creates a `TeamMember` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

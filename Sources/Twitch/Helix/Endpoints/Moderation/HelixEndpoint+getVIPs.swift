@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s channel VIPs.
@@ -42,7 +41,6 @@ extension HelixEndpoint {
 }
 
 /// An account with VIP status in a channel.
-@MemberwiseInit(.public)
 public struct VIP: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -50,6 +48,17 @@ public struct VIP: Decodable, Sendable {
   public let login: String
   /// The display name shown on Twitch.
   public let displayName: String
+
+  /// Creates a `VIP` value.
+  public init(
+    id: String,
+    login: String,
+    displayName: String
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case id = "userId"
@@ -59,10 +68,18 @@ public struct VIP: Decodable, Sendable {
 }
 
 /// A page of channel VIPs.
-@MemberwiseInit(.public)
 public struct VIPsResponse: Sendable {
   /// The vips on this page.
   public let vips: [VIP]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `VIPsResponse` value.
+  public init(
+    vips: [VIP] = [],
+    cursor: String? = nil
+  ) {
+    self.vips = vips
+    self.cursor = cursor
+  }
 }

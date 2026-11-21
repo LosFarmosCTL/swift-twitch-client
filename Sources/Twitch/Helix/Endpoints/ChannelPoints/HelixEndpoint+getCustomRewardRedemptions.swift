@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets redemptions for a custom Channel Points reward.
@@ -61,7 +60,6 @@ extension HelixEndpoint {
 }
 
 /// A viewer’s custom Channel Points reward redemption and fulfillment status.
-@MemberwiseInit(.public)
 public struct CustomRewardRedemption: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -88,6 +86,33 @@ public struct CustomRewardRedemption: Decodable, Sendable {
   /// The reward details.
   public let reward: CustomRewardRedemptionReward
 
+  /// Creates a `CustomRewardRedemption` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    id: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    userInput: String,
+    status: CustomRewardRedemptionStatus,
+    redeemedAt: Date,
+    reward: CustomRewardRedemptionReward
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.id = id
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.userInput = userInput
+    self.status = status
+    self.redeemedAt = redeemedAt
+    self.reward = reward
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case broadcasterLogin
@@ -104,7 +129,6 @@ public struct CustomRewardRedemption: Decodable, Sendable {
 }
 
 /// The identity and details of the reward that was redeemed.
-@MemberwiseInit(.public)
 public struct CustomRewardRedemptionReward: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -114,21 +138,52 @@ public struct CustomRewardRedemptionReward: Decodable, Sendable {
   public let prompt: String
   /// The Channel Points required for one redemption of this reward.
   public let cost: Int
+
+  /// Creates a `CustomRewardRedemptionReward` value.
+  public init(
+    id: String,
+    title: String,
+    prompt: String,
+    cost: Int
+  ) {
+    self.id = id
+    self.title = title
+    self.prompt = prompt
+    self.cost = cost
+  }
 }
 
-/// A custom reward redemption’s fulfillment or cancellation state.
-public enum CustomRewardRedemptionStatus: String, Codable, Sendable {
+/// A custom reward redemption’s fulfillment or cancellation state, preserving unfamiliar
+/// values in `rawValue`.
+public struct CustomRewardRedemptionStatus: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact status string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a redemption status from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a redemption status from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this redemption status as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// The redemption was cancelled and its Channel Points refunded. Encoded as
   /// `"CANCELED"`.
-  case cancelled = "CANCELED"
+  public static let cancelled = Self(rawValue: "CANCELED")
   /// The redemption was fulfilled. Encoded as `"FULFILLED"`.
-  case fulfilled = "FULFILLED"
+  public static let fulfilled = Self(rawValue: "FULFILLED")
   /// The redemption is waiting to be fulfilled. Encoded as `"UNFULFILLED"`.
-  case unfulfilled = "UNFULFILLED"
+  public static let unfulfilled = Self(rawValue: "UNFULFILLED")
 }
 
 /// The chronological order used to retrieve reward redemptions.
-public enum CustomRewardRedemptionSort: String, Codable, Sendable {
+public enum CustomRewardRedemptionSort: String, Sendable, Equatable, Hashable {
   /// Orders results from oldest to newest. Encoded as `"OLDEST"`.
   case oldest = "OLDEST"
   /// Orders results from newest to oldest. Encoded as `"NEWEST"`.
@@ -136,10 +191,18 @@ public enum CustomRewardRedemptionSort: String, Codable, Sendable {
 }
 
 /// A page of custom reward redemptions.
-@MemberwiseInit(.public)
 public struct CustomRewardRedemptionsResponse: Sendable {
   /// The redemptions on this page.
   public let redemptions: [CustomRewardRedemption]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `CustomRewardRedemptionsResponse` value.
+  public init(
+    redemptions: [CustomRewardRedemption] = [],
+    cursor: String? = nil
+  ) {
+    self.redemptions = redemptions
+    self.cursor = cursor
+  }
 }

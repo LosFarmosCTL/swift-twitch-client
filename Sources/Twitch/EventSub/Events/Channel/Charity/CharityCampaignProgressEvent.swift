@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a charity campaign makes progress.
-@MemberwiseInit(.public)
 public struct CharityCampaignProgressEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -26,6 +23,31 @@ public struct CharityCampaignProgressEvent: Event {
   public let currentAmount: CharityDonationEvent.CharityAmount
   /// The fundraising target.
   public let targetAmount: CharityDonationEvent.CharityAmount
+
+  /// Creates a `CharityCampaignProgressEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    charityName: String,
+    charityDescription: String,
+    charityLogo: String,
+    charityWebsite: String,
+    currentAmount: CharityDonationEvent.CharityAmount,
+    targetAmount: CharityDonationEvent.CharityAmount
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.charityName = charityName
+    self.charityDescription = charityDescription
+    self.charityLogo = charityLogo
+    self.charityWebsite = charityWebsite
+    self.currentAmount = currentAmount
+    self.targetAmount = targetAmount
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

@@ -10,14 +10,14 @@
 /// Creating credentials normalizes the token (stripping a leading `oauth:` prefix) and
 /// lowercases the user login without contacting Twitch. To validate an OAuth token and
 /// populate its identity and granted ``scopes`` automatically, call
-/// ``TwitchClient/validateAccessToken(accessToken:)`` and convert the result with
+/// ``TwitchClient/validateAccessToken(accessToken:urlSession:)`` and convert the result with
 /// ``ValidatedAccessToken/credentials(accessToken:)``.
 ///
 /// - Note: The library does not obtain or refresh OAuth tokens or sign Extension JWTs.
 ///   Call ``TwitchClient/switchCredentials(to:chatBehavior:)`` when your app refreshes
 ///   or changes tokens.
 /// - SeeAlso: <doc:Authentication>, ``TwitchAuthenticationError``
-public struct TwitchCredentials: Sendable {
+public struct TwitchCredentials: Sendable, Equatable {
   /// The authentication mechanism represented by a ``TwitchCredentials`` value.
   public enum Kind: Sendable, Equatable {
     /// A user OAuth access token authorized by the associated Twitch account.

@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a viewer cheers in a channel.
-@MemberwiseInit(.public)
 public struct ChannelCheerEvent: Event {
   /// Whether the user’s identity is anonymous.
   public let isAnonymous: Bool
@@ -25,6 +22,29 @@ public struct ChannelCheerEvent: Event {
   public let message: String
   /// The number of Bits.
   public let bits: Int
+
+  /// Creates a `ChannelCheerEvent` value.
+  public init(
+    isAnonymous: Bool,
+    userID: String? = nil,
+    userLogin: String? = nil,
+    userDisplayName: String? = nil,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    message: String,
+    bits: Int
+  ) {
+    self.isAnonymous = isAnonymous
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.message = message
+    self.bits = bits
+  }
 
   enum CodingKeys: String, CodingKey {
     case isAnonymous

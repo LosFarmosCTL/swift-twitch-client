@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the Bits products sold by an extension.
@@ -27,7 +26,6 @@ extension HelixEndpoint {
 }
 
 /// A purchasable extension product and its Bits cost and availability.
-@MemberwiseInit(.public)
 public struct ExtensionBitsProduct: Decodable, Sendable {
   /// The product’s unique SKU.
   public let sku: String
@@ -42,6 +40,23 @@ public struct ExtensionBitsProduct: Decodable, Sendable {
   /// Whether the product is available for broadcast.
   public let isBroadcast: Bool
 
+  /// Creates an `ExtensionBitsProduct` value.
+  public init(
+    sku: String,
+    cost: ExtensionBitsProductCost? = nil,
+    isInDevelopment: Bool,
+    displayName: String,
+    expiration: Date? = nil,
+    isBroadcast: Bool
+  ) {
+    self.sku = sku
+    self.cost = cost
+    self.isInDevelopment = isInDevelopment
+    self.displayName = displayName
+    self.expiration = expiration
+    self.isBroadcast = isBroadcast
+  }
+
   enum CodingKeys: String, CodingKey {
     case sku, cost
     case isInDevelopment = "inDevelopment"
@@ -50,10 +65,18 @@ public struct ExtensionBitsProduct: Decodable, Sendable {
 }
 
 /// The cost and currency of an extension Bits product.
-@MemberwiseInit(.public)
 public struct ExtensionBitsProductCost: Decodable, Sendable {
   /// The product price in Bits.
   public let amount: Int
   /// The cost currency; Twitch uses `"bits"`.
   public let type: ExtensionBitsProductCostType
+
+  /// Creates an `ExtensionBitsProductCost` value.
+  public init(
+    amount: Int,
+    type: ExtensionBitsProductCostType
+  ) {
+    self.amount = amount
+    self.type = type
+  }
 }

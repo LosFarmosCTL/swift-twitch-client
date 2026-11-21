@@ -1,10 +1,6 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a broadcaster stops streaming.
-@MemberwiseInit(.public)
 public struct StreamOfflineEvent: Event {
   /// The identifier of the stream that ended, when supplied by Twitch.
-  @Init(default: nil)
   public let id: String?
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -12,6 +8,19 @@ public struct StreamOfflineEvent: Event {
   public let broadcasterLogin: String
   /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
+
+  /// Creates a `StreamOfflineEvent` value.
+  public init(
+    id: String? = nil,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case id

@@ -77,19 +77,19 @@ let readerTask = Task {
 }
 
 // Join and wait until the channel's reader is ready
-try await twitch.join(login: "twitchdev")
+try await twitch.join(to: .login("twitchdev"))
 ```
 
-Use ``TwitchClient/join(to:)`` / ``TwitchClient/join(login:)`` /
-``TwitchClient/join(id:)`` when you want to await channel readiness, or
-``TwitchClient/requestJoin(to:)`` to register desired membership and start connecting in the
-background while tracking progress in ``TwitchClient/chatStateUpdates()``.
+Use `join(to:)` (with a resolved ``ChatChannel`` or a ``ChatChannelTarget`` such as `.login(_:)`
+or `.id(_:)`) when you want to await channel readiness, or `requestJoin(to:)` to register desired
+membership and start connecting in the background while tracking progress in
+``TwitchClient/chatStateUpdates()``.
 
 Key membership rules to keep in mind:
 
 - **Cancelling a readiness wait does not part the channel.** If the task awaiting `join` is
-  cancelled, membership stays active; call ``TwitchClient/part(from:)`` (or `part(id:)`
-  / `part(login:)`) explicitly to leave.
+  cancelled, membership stays active; call `part(from:)` explicitly with a ``ChatChannel`` or
+  ``ChatChannelTarget`` to leave.
 - **Cancelling an observer leaves membership intact.** Closing `messageStream()` only stops
   your consumer.
 - **Shutting down is permanent.** Call ``TwitchClient/shutdownChat()`` when your app is done
@@ -115,27 +115,29 @@ case .eventSub(let event):
 
 ### Sending Messages and Local Pacing
 
-Send messages with ``TwitchClient/sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
-(or the `id:` / `login:` overloads):
+Send messages with `sendMessage(_:in:replyTo:clientNonce:waitingForChannelCooldown:)` using
+either a resolved ``ChatChannel`` or a ``ChatChannelTarget``:
 
 ```swift
-let outcome = try await twitch.sendMessage(
-  "Hello chat!",
-  login: "twitchdev",
-  waitingForChannelCooldown: .seconds(2)
-)
+do {
+  let outcome = try await twitch.sendMessage(
+    "Hello chat!",
+    in: .login("twitchdev"),
+    waitingForChannelCooldown: .seconds(2)
+  )
 
-switch outcome {
-case .accepted(let messageID):
-  print("Accepted by Helix:", messageID)
-case .written(let nonce):
-  print("Written to IRC wire (nonce: \(nonce ?? "none"))")
-case .rejected(let code, let message):
+  switch outcome {
+  case .accepted(let messageID):
+    print("Accepted by Helix:", messageID)
+  case .written(let nonce):
+    print("Written to IRC wire (nonce: \(nonce ?? "none"))")
+  }
+} catch ChatSendError.rejected(let code, let message) {
   print("Rejected (\(code ?? "none")): \(message)")
-case .rateLimited:
-  print("Rate limited by Twitch")
-case .failed(let reason):
-  print("Send failed:", reason)
+} catch ChatSendError.refused(let eligibility) {
+  print("Refused locally:", eligibility)
+} catch HelixError.rateLimited(let error) {
+  print("Rate limited by Twitch:", error)
 }
 ```
 
@@ -190,7 +192,7 @@ For moderation visibility:
 - **With `moderationEnrichment: true`**, managed chat subscribes to `channel.moderate` v2 over
   EventSub for channels where the user has known moderator/broadcaster status **and**
   ``TwitchCredentials/scopes`` positively includes all required moderation read/manage scope
-  pairs (obtain credentials via ``TwitchClient/validateAccessToken(accessToken:)`` or pass
+  pairs (obtain credentials via ``TwitchClient/validateAccessToken(accessToken:urlSession:)`` or pass
   `scopes:` explicitly). Enrichment adds richer `.moderation` events (including moderator
   identity, reasons, unbans, untimeouts, and modern actions) to the same stream without
   replacing reader events—so a single deletion can emit both `.messageDeleted` and

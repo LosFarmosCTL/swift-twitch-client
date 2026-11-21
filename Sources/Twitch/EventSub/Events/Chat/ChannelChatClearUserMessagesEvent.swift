@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user’s chat messages are cleared.
-@MemberwiseInit(.public)
 public struct ChannelChatClearUserMessagesEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -16,6 +13,23 @@ public struct ChannelChatClearUserMessagesEvent: Event {
   public let targetLogin: String
   /// The display name of the target user.
   public let targetDisplayName: String
+
+  /// Creates a `ChannelChatClearUserMessagesEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    targetID: String,
+    targetLogin: String,
+    targetDisplayName: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.targetID = targetID
+    self.targetLogin = targetLogin
+    self.targetDisplayName = targetDisplayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

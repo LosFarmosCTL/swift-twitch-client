@@ -149,8 +149,8 @@ Register `messageStream()` before joining so you receive initial events, then jo
 ```swift
 let messages = await twitch.messageStream()
 
-try await twitch.join(login: "twitchdev")
-try await twitch.sendMessage("Hello chat!", login: "twitchdev")
+try await twitch.join(to: .login("twitchdev"))
+try await twitch.sendMessage("Hello chat!", in: .login("twitchdev"))
 
 for await event in messages {
   if case .message(let message) = event.payload {

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Searches Twitch channels, optionally restricting results to live channels.
@@ -44,7 +43,6 @@ extension HelixEndpoint {
 }
 
 /// A channel returned by channel search, including its broadcast metadata.
-@MemberwiseInit(.public)
 public struct Channel: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -71,8 +69,34 @@ public struct Channel: Decodable, Sendable {
   public let title: String
 
   /// The time the activity started, when provided.
-  @InitRaw(default: nil, type: Date?.self)
-  @NilOnTypeMismatch public var startedAt: Date?
+  public let startedAt: Date?
+
+  /// Creates a `Channel` value.
+  public init(
+    id: String,
+    login: String,
+    displayName: String,
+    language: String,
+    gameID: String,
+    gameName: String,
+    isLive: Bool,
+    tags: [String] = [],
+    profileImageURL: String,
+    title: String,
+    startedAt: Date? = nil
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+    self.language = language
+    self.gameID = gameID
+    self.gameName = gameName
+    self.isLive = isLive
+    self.tags = tags
+    self.profileImageURL = profileImageURL
+    self.title = title
+    self.startedAt = startedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -87,13 +111,37 @@ public struct Channel: Decodable, Sendable {
     case title
     case startedAt
   }
+
+  /// Decodes a channel search result, treating an empty `started_at` timestamp as `nil`.
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    login = try container.decode(String.self, forKey: .login)
+    displayName = try container.decode(String.self, forKey: .displayName)
+    language = try container.decode(String.self, forKey: .language)
+    gameID = try container.decode(String.self, forKey: .gameID)
+    gameName = try container.decode(String.self, forKey: .gameName)
+    isLive = try container.decode(Bool.self, forKey: .isLive)
+    tags = try container.decode([String].self, forKey: .tags)
+    profileImageURL = try container.decode(String.self, forKey: .profileImageURL)
+    title = try container.decode(String.self, forKey: .title)
+    startedAt = container.decodeLenientDateIfPresent(forKey: .startedAt)
+  }
 }
 
 /// A page of search channels.
-@MemberwiseInit(.public)
 public struct SearchChannelsResponse: Sendable {
   /// The channels on this page.
   public let channels: [Channel]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `SearchChannelsResponse` value.
+  public init(
+    channels: [Channel] = [],
+    cursor: String? = nil
+  ) {
+    self.channels = channels
+    self.cursor = cursor
+  }
 }

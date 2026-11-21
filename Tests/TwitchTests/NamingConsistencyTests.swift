@@ -57,7 +57,8 @@ struct NamingConsistencyTests {
   func helixAndEventSubShareSubscriptionTier() throws {
     let tier = try TwitchClient.makeDecoder().decode(
       SubscriptionTier.self, from: Data("\"1000\"".utf8))
-    let notice = SubNotice(subscriptionTier: tier, isPrime: false, durationMonths: 1)
+    let notice = ChannelChatNotificationEvent.SubNotice(
+      subscriptionTier: tier, isPrime: false, durationMonths: 1)
 
     #expect(notice.subscriptionTier == .tier1)
   }

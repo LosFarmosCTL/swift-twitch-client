@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when an ad break starts.
-@MemberwiseInit(.public)
 public struct ChannelAdBreakBeginEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -24,6 +22,29 @@ public struct ChannelAdBreakBeginEvent: Event {
   public let startedAt: Date
   /// Whether the ad break was started automatically.
   public let isAutomatic: Bool
+
+  /// Creates a `ChannelAdBreakBeginEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    requesterID: String,
+    requesterLogin: String,
+    requesterDisplayName: String,
+    durationSeconds: Int,
+    startedAt: Date,
+    isAutomatic: Bool
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.requesterID = requesterID
+    self.requesterLogin = requesterLogin
+    self.requesterDisplayName = requesterDisplayName
+    self.durationSeconds = durationSeconds
+    self.startedAt = startedAt
+    self.isAutomatic = isAutomatic
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"

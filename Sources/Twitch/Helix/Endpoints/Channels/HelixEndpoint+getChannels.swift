@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets channel information for the requested broadcasters.
@@ -25,7 +24,6 @@ extension HelixEndpoint {
 }
 
 /// A broadcaster’s channel metadata returned by the channel-information endpoint.
-@MemberwiseInit(.public)
 public struct Broadcaster: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -49,6 +47,33 @@ public struct Broadcaster: Decodable, Sendable {
   public let contentClassificationLabels: [ContentClassificationLabelID]
   /// Whether the stream is marked as branded content.
   public let isBrandedContent: Bool
+
+  /// Creates a `Broadcaster` value.
+  public init(
+    id: String,
+    login: String,
+    displayName: String,
+    language: String,
+    gameID: String,
+    gameName: String,
+    title: String,
+    delay: Int,
+    tags: [String] = [],
+    contentClassificationLabels: [ContentClassificationLabelID] = [],
+    isBrandedContent: Bool
+  ) {
+    self.id = id
+    self.login = login
+    self.displayName = displayName
+    self.language = language
+    self.gameID = gameID
+    self.gameName = gameName
+    self.title = title
+    self.delay = delay
+    self.tags = tags
+    self.contentClassificationLabels = contentClassificationLabels
+    self.isBrandedContent = isBrandedContent
+  }
 
   enum CodingKeys: String, CodingKey {
     case id = "broadcasterId"

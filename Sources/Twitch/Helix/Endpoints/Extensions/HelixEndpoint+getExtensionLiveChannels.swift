@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets live channels with the specified extension active.
@@ -41,7 +40,6 @@ extension HelixEndpoint {
 }
 
 /// A live channel using an extension.
-@MemberwiseInit(.public)
 public struct ExtensionLiveChannel: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -54,6 +52,21 @@ public struct ExtensionLiveChannel: Decodable, Sendable {
   /// The title shown to viewers.
   public let title: String
 
+  /// Creates an `ExtensionLiveChannel` value.
+  public init(
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    gameID: String,
+    gameName: String,
+    title: String
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.gameID = gameID
+    self.gameName = gameName
+    self.title = title
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case gameID = "gameId"
@@ -64,10 +77,18 @@ public struct ExtensionLiveChannel: Decodable, Sendable {
 }
 
 /// A page of extension live channels.
-@MemberwiseInit(.public)
 public struct ExtensionLiveChannelsResponse: Sendable {
   /// The channels on this page.
   public let channels: [ExtensionLiveChannel]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates an `ExtensionLiveChannelsResponse` value.
+  public init(
+    channels: [ExtensionLiveChannel] = [],
+    cursor: String? = nil
+  ) {
+    self.channels = channels
+    self.cursor = cursor
+  }
 }

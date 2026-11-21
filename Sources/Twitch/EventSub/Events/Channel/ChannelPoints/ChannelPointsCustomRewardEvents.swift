@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 // events contain identical shape of data
 /// The payload for channel points custom reward update notifications.
@@ -12,7 +11,6 @@ public typealias ChannelPointsCustomRewardUpdateEvent = ChannelPointsCustomRewar
 public typealias ChannelPointsCustomRewardRemoveEvent = ChannelPointsCustomRewardAddEvent
 
 /// An EventSub notification delivered when a custom Channel Points reward is created.
-@MemberwiseInit(.public)
 public struct ChannelPointsCustomRewardAddEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -64,6 +62,51 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
   public let cooldownExpiresAt: Date?
   /// The redemptions made during the current stream, when provided.
   public let redemptionsRedeemedCurrentStream: Int?
+
+  /// Creates a `ChannelPointsCustomRewardAddEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    isEnabled: Bool,
+    isPaused: Bool,
+    isInStock: Bool,
+    title: String,
+    cost: Int,
+    prompt: String,
+    isUserInputRequired: Bool,
+    shouldRedemptionsSkipRequestQueue: Bool,
+    maxPerStream: Int? = nil,
+    maxPerUserPerStream: Int? = nil,
+    backgroundColor: String,
+    image: RewardImage? = nil,
+    defaultImage: RewardImage? = nil,
+    globalCooldown: Duration? = nil,
+    cooldownExpiresAt: Date? = nil,
+    redemptionsRedeemedCurrentStream: Int? = nil
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.isEnabled = isEnabled
+    self.isPaused = isPaused
+    self.isInStock = isInStock
+    self.title = title
+    self.cost = cost
+    self.prompt = prompt
+    self.isUserInputRequired = isUserInputRequired
+    self.shouldRedemptionsSkipRequestQueue = shouldRedemptionsSkipRequestQueue
+    self.maxPerStream = maxPerStream
+    self.maxPerUserPerStream = maxPerUserPerStream
+    self.backgroundColor = backgroundColor
+    self.image = image
+    self.defaultImage = defaultImage
+    self.globalCooldown = globalCooldown
+    self.cooldownExpiresAt = cooldownExpiresAt
+    self.redemptionsRedeemedCurrentStream = redemptionsRedeemedCurrentStream
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -153,7 +196,6 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
   }
 
   /// Image URLs for a custom reward at each supported display scale.
-  @MemberwiseInit(.public)
   public struct RewardImage: Decodable, Sendable {
     /// The image URL at 1× scale.
     public let url1x: String
@@ -161,6 +203,17 @@ public struct ChannelPointsCustomRewardAddEvent: Event {
     public let url2x: String
     /// The image URL at 4× scale.
     public let url4x: String
+
+    /// Creates a `RewardImage` value.
+    public init(
+      url1x: String,
+      url2x: String,
+      url4x: String
+    ) {
+      self.url1x = url1x
+      self.url2x = url2x
+      self.url4x = url4x
+    }
 
     enum CodingKeys: String, CodingKey {
       case url1x = "url1X"

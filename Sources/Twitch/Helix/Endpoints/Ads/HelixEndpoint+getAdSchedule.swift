@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s ad schedule.
@@ -35,7 +34,6 @@ extension HelixEndpoint {
 }
 
 /// The next ad break, recent ad timing, and remaining snooze allowance.
-@MemberwiseInit(.public)
 public struct AdSchedule: Decodable, Sendable {
   /// The next ad start time, or `nil` when Twitch returns zero.
   public let nextAdAt: Date?
@@ -49,6 +47,23 @@ public struct AdSchedule: Decodable, Sendable {
   public let snoozeCount: Int
   /// When snoozes become available again, or `nil` when Twitch returns zero.
   public let snoozeRefreshAt: Date?
+
+  /// Creates an `AdSchedule` value.
+  public init(
+    nextAdAt: Date? = nil,
+    lastAdAt: Date? = nil,
+    duration: Int,
+    prerollFreeTime: Int,
+    snoozeCount: Int,
+    snoozeRefreshAt: Date? = nil
+  ) {
+    self.nextAdAt = nextAdAt
+    self.lastAdAt = lastAdAt
+    self.duration = duration
+    self.prerollFreeTime = prerollFreeTime
+    self.snoozeCount = snoozeCount
+    self.snoozeRefreshAt = snoozeRefreshAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case nextAdAt, lastAdAt, duration, prerollFreeTime, snoozeCount, snoozeRefreshAt

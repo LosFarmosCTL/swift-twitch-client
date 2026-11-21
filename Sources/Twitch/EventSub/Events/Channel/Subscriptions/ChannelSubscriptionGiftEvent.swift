@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a user gifts channel subscriptions.
-@MemberwiseInit(.public)
 public struct ChannelSubscriptionGiftEvent: Event {
   /// The gifter’s identity; `nil` means the gift was anonymous.
   public let gifter: Gifter?
@@ -19,7 +16,26 @@ public struct ChannelSubscriptionGiftEvent: Event {
   public let cumulativeTotal: Int?
 
   /// The subscription tier.
-  public let tier: String
+  public let tier: SubscriptionTier
+
+  /// Creates a `ChannelSubscriptionGiftEvent` value.
+  public init(
+    gifter: Gifter? = nil,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    total: Int,
+    cumulativeTotal: Int? = nil,
+    tier: SubscriptionTier
+  ) {
+    self.gifter = gifter
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.total = total
+    self.cumulativeTotal = cumulativeTotal
+    self.tier = tier
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
@@ -58,11 +74,10 @@ public struct ChannelSubscriptionGiftEvent: Event {
     total = try container.decode(Int.self, forKey: .total)
     cumulativeTotal = try container.decodeIfPresent(Int.self, forKey: .cumulativeTotal)
 
-    tier = try container.decode(String.self, forKey: .tier)
+    tier = try container.decode(SubscriptionTier.self, forKey: .tier)
   }
 
   /// The account identity of the user who gifted the subscriptions.
-  @MemberwiseInit(.public)
   public struct Gifter: Sendable {
     /// The Twitch user ID.
     public let userID: String
@@ -70,5 +85,16 @@ public struct ChannelSubscriptionGiftEvent: Event {
     public let userLogin: String
     /// The user’s display name.
     public let userDisplayName: String
+
+    /// Creates a `Gifter` value.
+    public init(
+      userID: String,
+      userLogin: String,
+      userDisplayName: String
+    ) {
+      self.userID = userID
+      self.userLogin = userLogin
+      self.userDisplayName = userDisplayName
+    }
   }
 }

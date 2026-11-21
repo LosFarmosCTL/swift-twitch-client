@@ -1,5 +1,3 @@
-import MemberwiseInit
-
 extension HelixEndpoint {
   /// Gets the emotes available to the authenticated user across all channels.
   ///
@@ -37,7 +35,6 @@ extension HelixEndpoint {
 }
 
 /// A page of a user’s available emotes, with their image URL template.
-@MemberwiseInit(.public)
 public struct UserEmotesResponse: Sendable {
   /// The emotes available on this page.
   public let emotes: [SetEmote]
@@ -45,4 +42,15 @@ public struct UserEmotesResponse: Sendable {
   public let template: String
   /// The next-page cursor; `nil` when there are no more pages.
   public let cursor: String?
+
+  /// Creates a `UserEmotesResponse` value.
+  public init(
+    emotes: [SetEmote] = [],
+    template: String,
+    cursor: String? = nil
+  ) {
+    self.emotes = emotes
+    self.template = template
+    self.cursor = cursor
+  }
 }

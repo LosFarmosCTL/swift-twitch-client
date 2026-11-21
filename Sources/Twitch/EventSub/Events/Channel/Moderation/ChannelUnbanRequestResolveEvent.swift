@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a moderator resolves an unban request.
-@MemberwiseInit(.public)
 public struct ChannelUnbanRequestResolveEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -32,6 +29,35 @@ public struct ChannelUnbanRequestResolveEvent: Event {
   /// Whether the unban request was approved, denied, or canceled.
   public let status: RequestStatus
 
+  /// Creates a `ChannelUnbanRequestResolveEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    moderatorID: String? = nil,
+    moderatorLogin: String? = nil,
+    moderatorDisplayName: String? = nil,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    resolutionText: String? = nil,
+    status: RequestStatus
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorLogin = moderatorLogin
+    self.moderatorDisplayName = moderatorDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.resolutionText = resolutionText
+    self.status = status
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case broadcasterID = "broadcasterUserId"
@@ -47,13 +73,31 @@ public struct ChannelUnbanRequestResolveEvent: Event {
     case status
   }
 
-  /// The approval, denial, or cancellation of an unban request.
-  public enum RequestStatus: String, Codable, Sendable {
+  /// The approval, denial, or cancellation of an unban request, preserving unfamiliar
+  /// values in `rawValue`.
+  public struct RequestStatus: RawRepresentable, Codable, Sendable, Hashable {
+    /// The exact status string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a request status from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a request status from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
+    /// Encodes this request status as its raw wire string.
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.singleValueContainer()
+      try container.encode(rawValue)
+    }
+
     /// The unban request was approved.
-    case approved
+    public static let approved = Self(rawValue: "approved")
     /// The unban request was denied.
-    case denied
+    public static let denied = Self(rawValue: "denied")
     /// The unban request was canceled. Encoded as `"canceled"`.
-    case cancelled = "canceled"
+    public static let cancelled = Self(rawValue: "canceled")
   }
 }

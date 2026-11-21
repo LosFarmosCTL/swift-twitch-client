@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets donations to the broadcaster’s active charity campaign.
@@ -44,7 +43,6 @@ extension HelixEndpoint {
 }
 
 /// A viewer’s donation to a charity campaign.
-@MemberwiseInit(.public)
 public struct CharityDonation: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -61,6 +59,23 @@ public struct CharityDonation: Decodable, Sendable {
   /// The amount contributed or donated.
   public let amount: CharityAmount
 
+  /// Creates a `CharityDonation` value.
+  public init(
+    id: String,
+    campaignID: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    amount: CharityAmount
+  ) {
+    self.id = id
+    self.campaignID = campaignID
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.amount = amount
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case campaignID = "campaignId"
@@ -72,10 +87,18 @@ public struct CharityDonation: Decodable, Sendable {
 }
 
 /// A page of charity campaign donations.
-@MemberwiseInit(.public)
 public struct CharityCampaignDonationsResponse: Sendable {
   /// The donations on this page.
   public let donations: [CharityDonation]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `CharityCampaignDonationsResponse` value.
+  public init(
+    donations: [CharityDonation] = [],
+    cursor: String? = nil
+  ) {
+    self.donations = donations
+    self.cursor = cursor
+  }
 }

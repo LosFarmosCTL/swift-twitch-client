@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the extensions installed by the authenticated user.
@@ -21,7 +20,6 @@ extension HelixEndpoint {
 }
 
 /// An extension installed by a user and its activation eligibility.
-@MemberwiseInit(.public)
 public struct UserExtension: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -34,6 +32,21 @@ public struct UserExtension: Decodable, Sendable {
   /// The placements supported by this extension, such as panel, overlay, or component.
   public let types: [ExtensionType]
 
+  /// Creates a `UserExtension` value.
+  public init(
+    id: String,
+    version: String,
+    name: String,
+    canActivate: Bool,
+    types: [ExtensionType] = []
+  ) {
+    self.id = id
+    self.version = version
+    self.name = name
+    self.canActivate = canActivate
+    self.types = types
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case version
@@ -43,14 +56,26 @@ public struct UserExtension: Decodable, Sendable {
   }
 }
 
-/// The placements where an extension can appear on Twitch.
-public enum ExtensionType: String, Decodable, Sendable {
+/// The placements where an extension can appear on Twitch, preserving unfamiliar values
+/// in `rawValue`.
+public struct ExtensionType: RawRepresentable, Decodable, Sendable, Hashable {
+  /// The exact extension type string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates an extension type from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes an extension type from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
   /// An extension component rendered over the video.
-  case component
+  public static let component = Self(rawValue: "component")
   /// An extension view for mobile devices.
-  case mobile
+  public static let mobile = Self(rawValue: "mobile")
   /// An extension overlay on the video.
-  case overlay
+  public static let overlay = Self(rawValue: "overlay")
   /// An extension panel below the video.
-  case panel
+  public static let panel = Self(rawValue: "panel")
 }

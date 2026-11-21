@@ -12,7 +12,10 @@ public protocol Event: Decodable, Sendable {}
 /// Used as the default payload type for
 /// ``EventSubSubscription/custom(type:version:condition:decoding:)`` when you only need
 /// the notification metadata or are registering a non-WebSocket subscription through Helix.
-public struct VoidEvent: Event {
+public struct VoidEvent: Event, Equatable, Hashable {
+  /// Creates a `VoidEvent` value.
+  public init() {}
+
   /// Decodes a `VoidEvent`, ignoring all payload fields.
   public init(from _: any Decoder) throws {}
 }

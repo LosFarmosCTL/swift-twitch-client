@@ -37,7 +37,7 @@ extension HelixEndpoint {
 
 // swiftlint:disable identifier_name
 /// The extension activation and positioning changes to apply to a user’s slot.
-public struct ExtensionSlotUpdate: Encodable, Sendable {
+public struct ExtensionSlotUpdate: Encodable, Sendable, Equatable {
   /// Whether the resource is active.
   public let isActive: Bool
   /// The identifier assigned by Twitch, when provided.

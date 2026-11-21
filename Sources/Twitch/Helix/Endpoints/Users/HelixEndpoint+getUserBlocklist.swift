@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated user’s blocked users.
@@ -38,16 +37,23 @@ extension HelixEndpoint {
 }
 
 /// A page of users blocked by the broadcaster.
-@MemberwiseInit(.public)
 public struct UserBlocklistResponse: Sendable {
   /// The users on this page.
   public let users: [BlockedUser]
   /// The cursor for the next page, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `UserBlocklistResponse` value.
+  public init(
+    users: [BlockedUser] = [],
+    cursor: String? = nil
+  ) {
+    self.users = users
+    self.cursor = cursor
+  }
 }
 
 /// An account on the authenticated user’s block list.
-@MemberwiseInit(.public)
 public struct BlockedUser: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -55,6 +61,17 @@ public struct BlockedUser: Decodable, Sendable {
   public let userLogin: String
   /// The display name shown on Twitch.
   public let displayName: String
+
+  /// Creates a `BlockedUser` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    displayName: String
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.displayName = displayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the shards and transport state of an EventSub conduit.
@@ -76,7 +75,6 @@ public enum ConduitShardStatus: String, Sendable {
 }
 
 /// An EventSub conduit shard and its delivery status and transport.
-@MemberwiseInit(.public)
 public struct ConduitShard: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -84,10 +82,20 @@ public struct ConduitShard: Decodable, Sendable {
   public let status: String
   /// The EventSub delivery transport.
   public let transport: ConduitShardTransport
+
+  /// Creates a `ConduitShard` value.
+  public init(
+    id: String,
+    status: String,
+    transport: ConduitShardTransport
+  ) {
+    self.id = id
+    self.status = status
+    self.transport = transport
+  }
 }
 
 /// The delivery transport assigned to an EventSub conduit shard.
-@MemberwiseInit(.public)
 public struct ConduitShardTransport: Decodable, Sendable {
   /// The EventSub delivery method.
   public let method: String
@@ -100,6 +108,21 @@ public struct ConduitShardTransport: Decodable, Sendable {
   /// The time the transport disconnected, when provided.
   public let disconnectedAt: Date?
 
+  /// Creates a `ConduitShardTransport` value.
+  public init(
+    method: String,
+    callback: String? = nil,
+    sessionID: String? = nil,
+    connectedAt: Date? = nil,
+    disconnectedAt: Date? = nil
+  ) {
+    self.method = method
+    self.callback = callback
+    self.sessionID = sessionID
+    self.connectedAt = connectedAt
+    self.disconnectedAt = disconnectedAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case method, callback
     case sessionID = "sessionId"
@@ -108,10 +131,18 @@ public struct ConduitShardTransport: Decodable, Sendable {
 }
 
 /// A page of conduit shards.
-@MemberwiseInit(.public)
 public struct ConduitShardsResponse: Sendable {
   /// The shards on this page.
   public let shards: [ConduitShard]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `ConduitShardsResponse` value.
+  public init(
+    shards: [ConduitShard] = [],
+    cursor: String? = nil
+  ) {
+    self.shards = shards
+    self.cursor = cursor
+  }
 }

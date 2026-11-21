@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets Drops entitlements matching the supplied filters.
@@ -54,7 +53,6 @@ extension HelixEndpoint {
 }
 
 /// A user’s entitlement to a Drops benefit and its fulfillment state.
-@MemberwiseInit(.public)
 public struct DropsEntitlement: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -71,6 +69,25 @@ public struct DropsEntitlement: Decodable, Sendable {
   /// The time the resource was last updated.
   public let lastUpdated: Date
 
+  /// Creates a `DropsEntitlement` value.
+  public init(
+    id: String,
+    benefitID: String,
+    timestamp: Date,
+    userID: String,
+    gameID: String,
+    fulfillmentStatus: DropsEntitlementFulfillmentStatus,
+    lastUpdated: Date
+  ) {
+    self.id = id
+    self.benefitID = benefitID
+    self.timestamp = timestamp
+    self.userID = userID
+    self.gameID = gameID
+    self.fulfillmentStatus = fulfillmentStatus
+    self.lastUpdated = lastUpdated
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case benefitID = "benefitId"
@@ -82,19 +99,45 @@ public struct DropsEntitlement: Decodable, Sendable {
   }
 }
 
-/// Whether a Drops entitlement has been claimed or fulfilled.
-public enum DropsEntitlementFulfillmentStatus: String, Codable, Sendable {
+/// Whether a Drops entitlement has been claimed or fulfilled, preserving unfamiliar
+/// values in `rawValue`.
+public struct DropsEntitlementFulfillmentStatus: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact fulfillment status string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a fulfillment status from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a fulfillment status from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this fulfillment status as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// The Drops entitlement has been claimed. Encoded as `"CLAIMED"`.
-  case claimed = "CLAIMED"
+  public static let claimed = Self(rawValue: "CLAIMED")
   /// The reward or entitlement has been fulfilled. Encoded as `"FULFILLED"`.
-  case fulfilled = "FULFILLED"
+  public static let fulfilled = Self(rawValue: "FULFILLED")
 }
 
 /// A page of drops entitlements.
-@MemberwiseInit(.public)
 public struct DropsEntitlementsResponse: Sendable {
   /// The entitlements on this page.
   public let entitlements: [DropsEntitlement]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `DropsEntitlementsResponse` value.
+  public init(
+    entitlements: [DropsEntitlement] = [],
+    cursor: String? = nil
+  ) {
+    self.entitlements = entitlements
+    self.cursor = cursor
+  }
 }

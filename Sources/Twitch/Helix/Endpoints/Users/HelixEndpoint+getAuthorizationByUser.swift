@@ -1,5 +1,3 @@
-import MemberwiseInit
-
 extension HelixEndpoint {
   /// Gets the scopes that users have granted the calling application.
   ///
@@ -22,7 +20,6 @@ extension HelixEndpoint {
 }
 
 /// A user’s authorization grants for the calling application.
-@MemberwiseInit(.public)
 public struct UserAuthorization: Decodable, Sendable {
   /// The user’s ID.
   public let userID: String
@@ -34,6 +31,21 @@ public struct UserAuthorization: Decodable, Sendable {
   public let scopes: [String]
   /// Whether the user has authorized the application.
   public let hasAuthorized: Bool
+
+  /// Creates a `UserAuthorization` value.
+  public init(
+    userID: String,
+    userDisplayName: String,
+    userLogin: String,
+    scopes: [String] = [],
+    hasAuthorized: Bool
+  ) {
+    self.userID = userID
+    self.userDisplayName = userDisplayName
+    self.userLogin = userLogin
+    self.scopes = scopes
+    self.hasAuthorized = hasAuthorized
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

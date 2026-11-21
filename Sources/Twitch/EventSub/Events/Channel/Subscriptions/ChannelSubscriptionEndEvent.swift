@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when a channel subscription expires.
-@MemberwiseInit(.public)
 public struct ChannelSubscriptionEndEvent: Event {
   /// The Twitch user ID.
   public let userID: String
@@ -21,6 +18,27 @@ public struct ChannelSubscriptionEndEvent: Event {
   public let tier: SubscriptionTier
   /// Whether the subscription was gifted.
   public let isGift: Bool
+
+  /// Creates a `ChannelSubscriptionEndEvent` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    tier: SubscriptionTier,
+    isGift: Bool
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.tier = tier
+    self.isGift = isGift
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

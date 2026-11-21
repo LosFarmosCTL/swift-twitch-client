@@ -1,9 +1,7 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a held AutoMod message receives a moderation
 /// decision.
-@MemberwiseInit(.public)
 public struct AutoModMessageUpdateEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -38,6 +36,39 @@ public struct AutoModMessageUpdateEvent: Event {
   /// Whether the held message was approved, denied, or expired.
   public let status: Status
 
+  /// Creates an `AutoModMessageUpdateEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    moderatorID: String,
+    moderatorDisplayName: String,
+    moderatorLogin: String,
+    messageID: String,
+    message: AutoModMessage,
+    heldAt: Date,
+    reason: AutoModHoldReason,
+    status: Status
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.moderatorID = moderatorID
+    self.moderatorDisplayName = moderatorDisplayName
+    self.moderatorLogin = moderatorLogin
+    self.messageID = messageID
+    self.message = message
+    self.heldAt = heldAt
+    self.reason = reason
+    self.status = status
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
     case broadcasterLogin = "broadcasterUserLogin"
@@ -57,14 +88,26 @@ public struct AutoModMessageUpdateEvent: Event {
     case status
   }
 
-  /// The approval, denial, or expiration of a held AutoMod message.
-  public enum Status: String, Decodable, Sendable {
+  /// The approval, denial, or expiration of a held AutoMod message, preserving
+  /// unfamiliar values in `rawValue`.
+  public struct Status: RawRepresentable, Decodable, Sendable, Hashable {
+    /// The exact status string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a status from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a status from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
     /// The held message was approved.
-    case approved
+    public static let approved = Self(rawValue: "approved")
     /// The held message was denied.
-    case denied
+    public static let denied = Self(rawValue: "denied")
     /// The held message expired before a decision.
-    case expired
+    public static let expired = Self(rawValue: "expired")
   }
 
   /// Decodes an AutoMod decision and its reason-specific payload.

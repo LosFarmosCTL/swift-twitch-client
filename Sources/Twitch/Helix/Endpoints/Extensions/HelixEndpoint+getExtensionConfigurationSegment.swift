@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets an extension’s configuration segment.
@@ -38,18 +37,35 @@ extension HelixEndpoint {
   }
 }
 
-/// The broadcaster, developer, and global scopes of extension configuration.
-public enum ExtensionConfigurationSegmentType: String, Codable, Sendable {
+/// The broadcaster, developer, and global scopes of extension configuration, preserving
+/// unfamiliar values in `rawValue`.
+public struct ExtensionConfigurationSegmentType: RawRepresentable, Codable, Sendable, Hashable {
+  /// The exact segment type string supplied by Twitch or the caller.
+  public let rawValue: String
+
+  /// Creates a segment type from any raw string.
+  public init(rawValue: String) { self.rawValue = rawValue }
+
+  /// Decodes a segment type from a single string.
+  public init(from decoder: Decoder) throws {
+    self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+  }
+
+  /// Encodes this segment type as its raw wire string.
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+
   /// Configuration scoped to a broadcaster.
-  case broadcaster
+  public static let broadcaster = Self(rawValue: "broadcaster")
   /// Configuration supplied by the extension developer.
-  case developer
+  public static let developer = Self(rawValue: "developer")
   /// Configuration shared across all broadcasters using the extension.
-  case global
+  public static let global = Self(rawValue: "global")
 }
 
 /// A stored extension configuration segment and its version.
-@MemberwiseInit(.public)
 public struct ExtensionConfigurationSegment: Decodable, Sendable {
   /// The configuration segment.
   public let segment: ExtensionConfigurationSegmentType
@@ -59,6 +75,19 @@ public struct ExtensionConfigurationSegment: Decodable, Sendable {
   public let content: String?
   /// The version label assigned to this configuration segment.
   public let version: String
+
+  /// Creates an `ExtensionConfigurationSegment` value.
+  public init(
+    segment: ExtensionConfigurationSegmentType,
+    broadcasterID: String? = nil,
+    content: String? = nil,
+    version: String
+  ) {
+    self.segment = segment
+    self.broadcasterID = broadcasterID
+    self.content = content
+    self.version = version
+  }
 
   enum CodingKeys: String, CodingKey {
     case segment, content, version

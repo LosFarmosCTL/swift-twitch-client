@@ -2,7 +2,7 @@ import Foundation
 
 extension EventSubClient {
   func receive(_ frame: Frame, in sessionID: UUID) {
-    guard let subscription = remoteSubscriptions[frame.subscription.id] else {
+    guard let subscription = remoteSubscriptions[frame.subscriptionID] else {
       return bufferEarlyFrame(frame, in: sessionID)
     }
 
@@ -78,9 +78,8 @@ extension EventSubClient {
   }
 
   private func bufferEarlyFrame(_ frame: Frame, in sessionID: UUID) {
-    guard let account = credentials.userID else { return }
+    guard let account = credentials.userID, let incoming = frame.subscription else { return }
 
-    let incoming = frame.subscription
     let key = ConflictKey(
       account: account,
       type: incoming.type,
@@ -109,7 +108,14 @@ extension EventSubClient {
     case notification(EventSubNotificationFrame)
     case revocation(EventSubRevocation)
 
-    var subscription: EventSubMessage.Subscription {
+    var subscriptionID: String {
+      switch self {
+      case .notification(let frame): frame.subscription.id
+      case .revocation(let revocation): revocation.subscriptionID
+      }
+    }
+
+    var subscription: EventSubMessage.Subscription? {
       switch self {
       case .notification(let frame): frame.subscription
       case .revocation(let revocation): revocation.subscription

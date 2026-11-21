@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets users connected to a channel’s chat.
@@ -65,10 +64,20 @@ public struct ChattersResponse: Sendable {
 
   /// The pagination cursor to pass when requesting another page.
   public let cursor: String?
+
+  /// Creates a `ChattersResponse` value.
+  public init(
+    total: Int,
+    chatters: [Chatter] = [],
+    cursor: String? = nil
+  ) {
+    self.total = total
+    self.chatters = chatters
+    self.cursor = cursor
+  }
 }
 
 /// The account identity of a user connected to chat.
-@MemberwiseInit(.public)
 public struct Chatter: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -76,6 +85,17 @@ public struct Chatter: Decodable, Sendable {
   public let userLogin: String
   /// The user’s display name.
   public let userDisplayName: String
+
+  /// Creates a `Chatter` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

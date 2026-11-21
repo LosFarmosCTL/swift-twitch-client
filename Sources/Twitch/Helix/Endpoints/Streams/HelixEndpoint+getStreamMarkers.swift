@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets markers for a broadcaster’s latest stream or a specified video.
@@ -51,7 +50,6 @@ extension HelixEndpoint {
 }
 
 /// The videos and stream markers associated with a broadcaster.
-@MemberwiseInit(.public)
 public struct StreamMarkersByUser: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -62,6 +60,19 @@ public struct StreamMarkersByUser: Decodable, Sendable {
   /// The videos.
   public let videos: [StreamMarkersVideo]
 
+  /// Creates a `StreamMarkersByUser` value.
+  public init(
+    userID: String,
+    userDisplayName: String,
+    userLogin: String,
+    videos: [StreamMarkersVideo] = []
+  ) {
+    self.userID = userID
+    self.userDisplayName = userDisplayName
+    self.userLogin = userLogin
+    self.videos = videos
+  }
+
   enum CodingKeys: String, CodingKey {
     case userID = "userId"
     case userDisplayName = "userName"
@@ -71,12 +82,20 @@ public struct StreamMarkersByUser: Decodable, Sendable {
 }
 
 /// The markers associated with one broadcast video.
-@MemberwiseInit(.public)
 public struct StreamMarkersVideo: Decodable, Sendable {
   /// The identifier of the video.
   public let videoID: String
   /// The stream markers.
   public let markers: [StreamMarker]
+
+  /// Creates a `StreamMarkersVideo` value.
+  public init(
+    videoID: String,
+    markers: [StreamMarker] = []
+  ) {
+    self.videoID = videoID
+    self.markers = markers
+  }
 
   enum CodingKeys: String, CodingKey {
     case videoID = "videoId"
@@ -84,7 +103,6 @@ public struct StreamMarkersVideo: Decodable, Sendable {
   }
 
   /// A marker’s ID, creation time, video offset, label, and viewing URL.
-  @MemberwiseInit(.public)
   public struct StreamMarker: Decodable, Sendable {
     /// The identifier assigned by Twitch.
     public let id: String
@@ -97,6 +115,21 @@ public struct StreamMarkersVideo: Decodable, Sendable {
     /// The URL associated with this resource.
     public let url: String
 
+    /// Creates a `StreamMarker` value.
+    public init(
+      id: String,
+      createdAt: Date,
+      positionSeconds: Int,
+      description: String,
+      url: String
+    ) {
+      self.id = id
+      self.createdAt = createdAt
+      self.positionSeconds = positionSeconds
+      self.description = description
+      self.url = url
+    }
+
     enum CodingKeys: String, CodingKey {
       case id, createdAt, positionSeconds, description
       case url = "URL"
@@ -105,10 +138,18 @@ public struct StreamMarkersVideo: Decodable, Sendable {
 }
 
 /// A page of stream markers.
-@MemberwiseInit(.public)
 public struct StreamMarkersResponse: Sendable {
   /// The users on this page.
   public let users: [StreamMarkersByUser]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `StreamMarkersResponse` value.
+  public init(
+    users: [StreamMarkersByUser] = [],
+    cursor: String? = nil
+  ) {
+    self.users = users
+    self.cursor = cursor
+  }
 }

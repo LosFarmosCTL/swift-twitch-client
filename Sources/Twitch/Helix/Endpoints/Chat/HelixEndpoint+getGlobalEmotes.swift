@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets Twitch’s global emotes.
@@ -32,10 +31,18 @@ public struct GlobalEmotesResponse: Sendable {
 
   /// The URL template used to construct image URLs.
   public let template: String
+
+  /// Creates a `GlobalEmotesResponse` value.
+  public init(
+    emotes: [GlobalEmote] = [],
+    template: String
+  ) {
+    self.emotes = emotes
+    self.template = template
+  }
 }
 
 /// A global emote’s identity and available image variants.
-@MemberwiseInit(.public)
 public struct GlobalEmote: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -47,6 +54,21 @@ public struct GlobalEmote: Decodable, Sendable {
   public let scale: [Emote.Scale]
   /// The supported image themes.
   public let themeMode: [Emote.ThemeMode]
+
+  /// Creates a `GlobalEmote` value.
+  public init(
+    id: String,
+    name: String,
+    format: [Emote.Format] = [],
+    scale: [Emote.Scale] = [],
+    themeMode: [Emote.ThemeMode] = []
+  ) {
+    self.id = id
+    self.name = name
+    self.format = format
+    self.scale = scale
+    self.themeMode = themeMode
+  }
 
   /// Builds an emote image URL by substituting the ID, format, scale, and theme.
   ///

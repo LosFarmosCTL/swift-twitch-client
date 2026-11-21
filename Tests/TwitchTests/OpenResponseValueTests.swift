@@ -9,6 +9,14 @@ struct OpenResponseValueTests {
     try checkValues(ChannelChatMessageEvent.MessageType.self, known: .text)
     try checkValues(User.BroadcasterType.self, known: .partner)
     try checkValues(EventSubRevocation.Status.self, known: .authorizationRevoked)
+    try checkValues(SubscriptionTier.self, known: .tier1)
+    try checkValues(GuestStarGroupLayout.self, known: .horizontalLayout)
+    try checkValues(HypeTrainType.self, known: .goldenKappa)
+    try checkValues(VideoType.self, known: .archive)
+    try checkValues(AutoModMessage.Fragment.FragmentType.self, known: .emote)
+    try checkValues(
+      ChannelPointsAutomaticRewardRedemptionAddEvent.Reward.RewardType.self,
+      known: .sendHighlightedMessage)
 
     let decoder = JSONDecoder()
     let broadcaster = try decoder.decode(User.BroadcasterType.self, from: Data(#""""#.utf8))
@@ -78,6 +86,59 @@ struct OpenResponseValueTests {
     #expect(throws: DecodingError.self) {
       try decodeModerationEvent(malformed)
     }
+  }
+
+  @Test
+  func unfamiliarAutoModHoldReasonAndNullableEventFieldsDecodeCleanly() throws {
+    let decoder = TwitchClient.makeDecoder()
+
+    let unknownHold = try decoder.decode(
+      AutoModMessageHoldEvent.self,
+      from: Data(
+        """
+        {
+          "broadcaster_user_id": "1",
+          "broadcaster_user_login": "broadcaster",
+          "broadcaster_user_name": "Broadcaster",
+          "user_id": "2",
+          "user_login": "viewer",
+          "user_name": "Viewer",
+          "message_id": "msg-1",
+          "message": {"text": "hi", "fragments": []},
+          "held_at": "2026-01-01T00:00:00Z",
+          "reason": "future_reason"
+        }
+        """.utf8))
+    guard case .unknown("future_reason") = unknownHold.reason else {
+      Issue.record("Expected unknown AutoModHoldReason")
+      return
+    }
+
+    let message = try decoder.decode(
+      ChannelSubscriptionMessageEvent.Message.self,
+      from: Data(#"{"text":"Thanks!","emotes":null}"#.utf8))
+    #expect(message.text == "Thanks!")
+    #expect(message.emotes.isEmpty)
+
+    let canceledPrediction = try decoder.decode(
+      ChannelPredictionEndEvent.self,
+      from: Data(
+        """
+        {
+          "id": "1",
+          "broadcaster_user_id": "2",
+          "broadcaster_user_login": "broadcaster",
+          "broadcaster_user_name": "Broadcaster",
+          "title": "Test",
+          "winning_outcome_id": null,
+          "outcomes": [],
+          "status": "canceled",
+          "started_at": "2026-01-01T00:00:00Z",
+          "ended_at": "2026-01-01T00:05:00Z"
+        }
+        """.utf8))
+    #expect(canceledPrediction.winningOutcomeID == nil)
+    #expect(canceledPrediction.status == .cancelled)
   }
 
   private func checkValues<T: RawRepresentable & Decodable & Hashable>(

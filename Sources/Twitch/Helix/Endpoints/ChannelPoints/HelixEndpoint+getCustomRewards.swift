@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a broadcaster’s custom Channel Points rewards.
@@ -40,7 +39,6 @@ extension HelixEndpoint {
 }
 
 /// A broadcaster’s custom Channel Points reward and redemption restrictions.
-@MemberwiseInit(.public)
 public struct CustomReward: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -89,6 +87,51 @@ public struct CustomReward: Decodable, Sendable {
   /// The end of the reward cooldown, when provided.
   public let cooldownExpiresAt: Date?
 
+  /// Creates a `CustomReward` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    id: String,
+    title: String,
+    prompt: String,
+    cost: Int,
+    image: CustomRewardImage? = nil,
+    defaultImage: CustomRewardImage? = nil,
+    backgroundColor: String,
+    isEnabled: Bool,
+    isUserInputRequired: Bool,
+    maxPerStreamSetting: RewardSetting,
+    maxPerUserPerStreamSetting: RewardSetting,
+    globalCooldownSetting: RewardSetting,
+    isPaused: Bool,
+    isInStock: Bool,
+    shouldRedemptionsSkipRequestQueue: Bool,
+    redemptionsRedeemedCurrentStream: Int? = nil,
+    cooldownExpiresAt: Date? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.id = id
+    self.title = title
+    self.prompt = prompt
+    self.cost = cost
+    self.image = image
+    self.defaultImage = defaultImage
+    self.backgroundColor = backgroundColor
+    self.isEnabled = isEnabled
+    self.isUserInputRequired = isUserInputRequired
+    self.maxPerStreamSetting = maxPerStreamSetting
+    self.maxPerUserPerStreamSetting = maxPerUserPerStreamSetting
+    self.globalCooldownSetting = globalCooldownSetting
+    self.isPaused = isPaused
+    self.isInStock = isInStock
+    self.shouldRedemptionsSkipRequestQueue = shouldRedemptionsSkipRequestQueue
+    self.redemptionsRedeemedCurrentStream = redemptionsRedeemedCurrentStream
+    self.cooldownExpiresAt = cooldownExpiresAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case broadcasterLogin
@@ -114,7 +157,6 @@ public struct CustomReward: Decodable, Sendable {
 }
 
 /// A custom reward’s image URLs at the supported display scales.
-@MemberwiseInit(.public)
 public struct CustomRewardImage: Decodable, Sendable {
   /// The image URL at 1× scale.
   public let url1x: String
@@ -122,6 +164,17 @@ public struct CustomRewardImage: Decodable, Sendable {
   public let url2x: String
   /// The image URL at 4× scale.
   public let url4x: String
+
+  /// Creates a `CustomRewardImage` value.
+  public init(
+    url1x: String,
+    url2x: String,
+    url4x: String
+  ) {
+    self.url1x = url1x
+    self.url2x = url2x
+    self.url4x = url4x
+  }
 
   enum CodingKeys: String, CodingKey {
     case url1x = "url1X"
@@ -131,7 +184,6 @@ public struct CustomRewardImage: Decodable, Sendable {
 }
 
 /// A reward restriction’s enabled state and configured value.
-@MemberwiseInit(.public)
 public struct RewardSetting: Decodable, Sendable {
   /// Whether the setting is enabled.
   public let isEnabled: Bool
@@ -141,4 +193,17 @@ public struct RewardSetting: Decodable, Sendable {
   public let maxPerUserPerStream: Int?
   /// The reward’s global cooldown, in seconds, when provided.
   public let globalCooldownSeconds: Int?
+
+  /// Creates a `RewardSetting` value.
+  public init(
+    isEnabled: Bool,
+    maxPerStream: Int? = nil,
+    maxPerUserPerStream: Int? = nil,
+    globalCooldownSeconds: Int? = nil
+  ) {
+    self.isEnabled = isEnabled
+    self.maxPerStream = maxPerStream
+    self.maxPerUserPerStream = maxPerUserPerStream
+    self.globalCooldownSeconds = globalCooldownSeconds
+  }
 }

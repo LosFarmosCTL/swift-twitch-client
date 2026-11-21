@@ -3,12 +3,13 @@ import Foundation
 /// A resolved Twitch chat channel identified by both its numeric user ID and login name.
 ///
 /// Passing a pre-resolved `ChatChannel` to managed chat methods such as
-/// ``TwitchClient/join(to:)``, ``TwitchClient/requestJoin(to:)``, or
-/// ``TwitchClient/sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
+/// ``TwitchClient/join(to:)-(ChatChannel)``,
+/// ``TwitchClient/requestJoin(to:)-(ChatChannel)``, or
+/// ``TwitchClient/sendMessage(_:in:replyTo:clientNonce:waitingForChannelCooldown:)-(_,ChatChannel,_,_,_)``
 /// avoids an extra Helix user-lookup request—which also allows anonymous IRC readers to
 /// join channels without OAuth credentials.
 ///
-/// - SeeAlso: <doc:ManagedChat>
+/// - SeeAlso: ``ChatChannelTarget``, <doc:ManagedChat>
 public struct ChatChannel: Sendable, Equatable, Hashable {
   /// The broadcaster's numeric Twitch user ID.
   public let id: String
@@ -29,6 +30,20 @@ public struct ChatChannel: Sendable, Equatable, Hashable {
     !id.isEmpty && !id.contains(where: { $0.isWhitespace || $0 == "\0" })
       && IRCWireMessage.isLogin(login)
   }
+}
+
+/// An unresolved channel identifier passed to managed chat operations.
+///
+/// Use ``id(_:)`` or ``login(_:)`` when you do not already hold a resolved ``ChatChannel``.
+/// The client resolves the target through Helix (or from its local channel cache) before
+/// joining, parting, or sending.
+///
+/// - SeeAlso: ``ChatChannel``, <doc:ManagedChat>
+public enum ChatChannelTarget: Sendable, Equatable, Hashable {
+  /// The broadcaster's numeric Twitch user ID.
+  case id(String)
+  /// The broadcaster's login name (with or without a leading `#`).
+  case login(String)
 }
 
 /// Lifecycle status of a managed chat reader, writer, channel membership, or enrichment.
@@ -115,6 +130,23 @@ public struct ChatRoomSettings: Sendable, Equatable {
   public var slowMode: Duration?
   /// `true` once a complete snapshot of all five room settings has been received.
   public var isKnown = false
+
+  /// Creates a `ChatRoomSettings` value.
+  public init(
+    emoteOnly: Bool? = nil,
+    subscribersOnly: Bool? = nil,
+    uniqueMessages: Bool? = nil,
+    followersOnly: Duration? = nil,
+    slowMode: Duration? = nil,
+    isKnown: Bool = false
+  ) {
+    self.emoteOnly = emoteOnly
+    self.subscribersOnly = subscribersOnly
+    self.uniqueMessages = uniqueMessages
+    self.followersOnly = followersOnly
+    self.slowMode = slowMode
+    self.isKnown = isKnown
+  }
 }
 
 /// Per-channel membership, room settings, privilege, moderation, and send-eligibility state.
@@ -135,6 +167,25 @@ public struct ChatChannelState: Sendable, Equatable {
   public internal(set) var moderationRevocation: EventSubRevocation.Status?
   /// The current local send eligibility for this channel.
   public internal(set) var sending: ChatSendEligibility = .eligible
+
+  /// Creates a `ChatChannelState` value.
+  public init(
+    channel: ChatChannel,
+    status: ChatComponentStatus = .connecting,
+    settings: ChatRoomSettings = ChatRoomSettings(),
+    privilege: ChatPrivilege = .unknown,
+    moderation: ChatComponentStatus = .idle,
+    moderationRevocation: EventSubRevocation.Status? = nil,
+    sending: ChatSendEligibility = .eligible
+  ) {
+    self.channel = channel
+    self.status = status
+    self.settings = settings
+    self.privilege = privilege
+    self.moderation = moderation
+    self.moderationRevocation = moderationRevocation
+    self.sending = sending
+  }
 }
 
 /// Summary of the most recent credential switch applied to managed chat.
@@ -152,6 +203,21 @@ public struct ChatCredentialChange: Sendable, Equatable {
   public let behavior: ChatCredentialSwitchBehavior
   /// `true` if an anonymous IRC reader stayed connected without reconnecting.
   public let anonymousReaderPreserved: Bool
+
+  /// Creates a `ChatCredentialChange` value.
+  public init(
+    revision: UInt64,
+    previousUserID: String? = nil,
+    userID: String? = nil,
+    behavior: ChatCredentialSwitchBehavior,
+    anonymousReaderPreserved: Bool
+  ) {
+    self.revision = revision
+    self.previousUserID = previousUserID
+    self.userID = userID
+    self.behavior = behavior
+    self.anonymousReaderPreserved = anonymousReaderPreserved
+  }
 }
 
 /// Record of the most recent channel membership that ended in managed chat.
@@ -178,6 +244,15 @@ public struct ChatDeparture: Sendable, Equatable {
   public let channel: ChatChannel
   /// Why the channel membership ended.
   public let reason: Reason
+
+  /// Creates a `ChatDeparture` value.
+  public init(
+    channel: ChatChannel,
+    reason: Reason
+  ) {
+    self.channel = channel
+    self.reason = reason
+  }
 }
 
 /// A point-in-time snapshot of managed chat transports, channels, and send eligibility.
@@ -212,24 +287,33 @@ public struct ChatState: Sendable {
   public internal(set) var sendEligibility: [String: ChatSendEligibility] = [:]
   /// `true` after ``TwitchClient/shutdownChat()`` has been called.
   public internal(set) var isShutdown = false
-}
 
-/// An error thrown by managed chat membership, resolution, or lifecycle operations.
-///
-/// - SeeAlso: <doc:ManagedChat>, ``ChatSendError``
-public enum ChatError: Error, Sendable, Equatable {
-  /// The supplied channel ID or login is empty or contains invalid characters.
-  case invalidChannel
-  /// Helix returned no Twitch user matching the requested channel ID or login.
-  case channelNotFound
-  /// The channel was parted before a pending join or lookup completed.
-  case parted
-  /// Credentials changed on the client while a join or lookup was waiting to finish.
-  case credentialsChanged
-  /// Setting up the channel's reader transport or EventSub topics failed.
-  case setupFailed(String)
-  /// Managed chat has been permanently shut down via ``TwitchClient/shutdownChat()``.
-  case shutdown
+  /// Creates a `ChatState` value.
+  public init(
+    credentialRevision: UInt64 = 0,
+    userID: String? = nil,
+    credentialChange: ChatCredentialChange? = nil,
+    reader: ChatComponentStatus = .idle,
+    writer: ChatComponentStatus = .idle,
+    ircReader: IRCState? = nil,
+    ircWriter: IRCState? = nil,
+    channels: [String: ChatChannelState] = [:],
+    lastDeparture: ChatDeparture? = nil,
+    sendEligibility: [String: ChatSendEligibility] = [:],
+    isShutdown: Bool = false
+  ) {
+    self.credentialRevision = credentialRevision
+    self.userID = userID
+    self.credentialChange = credentialChange
+    self.reader = reader
+    self.writer = writer
+    self.ircReader = ircReader
+    self.ircWriter = ircWriter
+    self.channels = channels
+    self.lastDeparture = lastDeparture
+    self.sendEligibility = sendEligibility
+    self.isShutdown = isShutdown
+  }
 }
 
 /// Whether the current account is locally eligible to send a managed chat message in a channel.
@@ -275,26 +359,4 @@ public enum ChatSendOutcome: Sendable, Equatable {
   ///   ``ChatEvent/Payload/notice(code:message:)`` event arrives asynchronously on the
   ///   chat stream and is not correlated back to this call.
   case written(clientNonce: String?)
-  /// Twitch rejected delivery with a server code and message.
-  case rejected(code: String?, message: String)
-  /// Twitch rate-limited the send without a trustworthy chat-restriction expiry header.
-  case rateLimited
-  /// The send attempt failed with a diagnostic description.
-  case failed(String)
-}
-
-/// A validation, local-admission, or delivery error thrown by managed chat sends.
-///
-/// - SeeAlso: <doc:ManagedChat>, ``ChatSendOutcome``, ``ChatSendEligibility``
-public enum ChatSendError: Error, Sendable, Equatable {
-  /// The message text is empty, exceeds 500 characters, contains unsafe wire characters,
-  /// or `replyTo` / `clientNonce` is empty or contains NUL bytes.
-  case invalidMessage
-  /// Local send admission refused the attempt; carries the blocking ``ChatSendEligibility``.
-  case refused(ChatSendEligibility)
-  /// Helix returned `isSent == false` with a Twitch drop code and explanation.
-  case rejected(code: String?, message: String)
-  /// A `clientNonce` was supplied when ``ChatConfiguration/writer`` is
-  /// ``ChatConfiguration/Writer/helix`` (client nonces are supported only by IRC writers).
-  case unsupportedClientNonce
 }

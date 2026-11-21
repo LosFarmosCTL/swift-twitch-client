@@ -187,13 +187,13 @@ struct EventSubChatTests {
   func documentedChatNoticePayloads() throws {
     let decoder = TwitchClient.makeDecoder()
     let resub = try decoder.decode(
-      ResubNotice.self,
+      ChannelChatNotificationEvent.ResubNotice.self,
       from: Data(
         #"{"cumulative_months":2,"duration_months":1,"sub_tier":"1000","is_prime":null}"#.utf8))
     #expect(resub.isPrime == nil)
 
     let upgrade = try decoder.decode(
-      GiftPaidUpgradeNotice.self,
+      ChannelChatNotificationEvent.GiftPaidUpgradeNotice.self,
       from: Data(
         #"{"gifter_is_anonymous":false,"gifter_user_id":"456","gifter_user_name":"Viewer"}"#.utf8))
     let gifter = try #require(upgrade.gifter)
@@ -201,7 +201,7 @@ struct EventSubChatTests {
     #expect(gifter.userLogin == nil)
 
     let donation = try decoder.decode(
-      CharityDonationNotice.self,
+      ChannelChatNotificationEvent.CharityDonationNotice.self,
       from: Data(
         #"{"charity_name":"Charity","amount":{"value":100,"decimal_place":2,"currency":"USD"}}"#
           .utf8))

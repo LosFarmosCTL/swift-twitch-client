@@ -1,5 +1,5 @@
 import Foundation
-import TwitchIRC
+public import TwitchIRC
 
 /// A parsed Twitch IRC frame paired with the transport role that received it.
 ///
@@ -12,6 +12,15 @@ public struct IRCMessage: Sendable {
   public let role: IRCRecovery.Role
   /// The parsed `TwitchIRC` incoming message.
   public let message: IncomingMessage
+
+  /// Creates an `IRCMessage` value.
+  public init(
+    role: IRCRecovery.Role,
+    message: IncomingMessage
+  ) {
+    self.role = role
+    self.message = message
+  }
 }
 
 /// A delivery sent to a callback registered with ``TwitchClient/ircMessageListener(_:)``.
@@ -54,7 +63,8 @@ extension TwitchClient {
   ///   writer, ``IRCError/invalidInput(parameter:)`` if the command fails wire validation,
   ///   ``TwitchAuthenticationError/userAccessTokenRequired`` without user credentials,
   ///   ``ChatError/shutdown`` after chat shutdown, or a transport ``IRCError``.
-  /// - SeeAlso: <doc:ManagedChat>, ``sendMessage(_:to:replyTo:clientNonce:waitingForChannelCooldown:)``
+  /// - SeeAlso: <doc:ManagedChat>,
+  ///   ``TwitchClient/sendMessage(_:in:replyTo:clientNonce:waitingForChannelCooldown:)-(_,ChatChannel,_,_,_)``
   public func sendIRC(_ message: OutgoingMessage) async throws {
     try await chat.sendIRC(message)
   }

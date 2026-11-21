@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets purchases of an extension’s digital products.
@@ -41,7 +40,6 @@ extension HelixEndpoint {
 }
 
 /// The purchase of an extension’s digital product.
-@MemberwiseInit(.public)
 public struct ExtensionTransaction: Decodable, Sendable {
   /// The transaction ID.
   public let id: String
@@ -64,6 +62,31 @@ public struct ExtensionTransaction: Decodable, Sendable {
   /// Details of the purchased product.
   public let productData: Product
 
+  /// Creates an `ExtensionTransaction` value.
+  public init(
+    id: String,
+    timestamp: Date,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    productType: String,
+    productData: Product
+  ) {
+    self.id = id
+    self.timestamp = timestamp
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.productType = productType
+    self.productData = productData
+  }
+
   enum CodingKeys: String, CodingKey {
     case id, timestamp
     case broadcasterID = "broadcasterId"
@@ -76,7 +99,6 @@ public struct ExtensionTransaction: Decodable, Sendable {
   }
 
   /// A digital product recorded in an extension transaction.
-  @MemberwiseInit(.public)
   public struct Product: Decodable, Sendable {
     /// The product’s SKU.
     public let sku: String
@@ -93,6 +115,25 @@ public struct ExtensionTransaction: Decodable, Sendable {
     /// Whether the purchase was broadcast to all extension instances.
     public let isBroadcast: Bool
 
+    /// Creates a `Product` value.
+    public init(
+      sku: String,
+      domain: String,
+      cost: ExtensionBitsProductCost,
+      isInDevelopment: Bool,
+      displayName: String,
+      expiration: String,
+      isBroadcast: Bool
+    ) {
+      self.sku = sku
+      self.domain = domain
+      self.cost = cost
+      self.isInDevelopment = isInDevelopment
+      self.displayName = displayName
+      self.expiration = expiration
+      self.isBroadcast = isBroadcast
+    }
+
     enum CodingKeys: String, CodingKey {
       case sku, domain, cost, displayName, expiration
       case isInDevelopment = "inDevelopment"
@@ -102,10 +143,18 @@ public struct ExtensionTransaction: Decodable, Sendable {
 }
 
 /// A page of extension transactions.
-@MemberwiseInit(.public)
 public struct ExtensionTransactionsResponse: Sendable {
   /// The transactions on this page.
   public let transactions: [ExtensionTransaction]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates an `ExtensionTransactionsResponse` value.
+  public init(
+    transactions: [ExtensionTransaction] = [],
+    cursor: String? = nil
+  ) {
+    self.transactions = transactions
+    self.cursor = cursor
+  }
 }

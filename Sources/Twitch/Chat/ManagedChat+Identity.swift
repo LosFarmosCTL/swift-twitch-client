@@ -6,6 +6,13 @@ internal enum ChatChannelReference: Hashable, Sendable {
 
   init(login: String) { self = .login(IRCWireMessage.channelLogin(login)) }
 
+  init(_ target: ChatChannelTarget) {
+    switch target {
+    case .id(let id): self = .id(id)
+    case .login(let login): self.init(login: login)
+    }
+  }
+
   fileprivate func endpoint() throws -> HelixEndpoint<[User]> {
     switch self {
     case .id(let id):

@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Bans or times out a user in a channel.
@@ -70,7 +69,6 @@ private struct BanUserBody: Encodable, Sendable {
 }
 
 /// The account and timing information returned after banning or timing out a user.
-@MemberwiseInit(.public)
 public struct Ban: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -82,6 +80,21 @@ public struct Ban: Decodable, Sendable {
   public let createdAt: Date
   /// The scheduled end time, when provided.
   public let endTime: Date?
+
+  /// Creates a `Ban` value.
+  public init(
+    broadcasterID: String,
+    moderatorID: String,
+    userID: String,
+    createdAt: Date,
+    endTime: Date? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.moderatorID = moderatorID
+    self.userID = userID
+    self.createdAt = createdAt
+    self.endTime = endTime
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"

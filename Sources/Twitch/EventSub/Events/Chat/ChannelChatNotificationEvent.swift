@@ -1,7 +1,4 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when Twitch emits a chat notification.
-@MemberwiseInit(.public)
 public struct ChannelChatNotificationEvent: Event {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -39,8 +36,44 @@ public struct ChannelChatNotificationEvent: Event {
   /// The badges from the source channel, when provided.
   public let sourceBadges: [ChannelChatMessageEvent.Badge]?
   /// Whether a Shared Chat notification was sent only to its source channel.
-  @Init(default: nil)
   public let isSourceOnly: Bool?
+
+  /// Creates a `ChannelChatNotificationEvent` value.
+  public init(
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    chatter: Chatter,
+    color: String,
+    badges: [ChannelChatMessageEvent.Badge] = [],
+    messageID: String,
+    message: ChannelChatMessageEvent.Message,
+    systemMessage: String,
+    noticeType: NoticeType,
+    sourceBroadcasterID: String? = nil,
+    sourceBroadcasterLogin: String? = nil,
+    sourceBroadcasterDisplayName: String? = nil,
+    sourceMessageID: String? = nil,
+    sourceBadges: [ChannelChatMessageEvent.Badge]? = nil,
+    isSourceOnly: Bool? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.chatter = chatter
+    self.color = color
+    self.badges = badges
+    self.messageID = messageID
+    self.message = message
+    self.systemMessage = systemMessage
+    self.noticeType = noticeType
+    self.sourceBroadcasterID = sourceBroadcasterID
+    self.sourceBroadcasterLogin = sourceBroadcasterLogin
+    self.sourceBroadcasterDisplayName = sourceBroadcasterDisplayName
+    self.sourceMessageID = sourceMessageID
+    self.sourceBadges = sourceBadges
+    self.isSourceOnly = isSourceOnly
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterUserId"
@@ -120,7 +153,9 @@ public struct ChannelChatNotificationEvent: Event {
       [ChannelChatMessageEvent.Badge].self, forKey: .sourceBadges)
     isSourceOnly = try container.decodeIfPresent(Bool.self, forKey: .isSourceOnly)
   }
+}
 
+extension ChannelChatNotificationEvent {
   /// The user responsible for a notification, or an indication that they are anonymous.
   public enum Chatter: Sendable {
     /// The user responsible for the notification chose to remain anonymous.
@@ -154,6 +189,17 @@ public struct ChannelChatNotificationEvent: Event {
       public let userDisplayName: String
       /// The user’s login name.
       public let userLogin: String
+
+      /// Creates a `ChatterInfo` value.
+      public init(
+        userID: String,
+        userDisplayName: String,
+        userLogin: String
+      ) {
+        self.userID = userID
+        self.userDisplayName = userDisplayName
+        self.userLogin = userLogin
+      }
     }
   }
 
@@ -331,122 +377,378 @@ public struct ChannelChatNotificationEvent: Event {
   }
 }
 
-// MARK: - Normal notice types
+// MARK: - Notice types
 
-/// A viewer’s watch streak and Channel Points award.
-@MemberwiseInit(.public)
-public struct WatchStreakNotice: Decodable, Sendable {
-  /// The number of consecutive broadcasts the viewer has watched.
-  public let streakCount: Int
-  /// The number of Channel Points awarded for reaching this watch streak milestone.
-  public let channelPointsAwarded: Int
-}
+extension ChannelChatNotificationEvent {
+  /// A viewer’s watch streak and Channel Points award.
+  public struct WatchStreakNotice: Decodable, Sendable {
+    /// The number of consecutive broadcasts the viewer has watched.
+    public let streakCount: Int
+    /// The number of Channel Points awarded for reaching this watch streak milestone.
+    public let channelPointsAwarded: Int
 
-/// A viewer’s time as a channel moderator, in months.
-@MemberwiseInit(.public)
-public struct ModiversaryNotice: Decodable, Sendable {
-  /// The cumulative number of months the viewer has been a moderator in the channel.
-  public let months: Int
-}
-
-/// A new-subscription chat notification.
-@MemberwiseInit(.public)
-public struct SubNotice: Decodable, Sendable {
-  /// The subscription tier.
-  public let subscriptionTier: SubscriptionTier
-  /// Whether the subscription uses Prime.
-  public let isPrime: Bool
-  /// The number of months included in the subscription.
-  public let durationMonths: Int
-
-  enum CodingKeys: String, CodingKey {
-    case subscriptionTier = "subTier"
-    case isPrime
-    case durationMonths
-  }
-}
-
-/// A resubscription chat notification with subscription history and gift details.
-@MemberwiseInit(.public)
-public struct ResubNotice: Decodable, Sendable {
-  /// The total number of subscribed months.
-  public let cumulativeMonths: Int
-  /// The number of months included in the subscription.
-  public let durationMonths: Int
-  /// The number of consecutive subscribed months, when provided.
-  public let streakMonths: Int?
-
-  /// The subscription tier.
-  public let subscriptionTier: SubscriptionTier
-  /// Whether the subscription uses Prime, when Twitch reports it.
-  public let isPrime: Bool?
-
-  /// Gift details when available and decodable; `nil` also covers a non-gifted
-  /// subscription.
-  public let gift: Gift?
-
-  enum CodingKeys: String, CodingKey {
-    case cumulativeMonths
-    case durationMonths
-    case streakMonths
-    case subscriptionTier = "subTier"
-    case isPrime
-    case isGift
-    case gifterIsAnonymous
-    case gifterID = "gifterUserId"
-    case gifterDisplayName = "gifterUserName"
-    case gifterLogin = "gifterUserLogin"
+    /// Creates a `WatchStreakNotice` value.
+    public init(
+      streakCount: Int,
+      channelPointsAwarded: Int
+    ) {
+      self.streakCount = streakCount
+      self.channelPointsAwarded = channelPointsAwarded
+    }
   }
 
-  /// Decodes a resubscription; absent or undecodable gift details become `nil`.
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
+  /// A viewer’s time as a channel moderator, in months.
+  public struct ModiversaryNotice: Decodable, Sendable {
+    /// The cumulative number of months the viewer has been a moderator in the channel.
+    public let months: Int
 
-    cumulativeMonths = try container.decode(Int.self, forKey: .cumulativeMonths)
-    durationMonths = try container.decode(Int.self, forKey: .durationMonths)
-    streakMonths = try container.decodeIfPresent(Int.self, forKey: .streakMonths)
-    subscriptionTier = try container.decode(
-      SubscriptionTier.self, forKey: .subscriptionTier)
-    isPrime = try container.decodeIfPresent(Bool.self, forKey: .isPrime)
-    gift = try? Gift(from: decoder)
+    /// Creates a `ModiversaryNotice` value.
+    public init(
+      months: Int
+    ) {
+      self.months = months
+    }
   }
 
-  /// The original subscription gifter, who may be anonymous.
-  public enum Gift: Sendable {
-    /// The user responsible for the notification chose to remain anonymous.
-    case anonymous
-    /// The identified user who gifted the subscription.
-    case gifter(Gifter)
+  /// A new-subscription chat notification.
+  public struct SubNotice: Decodable, Sendable {
+    /// The subscription tier.
+    public let subscriptionTier: SubscriptionTier
+    /// Whether the subscription uses Prime.
+    public let isPrime: Bool
+    /// The number of months included in the subscription.
+    public let durationMonths: Int
 
-    init(from decoder: Decoder) throws {
+    /// Creates a `SubNotice` value.
+    public init(
+      subscriptionTier: SubscriptionTier,
+      isPrime: Bool,
+      durationMonths: Int
+    ) {
+      self.subscriptionTier = subscriptionTier
+      self.isPrime = isPrime
+      self.durationMonths = durationMonths
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case subscriptionTier = "subTier"
+      case isPrime
+      case durationMonths
+    }
+  }
+
+  /// A resubscription chat notification with subscription history and gift details.
+  public struct ResubNotice: Decodable, Sendable {
+    /// The total number of subscribed months.
+    public let cumulativeMonths: Int
+    /// The number of months included in the subscription.
+    public let durationMonths: Int
+    /// The number of consecutive subscribed months, when provided.
+    public let streakMonths: Int?
+
+    /// The subscription tier.
+    public let subscriptionTier: SubscriptionTier
+    /// Whether the subscription uses Prime, when Twitch reports it.
+    public let isPrime: Bool?
+
+    /// Gift details when available and decodable; `nil` also covers a non-gifted
+    /// subscription.
+    public let gift: Gift?
+
+    /// Creates a `ResubNotice` value.
+    public init(
+      cumulativeMonths: Int,
+      durationMonths: Int,
+      streakMonths: Int? = nil,
+      subscriptionTier: SubscriptionTier,
+      isPrime: Bool? = nil,
+      gift: Gift? = nil
+    ) {
+      self.cumulativeMonths = cumulativeMonths
+      self.durationMonths = durationMonths
+      self.streakMonths = streakMonths
+      self.subscriptionTier = subscriptionTier
+      self.isPrime = isPrime
+      self.gift = gift
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case cumulativeMonths
+      case durationMonths
+      case streakMonths
+      case subscriptionTier = "subTier"
+      case isPrime
+      case isGift
+      case gifterIsAnonymous
+      case gifterID = "gifterUserId"
+      case gifterDisplayName = "gifterUserName"
+      case gifterLogin = "gifterUserLogin"
+    }
+
+    /// Decodes a resubscription; absent or undecodable gift details become `nil`.
+    public init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
-      let isGift = try container.decode(Bool.self, forKey: .isGift)
 
-      if isGift {
-        let gifterIsAnonymous = try container.decode(
-          Bool.self, forKey: .gifterIsAnonymous)
-        if gifterIsAnonymous {
-          self = .anonymous
+      cumulativeMonths = try container.decode(Int.self, forKey: .cumulativeMonths)
+      durationMonths = try container.decode(Int.self, forKey: .durationMonths)
+      streakMonths = try container.decodeIfPresent(Int.self, forKey: .streakMonths)
+      subscriptionTier = try container.decode(
+        SubscriptionTier.self, forKey: .subscriptionTier)
+      isPrime = try container.decodeIfPresent(Bool.self, forKey: .isPrime)
+      gift = try? Gift(from: decoder)
+    }
+
+    /// The original subscription gifter, who may be anonymous.
+    public enum Gift: Sendable {
+      /// The user responsible for the notification chose to remain anonymous.
+      case anonymous
+      /// The identified user who gifted the subscription.
+      case gifter(Gifter)
+
+      init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let isGift = try container.decode(Bool.self, forKey: .isGift)
+
+        if isGift {
+          let gifterIsAnonymous = try container.decode(
+            Bool.self, forKey: .gifterIsAnonymous)
+          if gifterIsAnonymous {
+            self = .anonymous
+          } else {
+            let gifterUserID = try container.decode(String.self, forKey: .gifterID)
+            let gifterUserDisplayName = try container.decode(
+              String.self, forKey: .gifterDisplayName)
+            let gifterUserLogin = try container.decode(
+              String.self, forKey: .gifterLogin)
+
+            self = .gifter(
+              .init(
+                userID: gifterUserID, userDisplayName: gifterUserDisplayName,
+                userLogin: gifterUserLogin))
+          }
         } else {
-          let gifterUserID = try container.decode(String.self, forKey: .gifterID)
-          let gifterUserDisplayName = try container.decode(
-            String.self, forKey: .gifterDisplayName)
-          let gifterUserLogin = try container.decode(
-            String.self, forKey: .gifterLogin)
-
-          self = .gifter(
-            .init(
-              userID: gifterUserID, userDisplayName: gifterUserDisplayName,
-              userLogin: gifterUserLogin))
+          throw DecodingError.keyNotFound(
+            CodingKeys.gifterID,
+            .init(codingPath: decoder.codingPath, debugDescription: "Sub was not gifted"))
         }
+      }
+
+      /// The account identity of the user who gifted the resubscribed subscription.
+      public struct Gifter: Sendable {
+        /// The Twitch user ID.
+        public let userID: String
+        /// The user’s display name.
+        public let userDisplayName: String
+        /// The user’s login name.
+        public let userLogin: String
+
+        /// Creates a `Gifter` value.
+        public init(
+          userID: String,
+          userDisplayName: String,
+          userLogin: String
+        ) {
+          self.userID = userID
+          self.userDisplayName = userDisplayName
+          self.userLogin = userLogin
+        }
+      }
+    }
+  }
+
+  /// A chat notification that a subscription was gifted to a user.
+  public struct SubGiftNotice: Decodable, Sendable {
+    /// The number of months included in the subscription.
+    public let durationMonths: Int
+    /// The cumulative contribution total, when provided.
+    public let cumulativeTotal: Int?
+
+    /// The Twitch user ID of the recipient.
+    public let recipientID: String
+    /// The display name of the recipient.
+    public let recipientDisplayName: String
+    /// The login name of the recipient.
+    public let recipientLogin: String
+
+    /// The subscription tier.
+    public let subscriptionTier: SubscriptionTier
+    /// The identifier linking this gift to its community gift batch, when provided.
+    public let communityGiftID: String?
+
+    /// Creates a `SubGiftNotice` value.
+    public init(
+      durationMonths: Int,
+      cumulativeTotal: Int? = nil,
+      recipientID: String,
+      recipientDisplayName: String,
+      recipientLogin: String,
+      subscriptionTier: SubscriptionTier,
+      communityGiftID: String? = nil
+    ) {
+      self.durationMonths = durationMonths
+      self.cumulativeTotal = cumulativeTotal
+      self.recipientID = recipientID
+      self.recipientDisplayName = recipientDisplayName
+      self.recipientLogin = recipientLogin
+      self.subscriptionTier = subscriptionTier
+      self.communityGiftID = communityGiftID
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case durationMonths
+      case cumulativeTotal
+      case recipientID = "recipientUserId"
+      case recipientDisplayName = "recipientUserName"
+      case recipientLogin = "recipientUserLogin"
+      case subscriptionTier = "subTier"
+      case communityGiftID = "communityGiftId"
+    }
+  }
+
+  /// A chat notification for a batch of community gift subscriptions.
+  public struct CommunitySubGiftNotice: Decodable, Sendable {
+    /// The identifier assigned by Twitch.
+    public let id: String
+    /// The number of subscriptions included in this community gift.
+    public let total: Int
+    /// The subscription tier.
+    public let subscriptionTier: SubscriptionTier
+    /// The cumulative contribution total, when provided.
+    public let cumulativeTotal: Int?
+
+    /// Creates a `CommunitySubGiftNotice` value.
+    public init(
+      id: String,
+      total: Int,
+      subscriptionTier: SubscriptionTier,
+      cumulativeTotal: Int? = nil
+    ) {
+      self.id = id
+      self.total = total
+      self.subscriptionTier = subscriptionTier
+      self.cumulativeTotal = cumulativeTotal
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case id
+      case total
+      case subscriptionTier = "subTier"
+      case cumulativeTotal
+    }
+  }
+
+  /// A chat notification that a gifted subscription became a paid subscription.
+  public struct GiftPaidUpgradeNotice: Decodable, Sendable {
+    /// The gifter’s identity; `nil` means the gift was anonymous.
+    public let gifter: Gifter?
+
+    /// Creates a `GiftPaidUpgradeNotice` value.
+    public init(
+      gifter: Gifter? = nil
+    ) {
+      self.gifter = gifter
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case gifterIsAnonymous
+      case gifterID = "gifterUserId"
+      case gifterDisplayName = "gifterUserName"
+      case gifterLogin = "gifterUserLogin"
+    }
+
+    /// Decodes an upgrade, mapping an anonymous gifter to `nil`.
+    public init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+
+      let gifterIsAnonymous = try container.decode(Bool.self, forKey: .gifterIsAnonymous)
+      if gifterIsAnonymous {
+        gifter = nil
       } else {
-        throw DecodingError.keyNotFound(
-          CodingKeys.gifterID,
-          .init(codingPath: decoder.codingPath, debugDescription: "Sub was not gifted"))
+        let gifterID = try container.decode(String.self, forKey: .gifterID)
+        let gifterDisplayName = try container.decode(
+          String.self, forKey: .gifterDisplayName)
+        let gifterLogin = try container.decodeIfPresent(String.self, forKey: .gifterLogin)
+        gifter = .init(
+          userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
       }
     }
 
-    /// The account identity of the user who gifted the resubscribed subscription.
+    /// The account identity of the original subscription gifter.
+    public struct Gifter: Sendable {
+      /// The Twitch user ID.
+      public let userID: String
+      /// The user’s display name.
+      public let userDisplayName: String
+      /// The user’s login name, when Twitch includes it.
+      public let userLogin: String?
+
+      /// Creates a `Gifter` value.
+      public init(
+        userID: String,
+        userDisplayName: String,
+        userLogin: String? = nil
+      ) {
+        self.userID = userID
+        self.userDisplayName = userDisplayName
+        self.userLogin = userLogin
+      }
+    }
+  }
+
+  /// A chat notification that a Prime subscription became a paid subscription.
+  public struct PrimePaidUpgradeNotice: Decodable, Sendable {
+    /// The subscription tier.
+    public let subscriptionTier: SubscriptionTier
+
+    /// Creates a `PrimePaidUpgradeNotice` value.
+    public init(
+      subscriptionTier: SubscriptionTier
+    ) {
+      self.subscriptionTier = subscriptionTier
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case subscriptionTier = "subTier"
+    }
+  }
+
+  /// A chat notification that a gift recipient gifted a subscription onward.
+  public struct PayItForwardNotice: Decodable, Sendable {
+    /// The gifter’s identity; `nil` means the gift was anonymous.
+    public let gifter: Gifter?
+
+    /// Creates a `PayItForwardNotice` value.
+    public init(
+      gifter: Gifter? = nil
+    ) {
+      self.gifter = gifter
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case gifterIsAnonymous
+      case gifterID = "gifterUserId"
+      case gifterDisplayName = "gifterUserName"
+      case gifterLogin = "gifterUserLogin"
+    }
+
+    /// Decodes a gift, mapping an anonymous original gifter to `nil`.
+    public init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+
+      let gifterIsAnonymous = try container.decode(Bool.self, forKey: .gifterIsAnonymous)
+      if gifterIsAnonymous {
+        gifter = nil
+      } else {
+        let gifterID = try container.decode(String.self, forKey: .gifterID)
+        let gifterDisplayName = try container.decode(
+          String.self, forKey: .gifterDisplayName)
+        let gifterLogin = try container.decode(String.self, forKey: .gifterLogin)
+        gifter = .init(
+          userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
+      }
+    }
+
+    /// The account identity of the user whose gift prompted this subscription gift.
     public struct Gifter: Sendable {
       /// The Twitch user ID.
       public let userID: String
@@ -454,203 +756,110 @@ public struct ResubNotice: Decodable, Sendable {
       public let userDisplayName: String
       /// The user’s login name.
       public let userLogin: String
-    }
-  }
-}
 
-/// A chat notification that a subscription was gifted to a user.
-@MemberwiseInit(.public)
-public struct SubGiftNotice: Decodable, Sendable {
-  /// The number of months included in the subscription.
-  public let durationMonths: Int
-  /// The cumulative contribution total, when provided.
-  public let cumulativeTotal: Int?
-
-  /// The Twitch user ID of the recipient.
-  public let recipientID: String
-  /// The display name of the recipient.
-  public let recipientDisplayName: String
-  /// The login name of the recipient.
-  public let recipientLogin: String
-
-  /// The subscription tier.
-  public let subscriptionTier: SubscriptionTier
-  /// The identifier linking this gift to its community gift batch, when provided.
-  public let communityGiftID: String?
-
-  enum CodingKeys: String, CodingKey {
-    case durationMonths
-    case cumulativeTotal
-    case recipientID = "recipientUserId"
-    case recipientDisplayName = "recipientUserName"
-    case recipientLogin = "recipientUserLogin"
-    case subscriptionTier = "subTier"
-    case communityGiftID = "communityGiftId"
-  }
-}
-
-/// A chat notification for a batch of community gift subscriptions.
-@MemberwiseInit(.public)
-public struct CommunitySubGiftNotice: Decodable, Sendable {
-  /// The identifier assigned by Twitch.
-  public let id: String
-  /// The number of subscriptions included in this community gift.
-  public let total: Int
-  /// The subscription tier.
-  public let subscriptionTier: SubscriptionTier
-  /// The cumulative contribution total, when provided.
-  public let cumulativeTotal: Int?
-
-  enum CodingKeys: String, CodingKey {
-    case id
-    case total
-    case subscriptionTier = "subTier"
-    case cumulativeTotal
-  }
-}
-
-/// A chat notification that a gifted subscription became a paid subscription.
-@MemberwiseInit(.public)
-public struct GiftPaidUpgradeNotice: Decodable, Sendable {
-  /// The gifter’s identity; `nil` means the gift was anonymous.
-  public let gifter: Gifter?
-
-  enum CodingKeys: String, CodingKey {
-    case gifterIsAnonymous
-    case gifterID = "gifterUserId"
-    case gifterDisplayName = "gifterUserName"
-    case gifterLogin = "gifterUserLogin"
-  }
-
-  /// Decodes an upgrade, mapping an anonymous gifter to `nil`.
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-
-    let gifterIsAnonymous = try container.decode(Bool.self, forKey: .gifterIsAnonymous)
-    if gifterIsAnonymous {
-      gifter = nil
-    } else {
-      let gifterID = try container.decode(String.self, forKey: .gifterID)
-      let gifterDisplayName = try container.decode(
-        String.self, forKey: .gifterDisplayName)
-      let gifterLogin = try container.decodeIfPresent(String.self, forKey: .gifterLogin)
-      gifter = .init(
-        userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
+      /// Creates a `Gifter` value.
+      public init(
+        userID: String,
+        userDisplayName: String,
+        userLogin: String
+      ) {
+        self.userID = userID
+        self.userDisplayName = userDisplayName
+        self.userLogin = userLogin
+      }
     }
   }
 
-  /// The account identity of the original subscription gifter.
-  public struct Gifter: Sendable {
-    /// The Twitch user ID.
-    public let userID: String
-    /// The user’s display name.
-    public let userDisplayName: String
-    /// The user’s login name, when Twitch includes it.
-    public let userLogin: String?
-  }
-}
-
-/// A chat notification that a Prime subscription became a paid subscription.
-@MemberwiseInit(.public)
-public struct PrimePaidUpgradeNotice: Decodable, Sendable {
-  /// The subscription tier.
-  public let subscriptionTier: SubscriptionTier
-
-  enum CodingKeys: String, CodingKey {
-    case subscriptionTier = "subTier"
-  }
-}
-
-/// A chat notification that a gift recipient gifted a subscription onward.
-@MemberwiseInit(.public)
-public struct PayItForwardNotice: Decodable, Sendable {
-  /// The gifter’s identity; `nil` means the gift was anonymous.
-  public let gifter: Gifter?
-
-  enum CodingKeys: String, CodingKey {
-    case gifterIsAnonymous
-    case gifterID = "gifterUserId"
-    case gifterDisplayName = "gifterUserName"
-    case gifterLogin = "gifterUserLogin"
-  }
-
-  /// Decodes a gift, mapping an anonymous original gifter to `nil`.
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-
-    let gifterIsAnonymous = try container.decode(Bool.self, forKey: .gifterIsAnonymous)
-    if gifterIsAnonymous {
-      gifter = nil
-    } else {
-      let gifterID = try container.decode(String.self, forKey: .gifterID)
-      let gifterDisplayName = try container.decode(
-        String.self, forKey: .gifterDisplayName)
-      let gifterLogin = try container.decode(String.self, forKey: .gifterLogin)
-      gifter = .init(
-        userID: gifterID, userDisplayName: gifterDisplayName, userLogin: gifterLogin)
-    }
-  }
-
-  /// The account identity of the user whose gift prompted this subscription gift.
-  public struct Gifter: Sendable {
+  /// A chat notification for an incoming raid and its audience.
+  public struct RaidNotice: Decodable, Sendable {
     /// The Twitch user ID.
     public let userID: String
     /// The user’s display name.
     public let userDisplayName: String
     /// The user’s login name.
     public let userLogin: String
+    /// The number of viewers reported by Twitch.
+    public let viewerCount: Int
+    /// The URL of the raiding broadcaster's profile image.
+    public let profileImageURL: String
+
+    /// Creates a `RaidNotice` value.
+    public init(
+      userID: String,
+      userDisplayName: String,
+      userLogin: String,
+      viewerCount: Int,
+      profileImageURL: String
+    ) {
+      self.userID = userID
+      self.userDisplayName = userDisplayName
+      self.userLogin = userLogin
+      self.viewerCount = viewerCount
+      self.profileImageURL = profileImageURL
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case userID = "userId"
+      case userDisplayName = "userName"
+      case userLogin
+      case viewerCount
+      case profileImageURL = "profileImageUrl"
+    }
   }
-}
 
-/// A chat notification for an incoming raid and its audience.
-@MemberwiseInit(.public)
-public struct RaidNotice: Decodable, Sendable {
-  /// The Twitch user ID.
-  public let userID: String
-  /// The user’s display name.
-  public let userDisplayName: String
-  /// The user’s login name.
-  public let userLogin: String
-  /// The number of viewers reported by Twitch.
-  public let viewerCount: Int
-  /// The URL of the raiding broadcaster's profile image.
-  public let profileImageURL: String
+  /// A channel announcement’s chat notification metadata.
+  public struct AnnouncementNotice: Decodable, Sendable {
+    /// The color reported by Twitch.
+    public let color: String
 
-  enum CodingKeys: String, CodingKey {
-    case userID = "userId"
-    case userDisplayName = "userName"
-    case userLogin
-    case viewerCount
-    case profileImageURL = "profileImageUrl"
+    /// Creates an `AnnouncementNotice` value.
+    public init(
+      color: String
+    ) {
+      self.color = color
+    }
   }
-}
 
-/// A channel announcement’s chat notification metadata.
-@MemberwiseInit(.public)
-public struct AnnouncementNotice: Decodable, Sendable {
-  /// The color reported by Twitch.
-  public let color: String
-}
+  /// A chat notification that a user reached a Bits badge tier.
+  public struct BitsBadgeTierNotice: Decodable, Sendable {
+    /// The subscription or Bits badge tier reported by the notification.
+    public let tier: Int
 
-/// A chat notification that a user reached a Bits badge tier.
-@MemberwiseInit(.public)
-public struct BitsBadgeTierNotice: Decodable, Sendable {
-  /// The subscription or Bits badge tier reported by the notification.
-  public let tier: Int
-}
+    /// Creates a `BitsBadgeTierNotice` value.
+    public init(
+      tier: Int
+    ) {
+      self.tier = tier
+    }
+  }
 
-/// A chat notification describing a charity donation.
-@MemberwiseInit(.public)
-public struct CharityDonationNotice: Decodable, Sendable {
-  /// The name of the charity.
-  public let charityName: String
-  /// The amount contributed or donated.
-  public let amount: CharityDonationEvent.CharityAmount
-}
+  /// A chat notification describing a charity donation.
+  public struct CharityDonationNotice: Decodable, Sendable {
+    /// The name of the charity.
+    public let charityName: String
+    /// The amount contributed or donated.
+    public let amount: CharityDonationEvent.CharityAmount
 
-/// A chat notification summarizing gifted Drops.
-@MemberwiseInit(.public)
-public struct GiftedDropsSummaryNotice: Decodable, Sendable {
-  /// The number of recipients.
-  public let recipientCount: Int
+    /// Creates a `CharityDonationNotice` value.
+    public init(
+      charityName: String,
+      amount: CharityDonationEvent.CharityAmount
+    ) {
+      self.charityName = charityName
+      self.amount = amount
+    }
+  }
+
+  /// A chat notification summarizing gifted Drops.
+  public struct GiftedDropsSummaryNotice: Decodable, Sendable {
+    /// The number of recipients.
+    public let recipientCount: Int
+
+    /// Creates a `GiftedDropsSummaryNotice` value.
+    public init(
+      recipientCount: Int
+    ) {
+      self.recipientCount = recipientCount
+    }
+  }
 }

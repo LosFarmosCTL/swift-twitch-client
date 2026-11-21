@@ -170,7 +170,7 @@ struct ManagedChatEventSubTests {
     await gate.release()
     await client.moderationPrefillTask?.value
     #expect(Set(await client.chatState.sendEligibility.keys) == [channel.id])
-    await client.part(id: channel.id)
+    try await client.part(from: .id(channel.id))
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage), queue: true)
     try await client.join(to: channel)
     let state = await client.chatState

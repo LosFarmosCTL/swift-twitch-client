@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets a channel’s chat restrictions and authorized moderator settings.
@@ -36,22 +35,17 @@ extension HelixEndpoint {
 }
 
 /// A channel’s chat restrictions and any moderator-visible delay settings.
-@MemberwiseInit(.public)
 public struct ChatSettings: Decodable, Sendable {
   /// The acting moderator’s user ID, when returned by Twitch.
-  @Init(default: nil)
   public let moderatorID: String?
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
   /// Whether slow mode is enabled. Independent of the configured wait time.
-  @Init(default: false)
   public let slowMode: Bool
   /// Whether follower-only mode is enabled. A zero-minute duration still permits this mode.
-  @Init(default: false)
   public let followerMode: Bool
   /// Whether non-moderator delay is enabled, if Twitch returned moderator-only data.
-  @Init(default: nil)
-  public let nonModeratorChatDelayEnabled: Bool?
+  public let nonModeratorChatDelay: Bool?
   /// The required delay between a user’s messages, in seconds, when slow mode is enabled.
   public let slowModeWaitTime: Int?
   /// The required following duration, in minutes, when follower-only mode is enabled.
@@ -65,7 +59,34 @@ public struct ChatSettings: Decodable, Sendable {
 
   /// The delay applied to non-moderator messages, in seconds. `nil` means Twitch omitted
   /// the duration, including when the request lacks moderator authorization.
-  public let nonModeratorChatDelay: Int?
+  public let nonModeratorChatDelayDuration: Int?
+
+  /// Creates a `ChatSettings` value.
+  public init(
+    moderatorID: String? = nil,
+    broadcasterID: String,
+    slowMode: Bool = false,
+    followerMode: Bool = false,
+    nonModeratorChatDelay: Bool? = nil,
+    slowModeWaitTime: Int? = nil,
+    followerModeDuration: Int? = nil,
+    subscriberMode: Bool,
+    emoteMode: Bool,
+    uniqueChatMode: Bool,
+    nonModeratorChatDelayDuration: Int? = nil
+  ) {
+    self.moderatorID = moderatorID
+    self.broadcasterID = broadcasterID
+    self.slowMode = slowMode
+    self.followerMode = followerMode
+    self.nonModeratorChatDelay = nonModeratorChatDelay
+    self.slowModeWaitTime = slowModeWaitTime
+    self.followerModeDuration = followerModeDuration
+    self.subscriberMode = subscriberMode
+    self.emoteMode = emoteMode
+    self.uniqueChatMode = uniqueChatMode
+    self.nonModeratorChatDelayDuration = nonModeratorChatDelayDuration
+  }
 
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
@@ -89,7 +110,7 @@ public struct ChatSettings: Decodable, Sendable {
     self.moderatorID = try container.decodeIfPresent(String.self, forKey: .moderatorID)
     self.slowMode = try container.decode(Bool.self, forKey: .slowMode)
     self.followerMode = try container.decode(Bool.self, forKey: .followerMode)
-    self.nonModeratorChatDelayEnabled = try container.decodeIfPresent(
+    self.nonModeratorChatDelay = try container.decodeIfPresent(
       Bool.self, forKey: .nonModeratorChatDelay)
     self.slowModeWaitTime = try container.decodeIfPresent(
       Int.self, forKey: .slowModeWaitTime)
@@ -100,7 +121,7 @@ public struct ChatSettings: Decodable, Sendable {
     self.emoteMode = try container.decode(Bool.self, forKey: .emoteMode)
     self.uniqueChatMode = try container.decode(Bool.self, forKey: .uniqueChatMode)
 
-    self.nonModeratorChatDelay = try container.decodeIfPresent(
+    self.nonModeratorChatDelayDuration = try container.decodeIfPresent(
       Int.self, forKey: .nonModeratorChatDelayDuration)
   }
 }

@@ -1,8 +1,5 @@
-import MemberwiseInit
-
 /// An EventSub notification delivered when the subscribed channel becomes active in a
 /// shared chat session, including when it joins a session already in progress.
-@MemberwiseInit(.public)
 public struct ChannelSharedChatSessionBeginEvent: Event {
   /// The identifier of the session.
   public let sessionID: String
@@ -24,6 +21,27 @@ public struct ChannelSharedChatSessionBeginEvent: Event {
   /// The broadcaster channels participating in the shared chat session.
   public let participants: [Participant]
 
+  /// Creates a `ChannelSharedChatSessionBeginEvent` value.
+  public init(
+    sessionID: String,
+    broadcasterID: String,
+    broadcasterDisplayName: String,
+    broadcasterLogin: String,
+    hostBroadcasterID: String,
+    hostBroadcasterDisplayName: String,
+    hostBroadcasterLogin: String,
+    participants: [Participant] = []
+  ) {
+    self.sessionID = sessionID
+    self.broadcasterID = broadcasterID
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.broadcasterLogin = broadcasterLogin
+    self.hostBroadcasterID = hostBroadcasterID
+    self.hostBroadcasterDisplayName = hostBroadcasterDisplayName
+    self.hostBroadcasterLogin = hostBroadcasterLogin
+    self.participants = participants
+  }
+
   enum CodingKeys: String, CodingKey {
     case sessionID = "sessionId"
     case broadcasterID = "broadcasterUserId"
@@ -36,7 +54,6 @@ public struct ChannelSharedChatSessionBeginEvent: Event {
   }
 
   /// The account identity of a channel participating in a shared chat session.
-  @MemberwiseInit(.public)
   public struct Participant: Decodable, Sendable {
     /// The Twitch user ID of the broadcaster.
     public let broadcasterID: String
@@ -44,6 +61,17 @@ public struct ChannelSharedChatSessionBeginEvent: Event {
     public let broadcasterDisplayName: String
     /// The login name of the broadcaster.
     public let broadcasterLogin: String
+
+    /// Creates a `Participant` value.
+    public init(
+      broadcasterID: String,
+      broadcasterDisplayName: String,
+      broadcasterLogin: String
+    ) {
+      self.broadcasterID = broadcasterID
+      self.broadcasterDisplayName = broadcasterDisplayName
+      self.broadcasterLogin = broadcasterLogin
+    }
 
     enum CodingKeys: String, CodingKey {
       case broadcasterID = "broadcasterUserId"

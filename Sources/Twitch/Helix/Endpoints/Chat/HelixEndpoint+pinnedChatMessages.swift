@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the channel’s mod-pinned message, or `nil` if none is pinned.
@@ -137,7 +136,6 @@ extension HelixEndpoint {
 }
 
 /// A mod-pinned chat message, its author, and its pinning metadata.
-@MemberwiseInit(.public)
 public struct PinnedChatMessage: Decodable, Sendable {
   /// The pinned message ID.
   public let messageID: String
@@ -163,6 +161,35 @@ public struct PinnedChatMessage: Decodable, Sendable {
   public let endsAt: Date?
   /// When the pin was last updated.
   public let updatedAt: Date
+
+  /// Creates a `PinnedChatMessage` value.
+  public init(
+    messageID: String,
+    broadcasterID: String,
+    senderID: String,
+    senderLogin: String,
+    senderDisplayName: String,
+    pinnedByID: String,
+    pinnedByLogin: String,
+    pinnedByDisplayName: String,
+    message: ChannelChatMessageEvent.Message? = nil,
+    startsAt: Date,
+    endsAt: Date? = nil,
+    updatedAt: Date
+  ) {
+    self.messageID = messageID
+    self.broadcasterID = broadcasterID
+    self.senderID = senderID
+    self.senderLogin = senderLogin
+    self.senderDisplayName = senderDisplayName
+    self.pinnedByID = pinnedByID
+    self.pinnedByLogin = pinnedByLogin
+    self.pinnedByDisplayName = pinnedByDisplayName
+    self.message = message
+    self.startsAt = startsAt
+    self.endsAt = endsAt
+    self.updatedAt = updatedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case messageID = "messageId"

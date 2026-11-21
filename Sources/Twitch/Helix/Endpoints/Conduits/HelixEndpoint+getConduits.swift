@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the application’s EventSub conduits.
@@ -20,10 +19,18 @@ extension HelixEndpoint {
 }
 
 /// An EventSub conduit and its configured shard count.
-@MemberwiseInit(.public)
 public struct Conduit: Decodable, Sendable {
   /// The identifier assigned by Twitch.
   public let id: String
   /// The number of shards assigned to the conduit.
   public let shardCount: Int
+
+  /// Creates a `Conduit` value.
+  public init(
+    id: String,
+    shardCount: Int
+  ) {
+    self.id = id
+    self.shardCount = shardCount
+  }
 }

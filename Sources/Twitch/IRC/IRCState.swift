@@ -1,5 +1,5 @@
 import Foundation
-import TwitchIRC
+public import TwitchIRC
 
 /// A diagnostic snapshot of an IRC transport's connectivity, channels, and recovery state.
 ///
@@ -32,6 +32,19 @@ public struct IRCState: Sendable {
   public internal(set) var recoveries: [IRCRecovery] = []
   /// The latest `GLOBALUSERSTATE` received from Twitch on this transport, if authenticated.
   public internal(set) var globalUserState: GlobalUserState?
+
+  /// Creates an `IRCState` value.
+  public init(
+    status: Status = .idle,
+    channels: [String: IRCChannelStatus] = [:],
+    recoveries: [IRCRecovery] = [],
+    globalUserState: GlobalUserState? = nil
+  ) {
+    self.status = status
+    self.channels = channels
+    self.recoveries = recoveries
+    self.globalUserState = globalUserState
+  }
 }
 
 /// Details of an in-progress recovery for a single IRC WebSocket connection.
@@ -80,4 +93,21 @@ public struct IRCRecovery: Sendable, Equatable {
   public let attempt: Int
   /// When the next reconnect attempt is scheduled, or `nil` while an attempt is actively connecting.
   public internal(set) var retryAt: Date?
+
+  /// Creates an `IRCRecovery` value.
+  public init(
+    connectionID: UUID,
+    role: Role,
+    channels: Set<String> = [],
+    reason: Reason,
+    attempt: Int,
+    retryAt: Date? = nil
+  ) {
+    self.connectionID = connectionID
+    self.role = role
+    self.channels = channels
+    self.reason = reason
+    self.attempt = attempt
+    self.retryAt = retryAt
+  }
 }

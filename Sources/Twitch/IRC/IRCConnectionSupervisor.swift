@@ -56,7 +56,7 @@ internal actor IRCConnectionSupervisor {
 
   func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
     guard !state.isEnded else { throw state.terminalError ?? IRCError.disconnected }
-    guard state.status == .idle else { throw IRCError.alreadyConnected }
+    guard state.status == .idle else { throw IRCInternalError.alreadyConnected }
     try lifetime.check()
 
     let (stream, continuation) = AsyncThrowingStream<IRCConnectionUpdate, any Error>.makeStream()

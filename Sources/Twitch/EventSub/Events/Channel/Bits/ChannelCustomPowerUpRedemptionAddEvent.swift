@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a viewer redeems a broadcaster-defined Bits Power-up.
-@MemberwiseInit(.public)
 public struct ChannelCustomPowerUpRedemptionAddEvent: Event {
   /// The unique identifier of this redemption.
   public let id: String
@@ -27,6 +25,33 @@ public struct ChannelCustomPowerUpRedemptionAddEvent: Event {
   /// The time the Power-up was redeemed.
   public let redeemedAt: Date
 
+  /// Creates a `ChannelCustomPowerUpRedemptionAddEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    userInput: String,
+    status: String,
+    customPowerUp: CustomPowerUp,
+    redeemedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.userInput = userInput
+    self.status = status
+    self.customPowerUp = customPowerUp
+    self.redeemedAt = redeemedAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case id, userLogin, userInput, status, customPowerUp, redeemedAt
     case broadcasterID = "broadcasterUserId"
@@ -37,7 +62,6 @@ public struct ChannelCustomPowerUpRedemptionAddEvent: Event {
   }
 
   /// The custom Power-up's details at the time it was redeemed.
-  @MemberwiseInit(.public)
   public struct CustomPowerUp: Decodable, Sendable {
     /// The unique identifier of the custom Power-up.
     public let id: String
@@ -47,5 +71,18 @@ public struct ChannelCustomPowerUpRedemptionAddEvent: Event {
     public let bits: Int
     /// The prompt shown to viewers when redeeming the Power-up.
     public let prompt: String
+
+    /// Creates a `CustomPowerUp` value.
+    public init(
+      id: String,
+      title: String,
+      bits: Int,
+      prompt: String
+    ) {
+      self.id = id
+      self.title = title
+      self.bits = bits
+      self.prompt = prompt
+    }
   }
 }

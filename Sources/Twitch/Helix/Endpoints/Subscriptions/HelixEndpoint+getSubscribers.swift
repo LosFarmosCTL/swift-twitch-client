@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the authenticated broadcaster’s subscriptions and subscription points.
@@ -67,10 +66,22 @@ public struct SubscribersResponse: Sendable {
 
   /// The pagination cursor to pass when requesting another page.
   public let cursor: String?
+
+  /// Creates a `SubscribersResponse` value.
+  public init(
+    subscribers: [Subscriber] = [],
+    total: Int? = nil,
+    points: Int? = nil,
+    cursor: String? = nil
+  ) {
+    self.subscribers = subscribers
+    self.total = total
+    self.points = points
+    self.cursor = cursor
+  }
 }
 
 /// A channel subscriber’s account, tier, and gift metadata.
-@MemberwiseInit(.public)
 public struct Subscriber: Decodable, Sendable {
   /// The Twitch user ID.
   public let userID: String
@@ -93,6 +104,29 @@ public struct Subscriber: Decodable, Sendable {
   public let planName: String
   /// The subscription tier.
   public let tier: SubscriptionTier
+
+  /// Creates a `Subscriber` value.
+  public init(
+    userID: String,
+    userLogin: String,
+    userDisplayName: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    gifter: SubscriptionGifter? = nil,
+    planName: String,
+    tier: SubscriptionTier
+  ) {
+    self.userID = userID
+    self.userLogin = userLogin
+    self.userDisplayName = userDisplayName
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.gifter = gifter
+    self.planName = planName
+    self.tier = tier
+  }
 
   enum CodingKeys: String, CodingKey {
     case userID = "userId"

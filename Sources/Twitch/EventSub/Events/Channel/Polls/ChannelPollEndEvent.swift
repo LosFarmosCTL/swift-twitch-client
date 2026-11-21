@@ -1,8 +1,6 @@
 import Foundation
-import MemberwiseInit
 
 /// An EventSub notification delivered when a channel poll ends.
-@MemberwiseInit(.public)
 public struct ChannelPollEndEvent: Event {
   /// The identifier assigned by Twitch.
   public let id: String
@@ -28,6 +26,31 @@ public struct ChannelPollEndEvent: Event {
   public let startedAt: Date
   /// The time the activity ended.
   public let endedAt: Date
+
+  /// Creates a `ChannelPollEndEvent` value.
+  public init(
+    id: String,
+    broadcasterID: String,
+    broadcasterLogin: String,
+    broadcasterDisplayName: String,
+    title: String,
+    choices: [ChannelPollBeginEvent.PollChoice] = [],
+    channelPointsVoting: Int? = nil,
+    status: Status,
+    startedAt: Date,
+    endedAt: Date
+  ) {
+    self.id = id
+    self.broadcasterID = broadcasterID
+    self.broadcasterLogin = broadcasterLogin
+    self.broadcasterDisplayName = broadcasterDisplayName
+    self.title = title
+    self.choices = choices
+    self.channelPointsVoting = channelPointsVoting
+    self.status = status
+    self.startedAt = startedAt
+    self.endedAt = endedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -69,13 +92,25 @@ public struct ChannelPollEndEvent: Event {
 
   }
 
-  /// Whether the poll completed, was terminated, or was archived.
-  public enum Status: String, Decodable, Sendable {
+  /// Whether the poll completed, was terminated, or was archived, preserving unfamiliar
+  /// values in `rawValue`.
+  public struct Status: RawRepresentable, Decodable, Sendable, Hashable {
+    /// The exact poll status string supplied by Twitch or the caller.
+    public let rawValue: String
+
+    /// Creates a poll status from any raw string.
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    /// Decodes a poll status from a single string.
+    public init(from decoder: Decoder) throws {
+      self.init(rawValue: try decoder.singleValueContainer().decode(String.self))
+    }
+
     /// The poll completed normally.
-    case completed
+    public static let completed = Self(rawValue: "completed")
     /// The poll has been archived.
-    case archived
+    public static let archived = Self(rawValue: "archived")
     /// The poll ended before its scheduled completion.
-    case terminated
+    public static let terminated = Self(rawValue: "terminated")
   }
 }

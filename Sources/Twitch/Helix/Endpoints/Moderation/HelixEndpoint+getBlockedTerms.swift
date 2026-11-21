@@ -1,5 +1,4 @@
 import Foundation
-import MemberwiseInit
 
 extension HelixEndpoint {
   /// Gets the terms blocked by a channel’s moderation settings.
@@ -54,7 +53,6 @@ extension HelixEndpoint {
 }
 
 /// A term blocked by a channel’s moderation settings.
-@MemberwiseInit(.public)
 public struct BlockedTerm: Decodable, Sendable {
   /// The Twitch user ID of the broadcaster.
   public let broadcasterID: String
@@ -74,6 +72,25 @@ public struct BlockedTerm: Decodable, Sendable {
   /// The expiration time, when provided.
   public let expiresAt: Date?
 
+  /// Creates a `BlockedTerm` value.
+  public init(
+    broadcasterID: String,
+    moderatorID: String,
+    id: String,
+    text: String,
+    createdAt: Date,
+    updatedAt: Date,
+    expiresAt: Date? = nil
+  ) {
+    self.broadcasterID = broadcasterID
+    self.moderatorID = moderatorID
+    self.id = id
+    self.text = text
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+    self.expiresAt = expiresAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case broadcasterID = "broadcasterId"
     case moderatorID = "moderatorId"
@@ -83,10 +100,18 @@ public struct BlockedTerm: Decodable, Sendable {
 }
 
 /// A page of blocked terms.
-@MemberwiseInit(.public)
 public struct BlockedTermsResponse: Sendable {
   /// The terms on this page.
   public let terms: [BlockedTerm]
   /// The next-page cursor, if Twitch returned one.
   public let cursor: String?
+
+  /// Creates a `BlockedTermsResponse` value.
+  public init(
+    terms: [BlockedTerm] = [],
+    cursor: String? = nil
+  ) {
+    self.terms = terms
+    self.cursor = cursor
+  }
 }

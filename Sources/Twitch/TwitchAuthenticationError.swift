@@ -33,7 +33,7 @@ public enum TwitchAuthenticationError: Error, Sendable, Equatable {
   case invalidParameter(parameter: String, reason: String)
 }
 
-extension TwitchAuthenticationError: CustomStringConvertible, LocalizedError {
+extension TwitchAuthenticationError: CustomStringConvertible {
   /// A diagnostic explanation of the authentication or parameter-validation failure.
   public var description: String {
     switch self {
@@ -49,7 +49,42 @@ extension TwitchAuthenticationError: CustomStringConvertible, LocalizedError {
     case .invalidParameter(let parameter, let reason): "Invalid \(parameter): \(reason)"
     }
   }
+}
 
-  /// A description suitable for presenting this error.
-  public var errorDescription: String? { description }
+#if !os(Linux)
+  extension TwitchAuthenticationError: CustomLocalizedStringResourceConvertible {
+    /// The localized string resource describing this error.
+    public var localizedStringResource: LocalizedStringResource {
+      switch self {
+      case .oauthAccessTokenRequired:
+        .init("An OAuth user or app access token is required.", bundle: .twitchModule)
+      case .userAccessTokenRequired:
+        .init("A user access token is required.", bundle: .twitchModule)
+      case .appAccessTokenRequired:
+        .init("An app access token is required.", bundle: .twitchModule)
+      case .extensionJWTRequired:
+        .init(
+          "This endpoint requires an Extension JWT, not an OAuth access token.",
+          bundle: .twitchModule)
+      case .missingUserID(let parameter):
+        .init("Supply \(parameter) when using an app access token.", bundle: .twitchModule)
+      case .userIDMismatch(let parameter):
+        .init(
+          "\(parameter) must match the user access token's user ID.", bundle: .twitchModule)
+      case .invalidParameter(let parameter, let reason):
+        .init("Invalid \(parameter): \(reason)", bundle: .twitchModule)
+      }
+    }
+  }
+#endif
+
+extension TwitchAuthenticationError: LocalizedError {
+  /// A localized description suitable for presenting this error.
+  public var errorDescription: String? {
+    #if !os(Linux)
+      return String(localized: self.localizedStringResource)
+    #else
+      return self.description
+    #endif
+  }
 }
