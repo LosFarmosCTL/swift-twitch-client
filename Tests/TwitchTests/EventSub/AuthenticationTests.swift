@@ -91,23 +91,11 @@ struct EventSubAuthenticationTests {
       URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
     let initialID = MockedMessages.defaultSubscriptionID
     let pendingID = "pending-subscription"
-    for id in [initialID, pendingID] {
-      await harness.session.stub(
-        url: url.appending(queryItems: [.init(name: "id", value: id)]),
-        method: "DELETE", status: 204)
-    }
-    await harness.session.stub(
-      url: url, method: "POST",
-      body: Data(MockedMessages.mockEventSubSubscription.utf8))
+    await stubSubscription(initialID, at: url, on: harness.session)
     await harness.session.simulateIncoming(
       .string(MockedMessages.welcomeMessage), queue: true)
     let active = try await harness.twitch.eventStream(for: .mock())
-    await harness.session.stub(
-      url: url, method: "POST",
-      body: Data(
-        MockedMessages.customized(
-          MockedMessages.mockEventSubSubscription, subscriptionID: pendingID
-        ).utf8))
+    await stubSubscription(pendingID, at: url, on: harness.session)
     let gate = AsyncTestGate()
     let deleted = AsyncStream<Void>.makeStream()
     await harness.session.onRequest { request in
@@ -148,6 +136,18 @@ struct EventSubAuthenticationTests {
     _ = try await harness.twitch.eventStream(for: .mock())
     #expect(await harness.session.taskCount() == 2)
     await harness.twitch.resetEventSub()
+  }
+
+  private func stubSubscription(_ id: String, at url: URL, on session: MockNetworkSession) async {
+    await session.stub(
+      url: url, method: "POST",
+      body: Data(
+        MockedMessages.customized(
+          MockedMessages.mockEventSubSubscription, subscriptionID: id
+        ).utf8))
+    await session.stub(
+      url: url.appending(queryItems: [.init(name: "id", value: id)]),
+      method: "DELETE", status: 204)
   }
 
   @Test(.timeLimit(.minutes(1)))

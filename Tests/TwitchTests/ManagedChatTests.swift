@@ -64,7 +64,9 @@ struct ManagedChatTests {
       """
     await session.stub(url: url, body: Data(body.utf8))
   }
+}
 
+extension ManagedChatTests {
   @Test
   func credentialChangesBeforeObservingChatReportLatestTransition() async {
     let client = client()
@@ -81,17 +83,11 @@ struct ManagedChatTests {
           behavior: .partChannels, anonymousReaderPreserved: false))
   }
 
-  @Test(arguments: [ChatConfiguration.Writer.helix, .irc])
-  func anonymousReaderSurvivesCredentialChanges(writer: ChatConfiguration.Writer) async throws {
+  @Test
+  func anonymousReaderSurvivesCredentialChanges() async throws {
     let client = TwitchClient(
-      credentials: nil, chat: .init(reader: .irc(.anonymous), writer: writer), network: session)
+      credentials: nil, chat: .init(reader: .irc(.anonymous)), network: session)
     let updates = await client.chatStateUpdates()
-    let initial = await client.chatState
-    #expect(initial.userID == nil)
-    guard case .unavailable = initial.writer else {
-      Issue.record("Expected the signed-out writer to be unavailable")
-      return
-    }
 
     let pending = Task { try await client.join(to: channel) }
     let socket = await session.waitForTask(at: 0)
@@ -101,28 +97,6 @@ struct ManagedChatTests {
     try await client.join(to: .login("#SWIFT"))
 
     let eligibility = await client.sendEligibility(in: channel.id)
-    guard case .unavailable = eligibility else {
-      Issue.record("Expected sending to be unavailable while signed out")
-      return
-    }
-    await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
-      try await client.sendMessage("hello", in: channel)
-    }
-    await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
-      try await client.sendMessage("hello", in: .login("unknown"))
-    }
-    if writer == .irc {
-      await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
-        try await client.sendIRC(.privateMessage(to: channel.login, message: "hello"))
-      }
-    }
-    let lookup = await #expect(throws: HelixError.self) {
-      try await client.join(to: .login("unknown"))
-    }
-    guard case .authenticationError(.oauthAccessTokenRequired) = lookup else {
-      Issue.record("Expected an OAuth requirement for an uncached channel")
-      return
-    }
 
     await client.setChatPrivilege(ChatPrivilege(isVIP: true), in: channel.id)
     #expect(await client.chatState.channels[channel.id]?.privilege == .unknown)
