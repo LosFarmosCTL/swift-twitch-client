@@ -151,6 +151,7 @@ Each subsystem has a dedicated guide covering architecture, gotchas, and product
 - ``ChatModeration``
 - ``ChatUser``
 - ``ChatBadge``
+- ``ChatEmote``
 - ``ChatState``
 - ``ChatChannelState``
 - ``ChatComponentStatus``

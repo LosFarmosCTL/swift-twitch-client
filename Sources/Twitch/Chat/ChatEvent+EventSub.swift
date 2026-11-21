@@ -1,4 +1,5 @@
 import Foundation
+import TwitchIRC
 
 extension ChatBadge {
   internal init(eventSub value: ChannelChatMessageEvent.Badge) {
@@ -8,19 +9,49 @@ extension ChatBadge {
 
 extension ChatMessage {
   internal init(eventSub event: ChannelChatMessageEvent) {
+    let actionPrefix = "\u{1}ACTION ".unicodeScalars
+    let rawText = event.message.text.unicodeScalars
+    let isAction = rawText.starts(with: actionPrefix) && rawText.last == "\u{1}"
+    let prefixLength = isAction ? actionPrefix.count : 0
+    let text = isAction ? String(rawText.dropFirst(prefixLength).dropLast()) : event.message.text
     self.init(
       id: event.messageID,
       author: ChatUser(
         id: event.chatterID, login: event.chatterLogin,
         displayName: event.chatterDisplayName),
-      text: event.message.text, color: event.color,
+      text: text, isAction: isAction,
+      emotes: Self.eventSubEmotes(in: event.message, text: text, actionPrefixLength: prefixLength),
+      color: event.color,
       badges: event.badges.map(ChatBadge.init(eventSub:)),
-      replyToMessageID: event.reply?.parentID, clientNonce: nil, isFirstMessage: nil,
-      isReturningChatter: nil, contentFilterFlags: nil,
+      replyToMessageID: event.reply?.parentID,
       isIntroduction: event.messageType == .userIntro,
       sourceChannelID: event.sourceBroadcasterID, sourceMessageID: event.sourceMessageID,
       sourceBadges: event.sourceBadges?.map(ChatBadge.init(eventSub:)),
       isSourceOnly: event.isSourceOnly, details: .eventSub(event))
+  }
+
+  private static func eventSubEmotes(
+    in message: ChannelChatMessageEvent.Message, text: String, actionPrefixLength: Int
+  ) -> [ChatEmote] {
+    let fragmentScalars = message.fragments.lazy.flatMap { $0.text.unicodeScalars }
+    let fragmentsAreFramed =
+      actionPrefixLength > 0 && fragmentScalars.elementsEqual(message.text.unicodeScalars)
+    let textScalars = text.unicodeScalars
+    guard fragmentsAreFramed || fragmentScalars.elementsEqual(textScalars) else { return [] }
+
+    // Count from the start of the displayed text, skipping any framing in the fragments.
+    var offset = fragmentsAreFramed ? -actionPrefixLength : 0
+    let length = textScalars.count
+    var emotes: [ChatEmote] = []
+    for fragment in message.fragments {
+      let start = offset
+      offset += fragment.text.unicodeScalars.count
+      guard case .emote(let emote) = fragment.type, offset <= length,
+        let range = MessageTextRange(unicodeScalarOffsets: start..<offset)
+      else { continue }
+      emotes.append(ChatEmote(id: emote.id, name: fragment.text, range: range))
+    }
+    return emotes
   }
 }
 
