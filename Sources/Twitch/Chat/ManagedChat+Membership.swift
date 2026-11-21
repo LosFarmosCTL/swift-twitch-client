@@ -38,18 +38,27 @@ extension ManagedChat {
     guard !isShutdown else { throw ChatError.shutdown }
     guard channel.isValidForManagedChat else { throw ChatError.invalidChannel }
 
-    cacheChatChannel(channel)
     let existing = memberships[channel.id]
     let joinIntent = max(existing?.joinIntent ?? 0, intent)
 
     if let existing {
       guard case .failed = existing.status else {
+        guard existing.channel.login == channel.login else {
+          throw ChatError.setupFailed("Part #\(existing.channel.login) before changing its login.")
+        }
         existing.joinIntent = joinIntent
         return existing
       }
-      prepareToRetry(existing)
     }
 
+    if case .irc = configuration.reader,
+      memberships.values.contains(where: { $0.channel.login == channel.login && $0 !== existing })
+    {
+      throw ChatError.setupFailed("Part #\(channel.login) before changing its channel ID.")
+    }
+
+    if let existing { prepareToRetry(existing) }
+    cacheChatChannel(channel)
     let member = Membership(channel: channel, joinIntent: joinIntent)
     memberships[channel.id] = member
 

@@ -34,7 +34,9 @@ extension ManagedChat {
 
     guard !writer, let login = message.chatChannel,
       let channel = knownChannels[.init(login: login)],
-      let member = memberships[channel.id]
+      let member = memberships[channel.id],
+      member.status == .ready,
+      member.channel.login == IRCWireMessage.channelLogin(login)
     else { return }
 
     receiveChatIRCReaderMessage(message, for: member)

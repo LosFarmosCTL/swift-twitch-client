@@ -52,7 +52,9 @@ extension ManagedChat {
           group.addTask { [weak client] in
             for await _ in changes {
               guard let intent = await client?.takeIRCReaderIntent(for: id) else { return }
-              try await pool.setChannels(intent.channels, retrying: intent.retries)
+              try await pool.setChannels(
+                intent.roomIDs.keys.sorted(), retrying: intent.retries,
+                expectedRoomIDs: intent.roomIDs)
             }
           }
 
@@ -69,14 +71,18 @@ extension ManagedChat {
     }
   }
 
-  fileprivate func takeIRCReaderIntent(for id: UUID) -> (channels: [String], retries: Set<String>)?
-  {
+  fileprivate func takeIRCReaderIntent(for id: UUID) -> (
+    roomIDs: [String: String], retries: Set<String>
+  )? {
     guard reader?.id == id else { return nil }
 
-    let channels = Set(memberships.values.map(\.channel.login))
-    let retries = readerRetryLogins.intersection(channels)
+    let roomIDs = Dictionary(
+      uniqueKeysWithValues: memberships.values.map {
+        ($0.channel.login, $0.channel.id)
+      })
+    let retries = readerRetryLogins.intersection(roomIDs.keys)
     readerRetryLogins.subtract(retries)
-    return (channels.sorted(), retries)
+    return (roomIDs, retries)
   }
 
   @discardableResult
@@ -98,7 +104,10 @@ extension ManagedChat {
     ircReaderState = state
     readerStatus = state.status.chatStatus
     for member in memberships.values {
-      guard let status = state.channels[member.channel.login] else { continue }
+      let login = member.channel.login
+      guard state.expectedRoomIDs[login] == member.channel.id,
+        let status = state.channels[login]
+      else { continue }
       switch status {
       case .joining: member.updateStatus(.connecting)
       case .joined: member.updateStatus(.ready)
@@ -110,8 +119,9 @@ extension ManagedChat {
 }
 
 extension TwitchClient {
-  fileprivate func takeIRCReaderIntent(for id: UUID) -> (channels: [String], retries: Set<String>)?
-  {
+  fileprivate func takeIRCReaderIntent(for id: UUID) -> (
+    roomIDs: [String: String], retries: Set<String>
+  )? {
     chat.takeIRCReaderIntent(for: id)
   }
 }

@@ -16,6 +16,7 @@ internal actor IRCConnectionPool {
   }
 
   var pendingJoins: [String: PendingJoin] = [:]
+  var expectedRoomIDs: [String: String] = [:]
   var updates: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
   private var updatingChannels = false
   private var disconnectTask: Task<Void, Never>?
@@ -49,7 +50,9 @@ internal actor IRCConnectionPool {
     return stream
   }
 
-  func setChannels(_ channels: [String], retrying: Set<String> = []) throws {
+  func setChannels(
+    _ channels: [String], retrying: Set<String> = [], expectedRoomIDs: [String: String] = [:]
+  ) throws {
     guard !state.ended else { throw IRCError.disconnected }
     updatingChannels = true
     defer {
@@ -59,9 +62,11 @@ internal actor IRCConnectionPool {
     }
 
     let desired = Set(channels.map(IRCWireMessage.channelLogin))
-    for channel in Set(state.statuses.keys).subtracting(desired) {
+    for channel in state.statuses.keys
+    where !desired.contains(channel) || self.expectedRoomIDs[channel] != expectedRoomIDs[channel] {
       try part(from: channel)
     }
+    self.expectedRoomIDs = expectedRoomIDs
     for channel in desired.subtracting(state.statuses.keys) {
       try join(to: channel)
     }
@@ -71,6 +76,8 @@ internal actor IRCConnectionPool {
   }
 
   private func publishState() {
+    var snapshot = snapshot
+    snapshot.expectedRoomIDs = expectedRoomIDs
     updates?.yield(.state(snapshot))
   }
 

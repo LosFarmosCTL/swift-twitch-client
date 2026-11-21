@@ -5,6 +5,36 @@ import Testing
 
 extension ManagedChatTests {
   @Test
+  func lateIRCMessageFromPreviousLoginIsIgnoredAfterRejoin() async throws {
+    let client = client()
+    let original = Task { try await client.join(to: channel) }
+    let oldSocket = await session.waitForTask(at: 0)
+    await handshake(oldSocket)
+    await acknowledge(oldSocket)
+    try await original.value
+    await client.part(from: channel)
+
+    let renamed = ChatChannel(id: channel.id, login: "swift_new")
+    let rejoin = Task { try await client.join(to: renamed) }
+    let socket = await session.waitForTask(at: 1)
+    await handshake(socket)
+    await socket.waitForSent("JOIN #swift_new")
+    await socket.simulateIncoming(.string("@room-id=123 :tmi.twitch.tv ROOMSTATE #swift_new"))
+    try await rejoin.value
+    let events = await client.messageStream()
+
+    let prefix = "@display-name=Chatter;room-id=123;user-id=42 :chat!chat@chat.tmi.twitch.tv"
+    await socket.simulateIncoming(
+      .string("\(prefix) PRIVMSG #swift :Late\r\n\(prefix) PRIVMSG #swift_new :Current"))
+
+    let message = try #require(await nextMessage(in: events))
+    #expect(message.text == "Current")
+    let oldAlias = await client.withChat { $0.knownChannels[.login("swift")] }
+    #expect(oldAlias == nil)
+    await client.shutdownChat()
+  }
+
+  @Test
   func ircMetadataPreservesMissingValuesAndSettingsUpdatesArePartial() async throws {
     let client = client()
     let events = await client.messageStream()

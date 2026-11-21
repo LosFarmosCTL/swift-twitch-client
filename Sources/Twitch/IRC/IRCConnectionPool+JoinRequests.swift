@@ -95,16 +95,32 @@ extension IRCConnectionPool {
     switch message {
     case .join(let join) where join.userLogin == login:
       if entry.channels.contains(join.channel) {
-        joined(join.channel)
+        if expectedRoomIDs[join.channel] == nil { joined(join.channel) }
       } else {
         try? await entry.supervisor.send(.part(from: join.channel))
       }
 
     case .roomState(let room) where entry.channels.contains(room.channel):
-      joined(room.channel)
+      guard let expected = expectedRoomIDs[room.channel] else {
+        joined(room.channel)
+        break
+      }
+      guard !room.roomID.isEmpty,
+        pendingJoins[room.channel] != nil || state.statuses[room.channel] == .joined
+      else { break }
+      if room.roomID == expected {
+        joined(room.channel)
+      } else {
+        cancelJoin(room.channel)
+        let message = "#\(room.channel) has room ID \(room.roomID), expected \(expected)."
+        updateState { $0.statuses[room.channel] = .failed(.connectionFailed(message)) }
+        try? await entry.supervisor.send(.part(from: room.channel))
+      }
 
     case .part(let part) where part.userLogin == login:
-      if entry.channels.contains(part.channel) {
+      if entry.channels.contains(part.channel),
+        expectedRoomIDs[part.channel] == nil || state.statuses[part.channel] == .joined
+      {
         cancelJoin(part.channel)
         scheduleJoin(part.channel, id: id)
       }

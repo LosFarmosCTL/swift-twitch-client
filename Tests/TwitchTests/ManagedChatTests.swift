@@ -81,6 +81,34 @@ struct ManagedChatTests {
           behavior: .partChannels, anonymousReaderPreserved: false))
   }
 
+  @Test(arguments: ["123", "456"])
+  func roomStateVerifiesIRCJoin(roomID: String) async throws {
+    let client = client()
+    let raw = await client.ircMessageStream()
+    let join = Task { try await client.join(to: channel) }
+    let socket = await session.waitForTask(at: 0)
+    await handshake(socket)
+    await socket.waitForSent("JOIN #swift")
+    await socket.simulateIncoming(
+      .string(":justinfan12345!justinfan12345@justinfan12345.tmi.twitch.tv JOIN #swift"))
+    _ = try #require(await raw.first { if case .join = $0.message { true } else { false } })
+    #expect(await client.chatState.channels[channel.id]?.status == .connecting)
+
+    await socket.simulateIncoming(.string("@room-id=\(roomID) :tmi.twitch.tv ROOMSTATE #swift"))
+    if roomID == channel.id {
+      try await join.value
+      #expect(await client.chatState.channels[channel.id]?.status == .ready)
+    } else {
+      let error = await #expect(throws: ChatError.self) { try await join.value }
+      guard case .setupFailed = error else {
+        Issue.record("Expected a setup failure for the wrong room ID")
+        return
+      }
+      await socket.waitForSent("PART #swift")
+    }
+    await client.shutdownChat()
+  }
+
   @Test
   func anonymousReaderSurvivesSwitchAndStateReportsPolicyAndIdentity() async throws {
     let client = client()
