@@ -3,11 +3,17 @@ import TwitchIRC
 
 extension ChatMessage {
   internal init(irc value: PrivateMessage) {
+    let emotes = value.emotes
+      .sorted {
+        $0.range.unicodeScalarOffsets.lowerBound < $1.range.unicodeScalarOffsets.lowerBound
+      }
+      .map { ChatEmote(id: $0.id, name: $0.name, range: $0.range) }
     self.init(
       id: value.id,
       author: ChatUser(
         id: value.userID.chatNonempty, login: value.userLogin.chatNonempty,
-        displayName: value.displayName.chatNonempty), text: value.message,
+        displayName: value.displayName.chatNonempty),
+      text: value.message, isAction: value.isAction, emotes: emotes,
       color: value.color,
       badges: chatIRCBadges(value.badges, info: value.badgeInfo),
       replyToMessageID: value.replyParent?.id,
@@ -15,7 +21,6 @@ extension ChatMessage {
       isFirstMessage: value.firstMessage,
       isReturningChatter: value.returningChatter,
       contentFilterFlags: value.flags.joined(separator: ",").chatNonempty,
-      isIntroduction: nil,
       sourceChannelID: value.source?.roomID,
       sourceMessageID: value.source?.id,
       sourceBadges: value.source.map { chatIRCBadges($0.badges, info: $0.badgeInfo) },

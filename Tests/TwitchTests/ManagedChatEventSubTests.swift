@@ -30,18 +30,13 @@ struct ManagedChatEventSubTests {
     try await client.join(to: channel)
     try await client.join(to: other)
     #expect(await postCount() == 12)
-    let message = try notification(
-      MockedMessages.channelChatMessage, type: "channel.chat.message"
-    ) {
-      var event = $0
-      event["message_type"] = "future_message"
-      return event
-    }
-    await session.simulateIncoming(.string(message))
+    await session.simulateIncoming(.string(try plainTextMessageWithUnknownType()))
     let normalized = try #require(
       await events.first { if case .message = $0.payload { true } else { false } })
     if case .message(let message) = normalized.payload {
-      #expect(message.text == "Hi chat [GIF]")
+      #expect(message.text == "Hi chat")
+      #expect(message.isAction == false)
+      #expect(message.emotes.isEmpty)
       #expect(message.isIntroduction == false)
       #expect(message.isFirstMessage == nil)
       #expect(message.isReturningChatter == nil)
@@ -297,6 +292,15 @@ extension ManagedChatEventSubTests {
 
   func postCount() async -> Int {
     await session.requests().filter { $0.httpMethod == "POST" }.count
+  }
+
+  private func plainTextMessageWithUnknownType() throws -> String {
+    try notification(MockedMessages.channelChatMessage, type: "channel.chat.message") {
+      var event = $0
+      event["message_type"] = "future_message"
+      event["message"] = ["text": "Hi chat", "fragments": [["type": "text", "text": "Hi chat"]]]
+      return event
+    }
   }
 
   func notification(

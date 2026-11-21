@@ -5,6 +5,8 @@ Successful CI on main prepares a draft release; publishing remains manual. -->
 
 ## Unreleased
 
+- Managed chat exposes `ChatMessage.isAction` and ordered `ChatMessage.emotes` for IRC and EventSub. Emote ranges use Unicode scalar offsets into `ChatMessage.text`, which now omits CTCP framing for EventSub `/me` messages.
+
 ## 1.0.0
 
 First stable release of `swift-twitch-client`, targeting Swift 6.4+ in Swift 6 language mode on macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+, and Linux.
