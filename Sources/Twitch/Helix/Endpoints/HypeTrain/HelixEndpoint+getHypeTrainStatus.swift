@@ -1,7 +1,7 @@
 import Foundation
 
 extension HelixEndpoint {
-  /// Gets a channel’s current Hype Train and historical records.
+  /// Gets the authenticated broadcaster’s current Hype Train and historical records.
   ///
   /// With a user access token, requires `channel:read:hype_train`.
   ///
@@ -10,11 +10,7 @@ extension HelixEndpoint {
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/hype-train/#get-hype-train-status
   /// ) for request limits and account requirements.
-  ///
-  /// - Parameters:
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
-  public static func getHypeTrainStatus(for broadcasterID: String? = nil)
+  public static func getHypeTrainStatus()
     -> HelixEndpoint<HypeTrainStatus>
   {
     .init(
@@ -22,10 +18,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          )
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))
         ]
       },
       responseType: HypeTrainStatus.self,

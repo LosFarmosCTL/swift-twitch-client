@@ -16,26 +16,20 @@ extension HelixEndpoint {
   ///   - isRecurring: Whether the schedule segment recurs weekly, when provided.
   ///   - categoryID: The category’s identifier.
   ///   - title: The title shown to viewers, when provided.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   public static func createChannelStreamScheduleSegment(
     startTime: Date,
     timezone: String,
     duration: Int,
     isRecurring: Bool? = nil,
     categoryID: String? = nil,
-    title: String? = nil,
-    broadcasterID: String? = nil
+    title: String? = nil
   ) -> HelixEndpoint<StreamSchedule> {
     .init(
       method: "POST", path: "schedule/segment",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          )
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))
         ]
       },
       body: { _ in

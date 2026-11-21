@@ -36,7 +36,7 @@ extension ChatNotification {
     }
     self.init(
       kind: event.noticeType.chatKind, id: event.messageID, author: author,
-      text: event.message.text, systemMessage: event.systemMessage,
+      text: event.message.text.chatNonempty, systemMessage: event.systemMessage.chatNonempty,
       sourceChannelID: event.sourceBroadcasterID, sourceMessageID: event.sourceMessageID,
       isSourceOnly: event.isSourceOnly,
       details: .eventSub(event))
@@ -90,7 +90,7 @@ extension ChannelChatNotificationEvent.NoticeType {
 }
 
 extension ChatModeration.Action {
-  internal init(eventSub action: ChannelModerateEvent.Action) {
+  internal init(eventSub action: ChannelModerateEvent.Action, referenceDate: Date = Date()) {
     switch action {
     case .ban(let user), .sharedChatBan(let user):
       self = .ban(
@@ -99,11 +99,12 @@ extension ChatModeration.Action {
           displayName: user.userDisplayName), reason: user.reason)
 
     case .timeout(let user), .sharedChatTimeout(let user):
+      let seconds = max(1, Int64(ceil(user.expiresAt.timeIntervalSince(referenceDate))))
       self = .timeout(
         user: ChatUser(
           id: user.userID, login: user.userLogin,
-          displayName: user.userDisplayName), until: user.expiresAt, duration: nil,
-        reason: user.reason)
+          displayName: user.userDisplayName), until: user.expiresAt,
+        duration: .seconds(seconds), reason: user.reason)
 
     case .unban(let user), .sharedChatUnban(let user):
       self = .unban(chatModerationUser(user))

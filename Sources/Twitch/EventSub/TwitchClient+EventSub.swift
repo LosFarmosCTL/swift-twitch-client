@@ -50,7 +50,7 @@ extension TwitchClient {
     let (stream, continuation) = AsyncThrowingStream<EventSubNotification<R>, any Error>.makeStream(
       bufferingPolicy: bufferingPolicy)
 
-    let handle = try await eventListener(for: subscription) { result in
+    let registration = try await registerEventSubObserver(for: subscription) { result in
       switch result {
       case .event(let notification): continuation.yield(notification)
       case .failure(let error): continuation.finish(throwing: error)
@@ -58,7 +58,7 @@ extension TwitchClient {
       }
     }
 
-    continuation.onTermination = { _ in handle.cancel() }
+    continuation.onTermination = { _ in registration.cancel() }
     return stream
   }
 
@@ -82,21 +82,56 @@ extension TwitchClient {
     for subscription: EventSubSubscription<R>,
     callback: @escaping @Sendable (EventSubListenerEvent<EventSubNotification<R>>) -> Void
   ) async throws -> TwitchCancellable {
-    let revision = await waitForReset()
+    // buffer queue to prevent slow callbacks from blocking new receives
+    let (events, continuation) = AsyncStream<EventSubListenerEvent<EventSubNotification<R>>>
+      .makeStream(bufferingPolicy: .unbounded)
 
-    let registration = try await eventSubClient.observe(
+    let registration = try await registerEventSubObserver(for: subscription) { event in
+      continuation.yield(event)
+      if case .event = event {} else { continuation.finish() }
+    }
+
+    let delivery = Task.detached { for await event in events { callback(event) } }
+
+    return TwitchCancellable {
+      registration.cancel()
+      continuation.finish()
+      delivery.cancel()
+    }
+  }
+
+  private func registerEventSubObserver<R: Event>(
+    for subscription: EventSubSubscription<R>,
+    callback: @escaping @Sendable (EventSubListenerEvent<EventSubNotification<R>>) -> Void
+  ) async throws -> EventSubObservation {
+    let revision = try await waitForReset()
+
+    return try await eventSubClient.observe(
       for: subscription,
       handler: EventSubCallbackHandler(callback: callback),
       revision: revision)
-
-    return TwitchCancellable { registration.cancel() }
   }
 
-  private func waitForReset() async -> UInt64 {
+  private func waitForReset() async throws -> UInt64 {
     // Capture this registration's revision before waiting. A later reset can supersede it.
     let revision = eventSubRevision
-    await eventSubResetTask?.value
+    try Task.checkCancellation()
+    guard let resetTask = eventSubResetTask else { return revision }
 
+    let (stream, continuation) = AsyncThrowingStream<Void, any Error>.makeStream()
+    let relay = Task {
+      await resetTask.value
+      continuation.finish()
+    }
+    defer { relay.cancel() }
+
+    try await withTaskCancellationHandler {
+      for try await _ in stream {}
+    } onCancel: {
+      continuation.finish(throwing: CancellationError())
+    }
+
+    try Task.checkCancellation()
     return revision
   }
 
@@ -123,7 +158,7 @@ extension TwitchClient {
       for subscription: EventSubSubscription<R>
     ) -> AnyPublisher<EventSubNotification<R>, any Error> {
       EventSubPublisher<EventSubNotification<R>> { [weak self] callback in
-        guard let self else { throw CancellationError() }
+        guard let self else { return nil }
         return try await self.eventListener(for: subscription, callback: callback)
       }.eraseToAnyPublisher()
     }

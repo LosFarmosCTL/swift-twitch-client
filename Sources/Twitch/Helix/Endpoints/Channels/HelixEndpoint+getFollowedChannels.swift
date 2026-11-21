@@ -26,7 +26,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", try credentials.requireUser().id),
+          ("user_id", try credentials.requireUserID(parameter: "user_id")),
           ("broadcaster_id", broadcasterID),
           ("first", limit.map(String.init)),
           ("after", cursor),
@@ -66,7 +66,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          ("user_id", try credentials.requireUser().id),
+          ("user_id", try credentials.requireUserID(parameter: "user_id")),
           ("broadcaster_id", broadcasterID),
         ]
       },

@@ -37,6 +37,7 @@ extension ChatPrivilege {
     let ids = Set(badgeIDs)
     self.init(
       isBroadcaster: ids.contains("broadcaster"),
-      isModerator: ids.contains("moderator"), isVIP: ids.contains("vip"))
+      isModerator: ids.contains("moderator") || ids.contains("lead_moderator"),
+      isVIP: ids.contains("vip"))
   }
 }

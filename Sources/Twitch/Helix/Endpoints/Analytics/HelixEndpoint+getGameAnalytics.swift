@@ -95,6 +95,12 @@ public struct GameReport: Decodable, Sendable {
     let startedAt = try rangeContainer.decode(Date.self, forKey: .startedAt)
     let endedAt = try rangeContainer.decode(Date.self, forKey: .endedAt)
 
+    guard endedAt >= startedAt else {
+      throw DecodingError.dataCorruptedError(
+        forKey: .endedAt, in: rangeContainer,
+        debugDescription: "ended_at must not precede started_at")
+    }
+
     self.range = DateInterval(start: startedAt, end: endedAt)
   }
 }

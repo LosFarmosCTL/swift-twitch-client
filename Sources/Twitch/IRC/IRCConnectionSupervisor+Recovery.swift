@@ -14,7 +14,8 @@ extension IRCConnectionSupervisor {
         reason = try await relay(stream)
       } catch {
         switch error {
-        case IRCError.loginFailed, IRCError.capabilitiesRejected, IRCError.invalidInput:
+        case IRCError.loginFailed, IRCError.capabilitiesRejected, IRCError.invalidInput,
+          is TwitchAuthenticationError:
           await disconnect(throwing: error)
           return
         default:

@@ -45,6 +45,7 @@ extension ManagedChatTests {
           "@msg-id=announcement;id=presence;room-id=123\(tags) :tmi.twitch.tv USERNOTICE #swift\(suffix)"
         ))
       let notice = try #require(await nextNotification(in: events)).notification
+      #expect(notice.author == nil)
       #expect(notice.text == nil)
       #expect(notice.systemMessage == nil)
     }
@@ -150,7 +151,7 @@ extension ManagedChatTests {
   }
 
   @Test
-  func targetedClearSeparatesModerationAndDoesNotInventTimeoutExpiry()
+  func targetedClearSeparatesModerationAndComputesTimeoutExpiryFromReceiptTime()
     async throws
   {
     let client = client()
@@ -165,25 +166,28 @@ extension ManagedChatTests {
         "@ban-duration=60;room-id=123;target-user-id=\(first.userID!) :tmi.twitch.tv CLEARCHAT #swift :first"
       ))
     var clearing = false
-    var moderation = false
+    var expectedUntil: Date?
     while let event = await events.next() {
       switch event.payload {
       case .messagesCleared(let user):
+        #expect(event.timestamp == nil)
         #expect(user?.id == first.userID)
         clearing = true
       case .moderation(let value):
         if case .timeout(let user, let until, let duration, _) = value.action {
+          #expect(event.timestamp == nil)
           #expect(user.id == first.userID)
-          #expect(until == nil)
+          #expect(until == event.receivedAt.addingTimeInterval(60))
           #expect(duration == .seconds(60))
-          moderation = true
+          expectedUntil = until
         }
       default: break
       }
-      if clearing && moderation { break }
+      if clearing && expectedUntil != nil { break }
     }
-    #expect(clearing && moderation)
-    #expect(await client.sendEligibility(in: channel.id) == .timedOut(until: nil))
+    let until = try #require(expectedUntil)
+    #expect(clearing)
+    #expect(await client.sendEligibility(in: channel.id) == .timedOut(until: until))
     await client.shutdownChat()
   }
 

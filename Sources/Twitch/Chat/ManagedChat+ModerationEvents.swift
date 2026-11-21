@@ -2,18 +2,21 @@ import Foundation
 
 extension ManagedChat {
   internal func emitChatDeletion(
-    _ deletion: ChatMessageDeletion, channel: ChatChannel, timestamp: Date?
+    _ deletion: ChatMessageDeletion, channel: ChatChannel, timestamp: Date?,
+    receivedAt: Date = Date()
   ) {
     guard memberships[channel.id]?.deletedMessageIDs.insert(deletion.messageID) == true else {
       return
     }
     emitChat(
       ChatEvent(
-        channel: channel, timestamp: timestamp, payload: .messageDeleted(deletion)))
+        channel: channel, timestamp: timestamp, receivedAt: receivedAt,
+        payload: .messageDeleted(deletion)))
   }
 
   internal func acceptChatModeration(
-    _ moderation: ChatModeration, channel: ChatChannel, timestamp: Date?
+    _ moderation: ChatModeration, channel: ChatChannel, timestamp: Date?,
+    receivedAt: Date = Date()
   ) {
     // Shared-chat actions affect their source, not automatically the receiving channel.
     if moderation.sourceChannelID == nil || moderation.sourceChannelID == channel.id {
@@ -30,7 +33,9 @@ extension ManagedChat {
     }
 
     emitChat(
-      ChatEvent(channel: channel, timestamp: timestamp, payload: .moderation(moderation)))
+      ChatEvent(
+        channel: channel, timestamp: timestamp, receivedAt: receivedAt,
+        payload: .moderation(moderation)))
     publishChatState()
   }
 
@@ -50,6 +55,7 @@ extension ManagedChat {
     _ event: ChannelModerateEvent, timestamp: Date?, channel: ChatChannel
   ) {
     let id = channel.id
+    let receivedAt = Date()
     let moderator = ChatUser(
       id: event.moderatorID, login: event.moderatorLogin,
       displayName: event.moderatorDisplayName)
@@ -63,8 +69,9 @@ extension ManagedChat {
     acceptChatModeration(
       ChatModeration(
         moderator: moderator, sourceChannelID: event.sourceBroadcasterID,
-        action: ChatModeration.Action(eventSub: event.action)),
-      channel: channel, timestamp: timestamp)
+        action: ChatModeration.Action(
+          eventSub: event.action, referenceDate: timestamp ?? receivedAt)),
+      channel: channel, timestamp: timestamp, receivedAt: receivedAt)
   }
 
   private func observeChatModerationRole(

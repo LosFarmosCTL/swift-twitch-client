@@ -57,7 +57,9 @@ extension TwitchClient {
     } catch is CancellationError {
       throw CancellationError()
     } catch {
-      onMalformedErrorBody(error)
+      if !(statusCode == 429 && data.isEmpty) {
+        onMalformedErrorBody(error)
+      }
 
       if statusCode == 429 {
         throw HelixError.rateLimited(

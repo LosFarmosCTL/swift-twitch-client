@@ -11,14 +11,11 @@ extension HelixEndpoint {
   /// ) for request limits and account requirements.
   ///
   /// - Parameters:
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   ///   - rewardIDs: Reward IDs to retrieve; an empty array requests all rewards in the
   ///     channel.
   ///   - onlyManageable: Whether to return only rewards manageable by the calling
   ///     application.
   public static func getCustomRewards(
-    for broadcasterID: String? = nil,
     rewardIDs: [String] = [],
     onlyManageable: Bool? = nil
   ) -> HelixEndpoint<[CustomReward]> {
@@ -27,10 +24,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("only_manageable_rewards", onlyManageable.map(String.init)),
         ] + rewardIDs.map { ("id", $0) }
       },

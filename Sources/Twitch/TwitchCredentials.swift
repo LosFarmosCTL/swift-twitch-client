@@ -141,6 +141,14 @@ public struct TwitchCredentials: Sendable, Equatable {
     return user
   }
 
+  internal func requireUserID(parameter: String) throws -> String {
+    let id = try requireUser().id
+    guard !id.isEmpty else {
+      throw TwitchAuthenticationError.missingUserID(parameter: parameter)
+    }
+    return id
+  }
+
   /// Resolves a request actor independently of the credential's identity.
   internal func resolveUserID(
     _ explicitID: String?, parameter: String, matchingToken: Bool = false

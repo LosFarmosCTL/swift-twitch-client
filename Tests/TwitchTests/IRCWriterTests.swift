@@ -101,4 +101,52 @@ struct IRCWriterTests {
     await supervisor.disconnect()
   }
 
+  @Test
+  func failedWriterIsRetiredAndReplacedOnNextSend() async throws {
+    let credentials = TwitchCredentials(
+      accessToken: "token", clientID: "app", userID: UUID().uuidString, userLogin: "tester")
+    let client = TwitchClient(credentials: credentials, chat: .init(writer: .irc), network: session)
+
+    let failedSend = Task {
+      try await client.sendIRC(.privateMessage(to: "swift", message: "first"))
+    }
+    let failedSocket = await session.waitForTask(at: 0)
+    await failedSocket.waitForSent("NICK")
+    await failedSocket.simulateIncoming(
+      .string(":tmi.twitch.tv NOTICE * :Login authentication failed"))
+
+    await #expect(throws: IRCError.self) { try await failedSend.value }
+    _ = try #require(
+      await client.chatStateUpdates().first {
+        if case .failed = $0.writer { true } else { false }
+      })
+
+    let retrySend = Task {
+      try await client.sendIRC(.privateMessage(to: "swift", message: "second"))
+    }
+    let replacement = await session.waitForTask(at: 1)
+    await replacement.simulateIncoming(
+      .string(
+        ":tmi.twitch.tv CAP * ACK :twitch.tv/commands twitch.tv/tags\r\n"
+          + ":tmi.twitch.tv 001 tester :Welcome\r\n"
+          + "@emote-sets=0;user-id=tester :tmi.twitch.tv GLOBALUSERSTATE"))
+    try await retrySend.value
+    #expect(await replacement.sentCount(prefix: "PRIVMSG #swift :second") == 1)
+    await client.shutdownChat()
+  }
+
+  @Test
+  func supervisorTreatsAuthenticationErrorAsTerminalWithoutRetrying() async throws {
+    let supervisor = IRCConnectionSupervisor(
+      credentials: .app(accessToken: "app", clientID: "id"),
+      network: session, role: .write)
+    _ = try await supervisor.start()
+
+    await #expect(throws: TwitchAuthenticationError.self) {
+      try await supervisor.waitUntilConnected()
+    }
+    #expect(await session.taskCount() == 0)
+    await supervisor.disconnect()
+  }
+
 }

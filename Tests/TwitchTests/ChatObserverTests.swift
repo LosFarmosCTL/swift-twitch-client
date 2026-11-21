@@ -81,6 +81,62 @@ extension ManagedChatTests {
     #expect(await session.taskCount() == 0)
   }
 
+  @Test
+  func failedAnonymousReaderIsNotPreservedAcrossCredentialSwitch() async throws {
+    let client = client()
+    let failedJoin = Task { try await client.join(to: channel) }
+    let socket = await session.waitForTask(at: 0)
+    await socket.waitForSent("NICK")
+    await socket.simulateIncoming(
+      .string(
+        ":tmi.twitch.tv CAP * NAK :twitch.tv/commands twitch.tv/tags\r\n"
+          + ":tmi.twitch.tv 001 justinfan12345 :Welcome, GLHF!"))
+    await #expect(throws: Error.self) { try await failedJoin.value }
+
+    await client.switchCredentials(to: second)
+    let state = await client.chatState
+    #expect(state.credentialChange?.anonymousReaderPreserved == false)
+    let replacement = await session.waitForTask(at: 1)
+    await handshake(replacement)
+    await acknowledge(replacement)
+    _ = try #require(
+      await client.chatStateUpdates().first { $0.channels[channel.id]?.status == .ready })
+    await client.shutdownChat()
+  }
+
+  @Test
+  func sendLimiterPrunesExpiredChannelsWhileRespectingLongCooldowns() async throws {
+    let limiter = ChatSendLimiter(minimumChannelRetention: .zero)
+    let account = UUID().uuidString
+
+    #expect(
+      limiter.commit(
+        account: account, channel: "short", privileged: false, interval: .milliseconds(10),
+        enforcesLimits: true) == nil)
+    #expect(
+      limiter.commit(
+        account: account, channel: "long", privileged: false, interval: .seconds(60),
+        enforcesLimits: true) == nil)
+
+    try await Task.sleep(for: .milliseconds(25))
+
+    #expect(
+      limiter.commit(
+        account: account, channel: "fresh", privileged: false, interval: .seconds(1),
+        enforcesLimits: true) == nil)
+
+    let snapshot = limiter.snapshot(for: account)
+    #expect(snapshot.trackedChannelCount == 2)
+    #expect(
+      ChatSendLimiter.limit(
+        snapshot, channel: "short", privileged: false, interval: .milliseconds(10), now: .now)
+        == nil)
+    #expect(
+      ChatSendLimiter.limit(
+        snapshot, channel: "long", privileged: false, interval: .seconds(60), now: .now)
+        != nil)
+  }
+
   private func callbackNotices(from events: AsyncStream<IRCListenerEvent>, count: Int)
     async -> [String]
   {

@@ -13,8 +13,6 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - rewardID: The identifier of the reward.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   ///   - title: The title shown to viewers, when provided.
   ///   - prompt: The prompt shown when viewers redeem the reward.
   ///   - cost: The Channel Points required for one redemption.
@@ -35,7 +33,6 @@ extension HelixEndpoint {
   ///     when provided.
   public static func updateCustomReward(
     _ rewardID: String,
-    broadcasterID: String? = nil,
     title: String? = nil,
     prompt: String? = nil,
     cost: Int? = nil,
@@ -56,10 +53,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("id", rewardID),
         ]
       },

@@ -123,4 +123,18 @@ struct CredentialReconciliationTests {
     }
     #expect(await harness.session.requestCount() == 0)
   }
+
+  @Test
+  func userOnlyEndpointsRejectEmptyTokenUserID() async {
+    let harness = HelixTestHarness(
+      credentials: .init(accessToken: "token", clientID: "client", userID: "", userLogin: "user"))
+    let error = await #expect(throws: HelixError.self) {
+      _ = try await harness.twitch.helix(for: .getCustomPowerUps())
+    }
+    guard case .authenticationError(.missingUserID(parameter: "broadcaster_id")) = error else {
+      Issue.record("Expected missingUserID(parameter: \"broadcaster_id\")")
+      return
+    }
+    #expect(await harness.session.requestCount() == 0)
+  }
 }

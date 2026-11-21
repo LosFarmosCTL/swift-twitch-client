@@ -23,7 +23,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          ("from_user_id", try credentials.requireUser().id),
+          ("from_user_id", try credentials.requireUserID(parameter: "from_user_id")),
           ("to_user_id", toUserID),
         ]
       },

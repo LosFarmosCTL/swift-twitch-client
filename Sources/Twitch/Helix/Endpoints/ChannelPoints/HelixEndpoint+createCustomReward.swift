@@ -29,8 +29,6 @@ extension HelixEndpoint {
   ///   - globalCooldownSeconds: The reward’s global cooldown, in seconds, when provided.
   ///   - shouldRedemptionsSkipRequestQueue: Whether redemptions bypass the request queue,
   ///     when provided.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   public static func createCustomReward(
     title: String,
     cost: Int,
@@ -44,18 +42,14 @@ extension HelixEndpoint {
     maxPerUserPerStream: Int? = nil,
     isGlobalCooldownEnabled: Bool? = nil,
     globalCooldownSeconds: Int? = nil,
-    shouldRedemptionsSkipRequestQueue: Bool? = nil,
-    broadcasterID: String? = nil
+    shouldRedemptionsSkipRequestQueue: Bool? = nil
   ) -> HelixEndpoint<CustomReward> {
     .init(
       method: "POST", path: "channel_points/custom_rewards",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          )
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))
         ]
       },
       body: { _ in

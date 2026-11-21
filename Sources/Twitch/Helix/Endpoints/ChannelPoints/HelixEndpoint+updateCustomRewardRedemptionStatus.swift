@@ -19,23 +19,17 @@ extension HelixEndpoint {
   ///   - rewardID: The identifier of the reward.
   ///   - status: The new fulfillment state: `.fulfilled` or `.cancelled`. Twitch does not
   ///     allow resetting a redemption to `.unfulfilled`.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   public static func updateCustomRewardRedemptionStatus(
     _ redemptionIDs: [String],
     rewardID: String,
-    status: CustomRewardRedemptionStatus,
-    broadcasterID: String? = nil
+    status: CustomRewardRedemptionStatus
   ) -> HelixEndpoint<[CustomRewardRedemption]> {
     .init(
       method: "PATCH", path: "channel_points/custom_rewards/redemptions",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("reward_id", rewardID),
         ] + redemptionIDs.map { ("id", $0) }
       },

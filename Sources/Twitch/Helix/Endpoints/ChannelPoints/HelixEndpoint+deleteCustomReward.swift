@@ -11,23 +11,16 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/channel-points/#delete-custom-reward
   /// ) for request limits and account requirements.
   ///
-  /// - Parameters:
-  ///   - rewardID: The identifier of the reward.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
+  /// - Parameter rewardID: The identifier of the reward.
   public static func deleteCustomReward(
-    _ rewardID: String,
-    broadcasterID: String? = nil
+    _ rewardID: String
   ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "channel_points/custom_rewards",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("id", rewardID),
         ]
       })

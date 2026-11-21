@@ -31,7 +31,7 @@ extension HelixEndpoint {
             "broadcaster_id",
             try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
           ),
-          ("moderator_id", try credentials.requireUser().id),
+          ("moderator_id", try credentials.requireUserID(parameter: "moderator_id")),
           ("session_id", sessionID),
           ("guest_id", guestID),
           ("slot_id", slotID),

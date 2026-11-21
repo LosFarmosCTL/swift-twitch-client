@@ -45,6 +45,7 @@ extension ManagedChat {
     let payload: ChatEvent.Payload
     var stateChanged = false
     let timestamp = message.chatTimestamp
+    let receivedAt = Date()
 
     switch message {
     case .privateMessage(let value):
@@ -70,20 +71,22 @@ extension ManagedChat {
         ChatMessageDeletion(
           messageID: value.targetMessageID,
           author: ChatUser(id: nil, login: value.userLogin.chatNonempty, displayName: nil),
-          text: value.message, moderator: nil), channel: channel, timestamp: timestamp)
+          text: value.message, moderator: nil), channel: channel, timestamp: timestamp,
+        receivedAt: receivedAt)
       return
     case .clearChat(let value):
-      receiveChatIRCClear(value, channel: channel, timestamp: timestamp)
+      receiveChatIRCClear(value, channel: channel, timestamp: timestamp, receivedAt: receivedAt)
       return
     default: return
     }
 
-    emitChat(ChatEvent(channel: channel, timestamp: timestamp, payload: payload))
+    emitChat(
+      ChatEvent(channel: channel, timestamp: timestamp, receivedAt: receivedAt, payload: payload))
     if stateChanged { publishChatState() }
   }
 
   private func receiveChatIRCClear(
-    _ value: ClearChat, channel: ChatChannel, timestamp: Date?
+    _ value: ClearChat, channel: ChatChannel, timestamp: Date?, receivedAt: Date
   ) {
     let user = value.userLogin.map {
       ChatUser(id: value.targetUserID, login: $0, displayName: nil)
@@ -92,7 +95,7 @@ extension ManagedChat {
     if let user {
       let action: ChatModeration.Action
       if let seconds = value.banDuration {
-        let until = timestamp?.addingTimeInterval(Double(seconds))
+        let until = (timestamp ?? receivedAt).addingTimeInterval(Double(seconds))
         action = .timeout(
           user: user, until: until, duration: .seconds(seconds), reason: nil)
       } else {
@@ -101,11 +104,12 @@ extension ManagedChat {
 
       acceptChatModeration(
         ChatModeration(moderator: nil, sourceChannelID: nil, action: action),
-        channel: channel, timestamp: timestamp)
+        channel: channel, timestamp: timestamp, receivedAt: receivedAt)
     }
     emitChat(
       ChatEvent(
-        channel: channel, timestamp: timestamp, payload: .messagesCleared(user: user)))
+        channel: channel, timestamp: timestamp, receivedAt: receivedAt,
+        payload: .messagesCleared(user: user)))
   }
 
   private func receiveChatIRCNotice(

@@ -17,8 +17,6 @@ extension HelixEndpoint {
   ///   - title: The title shown to viewers, when provided.
   ///   - isCancelled: Whether to cancel the schedule segment.
   ///   - timezone: The IANA time zone identifier for the schedule.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   public static func updateChannelStreamScheduleSegment(
     segmentID: String,
     startTime: Date? = nil,
@@ -26,18 +24,14 @@ extension HelixEndpoint {
     categoryID: String? = nil,
     title: String? = nil,
     isCancelled: Bool? = nil,
-    timezone: String? = nil,
-    broadcasterID: String? = nil
+    timezone: String? = nil
   ) -> HelixEndpoint<StreamSchedule> {
     .init(
       method: "PATCH", path: "schedule/segment",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("id", segmentID),
         ]
       },

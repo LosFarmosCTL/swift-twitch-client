@@ -99,6 +99,59 @@
       await socket.waitForCancellation()
       #expect(await harness.session.requests().map(\.httpMethod) == ["POST", "DELETE"])
     }
+
+    @Test("Late subscribers complete normally when TwitchClient has deallocated")
+    func lateSubscriberFinishesAfterClientDeallocation() async {
+      let publisher: AnyPublisher<EventSubNotification<MockEvent>, any Error>
+      do {
+        let harness = EventTestHarness()
+        publisher = harness.twitch.eventPublisher(for: .mock())
+      }
+
+      let completionStream = AsyncStream<Subscribers.Completion<any Error>>.makeStream()
+      var handle: AnyCancellable?
+      handle = publisher.sink(
+        receiveCompletion: { completion in
+          // Reentrantly cancel inside receive(completion:) to verify lock is not held.
+          handle?.cancel()
+          completionStream.continuation.yield(completion)
+        },
+        receiveValue: { _ in Issue.record("No events after client deallocation") })
+
+      let completion = await completionStream.stream.first { _ in true }
+      if case .finished = completion {
+      } else {
+        Issue.record("Expected .finished completion, got \(String(describing: completion))")
+      }
+      withExtendedLifetime(handle) {}
+    }
+
+    @Test("Reentrant cancel inside value delivery does not deadlock")
+    func reentrantCancelInsideValueDelivery() async throws {
+      let harness = EventTestHarness()
+      await stubSubscription(harness.session)
+      await harness.session.simulateIncoming(
+        .string(MockedMessages.welcomeMessage), queue: true)
+
+      let delivered = AsyncStream<String>.makeStream()
+      var handle: AnyCancellable?
+      handle = harness.twitch.eventPublisher(for: .mock()).sink(
+        receiveCompletion: { _ in },
+        receiveValue: { notification in
+          // Reentrantly cancel while receiving a value; must not deadlock.
+          handle?.cancel()
+          delivered.continuation.yield(notification.messageID)
+        })
+
+      let socket = await harness.session.waitForTask(at: 0)
+      while await harness.session.requestCount() == 0 { await Task.yield() }
+      await socket.simulateIncoming(.string(MockedMessages.mockEventMessage))
+
+      let messageID = try #require(await delivered.stream.first { _ in true })
+      #expect(messageID == MockedMessages.defaultEventMessageID)
+      await socket.waitForCancellation()
+      withExtendedLifetime(handle) {}
+    }
   }
 
   private final class DemandSubscriber<Input: Sendable>: Combine.Subscriber,

@@ -17,7 +17,7 @@ extension HelixEndpoint {
       method: "GET", path: "channels/editors",
       authentication: .user,
       queryItems: { credentials in
-        [("broadcaster_id", try credentials.requireUser().id)]
+        [("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))]
       },
       responseType: Editor.self, makeResponse: { $0.data })
   }

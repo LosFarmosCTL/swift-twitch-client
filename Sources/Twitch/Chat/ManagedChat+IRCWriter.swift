@@ -22,6 +22,10 @@ extension ManagedChat {
     try Task.checkCancellation()
     _ = try credentials.requireUser()
 
+    if case .failed = writerStatus {
+      retireChatWriter()
+    }
+
     let revision = credentialRevision
     let supervisor = writer?.supervisor ?? startIRCWriter()
     do {

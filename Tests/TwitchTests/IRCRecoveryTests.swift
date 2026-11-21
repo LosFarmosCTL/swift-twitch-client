@@ -211,4 +211,38 @@ struct IRCRecoveryTests {
 
     await #expect(throws: IRCError.self) { try await pool.join(to: "other") }
   }
+
+  @Test
+  func roomStateOnJoinedChannelForwardsFrameWithoutDuplicateStateUpdate() async throws {
+    let pool = IRCConnectionPool(network: session)
+    let updates = try await pool.start()
+    try await pool.join(to: "swift")
+    let socket = await session.waitForTask(at: 0)
+    await handshake(socket)
+    await socket.waitForSent("JOIN #swift")
+
+    await socket.simulateIncoming(
+      .string("@room-id=123;slow=0 :tmi.twitch.tv ROOMSTATE #swift"))
+    _ = try #require(try await updates.nextState { $0.channels["swift"] == .joined })
+    _ = try #require(try await updates.nextMessage())
+
+    await socket.simulateIncoming(
+      .string("@room-id=123;slow=10 :tmi.twitch.tv ROOMSTATE #swift"))
+
+    var iterator = updates.makeAsyncIterator()
+    let next = try #require(try await iterator.next())
+    guard case .message(.roomState(let roomState)) = next else {
+      Issue.record("Expected ROOMSTATE frame without a redundant state snapshot")
+      return
+    }
+    #expect(roomState.slow == 10)
+    await pool.disconnect()
+  }
+
+  @Test
+  func leadModeratorBadgeGrantsModeratorPrivilege() {
+    let privilege = ChatPrivilege(badgeIDs: ["lead_moderator"])
+    #expect(privilege.isModerator == true)
+    #expect(privilege.isPrivileged == true)
+  }
 }

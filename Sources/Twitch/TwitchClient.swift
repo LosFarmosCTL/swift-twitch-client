@@ -45,13 +45,13 @@ public actor TwitchClient {
   ///   - chat: The fixed reader, writer, pacing, and optional moderation settings for
   ///     managed chat. Defaults to authenticated IRC reading and Helix writing.
   ///   - urlSession: The URL session used for HTTP and WebSocket traffic. Defaults to
-  ///     `URLSession(configuration: .default)`.
+  ///     `URLSession.shared`.
   ///   - diagnostics: Opt-in callback configuration for Helix and EventSub decoding
   ///     failures. See <doc:Diagnostics>.
   public init(
     credentials: TwitchCredentials,
     chat: ChatConfiguration = .init(),
-    urlSession: URLSession = URLSession(configuration: .default),
+    urlSession: URLSession = .shared,
     diagnostics: TwitchDiagnostics = .init()
   ) {
     let network = URLSessionNetworkSession(session: urlSession)
@@ -140,8 +140,11 @@ public actor TwitchClient {
   ) async {
     self.credentials = credentials
     let reset = startEventSubReset()
-    chat.switchCredentials(to: credentials, behavior: chatBehavior)
+    let closingChatTransports = chat.switchCredentials(to: credentials, behavior: chatBehavior)
     await reset.value
+    for task in closingChatTransports {
+      await task.value
+    }
   }
 
   internal static func makeEncoder() -> JSONEncoder {

@@ -9,23 +9,16 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/schedule/#delete-channel-stream-schedule-segment
   /// ) for request limits and account requirements.
   ///
-  /// - Parameters:
-  ///   - segmentID: The identifier of the segment.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
+  /// - Parameter segmentID: The identifier of the segment.
   public static func deleteChannelStreamScheduleSegment(
-    segmentID: String,
-    broadcasterID: String? = nil
+    segmentID: String
   ) -> HelixEndpoint<Void> {
     .init(
       method: "DELETE", path: "schedule/segment",
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("id", segmentID),
         ]
       })

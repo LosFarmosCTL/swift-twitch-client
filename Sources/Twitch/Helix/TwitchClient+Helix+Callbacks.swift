@@ -15,7 +15,8 @@ extension TwitchClient {
   /// - Parameters:
   ///   - endpoint: A typed ``HelixEndpoint`` factory describing the request.
   ///   - credentials: The ``TwitchCredentials`` used to authorize the request.
-  ///   - urlSession: The `URLSession` used for HTTP transport.
+  ///   - urlSession: The `URLSession` used for HTTP transport. Defaults to
+  ///     `URLSession.shared`.
   ///   - diagnostics: Opt-in decoding failure callback for this request.
   ///   - completionHandler: Receives the ``HelixResponse`` on success or a ``HelixError``
   ///     on failure or cancellation.
@@ -25,7 +26,7 @@ extension TwitchClient {
   public static func helixTask<R: Sendable>(
     for endpoint: HelixEndpoint<R>,
     credentials: TwitchCredentials,
-    urlSession: URLSession = URLSession(configuration: .default),
+    urlSession: URLSession = .shared,
     diagnostics: TwitchDiagnostics = .init(),
     completionHandler: @escaping @Sendable (Result<HelixResponse<R>, HelixError>) -> Void
   ) -> TwitchCancellable {

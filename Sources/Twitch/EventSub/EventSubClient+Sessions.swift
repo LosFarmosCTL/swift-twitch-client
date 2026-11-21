@@ -36,7 +36,12 @@ extension EventSubClient {
   }
 
   private func queueAndWaitForSlot(_ requestID: UUID) async throws -> Reservation {
-    try await withCheckedThrowingContinuation { reply in
+    try Task.checkCancellation()
+    return try await withCheckedThrowingContinuation { reply in
+      if Task.isCancelled {
+        reply.resume(throwing: CancellationError())
+        return
+      }
       sessions.waiters.append(SlotRequest(id: requestID, reply: reply))
       serveSlotWaiters()
     }

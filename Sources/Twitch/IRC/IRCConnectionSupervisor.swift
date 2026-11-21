@@ -24,6 +24,7 @@ internal actor IRCConnectionSupervisor {
   var connectionAttemptID = UUID()
 
   private var runTask: Task<Void, Never>?
+  private var disconnectTask: Task<Void, Never>?
   var interruptionReason: IRCRecovery.Reason?
   var continuation: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
   var connectionWaiters: [UUID: AsyncThrowingStream<Void, any Error>.Continuation] = [:]
@@ -88,7 +89,7 @@ internal actor IRCConnectionSupervisor {
       try await connection.send(message, beforeDispatch: beforeDispatch)
     } catch let refusal as IRCDispatchRefused {
       throw refusal.underlying
-    } catch let error as CancellationError {
+    } catch let error as CancellationError where Task.isCancelled {
       throw error
     } catch {
       if connectionAttemptID == attemptID, state.status == .connected {
@@ -101,6 +102,10 @@ internal actor IRCConnectionSupervisor {
   }
 
   func disconnect(throwing error: Error? = nil) async {
+    if let disconnectTask {
+      await disconnectTask.value
+      return
+    }
     guard !state.isEnded else { return }
     invalidate()
 
@@ -117,7 +122,10 @@ internal actor IRCConnectionSupervisor {
     continuation?.finish(throwing: error)
     continuation = nil
 
-    await connection.disconnect()
+    let connection = connection
+    let task = Task { await connection.disconnect() }
+    disconnectTask = task
+    await task.value
   }
 
   func updateState(_ update: (inout State) -> Void) {

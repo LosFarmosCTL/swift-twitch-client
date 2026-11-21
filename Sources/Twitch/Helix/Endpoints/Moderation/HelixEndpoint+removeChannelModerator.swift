@@ -22,7 +22,8 @@ extension HelixEndpoint {
       method: "DELETE", path: "moderation/moderators",
       authentication: .user,
       queryItems: { credentials in
-        let actorID = try credentials.requireUser().id
+        let actorID = try credentials.requireUserID(
+          parameter: broadcasterID == nil ? "broadcaster_id" : "user_id")
         let channelID = try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
         guard channelID == actorID || userID == actorID else {
           throw TwitchAuthenticationError.userIDMismatch(parameter: "user_id")

@@ -15,7 +15,7 @@ extension TwitchClient {
   ///   - endpoint: A typed ``HelixEndpoint`` factory describing the request.
   ///   - credentials: The ``TwitchCredentials`` used to authorize the request.
   ///   - urlSession: The `URLSession` used for HTTP transport. Defaults to
-  ///     `URLSession(configuration: .default)`.
+  ///     `URLSession.shared`.
   ///   - diagnostics: Opt-in decoding failure callback for this request.
   /// - Returns: A ``HelixResponse`` containing the decoded result (or `()` for empty-body
   ///   endpoints) and HTTP/rate-limit ``HelixResponseMetadata``.
@@ -26,7 +26,7 @@ extension TwitchClient {
   public static func helix<R: Sendable>(
     for endpoint: HelixEndpoint<R>,
     credentials: TwitchCredentials,
-    urlSession: URLSession = URLSession(configuration: .default),
+    urlSession: URLSession = .shared,
     diagnostics: TwitchDiagnostics = .init()
   ) async throws -> HelixResponse<R> {
     try await Self.helix(

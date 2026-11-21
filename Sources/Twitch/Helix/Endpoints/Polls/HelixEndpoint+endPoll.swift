@@ -23,7 +23,7 @@ extension HelixEndpoint {
       authentication: .user,
       body: { credentials in
         EndPollRequestBody(
-          broadcasterID: try credentials.requireUser().id,
+          broadcasterID: try credentials.requireUserID(parameter: "broadcaster_id"),
           id: pollID,
           status: status)
       },

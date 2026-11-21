@@ -104,6 +104,23 @@ struct DecodingDiagnosticsTests {
   }
 
   @Test
+  func emptyRateLimitBodyThrowsRateLimitedWithoutDiagnostic() async {
+    await confirmation(expectedCount: 0) { reported in
+      let harness = HelixTestHarness(diagnostics: .init { _ in reported() })
+      await harness.session.stub(url: url, status: 429, body: Data())
+
+      let error = await #expect(throws: HelixError.self) {
+        try await harness.twitch.helix(for: endpoint)
+      }
+      guard case .rateLimited(let limit) = error else {
+        Issue.record("Expected rateLimited error")
+        return
+      }
+      #expect(limit.responseData.isEmpty)
+    }
+  }
+
+  @Test
   func networkingAndCancellationDoNotReportDecodingFailures() async {
     await confirmation(expectedCount: 0) { reported in
       let harness = HelixTestHarness(diagnostics: .init { _ in reported() })

@@ -44,7 +44,15 @@ extension ManagedChat {
     return stateObservers.stream(
       bufferingPolicy: .bufferingNewest(1), initial: makeStateUpdate(), finished: isShutdown
     ) { [weak client] id in
-      Task { await client?.withChat { $0.stateObservers.remove(id) } }
+      Task {
+        await client?.withChat { chat in
+          chat.stateObservers.remove(id)
+          if !chat.stateObservers.hasObservers {
+            chat.sendHistoryObserver?.cancel()
+            chat.sendHistoryObserver = nil
+          }
+        }
+      }
     }
   }
 

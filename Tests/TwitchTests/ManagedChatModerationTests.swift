@@ -32,8 +32,10 @@ extension ManagedChatEventSubTests {
           + "@ban-duration=60;room-id=123;target-user-id=999 :tmi.twitch.tv CLEARCHAT #swift :sender"
       ))
 
-    guard case .messageDeleted(let deletion)? = await events.next()?.payload,
-      case .moderation(let moderation)? = await events.next()?.payload,
+    guard let deleteEvent = await events.next(),
+      case .messageDeleted(let deletion) = deleteEvent.payload,
+      let moderationEvent = await events.next(),
+      case .moderation(let moderation) = moderationEvent.payload,
       case .timeout(let user, let until, let duration, _) = moderation.action,
       case .messagesCleared(let clearedUser)? = await events.next()?.payload
     else {
@@ -43,7 +45,8 @@ extension ManagedChatEventSubTests {
     #expect(deletion.messageID == "deleted")
     #expect(deletion.text == "original text")
     #expect(user.id == "999")
-    #expect(until == nil)
+    #expect(moderationEvent.timestamp == nil)
+    #expect(until == moderationEvent.receivedAt.addingTimeInterval(60))
     #expect(duration == .seconds(60))
     #expect(clearedUser == user)
     await client.shutdownChat()
@@ -190,6 +193,46 @@ extension ManagedChatEventSubTests {
     #expect(await postCount() == 7)
     await client.shutdownChat()
     await client.resetEventSub()
+  }
+
+  @Test
+  func eventSubTimeoutRoundsDurationUpAndEmptyNotificationStringsNormalizeToNil() async throws {
+    let base = Date(timeIntervalSince1970: 1_700_000_000)
+    let timeoutAction = ChatModeration.Action(
+      eventSub: .timeout(
+        .init(
+          userID: "1", userLogin: "user", userDisplayName: "User",
+          reason: "spam", expiresAt: base.addingTimeInterval(59.2))),
+      referenceDate: base)
+    guard case .timeout(_, let until, let duration, let reason) = timeoutAction else {
+      Issue.record("Expected timeout moderation action")
+      return
+    }
+    #expect(until == base.addingTimeInterval(59.2))
+    #expect(duration == .seconds(60))
+    #expect(reason == "spam")
+
+    let clamped = ChatModeration.Action(
+      eventSub: .timeout(
+        .init(
+          userID: "1", userLogin: "user", userDisplayName: "User",
+          reason: nil, expiresAt: base.addingTimeInterval(-5))),
+      referenceDate: base)
+    if case .timeout(_, _, let clampedDuration, _) = clamped {
+      #expect(clampedDuration == .seconds(1))
+    } else {
+      Issue.record("Expected timeout moderation action")
+    }
+
+    let notification = ChatNotification(
+      eventSub: ChannelChatNotificationEvent(
+        broadcasterID: "123", broadcasterLogin: "swift", broadcasterDisplayName: "Swift",
+        chatter: .anonymous, color: "", badges: [], messageID: "msg-1",
+        message: .init(text: "", fragments: []), systemMessage: "",
+        noticeType: .sub(.init(subscriptionTier: .tier1, isPrime: false, durationMonths: 1))))
+    #expect(notification.author == nil)
+    #expect(notification.text == nil)
+    #expect(notification.systemMessage == nil)
   }
 
   private func nextDeletion(in events: AsyncStream<ChatEvent>) async

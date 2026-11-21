@@ -22,6 +22,12 @@ extension IRCConnectionPool {
   }
 
   private func sendJoin(_ channel: String, id: UUID, token: UUID) async {
+    defer {
+      if pendingJoins[channel]?.token == token {
+        pendingJoins.removeValue(forKey: channel)
+      }
+    }
+
     guard let supervisor = state.entries[id]?.supervisor else { return }
 
     do {
@@ -40,8 +46,25 @@ extension IRCConnectionPool {
       try await Task.sleep(for: joinTimeout)
       joinExpired(channel, id: id, token: token)
     } catch {
-      // The supervisor handles socket failures, cancellation ends the JOIN wait.
-      return
+      handleJoinSendFailure(error, channel: channel, id: id, token: token)
+    }
+  }
+
+  private func handleJoinSendFailure(
+    _ error: any Error, channel: String, id: UUID, token: UUID
+  ) {
+    guard !Task.isCancelled else { return }
+    guard pendingJoins[channel]?.token == token,
+      state.entries[id]?.channels.contains(channel) == true
+    else { return }
+
+    switch error {
+    case IRCError.invalidInput, IRCError.loginFailed, IRCError.capabilitiesRejected,
+      is TwitchAuthenticationError:
+      updateState { $0.statuses[channel] = .failed(.init(terminalError: error)) }
+    default:
+      // Transient send failures trigger supervisor recovery; keep the channel eligible for rejoin.
+      updateState { $0.statuses[channel] = .reconnecting }
     }
   }
 
@@ -60,6 +83,7 @@ extension IRCConnectionPool {
 
   private func joined(_ channel: String) {
     cancelJoin(channel)
+    guard state.statuses[channel] != .joined else { return }
     updateState { $0.statuses[channel] = .joined }
   }
 

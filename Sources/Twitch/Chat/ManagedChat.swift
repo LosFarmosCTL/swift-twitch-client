@@ -102,30 +102,48 @@ internal final class ManagedChat {
     guard !isShutdown else { throw ChatError.shutdown }
   }
 
+  @discardableResult
   func switchCredentials(
     to credentials: TwitchCredentials, behavior: ChatCredentialSwitchBehavior
-  ) {
-    let preserveReader =
-      behavior == .preserveChannels && configuration.reader == .irc(.anonymous) && reader != nil
+  ) -> [Task<Void, Never>] {
+    let preserveReader = canPreserveAnonymousReader(for: behavior)
     let change = ChatCredentialChange(
       revision: credentialRevision &+ 1, previousUserID: self.credentials.userID,
       userID: credentials.userID, behavior: behavior, anonymousReaderPreserved: preserveReader)
     self.credentials = credentials
     credentialChange = change
-    if isShutdown { return }
+    if isShutdown { return [] }
 
     cancelLookups(throwing: .credentialsChanged)
-    retireChatWriter()
     stopCredentialTasks()
 
     if change.previousUserID != change.userID {
       senderEvidence.removeAll()
+      sendDestinations.removeAll()
     }
 
-    if !preserveReader { retireChatReader() }
+    let closing = [retireChatWriter(), preserveReader ? nil : retireChatReader()].compactMap { $0 }
+    applyCredentialSwitch(behavior, preserveReader: preserveReader)
 
+    if stateObservers.hasObservers { observeSendHistory() }
+    if !memberships.isEmpty { startModerationPrefillIfNeeded() }
+    publishChatState()
+    return closing
+  }
+
+  private func canPreserveAnonymousReader(for behavior: ChatCredentialSwitchBehavior) -> Bool {
+    guard behavior == .preserveChannels, configuration.reader == .irc(.anonymous), reader != nil
+    else { return false }
+    if case .failed = readerStatus { return false }
+    return true
+  }
+
+  private func applyCredentialSwitch(
+    _ behavior: ChatCredentialSwitchBehavior, preserveReader: Bool
+  ) {
     switch behavior {
     case .partChannels:
+      sendDestinations.removeAll()
       for id in Array(memberships.keys) { endMembership(id, reason: .credentialsChanged) }
     case .preserveChannels:
       for member in memberships.values {
@@ -135,10 +153,6 @@ internal final class ManagedChat {
         startMembership(member)
       }
     }
-
-    if stateObservers.hasObservers { observeSendHistory() }
-    if !memberships.isEmpty { startModerationPrefillIfNeeded() }
-    publishChatState()
   }
 
   private func stopBackgroundWork() -> [Task<Void, Never>] {

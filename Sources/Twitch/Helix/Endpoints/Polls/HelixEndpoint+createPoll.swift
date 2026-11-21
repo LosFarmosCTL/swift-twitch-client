@@ -31,7 +31,7 @@ extension HelixEndpoint {
       authentication: .user,
       body: { credentials in
         CreatePollRequestBody(
-          broadcasterID: try credentials.requireUser().id,
+          broadcasterID: try credentials.requireUserID(parameter: "broadcaster_id"),
           title: title,
           choices: choices.map { .init(title: $0) },
           duration: duration,

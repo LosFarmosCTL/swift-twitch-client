@@ -45,6 +45,8 @@ public struct ChatEvent: Sendable {
   /// envelope `sentAt` when reading via EventSub. A `nil` value indicates Twitch did not
   /// attach a server timestamp—the client never fabricates a local wall-clock time.
   public let timestamp: Date?
+  /// The local wall-clock time when the client received this event.
+  public let receivedAt: Date
   /// The normalized event payload.
   public let payload: Payload
 
@@ -52,10 +54,12 @@ public struct ChatEvent: Sendable {
   public init(
     channel: ChatChannel,
     timestamp: Date? = nil,
+    receivedAt: Date = Date(),
     payload: Payload
   ) {
     self.channel = channel
     self.timestamp = timestamp
+    self.receivedAt = receivedAt
     self.payload = payload
   }
 }
@@ -309,8 +313,12 @@ public struct ChatModeration: Sendable {
     ///
     /// - Parameters:
     ///   - user: The timed-out user.
-    ///   - until: The timeout expiration timestamp, when available.
-    ///   - duration: The timeout duration (available on IRC `CLEARCHAT`; `nil` on EventSub).
+    ///   - until: The timeout expiration timestamp, when available. On IRC `CLEARCHAT`
+    ///     without `tmi-sent-ts`, computed from ``ChatEvent/receivedAt`` plus the timeout
+    ///     duration.
+    ///   - duration: The timeout duration. Supplied directly on IRC `CLEARCHAT`; derived on
+    ///     EventSub from `until` relative to the notification timestamp (or
+    ///     ``ChatEvent/receivedAt``), rounded up to whole seconds with a minimum of 1 second.
     ///   - reason: The moderation reason, when provided by EventSub (`nil` on IRC).
     case timeout(user: ChatUser, until: Date?, duration: Duration?, reason: String?)
     /// A user's ban was lifted (requires EventSub moderation enrichment).

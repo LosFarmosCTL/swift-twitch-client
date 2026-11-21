@@ -70,7 +70,7 @@ extension EventSubClient {
       } else if session.connection.id == replacement.id
         || session.replacement?.connection.id == replacement.id
       {
-        failSession(sessionID, error: .disconnected(with: error))
+        failSession(sessionID, error: error as? EventSubError ?? .disconnected(with: error))
       }
     }
   }

@@ -5,9 +5,16 @@ import Foundation
 internal final class ChatSendLimiter: @unchecked Sendable {
   static let shared = ChatSendLimiter()
 
+  struct ChannelRecord: Sendable {
+    let sentAt: ContinuousClock.Instant
+    let retainUntil: ContinuousClock.Instant
+  }
+
   struct Snapshot: Sendable {
     fileprivate var attempts: [ContinuousClock.Instant] = []
-    fileprivate var channels: [String: ContinuousClock.Instant] = [:]
+    fileprivate var channels: [String: ChannelRecord] = [:]
+
+    internal var trackedChannelCount: Int { channels.count }
   }
 
   enum Limit: Sendable {
@@ -30,8 +37,13 @@ internal final class ChatSendLimiter: @unchecked Sendable {
   }
 
   private let lock = NSLock()
+  private let minimumChannelRetention: Duration
   private var accounts: [String: Snapshot] = [:]
   private var observers: [String: [UUID: AsyncStream<Void>.Continuation]] = [:]
+
+  init(minimumChannelRetention: Duration = .seconds(120)) {
+    self.minimumChannelRetention = minimumChannelRetention
+  }
 
   func snapshot(for account: String) -> Snapshot {
     lock.withLock { accounts[account] ?? Snapshot() }
@@ -64,13 +76,16 @@ internal final class ChatSendLimiter: @unchecked Sendable {
         return (limit, [])
       }
       snapshot.attempts.removeAll { $0.duration(to: now) >= .seconds(30) }
+      snapshot.channels = snapshot.channels.filter { $0.value.retainUntil > now }
       snapshot.attempts.append(now)
       // Only the latest 100 attempts are needed for either account window.
       if snapshot.attempts.count > 100 {
         snapshot.attempts.removeFirst(snapshot.attempts.count - 100)
       }
-      snapshot.channels[channel] = now
+      snapshot.channels[channel] = ChannelRecord(
+        sentAt: now, retainUntil: now.advanced(by: max(interval, minimumChannelRetention)))
       accounts[account] = snapshot
+      pruneExpiredAccounts(except: account, now: now)
       return (nil, Array(observers[account]?.values ?? [:].values))
     }
     // Observers read the latest ledger after a signal, regardless of delivery order.
@@ -88,11 +103,23 @@ internal final class ChatSendLimiter: @unchecked Sendable {
       let deadline = attempt.advanced(by: .seconds(30))
       if now < deadline { return .account(until: deadline) }
     }
-    if !privileged, let last = snapshot.channels[channel] {
+    if !privileged, let last = snapshot.channels[channel]?.sentAt {
       let deadline = last.advanced(by: interval)
       if now < deadline { return .channel(until: deadline) }
     }
     return nil
+  }
+
+  private func pruneExpiredAccounts(except current: String, now: ContinuousClock.Instant) {
+    for (account, var snapshot) in accounts where account != current {
+      snapshot.attempts.removeAll { $0.duration(to: now) >= .seconds(30) }
+      snapshot.channels = snapshot.channels.filter { $0.value.retainUntil > now }
+      if snapshot.attempts.isEmpty, snapshot.channels.isEmpty {
+        accounts.removeValue(forKey: account)
+      } else {
+        accounts[account] = snapshot
+      }
+    }
   }
 
   private func removeObserver(_ id: UUID, account: String) {

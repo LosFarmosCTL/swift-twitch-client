@@ -18,7 +18,8 @@ extension HelixEndpoint {
   ///     to the user token’s identity.
   ///   - userID: The Twitch user ID.
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - duration: The timeout duration in seconds; `nil` requests a permanent ban.
+  ///   - duration: The timeout duration, from 1 through 1,209,600 seconds (two weeks);
+  ///     `nil` requests a permanent ban.
   ///   - reason: The reason supplied for this action, when provided.
   public static func banUser(
     _ userID: String,
@@ -41,11 +42,23 @@ extension HelixEndpoint {
         ]
       },
       body: { _ in
-        [
+        let durationSeconds: Int64?
+        if let duration {
+          guard duration >= .seconds(1), duration <= .seconds(1_209_600) else {
+            throw TwitchAuthenticationError.invalidParameter(
+              parameter: "duration",
+              reason: "Timeout duration must be between 1 and 1,209,600 seconds.")
+          }
+          durationSeconds = duration.components.seconds
+        } else {
+          durationSeconds = nil
+        }
+
+        return [
           "data": BanUserBody(
             userID: userID,
             reason: reason,
-            duration: duration?.components.seconds)
+            duration: durationSeconds)
         ]
       },
       responseType: Ban.self,

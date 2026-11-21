@@ -1,7 +1,7 @@
 import Foundation
 
 extension HelixEndpoint {
-  /// Gets a broadcaster’s active creator goals.
+  /// Gets the authenticated broadcaster’s active creator goals.
   ///
   /// With a user access token, requires `channel:read:goals`.
   ///
@@ -10,11 +10,7 @@ extension HelixEndpoint {
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/api/reference/goals/#get-creator-goals
   /// ) for request limits and account requirements.
-  ///
-  /// - Parameters:
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
-  public static func getCreatorGoals(broadcasterID: String? = nil)
+  public static func getCreatorGoals()
     -> HelixEndpoint<[CreatorGoal]>
   {
     .init(
@@ -22,10 +18,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          )
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))
         ]
       },
       responseType: CreatorGoal.self, makeResponse: { $0.data })

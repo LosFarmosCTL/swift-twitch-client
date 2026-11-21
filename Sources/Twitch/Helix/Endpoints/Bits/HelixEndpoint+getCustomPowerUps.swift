@@ -10,11 +10,8 @@ extension HelixEndpoint {
   /// https://dev.twitch.tv/docs/api/reference/bits/#get-custom-power-up
   /// ) for account requirements and request limits.
   ///
-  /// - Parameters:
-  ///   - broadcasterID: The broadcaster’s user ID; `nil` uses the user token’s identity.
-  ///   - powerUpIDs: IDs to filter by; an empty array requests all custom Power-ups.
+  /// - Parameter powerUpIDs: IDs to filter by; an empty array requests all custom Power-ups.
   public static func getCustomPowerUps(
-    for broadcasterID: String? = nil,
     powerUpIDs: [String] = []
   ) -> HelixEndpoint<[CustomPowerUp]> {
     .init(
@@ -22,10 +19,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          )
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id"))
         ]
           + powerUpIDs.map { ("id", $0) }
       },

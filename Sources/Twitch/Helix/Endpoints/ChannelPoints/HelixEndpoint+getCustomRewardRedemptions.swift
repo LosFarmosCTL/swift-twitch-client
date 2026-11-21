@@ -14,8 +14,6 @@ extension HelixEndpoint {
   ///
   /// - Parameters:
   ///   - rewardID: The identifier of the reward.
-  ///   - broadcasterID: The broadcaster’s Twitch user ID; `nil` uses the executing
-  ///     client’s authenticated user ID.
   ///   - status: The redemption status to retrieve. Required by Twitch when
   ///     `redemptionIDs` is empty.
   ///   - redemptionIDs: The redemption IDs to include in the request. Defaults to `[]`.
@@ -28,7 +26,6 @@ extension HelixEndpoint {
   ///   executed. The cursor is `nil` when there is no next page.
   public static func getCustomRewardRedemptions(
     rewardID: String,
-    broadcasterID: String? = nil,
     status: CustomRewardRedemptionStatus? = nil,
     redemptionIDs: [String] = [],
     sort: CustomRewardRedemptionSort? = nil,
@@ -40,10 +37,7 @@ extension HelixEndpoint {
       authentication: .user,
       queryItems: { credentials in
         [
-          (
-            "broadcaster_id",
-            try credentials.resolveUserID(broadcasterID, parameter: "broadcaster_id")
-          ),
+          ("broadcaster_id", try credentials.requireUserID(parameter: "broadcaster_id")),
           ("reward_id", rewardID),
           ("status", status?.rawValue),
           ("sort", sort?.rawValue),

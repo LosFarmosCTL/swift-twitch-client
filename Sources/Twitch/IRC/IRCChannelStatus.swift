@@ -33,7 +33,7 @@ public enum IRCChannelFailure: Sendable, Equatable {
 
   internal init(terminalError: Error) {
     switch terminalError {
-    case IRCError.loginFailed:
+    case IRCError.loginFailed, is TwitchAuthenticationError:
       self = .authenticationFailed
     default:
       self = .connectionFailed(String(describing: terminalError))

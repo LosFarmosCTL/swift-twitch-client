@@ -18,6 +18,7 @@ internal actor IRCConnectionPool {
   var pendingJoins: [String: PendingJoin] = [:]
   var updates: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
   private var updatingChannels = false
+  private var disconnectTask: Task<Void, Never>?
 
   init(
     with credentials: TwitchCredentials? = nil,
@@ -29,6 +30,10 @@ internal actor IRCConnectionPool {
     self.network = network
     self.joinTimeout = joinTimeout
     self.rateLimiter = rateLimiter
+  }
+
+  deinit {
+    for pending in pendingJoins.values { pending.task.cancel() }
   }
 
   func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
@@ -70,6 +75,11 @@ internal actor IRCConnectionPool {
   }
 
   func disconnect(throwing error: Error? = nil) async {
+    if let disconnectTask {
+      await disconnectTask.value
+      return
+    }
+
     guard !state.ended else { return }
 
     for channel in Array(pendingJoins.keys) { cancelJoin(channel) }
@@ -96,7 +106,13 @@ internal actor IRCConnectionPool {
     updates = nil
 
     for entry in oldEntries.values { entry.task?.cancel() }
-    for entry in oldEntries.values { await entry.supervisor.disconnect() }
+
+    let task = Task {
+      for entry in oldEntries.values { await entry.supervisor.disconnect() }
+    }
+
+    disconnectTask = task
+    await task.value
   }
 
   func addEntry(to state: inout State) -> UUID {

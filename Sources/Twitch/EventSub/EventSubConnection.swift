@@ -69,7 +69,7 @@ internal actor EventSubConnection {
       }
       keepaliveTimer = timer
 
-      let welcome = try await readWelcome(on: socket, timer: deadline == nil ? timer : nil)
+      let welcome = try await readWelcome(on: socket)
       await timer.reset(duration: welcome.keepaliveTimeout + .seconds(1))
 
       try checkOpen()
@@ -102,13 +102,10 @@ internal actor EventSubConnection {
     return socket
   }
 
-  private func readWelcome(
-    on socket: WebSocketTask, timer: KeepaliveTimer?
-  ) async throws -> EventSubWelcome {
+  private func readWelcome(on socket: WebSocketTask) async throws -> EventSubWelcome {
     while true {
       let frame = try await socket.receive()
       try checkOpen()
-      await timer?.reset()
 
       if case .welcome(let welcome) = decodeMessage(from: frame)?.message.payload {
         return welcome

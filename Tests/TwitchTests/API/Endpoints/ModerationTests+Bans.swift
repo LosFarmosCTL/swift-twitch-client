@@ -47,6 +47,25 @@ extension ModerationTests {
     #expect(ban.endTime == nil)
   }
 
+  @Test(arguments: [
+    Duration.seconds(-1), .zero, .milliseconds(500), .seconds(1_209_601),
+    .seconds(1_209_600) + .milliseconds(1),
+  ])
+  func banUserRejectsOutOfRangeDuration(duration: Duration) async {
+    let error = await #expect(throws: HelixError.self) {
+      try await harness.twitch.helix(for: .banUser("9876", in: "5678", for: duration))
+    }
+    #expect(
+      {
+        if case .authenticationError(.invalidParameter(parameter: "duration", reason: _)) = error {
+          true
+        } else {
+          false
+        }
+      }())
+    #expect(await harness.session.requestCount() == 0)
+  }
+
   @Test
   func unbanUser() async throws {
     let url = try #require(

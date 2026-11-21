@@ -36,11 +36,18 @@ extension ChatNotification {
       kind = value.kind.chatKind
       details = .irc(value)
     }
+    let authorID = value.userID.chatNonempty
+    let authorLogin = value.userLogin.chatNonempty
+    let authorDisplayName = value.displayName.chatNonempty
+    let author: ChatUser? =
+      if authorID != nil || authorLogin != nil || authorDisplayName != nil {
+        ChatUser(id: authorID, login: authorLogin, displayName: authorDisplayName)
+      } else {
+        nil
+      }
     self.init(
       kind: kind, id: value.id.chatNonempty,
-      author: ChatUser(
-        id: value.userID.chatNonempty, login: value.userLogin.chatNonempty,
-        displayName: value.displayName.chatNonempty),
+      author: author,
       text: value.message.chatNonempty,
       systemMessage: value.systemMessage.chatNonempty,
       sourceChannelID: value.source?.roomID,

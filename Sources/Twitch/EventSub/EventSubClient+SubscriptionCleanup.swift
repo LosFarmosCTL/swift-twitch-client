@@ -81,7 +81,9 @@ extension EventSubClient {
       remoteSubscriptions[id] = nil
     }
 
-    subscriptions[subscription.key] = nil
+    if subscriptions[subscription.key] === subscription {
+      subscriptions[subscription.key] = nil
+    }
     subscription.setupTask = nil
     subscription.finishCleanup()
   }

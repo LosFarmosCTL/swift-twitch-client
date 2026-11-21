@@ -189,7 +189,7 @@ struct ManagedChatEventSubTests {
   }
 
   @Test
-  func channelSetupFailureDoesNotFailHealthyReaderOrCollapsePresentEmptyNotificationText()
+  func channelSetupFailureDoesNotFailHealthyReaderAndNormalizesEmptyNotificationText()
     async throws
   {
     let client = await client()
@@ -208,8 +208,8 @@ struct ManagedChatEventSubTests {
     let event = try #require(
       await messages.first { if case .notification = $0.payload { true } else { false } })
     if case .notification(let notice) = event.payload {
-      #expect(notice.text == "")
-      #expect(notice.systemMessage == "")
+      #expect(notice.text == nil)
+      #expect(notice.systemMessage == nil)
     }
     await session.stub(
       url: URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions")!,

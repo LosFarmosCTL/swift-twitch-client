@@ -28,7 +28,7 @@ extension HelixEndpoint {
       authentication: .user,
       body: { credentials in
         EndPredictionRequestBody(
-          broadcasterID: try credentials.requireUser().id,
+          broadcasterID: try credentials.requireUserID(parameter: "broadcaster_id"),
           id: predictionID, status: status, winningOutcomeID: winningOutcomeID)
       },
       responseType: Prediction.self,

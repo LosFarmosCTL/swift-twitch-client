@@ -27,7 +27,7 @@ extension HelixEndpoint {
       queryItems: { credentials in
         [
           ("broadcaster_id", broadcasterID),
-          ("moderator_id", try credentials.requireUser().id),
+          ("moderator_id", try credentials.requireUserID(parameter: "moderator_id")),
           ("status", status.rawValue), ("user_id", userID),
           ("first", limit.map(String.init)), ("after", cursor),
         ]
