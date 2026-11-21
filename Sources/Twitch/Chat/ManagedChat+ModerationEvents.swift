@@ -77,7 +77,7 @@ extension ManagedChat {
   private func observeChatModerationRole(
     _ event: ChannelModerateEvent, user: ChannelModerateEvent.Action.User, in id: String
   ) {
-    if user.userID == credentials.userID,
+    if let userID = credentials?.userID, user.userID == userID,
       event.sourceBroadcasterID == nil || event.sourceBroadcasterID == id
     {
       var privilege = senderEvidence[.id(id)]?.observedPrivilege ?? .unknown
@@ -97,10 +97,10 @@ extension ManagedChat {
 
   private func isChatSender(_ user: ChatUser) -> Bool {
     if let id = user.id {
-      return id == credentials.userID
+      return id == credentials?.userID
     }
 
-    return user.login?.lowercased() == credentials.userLogin?.lowercased()
-      && credentials.userLogin != nil
+    guard let login = credentials?.userLogin else { return false }
+    return user.login?.lowercased() == login
   }
 }

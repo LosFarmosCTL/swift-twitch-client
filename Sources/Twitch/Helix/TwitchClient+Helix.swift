@@ -37,8 +37,9 @@ extension TwitchClient {
   /// Executes a Helix request using this client's current credentials.
   ///
   /// The client captures its credentials when the request begins, so a concurrent
-  /// ``switchCredentials(to:chatBehavior:)`` does not disturb an in-flight call. Each
-  /// invocation performs one HTTP attempt with no automatic retries or rate-limit waits.
+  /// credential change does not disturb an in-flight call. A signed-out client can
+  /// execute public endpoints such as the channel iCalendar export. Each invocation
+  /// performs one HTTP attempt with no automatic retries or rate-limit waits.
   ///
   /// - Parameter endpoint: A typed ``HelixEndpoint`` factory describing the request.
   /// - Returns: A ``HelixResponse`` containing the decoded result (or `()` for empty-body
@@ -57,7 +58,7 @@ extension TwitchClient {
   @discardableResult
   internal nonisolated(nonsending) static func helix<R>(
     for endpoint: HelixEndpoint<R>,
-    credentials: TwitchCredentials,
+    credentials: TwitchCredentials?,
     network: NetworkSession,
     encoder: JSONEncoder = TwitchClient.makeEncoder(),
     decoder: JSONDecoder = TwitchClient.makeDecoder(),

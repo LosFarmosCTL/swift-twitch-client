@@ -31,6 +31,56 @@ struct HelixTests {
   }
 
   @Test
+  func signedOutCalendarIsHeaderlessThroughAsyncAndCallbackAPIs() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [CalendarURLProtocol.self]
+    let session = URLSession(configuration: configuration)
+    defer { session.invalidateAndCancel() }
+    let client = TwitchClient(chat: .init(), urlSession: session)
+    let endpoint: HelixEndpoint<String> = .getChannelICalendar(broadcasterID: "1234")
+
+    #expect(try await client.helix(for: endpoint).value == "BEGIN:VCALENDAR")
+    let result: Result<HelixResponse<String>, HelixError> = await withCheckedContinuation {
+      continuation in
+      client.helixTask(for: endpoint) { continuation.resume(returning: $0) }
+    }
+    #expect(try result.get().value == "BEGIN:VCALENDAR")
+
+    let protected: Result<HelixResponse<[User]>, HelixError> = await withCheckedContinuation {
+      continuation in
+      client.helixTask(for: .getUsers()) { continuation.resume(returning: $0) }
+    }
+    guard case .failure(.authenticationError(.oauthAccessTokenRequired)) = protected else {
+      Issue.record("Expected the callback to fail with an OAuth requirement")
+      return
+    }
+  }
+
+  @Test
+  func signedOutHelixRejectsProtectedRequestsBeforeBuildingParameters() async {
+    let session = MockNetworkSession()
+    let client = TwitchClient(credentials: nil, network: session)
+    let requirements: [(HelixAuthentication, TwitchAuthenticationError)] = [
+      (.user, .userAccessTokenRequired), (.app, .appAccessTokenRequired),
+      (.either, .oauthAccessTokenRequired), (.extensionJWT, .extensionJWTRequired),
+    ]
+    for (authentication, expected) in requirements {
+      let endpoint = HelixEndpoint<Void>(
+        method: "POST", path: "protected", authentication: authentication,
+        queryItems: { _ in
+          Issue.record("Credential-dependent parameters must not be built while signed out")
+          return []
+        })
+      let error = await #expect(throws: HelixError.self) { try await client.helix(for: endpoint) }
+      guard case .authenticationError(let reason) = error else {
+        Issue.record("Expected an authentication error for \(authentication)")
+        continue
+      }
+      #expect(reason == expected)
+    }
+  }
+
+  @Test
   func withJSONBody() async throws {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/test"))
     await harness.session.stub(
@@ -224,6 +274,30 @@ struct HelixTests {
       try decoder.decode(HelixResponsePayload<UserColor>.self, from: Data(#"{}"#.utf8))
     }
   }
+}
+
+private final class CalendarURLProtocol: URLProtocol {
+  override static func canInit(with request: URLRequest) -> Bool { true }
+
+  override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+  override func startLoading() {
+    guard let url = request.url,
+      url.absoluteString == "https://api.twitch.tv/helix/schedule/icalendar?broadcaster_id=1234",
+      request.value(forHTTPHeaderField: "Authorization") == nil,
+      request.value(forHTTPHeaderField: "Client-Id") == nil,
+      let response = HTTPURLResponse(
+        url: url, statusCode: 200, httpVersion: nil, headerFields: nil)
+    else {
+      client?.urlProtocol(self, didFailWithError: URLError(.badURL))
+      return
+    }
+    client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocol(self, didLoad: Data("BEGIN:VCALENDAR".utf8))
+    client?.urlProtocolDidFinishLoading(self)
+  }
+
+  override func stopLoading() {}
 }
 
 enum HelixCancellationSource: CaseIterable, Sendable {

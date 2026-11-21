@@ -12,10 +12,11 @@ extension ManagedChat {
         sending: eligibility[member.channel.id] ?? .eligible)
     }
     return ChatState(
-      credentialRevision: credentialRevision, userID: credentials.userID,
+      credentialRevision: credentialRevision, userID: credentials?.userID,
       credentialChange: credentialChange,
       reader: configuration.reader == .eventSub ? eventSubReaderStatus : readerStatus,
-      writer: writerStatus, ircReader: ircReaderState, ircWriter: ircWriterState,
+      writer: credentials == nil ? .unavailable("A user access token is required.") : writerStatus,
+      ircReader: ircReaderState, ircWriter: ircWriterState,
       channels: channels, lastDeparture: lastDeparture, sendEligibility: eligibility,
       isShutdown: isShutdown)
   }

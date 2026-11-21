@@ -7,7 +7,7 @@ extension ManagedChat {
   }
 
   func observeSendHistory() {
-    guard sendHistoryObserver == nil, let sender = credentials.user, !isShutdown else { return }
+    guard sendHistoryObserver == nil, let sender = credentials?.user, !isShutdown else { return }
     let revision = credentialRevision
     let updates = sendLimiter.updates(for: sender.id)
     sendHistoryObserver = Task { [weak client] in
@@ -25,7 +25,7 @@ extension ManagedChat {
   ) {
     let destinations = sendDestinations.union(memberships.keys)
     guard !destinations.isEmpty else { return ([:], nil) }
-    let history = credentials.user.map { sendLimiter.snapshot(for: $0.id) }
+    let history = credentials?.user.map { sendLimiter.snapshot(for: $0.id) }
     let now = ContinuousClock.now
     let wallTime = Date()
     var channels: [String: ChatSendEligibility] = [:]

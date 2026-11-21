@@ -8,7 +8,8 @@ import Foundation
 ///
 /// Create a `TwitchClient` with ``TwitchCredentials`` to execute typed ``HelixEndpoint``
 /// requests, observe live ``EventSubSubscription`` notifications, and participate in chat
-/// through managed transports or raw IRC.
+/// through managed transports or raw IRC. A signed-out client can use public Helix
+/// endpoints and read chat through an anonymous IRC reader.
 ///
 /// The client owns the shared `URLSession`-backed network layer, EventSub WebSocket pool,
 /// and managed chat state. Because `TwitchClient` is an actor, concurrent callers can
@@ -17,7 +18,7 @@ import Foundation
 /// - SeeAlso: <doc:Authentication>, <doc:Helix>, <doc:EventSub>, <doc:ManagedChat>,
 ///   <doc:Diagnostics>
 public actor TwitchClient {
-  internal private(set) var credentials: TwitchCredentials
+  internal private(set) var credentials: TwitchCredentials?
   internal let network: NetworkSession
 
   internal let encoder: JSONEncoder
@@ -62,8 +63,22 @@ public actor TwitchClient {
       network: network, diagnostics: diagnostics)
   }
 
+  /// Creates a signed-out client with the supplied chat configuration and session.
+  ///
+  /// Use an anonymous IRC reader to join resolved chat channels while signed out.
+  /// Call ``switchCredentials(to:chatBehavior:)`` to install credentials on this client.
+  public init(
+    chat: ChatConfiguration,
+    urlSession: URLSession = .shared,
+    diagnostics: TwitchDiagnostics = .init()
+  ) {
+    self.init(
+      credentials: nil, chat: chat,
+      network: URLSessionNetworkSession(session: urlSession), diagnostics: diagnostics)
+  }
+
   internal init(
-    credentials: TwitchCredentials,
+    credentials: TwitchCredentials?,
     chat configuration: ChatConfiguration = .init(),
     network: NetworkSession,
     diagnostics: TwitchDiagnostics = .init()
@@ -106,8 +121,8 @@ public actor TwitchClient {
   ///
   /// Cancel the consuming task to stop observing; simply breaking out of a `for await`
   /// loop while keeping a reference to the stream leaves the registration active.
-  /// Streams survive ``switchCredentials(to:chatBehavior:)`` and ``resetEventSub()``,
-  /// and finish when the client is deallocated.
+  /// Streams survive credential changes and ``resetEventSub()``, and finish when the
+  /// client is deallocated.
   ///
   /// - Returns: An async stream of structured ``TwitchDecodingDiagnostic`` reports.
   /// - SeeAlso: ``TwitchDiagnostics``, <doc:Diagnostics>
@@ -137,6 +152,27 @@ public actor TwitchClient {
   public func switchCredentials(
     to credentials: TwitchCredentials,
     chatBehavior: ChatCredentialSwitchBehavior = .preserveChannels
+  ) async {
+    await replaceCredentials(with: credentials, chatBehavior: chatBehavior)
+  }
+
+  /// Signs out this client and closes its account-bound transports.
+  ///
+  /// Existing EventSub observers finish normally. This method waits for local transport
+  /// teardown. Upstream subscription cleanup continues with the original credentials.
+  ///
+  /// By default, managed chat keeps desired memberships and its anonymous IRC reader.
+  /// Install compatible credentials to resume account-bound chat. Pass `.partChannels`
+  /// to remove desired memberships.
+  public func clearCredentials(
+    chatBehavior: ChatCredentialSwitchBehavior = .preserveChannels
+  ) async {
+    await replaceCredentials(with: nil, chatBehavior: chatBehavior)
+  }
+
+  private func replaceCredentials(
+    with credentials: TwitchCredentials?,
+    chatBehavior: ChatCredentialSwitchBehavior
   ) async {
     self.credentials = credentials
     let reset = startEventSubReset()

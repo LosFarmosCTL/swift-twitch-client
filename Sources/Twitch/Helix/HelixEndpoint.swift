@@ -33,6 +33,7 @@ public struct HelixEndpoint<Response>: Sendable {
   internal let path: String
 
   private let makeQueryItems: @Sendable (TwitchCredentials) throws -> [(String, String?)]
+  private let publicQueryItems: [(String, String?)]
   private let makeBody: @Sendable (TwitchCredentials) throws -> Encodable?
   private let processResponse:
     @Sendable (Data, HelixResponseMetadata, JSONDecoder, (any Error) -> Void) throws -> Response
@@ -54,6 +55,7 @@ public struct HelixEndpoint<Response>: Sendable {
     self.path = path
 
     self.makeQueryItems = queryItems
+    self.publicQueryItems = []
     self.makeBody = body
     self.processResponse = { data, metadata, decoder, onMalformedPagination in
       let payload: HelixResponsePayload<Payload>
@@ -84,6 +86,7 @@ public struct HelixEndpoint<Response>: Sendable {
       _ in []
     },
     body: @escaping @Sendable (TwitchCredentials) throws -> Encodable? = { _ in nil },
+    publicQueryItems: [(String, String?)] = [],
     makeRawResponse: @escaping @Sendable (Data) throws -> Response
   ) {
     self.authentication = authentication
@@ -91,6 +94,7 @@ public struct HelixEndpoint<Response>: Sendable {
     self.path = path
 
     self.makeQueryItems = queryItems
+    self.publicQueryItems = publicQueryItems
     self.makeBody = body
     self.processResponse = { data, metadata, _, _ in
       do {
@@ -103,28 +107,27 @@ public struct HelixEndpoint<Response>: Sendable {
   }
 
   internal func makeRequest(
-    using credentials: TwitchCredentials,
+    using credentials: TwitchCredentials?,
     encoder: JSONEncoder
   ) throws -> URLRequest {
     try authentication.validate(credentials)
     var url = baseURL.appending(path: path)
 
-    let queryItems =
-      try makeQueryItems(credentials).compactMap { (key, value) in
-        guard let value else { return nil }
-        return URLQueryItem(name: key, value: value)
-      } as [URLQueryItem]
+    let credentialQueryItems = try credentials.map(makeQueryItems) ?? []
+    let queryItems = (publicQueryItems + credentialQueryItems).compactMap { (key, value) in
+      value.map { URLQueryItem(name: key, value: $0) }
+    }
 
     if !queryItems.isEmpty { url = url.appending(queryItems: queryItems) }
 
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method
 
-    credentials.httpHeaders().forEach({ key, value in
+    credentials?.httpHeaders().forEach({ key, value in
       urlRequest.addValue(value, forHTTPHeaderField: key)
     })
 
-    if let body = try makeBody(credentials) {
+    if let credentials, let body = try makeBody(credentials) {
       urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
       urlRequest.httpBody = try encoder.encode(body)
     }
@@ -165,19 +168,22 @@ extension HelixEndpoint where Response == Void {
 internal enum HelixAuthentication: Sendable {
   case user, app, either, none, extensionJWT
 
-  func validate(_ credentials: TwitchCredentials) throws {
+  func validate(_ credentials: TwitchCredentials?) throws {
     switch self {
-    case .user: _ = try credentials.requireUser()
+    case .user:
+      guard credentials?.user != nil else {
+        throw TwitchAuthenticationError.userAccessTokenRequired
+      }
     case .app:
-      guard credentials.kind == .app else {
+      guard credentials?.kind == .app else {
         throw TwitchAuthenticationError.appAccessTokenRequired
       }
     case .extensionJWT:
-      guard credentials.kind == .extensionJWT else {
+      guard credentials?.kind == .extensionJWT else {
         throw TwitchAuthenticationError.extensionJWTRequired
       }
     case .either:
-      guard credentials.kind != .extensionJWT else {
+      guard let credentials, credentials.kind != .extensionJWT else {
         throw TwitchAuthenticationError.oauthAccessTokenRequired
       }
     case .none: break
