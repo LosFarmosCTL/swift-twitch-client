@@ -4,7 +4,7 @@ internal actor EventSubClient {
   let network: NetworkSession
   let decoder: JSONDecoder
   let diagnostics: TwitchDiagnostics
-  private(set) var credentials: TwitchCredentials
+  private(set) var credentials: TwitchCredentials?
   private(set) var revision: UInt64 = 0
   private(set) var isRetired = false
   var sessions = Sessions()
@@ -15,7 +15,7 @@ internal actor EventSubClient {
   init(
     network: NetworkSession,
     decoder: JSONDecoder,
-    credentials: TwitchCredentials,
+    credentials: TwitchCredentials?,
     diagnostics: TwitchDiagnostics = .init()
   ) {
     self.network = network
@@ -30,7 +30,7 @@ internal actor EventSubClient {
     guard !isRetired, revision == self.revision else { throw CancellationError() }
   }
 
-  func reset(using credentials: TwitchCredentials, revision: UInt64) async {
+  func reset(using credentials: TwitchCredentials?, revision: UInt64) async {
     guard !isRetired, revision > self.revision else { return }
 
     let closing = beginTeardown()

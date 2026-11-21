@@ -25,8 +25,8 @@ extension TwitchClient {
   /// last observer leaves.
   ///
   /// Connection failures and subscription revocations finish the stream by throwing an
-  /// ``EventSubError``. Calling ``resetEventSub()`` or
-  /// ``switchCredentials(to:chatBehavior:)`` finishes the stream normally.
+  /// ``EventSubError``. Calling ``resetEventSub()`` or changing credentials finishes
+  /// the stream normally.
   ///
   /// - Important: The default `.unbounded` policy can grow without limit if consumption
   ///   falls behind. Explicit bounded policies drop older (`.bufferingNewest`) or newer
@@ -116,6 +116,7 @@ extension TwitchClient {
     // Capture this registration's revision before waiting. A later reset can supersede it.
     let revision = eventSubRevision
     try Task.checkCancellation()
+    guard credentials != nil else { throw TwitchAuthenticationError.userAccessTokenRequired }
     guard let resetTask = eventSubResetTask else { return revision }
 
     let (stream, continuation) = AsyncThrowingStream<Void, any Error>.makeStream()

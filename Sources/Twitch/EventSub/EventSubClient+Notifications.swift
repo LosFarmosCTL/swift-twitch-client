@@ -78,7 +78,7 @@ extension EventSubClient {
   }
 
   private func bufferEarlyFrame(_ frame: Frame, in sessionID: UUID) {
-    guard let account = credentials.userID, let incoming = frame.subscription else { return }
+    guard let account = credentials?.userID, let incoming = frame.subscription else { return }
 
     let key = ConflictKey(
       account: account,

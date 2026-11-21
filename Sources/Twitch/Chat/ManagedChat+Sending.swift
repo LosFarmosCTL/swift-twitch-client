@@ -9,7 +9,9 @@ extension ManagedChat {
     try validateChatMessage(
       text, to: channel, replyTo: messageID, clientNonce: clientNonce)
 
-    let sender = try credentials.requireUser()
+    guard let sender = credentials?.user else {
+      throw TwitchAuthenticationError.userAccessTokenRequired
+    }
     let attempt = SendAttempt(
       channelID: channel.id, senderID: sender.id, revision: credentialRevision)
     let deadline = maximumWait.map { ContinuousClock.now.advanced(by: max(.zero, $0)) }

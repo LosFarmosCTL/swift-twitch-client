@@ -20,14 +20,16 @@ extension ManagedChat {
 
   nonisolated(nonsending) func ensureChatIRCWriter() async throws -> IRCConnectionSupervisor {
     try Task.checkCancellation()
-    _ = try credentials.requireUser()
+    guard let credentials, credentials.user != nil else {
+      throw TwitchAuthenticationError.userAccessTokenRequired
+    }
 
     if case .failed = writerStatus {
       retireChatWriter()
     }
 
     let revision = credentialRevision
-    let supervisor = writer?.supervisor ?? startIRCWriter()
+    let supervisor = writer?.supervisor ?? startIRCWriter(credentials: credentials)
     do {
       try await supervisor.waitUntilConnected()
     } catch {
@@ -39,7 +41,7 @@ extension ManagedChat {
     return supervisor
   }
 
-  private func startIRCWriter() -> IRCConnectionSupervisor {
+  private func startIRCWriter(credentials: TwitchCredentials) -> IRCConnectionSupervisor {
     let supervisor = IRCConnectionSupervisor(
       credentials: credentials, network: network, role: .write)
     let id = supervisor.id

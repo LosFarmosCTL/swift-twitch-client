@@ -37,7 +37,7 @@ extension ManagedChat {
     guard !isShutdown else {
       return ChatSendBlock(eligibility: .unavailable("Managed chat is shut down."))
     }
-    guard credentials.user != nil else {
+    guard credentials?.user != nil else {
       return ChatSendBlock(eligibility: .unavailable("A user access token is required."))
     }
     return senderEvidence[.id(id)]?.restriction.block(at: now)

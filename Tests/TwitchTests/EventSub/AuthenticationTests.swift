@@ -47,9 +47,9 @@ struct EventSubAuthenticationTests {
     #expect(await wrong.session.requestCount() == 0)
   }
 
-  @Test
-  func appStreamAndListenerRejectBeforeOpeningSocket() async {
-    let harness = HelixTestHarness(credentials: app)
+  @Test(arguments: [true, false])
+  func streamAndListenerRequireUserCredentials(usesAppToken: Bool) async {
+    let harness = HelixTestHarness(credentials: usesAppToken ? app : nil)
     await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
       _ = try await harness.twitch.eventStream(
         for: .streamOnline(broadcasterID: "channel"))
@@ -64,9 +64,9 @@ struct EventSubAuthenticationTests {
   }
 
   #if canImport(Combine)
-    @Test
-    func appPublisherRejectsThroughCompletionBeforeOpeningSocket() async throws {
-      let harness = HelixTestHarness(credentials: app)
+    @Test(arguments: [true, false])
+    func publisherRequiresUserCredentialsOnDemand(usesAppToken: Bool) async throws {
+      let harness = HelixTestHarness(credentials: usesAppToken ? app : nil)
       let failures = AsyncStream<any Error>.makeStream()
       let publisher = harness.twitch.eventPublisher(
         for: .streamOnline(broadcasterID: "channel"))
@@ -75,7 +75,7 @@ struct EventSubAuthenticationTests {
         receiveCompletion: {
           if case .failure(let error) = $0 { failures.continuation.yield(error) }
         },
-        receiveValue: { _ in Issue.record("App tokens cannot observe WebSocket events") })
+        receiveValue: { _ in Issue.record("WebSocket events require user credentials") })
       let error = try #require(await failures.stream.first { _ in true })
       #expect(error as? TwitchAuthenticationError == .userAccessTokenRequired)
       #expect(await harness.session.taskCount() == 0)
@@ -85,40 +85,57 @@ struct EventSubAuthenticationTests {
   #endif
 
   @Test(.timeLimit(.minutes(1)))
-  func credentialSwitchDuringHTTPSetupCleansUpWithOriginalToken() async throws {
+  func clearingCredentialsFinishesObserversAndCleansUpWithOriginalCredentials() async throws {
     let harness = HelixTestHarness(credentials: user)
     let url = try #require(
       URL(string: "https://api.twitch.tv/helix/eventsub/subscriptions"))
-    let deleteURL = url.appending(queryItems: [
-      URLQueryItem(name: "id", value: MockedMessages.defaultSubscriptionID)
-    ])
+    let initialID = MockedMessages.defaultSubscriptionID
+    let pendingID = "pending-subscription"
+    for id in [initialID, pendingID] {
+      await harness.session.stub(
+        url: url.appending(queryItems: [.init(name: "id", value: id)]),
+        method: "DELETE", status: 204)
+    }
     await harness.session.stub(
       url: url, method: "POST",
       body: Data(MockedMessages.mockEventSubSubscription.utf8))
-    await harness.session.stub(url: deleteURL, method: "DELETE", status: 204)
+    await harness.session.simulateIncoming(
+      .string(MockedMessages.welcomeMessage), queue: true)
+    let active = try await harness.twitch.eventStream(for: .mock())
+    await harness.session.stub(
+      url: url, method: "POST",
+      body: Data(
+        MockedMessages.customized(
+          MockedMessages.mockEventSubSubscription, subscriptionID: pendingID
+        ).utf8))
     let gate = AsyncTestGate()
     let deleted = AsyncStream<Void>.makeStream()
     await harness.session.onRequest { request in
       if request.httpMethod == "POST" { await gate.pause() }
       if request.httpMethod == "DELETE" { deleted.continuation.yield(()) }
     }
-    await harness.session.simulateIncoming(
-      .string(MockedMessages.welcomeMessage), queue: true)
-    let setup = Task { try await harness.twitch.eventStream(for: .mock()) }
+    let setup = Task { try await harness.twitch.eventStream(for: .mock(version: "2")) }
     await gate.waitUntilEntered()
 
-    await harness.twitch.switchCredentials(to: app)
+    await harness.twitch.clearCredentials()
+    #expect(await harness.session.lastTask()?.didCancel == true)
+    var activeIterator = active.makeAsyncIterator()
+    #expect(try await activeIterator.next() == nil)
     await gate.release()
     await #expect(throws: CancellationError.self) { _ = try await setup.value }
 
-    _ = await deleted.stream.first { _ in true }
+    var deletions = deleted.stream.makeAsyncIterator()
+    _ = await deletions.next()
+    _ = await deletions.next()
     let requests = await harness.session.requests()
-    #expect(requests.map(\.httpMethod) == ["POST", "DELETE"])
+    #expect(requests.map(\.httpMethod) == ["POST", "POST", "DELETE", "DELETE"])
     #expect(
       requests.allSatisfy {
         $0.value(forHTTPHeaderField: "Authorization") == "Bearer user-token"
+          && $0.value(forHTTPHeaderField: "Client-Id") == user.clientID
       })
-    #expect(await harness.session.lastTask()?.didCancel == true)
+    let deletedQueries = requests.filter { $0.httpMethod == "DELETE" }.compactMap { $0.url?.query }
+    #expect(Set(deletedQueries) == ["id=\(initialID)", "id=\(pendingID)"])
     await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
       _ = try await harness.twitch.eventStream(for: .mock())
     }

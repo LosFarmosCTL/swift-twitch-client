@@ -81,33 +81,90 @@ struct ManagedChatTests {
           behavior: .partChannels, anonymousReaderPreserved: false))
   }
 
-  @Test
-  func anonymousReaderSurvivesSwitchAndStateReportsPolicyAndIdentity() async throws {
-    let client = client()
+  @Test(arguments: [ChatConfiguration.Writer.helix, .irc])
+  func anonymousReaderSurvivesCredentialChanges(writer: ChatConfiguration.Writer) async throws {
+    let client = TwitchClient(
+      credentials: nil, chat: .init(reader: .irc(.anonymous), writer: writer), network: session)
     let updates = await client.chatStateUpdates()
+    let initial = await client.chatState
+    #expect(initial.userID == nil)
+    guard case .unavailable = initial.writer else {
+      Issue.record("Expected the signed-out writer to be unavailable")
+      return
+    }
+
     let pending = Task { try await client.join(to: channel) }
     let socket = await session.waitForTask(at: 0)
     await handshake(socket)
     await acknowledge(socket)
     try await pending.value
+    try await client.join(to: .login("#SWIFT"))
+
+    let eligibility = await client.sendEligibility(in: channel.id)
+    guard case .unavailable = eligibility else {
+      Issue.record("Expected sending to be unavailable while signed out")
+      return
+    }
+    await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
+      try await client.sendMessage("hello", in: channel)
+    }
+    await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
+      try await client.sendMessage("hello", in: .login("unknown"))
+    }
+    if writer == .irc {
+      await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
+        try await client.sendIRC(.privateMessage(to: channel.login, message: "hello"))
+      }
+    }
+    let lookup = await #expect(throws: HelixError.self) {
+      try await client.join(to: .login("unknown"))
+    }
+    guard case .authenticationError(.oauthAccessTokenRequired) = lookup else {
+      Issue.record("Expected an OAuth requirement for an uncached channel")
+      return
+    }
+
+    await client.setChatPrivilege(ChatPrivilege(isVIP: true), in: channel.id)
+    #expect(await client.chatState.channels[channel.id]?.privilege == .unknown)
+    await client.switchCredentials(to: first)
+    let signedIn = try #require(await updates.first { $0.credentialRevision == 1 })
+    #expect(signedIn.userID == first.userID)
+    #expect(signedIn.credentialChange?.anonymousReaderPreserved == true)
+    #expect(await client.sendEligibility(in: channel.id) == .eligible)
+
     await client.setChatPrivilege(ChatPrivilege(isVIP: true), in: channel.id)
     await client.switchCredentials(to: second)
-    let changed = try #require(await updates.first { $0.credentialChange?.revision == 1 })
+    let changed = try #require(await updates.first { $0.credentialRevision == 2 })
     #expect(changed.userID == second.userID)
     #expect(changed.credentialChange?.anonymousReaderPreserved == true)
     #expect(changed.credentialChange?.previousUserID == first.userID)
     #expect(changed.channels[channel.id]?.status == .ready)
     #expect(changed.channels[channel.id]?.privilege == .unknown)
+    await client.clearCredentials()
+    let signedOut = try #require(await updates.first { $0.credentialRevision == 3 })
+    #expect(
+      signedOut.credentialChange
+        == ChatCredentialChange(
+          revision: 3, previousUserID: second.userID, userID: nil,
+          behavior: .preserveChannels, anonymousReaderPreserved: true))
+    #expect(signedOut.userID == nil)
+    #expect(signedOut.channels[channel.id]?.status == .ready)
+    #expect(signedOut.channels[channel.id]?.sending == eligibility)
     #expect(await socket.didCancel == false)
     #expect(await session.taskCount() == 1)
+    #expect(await session.requestCount() == 0)
 
-    await client.switchCredentials(to: first, chatBehavior: .partChannels)
-    await socket.waitForCancellation()
+    await client.clearCredentials(chatBehavior: .partChannels)
+    #expect(await socket.didCancel)
     let parted = await client.chatState
     #expect(parted.channels.isEmpty)
     #expect(parted.lastDeparture?.reason == .credentialsChanged)
-    #expect(parted.credentialChange?.behavior == .partChannels)
-    #expect(parted.credentialChange?.anonymousReaderPreserved == false)
+    #expect(
+      parted.credentialChange
+        == ChatCredentialChange(
+          revision: 4, previousUserID: nil, userID: nil,
+          behavior: .partChannels, anonymousReaderPreserved: false))
+    try await client.part(from: .login(channel.login))
     await client.shutdownChat()
   }
 
@@ -116,9 +173,19 @@ struct ManagedChatTests {
     let client = client(reader: .irc(.authenticated))
     let pending = Task { try await client.join(to: channel) }
     let old = await session.waitForTask(at: 0)
-    await client.switchCredentials(to: second)
+    await client.clearCredentials()
     await #expect(throws: ChatError.credentialsChanged) { try await pending.value }
-    await old.waitForCancellation()
+    #expect(await old.didCancel)
+    try await client.requestJoin(to: channel)
+    let signedOut = await client.chatState
+    guard case .unavailable(let reason) = signedOut.channels[channel.id]?.status else {
+      Issue.record("Expected the authenticated reader to retain an unavailable membership")
+      return
+    }
+    await #expect(throws: ChatError.setupFailed(reason)) { try await client.join(to: channel) }
+    #expect(await session.taskCount() == 1)
+
+    await client.switchCredentials(to: second)
     let replacement = await session.waitForTask(at: 1)
     await handshake(replacement, authenticated: second)
     await acknowledge(replacement)

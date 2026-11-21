@@ -188,10 +188,11 @@ public struct ChatChannelState: Sendable, Equatable {
   }
 }
 
-/// Summary of the most recent credential switch applied to managed chat.
+/// Summary of the most recent credential change applied to managed chat.
 ///
 /// Exposed on ``ChatState/credentialChange`` after
-/// ``TwitchClient/switchCredentials(to:chatBehavior:)``.
+/// ``TwitchClient/switchCredentials(to:chatBehavior:)`` or
+/// ``TwitchClient/clearCredentials(chatBehavior:)``.
 public struct ChatCredentialChange: Sendable, Equatable {
   /// The monotonically increasing credential revision number after the switch.
   public let revision: UInt64
@@ -264,12 +265,11 @@ public struct ChatDeparture: Sendable, Equatable {
 ///
 /// - SeeAlso: <doc:ManagedChat>, ``ChatChannelState``, ``IRCState``
 public struct ChatState: Sendable {
-  /// Monotonically increasing counter incremented on each
-  /// ``TwitchClient/switchCredentials(to:chatBehavior:)``.
+  /// Monotonically increasing counter incremented each time credentials are set or cleared.
   public internal(set) var credentialRevision: UInt64 = 0
-  /// The currently installed user ID, or `nil` for non-user credentials.
+  /// The currently installed user ID, or `nil` when signed out or using non-user credentials.
   public internal(set) var userID: String?
-  /// Details of the most recent credential switch, if any has occurred.
+  /// Details of the most recent credential change, if any has occurred.
   public internal(set) var credentialChange: ChatCredentialChange?
   /// Aggregate status of the configured chat reader transport.
   public internal(set) var reader: ChatComponentStatus = .idle

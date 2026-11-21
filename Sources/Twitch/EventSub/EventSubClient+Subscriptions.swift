@@ -3,7 +3,7 @@ import Foundation
 extension EventSubClient {
   // MARK: - Subscription setup
 
-  func startSubscription(_ key: ConflictKey) -> Subscription {
+  func startSubscription(_ key: ConflictKey, credentials: TwitchCredentials) -> Subscription {
     let subscription = Subscription(
       key: key, credentials: credentials, revision: revision)
     subscriptions[key] = subscription

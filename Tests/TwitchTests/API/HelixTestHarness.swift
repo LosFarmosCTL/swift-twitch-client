@@ -5,7 +5,7 @@ struct HelixTestHarness {
   let twitch: TwitchClient
 
   init(
-    credentials: TwitchCredentials = .init(
+    credentials: TwitchCredentials? = .init(
       accessToken: "1234567989",
       clientID: "abcdefghijkl",
       userID: "1234",
