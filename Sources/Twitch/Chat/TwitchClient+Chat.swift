@@ -44,7 +44,8 @@ extension TwitchClient {
   /// through ``chatStateUpdates()`` or call `join(to:)` to await readiness.
   ///
   /// - Parameter channel: A resolved ``ChatChannel`` containing the broadcaster's ID and login.
-  /// - Throws: ``ChatError/invalidChannel``, ``ChatError/shutdown``, or `CancellationError`.
+  /// - Throws: ``ChatError/invalidChannel``, ``ChatError/setupFailed(_:)``, ``ChatError/shutdown``,
+  ///   or `CancellationError`.
   /// - SeeAlso: ``ChatChannel``, ``ChatChannelTarget``, <doc:ManagedChat>
   public func requestJoin(to channel: ChatChannel) throws { try chat.requestJoin(to: channel) }
 
@@ -62,6 +63,7 @@ extension TwitchClient {
   /// Joins a resolved channel and suspends until its reader is ready.
   ///
   /// Because `channel` already contains both ID and login, no Helix lookup is performed.
+  /// IRC readiness requires a matching channel ID in Twitch's `ROOMSTATE`.
   /// Cancelling the awaiting task cancels only the readiness wait and leaves the channel
   /// joined; call `part(from:)` to withdraw membership.
   ///

@@ -95,16 +95,18 @@ extension IRCConnectionPool {
     switch message {
     case .join(let join) where join.userLogin == login:
       if entry.channels.contains(join.channel) {
-        joined(join.channel)
+        if expectedRoomIDs[join.channel] == nil { joined(join.channel) }
       } else {
         try? await entry.supervisor.send(.part(from: join.channel))
       }
 
     case .roomState(let room) where entry.channels.contains(room.channel):
-      joined(room.channel)
+      await handleRoomState(room, on: entry.supervisor)
 
     case .part(let part) where part.userLogin == login:
-      if entry.channels.contains(part.channel) {
+      if entry.channels.contains(part.channel),
+        expectedRoomIDs[part.channel] == nil || state.statuses[part.channel] == .joined
+      {
         cancelJoin(part.channel)
         scheduleJoin(part.channel, id: id)
       }
@@ -117,6 +119,25 @@ extension IRCConnectionPool {
 
     guard state.entries[id] != nil else { return }
     updates?.yield(.message(message))
+  }
+
+  private func handleRoomState(_ room: RoomState, on supervisor: IRCConnectionSupervisor) async {
+    guard let expected = expectedRoomIDs[room.channel] else {
+      joined(room.channel)
+      return
+    }
+    guard !room.roomID.isEmpty,
+      pendingJoins[room.channel] != nil || state.statuses[room.channel] == .joined
+    else { return }
+    guard room.roomID != expected else {
+      joined(room.channel)
+      return
+    }
+
+    cancelJoin(room.channel)
+    let message = "#\(room.channel) has room ID \(room.roomID), expected \(expected)."
+    updateState { $0.statuses[room.channel] = .failed(.connectionFailed(message)) }
+    try? await supervisor.send(.part(from: room.channel))
   }
 
   private func handleJoinNotice(_ notice: Notice, id: UUID) {

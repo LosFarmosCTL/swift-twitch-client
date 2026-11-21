@@ -38,15 +38,23 @@ extension ManagedChat {
   }
 
   func cacheChatChannel(_ channel: ChatChannel) {
-    knownChannels[.id(channel.id)] = channel
-    knownChannels[.login(channel.login)] = channel
+    let id = ChatChannelReference.id(channel.id)
+    let login = ChatChannelReference.login(channel.login)
+    if let previous = knownChannels[id], previous.login != channel.login {
+      knownChannels[.login(previous.login)] = nil
+    }
+    if let previous = knownChannels[login], previous.id != channel.id {
+      knownChannels[.id(previous.id)] = nil
+    }
+    knownChannels[id] = channel
+    knownChannels[login] = channel
 
-    if let pending = senderEvidence.removeValue(forKey: .login(channel.login)) {
+    if let pending = senderEvidence.removeValue(forKey: login) {
       if let privilege = pending.observedPrivilege {
         observeChatPrivilege(privilege, in: channel.id)
       }
       if case .banned = pending.restriction {
-        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .banned
+        senderEvidence[id, default: SenderEvidence()].restriction = .banned
       }
     }
   }
