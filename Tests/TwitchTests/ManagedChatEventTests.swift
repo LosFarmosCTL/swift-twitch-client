@@ -4,6 +4,35 @@ import Testing
 @testable import Twitch
 
 extension ManagedChatTests {
+  @Test(arguments: [false, true])
+  func ircNormalizesActionAndEmoteOccurrences(isAction: Bool) async throws {
+    let client = client()
+    let events = await client.messageStream()
+    let pending = Task { try await client.join(to: channel) }
+    let socket = await session.waitForTask(at: 0)
+    await handshake(socket)
+    await acknowledge(socket)
+    try await pending.value
+
+    let text = "👩🏽‍💻 e\u{0301} Kappa PogChamp Kappa"
+    let wireText = isAction ? "\u{1}ACTION \(text)\u{1}" : text
+    await socket.simulateIncoming(
+      .string(
+        "@badge-info=;badges=;display-name=Chatter;emotes=25:8-12,23-27/88:14-21;"
+          + "id=emotes;room-id=123;user-id=chatter "
+          + ":chatter!chatter@chatter.tmi.twitch.tv PRIVMSG #swift :\(wireText)"
+      ))
+
+    let message = try #require(await nextMessage(in: events))
+    #expect(message.text == text)
+    #expect(message.isAction == isAction)
+    #expect(message.emotes.map(\.id) == ["25", "88", "25"])
+    #expect(message.emotes.map(\.name) == ["Kappa", "PogChamp", "Kappa"])
+    #expect(message.emotes.map(\.range.unicodeScalarOffsets) == [8..<13, 14..<22, 23..<28])
+    #expect(message.emotes.map { $0.range.text(in: message.text) } == message.emotes.map(\.name))
+    await client.shutdownChat()
+  }
+
   @Test
   func ircMetadataPreservesMissingValuesAndSettingsUpdatesArePartial() async throws {
     let client = client()
@@ -19,6 +48,9 @@ extension ManagedChatTests {
       + ":chatter!chatter@chatter.tmi.twitch.tv PRIVMSG #swift :hello"
     await socket.simulateIncoming(.string(prefix + "one" + suffix))
     let missing = try #require(await nextMessage(in: events))
+    #expect(missing.text == "hello")
+    #expect(missing.isAction == false)
+    #expect(missing.emotes.isEmpty)
     #expect(missing.isFirstMessage == nil)
     #expect(missing.isReturningChatter == nil)
     #expect(missing.contentFilterFlags == nil)

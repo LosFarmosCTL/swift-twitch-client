@@ -109,12 +109,27 @@ public struct ChatBadge: Sendable, Equatable {
   }
 }
 
+/// An occurrence of a Twitch emote in a managed chat message.
+public struct ChatEmote: Sendable, Hashable {
+  /// The emote identifier supplied by Twitch.
+  public let id: String
+  /// The emote's text in the message.
+  public let name: String
+  /// The half-open range of Unicode scalar offsets in the enclosing ``ChatMessage/text``.
+  public let range: MessageTextRange
+
+  /// Creates an emote occurrence with a range in the enclosing message's text.
+  public init(id: String, name: String, range: MessageTextRange) {
+    self.id = id
+    self.name = name
+    self.range = range
+  }
+}
+
 /// A normalized chat message received from either IRC or EventSub.
 ///
-/// Common fields are extracted across transports without fabricating values that only one
-/// transport provides (for example, ``isFirstMessage`` is IRC-only while
-/// ``isIntroduction`` is EventSub-only). Inspect ``details`` whenever you need
-/// transport-native fields such as IRC emote ranges or EventSub message fragments.
+/// Use ``text``, ``isAction``, and ``emotes`` to render messages from either transport.
+/// Inspect ``details`` for transport-native fields such as EventSub emote formats.
 ///
 /// - SeeAlso: <doc:ManagedChat>, ``ChatEvent/Payload/message(_:)``
 public struct ChatMessage: Sendable {
@@ -130,8 +145,12 @@ public struct ChatMessage: Sendable {
   public let id: String
   /// The user who sent the message.
   public let author: ChatUser
-  /// The plain message text.
+  /// The displayable message text with CTCP ACTION framing removed.
   public let text: String
+  /// Whether the message was sent using the `/me` command.
+  public let isAction: Bool
+  /// Twitch emote occurrences in ``text``, ordered by their starting offset.
+  public let emotes: [ChatEmote]
   /// The author's hex chat color (for example, `"#1E90FF"`), or `nil` if unset.
   public let color: String?
   /// The author's chat badges in this channel.
@@ -164,11 +183,14 @@ public struct ChatMessage: Sendable {
   /// The raw IRC or EventSub payload for accessing transport-specific metadata.
   public let details: Details
 
-  /// Creates a `ChatMessage` value.
+  /// Creates a `ChatMessage` with displayable text and emote ranges relative to that text.
+  /// Pass emotes in message order.
   public init(
     id: String,
     author: ChatUser,
     text: String,
+    isAction: Bool = false,
+    emotes: [ChatEmote] = [],
     color: String? = nil,
     badges: [ChatBadge] = [],
     replyToMessageID: String? = nil,
@@ -186,6 +208,8 @@ public struct ChatMessage: Sendable {
     self.id = id
     self.author = author
     self.text = text
+    self.isAction = isAction
+    self.emotes = emotes
     self.color = color
     self.badges = badges
     self.replyToMessageID = replyToMessageID
