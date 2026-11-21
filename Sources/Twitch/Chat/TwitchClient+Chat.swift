@@ -113,8 +113,8 @@ extension TwitchClient {
   ///
   /// Supplying a ``ChatPrivilege`` overrides observed badges or `USERSTATE` evidence for
   /// local send pacing and opt-in ``ChatConfiguration/moderationEnrichment``. Pass `nil`
-  /// to clear the override and fall back to observed evidence. Overrides are cleared on
-  /// credential switches.
+  /// to clear the override and fall back to observed evidence. Overrides are cleared when
+  /// switching to a different account (`previousUserID != userID`).
   ///
   /// - Parameters:
   ///   - privilege: The privilege override to install, or `nil` to restore observed evidence.

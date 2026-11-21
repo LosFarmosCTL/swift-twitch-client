@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['[0-9]*', 'v[0-9]*']
   pull_request:
   workflow_dispatch:
 
@@ -82,7 +83,6 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/TwitchDerivedData" \
             -resultBundlePath artifacts/Build.xcresult \
             -onlyUsePackageVersionsFromResolvedFile \
-            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             2>&1 | tee artifacts/build.log | xcbeautify --renderer github-actions
 
@@ -135,3 +135,21 @@ jobs:
         run: |
           echo "$JOB_RESULTS" | jq .
           echo "$JOB_RESULTS" | jq --exit-status 'all(.[]; .result == "success")'
+
+  release-draft:
+    name: Prepare release draft
+    needs: [build, ios, lint, format]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 5
+    steps:
+      - name: Check out the tested commit and version tags
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Prepare draft from changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prepare-release.sh

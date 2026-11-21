@@ -2,12 +2,7 @@
 
 [![CI](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml/badge.svg)](https://github.com/LosFarmosCTL/swift-twitch-client/actions/workflows/main.yml)
 
-> [!WARNING]
-> Development of this library is still in progress and there is not yet a stable release.
->
-> While the overall API surface likely won't change, breaking changes are possible without notice.
-
-A native Swift client providing type-safe, Swift 6 concurrency-safe access to Twitch chat (managed chat and raw IRC), EventSub, and the Helix API.
+A native Swift client providing type-safe, Swift 6 concurrency-safe access to Twitch chat (managed chat and raw IRC), EventSub, and the Helix API. See the [changelog](CHANGELOG.md) for release notes.
 
 ## Features
 
@@ -31,18 +26,24 @@ Requires Swift 6.4 or later in Swift 6 language mode. Supported Apple deployment
 Add the dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", branch: "main")
+.package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", from: "1.0.0")
+```
+
+Then add the product to your target:
+
+```swift
+.product(name: "Twitch", package: "swift-twitch-client")
 ```
 
 ## Documentation
 
 Browse the full [API reference and concept guides](https://docs.chatless.app/swift-twitch-client/) (built from [`Sources/Twitch/Twitch.docc`](Sources/Twitch/Twitch.docc/Twitch.md)) for deep dives into:
 
-- [Authentication](Sources/Twitch/Twitch.docc/Authentication.md) — user/app tokens, Extension JWTs, scopes, and credential switching
-- [Helix](Sources/Twitch/Twitch.docc/Helix.md) & [Rate Limiting](Sources/Twitch/Twitch.docc/RateLimiting.md) — endpoints, pagination, metadata, and HTTP 429 handling
-- [EventSub](Sources/Twitch/Twitch.docc/EventSub.md) — WebSocket pooling, streams/callbacks/Combine, and custom topics
-- [Managed Chat](Sources/Twitch/Twitch.docc/ManagedChat.md) — transport selection, local send pacing, moderation enrichment, and raw IRC
-- [Diagnostics](Sources/Twitch/Twitch.docc/Diagnostics.md) — structured decoding-failure reports
+- [Authentication](https://docs.chatless.app/swift-twitch-client/documentation/twitch/authentication) — user/app tokens, Extension JWTs, scopes, and credential switching
+- [Helix](https://docs.chatless.app/swift-twitch-client/documentation/twitch/helix) & [Rate Limiting](https://docs.chatless.app/swift-twitch-client/documentation/twitch/ratelimiting) — endpoints, pagination, metadata, and HTTP 429 handling
+- [EventSub](https://docs.chatless.app/swift-twitch-client/documentation/twitch/eventsub) — WebSocket pooling, streams/callbacks/Combine, and custom topics
+- [Managed Chat](https://docs.chatless.app/swift-twitch-client/documentation/twitch/managedchat) — transport selection, local send pacing, moderation enrichment, and raw IRC
+- [Diagnostics](https://docs.chatless.app/swift-twitch-client/documentation/twitch/diagnostics) — structured decoding-failure reports
 
 ## Quick Start
 

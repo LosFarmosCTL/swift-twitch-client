@@ -10,8 +10,9 @@ subscriptions, Channel Points redemptions, chat activity, moderation actions, ra
 more. ``TwitchClient`` manages the EventSub WebSocket lifecycle behind the scenes:
 
 - **Lazy, pooled WebSockets** — no socket opens until you create your first subscription. Each
-  WebSocket session holds up to 300 subscriptions, and new sessions open automatically as
-  needed. Unused sessions close when their last subscription ends.
+  WebSocket session holds up to 300 subscriptions, and new sessions open automatically up to
+  Twitch's 3-session (900-subscription) WebSocket pool cap. Unused sessions close when their last
+  subscription ends.
 - **Keepalives and seamless reconnect handoffs** — Twitch's welcome handshake, keepalive
   deadlines, and `session_reconnect` URLs are handled automatically. During a reconnect
   handoff, the old socket drains pending frames while the replacement connects so active
@@ -163,8 +164,10 @@ let custom = EventSubSubscription.custom(
 let stream = try await twitch.eventStream(for: custom)
 ```
 
-Leave `decoding` as its default ``VoidEvent`` when you want to ignore the payload or create a
-webhook/conduit subscription through Helix.
+Custom payloads are decoded with `JSONDecoder` configured for `.convertFromSnakeCase` and
+ISO-8601 fractional-second dates (matching built-in ``Event`` models). Leave `decoding` as its
+default ``VoidEvent`` when you want to ignore the payload or create a webhook/conduit
+subscription through Helix.
 
 ### Webhooks and Conduits
 

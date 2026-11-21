@@ -85,7 +85,7 @@ Each subsystem has a dedicated guide covering architecture, gotchas, and product
 
 ### Platform Support
 
-`Twitch` targets Swift 6 language mode on macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, and Linux.
+`Twitch` targets Swift 6 language mode on macOS 13+, iOS 16+, tvOS 16+, watchOS 9+, visionOS 1+, and Linux.
 
 > Important: **watchOS** restricts direct WebSocket connections in ordinary apps (see
 > [Apple TN3135](https://developer.apple.com/documentation/technotes/tn3135-low-level-networking-on-watchos)).

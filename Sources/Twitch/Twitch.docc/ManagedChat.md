@@ -157,7 +157,9 @@ Understand three important sending behaviors before shipping:
    - **Per-channel cooldown**: at least ``ChatSendingPolicy/ordinaryChannelInterval`` (default
      1.1 seconds, minimum 1,001 ms) or the channel's observed ``ChatRoomSettings/slowMode``,
      whichever is longer, for ordinary chatters.
-   - **Observed restrictions**: bans and active timeouts observed in the channel.
+   - **Observed restrictions**: bans and active timeouts observed in the channel are surfaced in
+     ``TwitchClient/sendEligibility(in:)`` and ``ChatState/sendEligibility`` for UI state,
+     without locally blocking `sendMessage` so Twitch remains authoritative.
    Passing `waitingForChannelCooldown` opts into a bounded wait *only* for
    ``ChatSendEligibility/channelCooldown(until:)``; account-window exhaustion always throws
    ``ChatSendError/refused(_:)`` immediately. Use ``ChatSendingPolicy/unpaced`` to bypass
@@ -210,7 +212,9 @@ reader stays connected uninterrupted, while account-bound transports restart cle
 new credentials. Pass ``ChatCredentialSwitchBehavior/partChannels`` to clear membership
 instead.
 
-If you need raw `TwitchIRC` frames or custom IRC commands alongside managed chat:
+If you need raw `TwitchIRC` frames or custom IRC commands alongside managed chat (add
+`import TwitchIRC` in files where you spell `TwitchIRC` types such as `OutgoingMessage`
+explicitly):
 
 - Observe raw incoming frames from the configured IRC reader and/or writer with
   ``TwitchClient/ircMessageStream(bufferingPolicy:)``,
