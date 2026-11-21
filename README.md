@@ -11,7 +11,7 @@ A native Swift client providing type-safe, Swift 6 concurrency-safe access to Tw
 
 ## Features
 
-- [x] Runs on Apple platforms (macOS, iOS, tvOS, watchOS) and Linux ([with caveats](#platform-notes))
+- [x] Runs on Apple platforms (macOS, iOS, tvOS, watchOS, visionOS) and Linux ([with caveats](#platform-notes))
 - [x] Built for Swift 6 strict concurrency (`Sendable` models, actor-isolated client)
 - [x] Managed chat with selectable readers (authenticated IRC, anonymous IRC, EventSub) and writers (Helix, IRC), plus raw IRC access
 - [x] Real-time EventSub over WebSockets via `AsyncThrowingStream`, callbacks, or Combine
@@ -26,7 +26,7 @@ A native Swift client providing type-safe, Swift 6 concurrency-safe access to Tw
 
 ## Installation
 
-Requires Swift 6.4 or later in Swift 6 language mode. Supported Apple deployment targets are macOS 13, iOS 16, tvOS 16, and watchOS 9 or later.
+Requires Swift 6.4 or later in Swift 6 language mode. Supported Apple deployment targets are macOS 13, iOS 16, tvOS 16, watchOS 9, and visionOS 1 or later.
 
 Add the dependency to your `Package.swift`:
 

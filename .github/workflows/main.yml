@@ -59,6 +59,8 @@ jobs:
             artifact: tvos-build-diagnostics
           - platform: watchOS
             artifact: watchos-build-diagnostics
+          - platform: visionOS
+            artifact: visionos-build-diagnostics
     steps:
       - uses: actions/checkout@v5
 
