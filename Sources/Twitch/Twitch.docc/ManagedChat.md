@@ -98,20 +98,15 @@ Key membership rules to keep in mind:
 
 ### Transport-Specific Details on Messages and Notices
 
-``ChatMessage`` and ``ChatNotification`` normalize common fields without inventing data that
-only one transport supplies (for example, ``ChatMessage/isFirstMessage`` is populated only on
-IRC, whereas ``ChatMessage/isIntroduction`` is populated only on EventSub). Whenever you need
-transport-specific fields—such as IRC emote character ranges vs. EventSub typed message
-fragments—switch on ``ChatMessage/details`` or ``ChatNotification/details``:
+For either reader, render ``ChatMessage/text`` and use ``ChatMessage/isAction`` to style
+`/me` messages. ``ChatMessage/emotes`` lists Twitch emote occurrences in message order.
+Each ``ChatEmote/range`` uses half-open Unicode scalar offsets in the displayed text.
+Call `emote.range.text(in: message.text)` to extract the emote's text or
+`emote.range.stringRange(in: message.text)` to obtain a Swift string range when its
+boundaries align with full characters.
 
-```swift
-switch message.details {
-case .irc(let privmsg):
-  print("IRC emotes:", privmsg.emotes)
-case .eventSub(let event):
-  print("EventSub fragments:", event.message.fragments)
-}
-```
+Use ``ChatMessage/details`` or ``ChatNotification/details`` for transport-specific fields
+such as EventSub mentions, Cheermotes, and emote image formats.
 
 ### Sending Messages and Local Pacing
 
