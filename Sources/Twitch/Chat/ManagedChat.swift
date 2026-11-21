@@ -8,7 +8,7 @@ internal final class ManagedChat {
   let sendLimiter = ChatSendLimiter.shared
 
   weak var client: TwitchClient?
-  private(set) var credentials: TwitchCredentials
+  private(set) var credentials: TwitchCredentials?
   private(set) var credentialChange: ChatCredentialChange?
   private var shutdownTask: Task<Void, Never>?
 
@@ -58,7 +58,7 @@ internal final class ManagedChat {
 
   init(
     configuration: ChatConfiguration,
-    credentials: TwitchCredentials,
+    credentials: TwitchCredentials?,
     network: NetworkSession,
     diagnostics: TwitchDiagnostics
   ) {
@@ -104,12 +104,12 @@ internal final class ManagedChat {
 
   @discardableResult
   func switchCredentials(
-    to credentials: TwitchCredentials, behavior: ChatCredentialSwitchBehavior
+    to credentials: TwitchCredentials?, behavior: ChatCredentialSwitchBehavior
   ) -> [Task<Void, Never>] {
     let preserveReader = canPreserveAnonymousReader(for: behavior)
     let change = ChatCredentialChange(
-      revision: credentialRevision &+ 1, previousUserID: self.credentials.userID,
-      userID: credentials.userID, behavior: behavior, anonymousReaderPreserved: preserveReader)
+      revision: credentialRevision &+ 1, previousUserID: self.credentials?.userID,
+      userID: credentials?.userID, behavior: behavior, anonymousReaderPreserved: preserveReader)
     self.credentials = credentials
     credentialChange = change
     if isShutdown { return [] }
@@ -117,7 +117,7 @@ internal final class ManagedChat {
     cancelLookups(throwing: .credentialsChanged)
     stopCredentialTasks()
 
-    if change.previousUserID != change.userID {
+    if credentials == nil || change.previousUserID != change.userID {
       senderEvidence.removeAll()
       sendDestinations.removeAll()
     }

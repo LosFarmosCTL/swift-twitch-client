@@ -119,7 +119,7 @@ extension ManagedChat {
   ) {
     let directedAtSender =
       authenticatesSender
-      && (notice.targetUserID == nil || notice.targetUserID == credentials.userID)
+      && (notice.targetUserID == nil || notice.targetUserID == credentials?.userID)
     guard let channel = knownChannels[.login(notice.login)] else {
       if role == .write, directedAtSender, notice.code == "msg_banned" {
         senderEvidence[.login(notice.login), default: SenderEvidence()].restriction = .banned

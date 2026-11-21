@@ -116,7 +116,7 @@ extension TwitchClient {
   /// Supplying a ``ChatPrivilege`` overrides observed badges or `USERSTATE` evidence for
   /// local send pacing and opt-in ``ChatConfiguration/moderationEnrichment``. Pass `nil`
   /// to clear the override and fall back to observed evidence. Overrides are cleared when
-  /// switching to a different account (`previousUserID != userID`).
+  /// switching accounts or signing out. Calls while signed out leave privileges unchanged.
   ///
   /// - Parameters:
   ///   - privilege: The privilege override to install, or `nil` to restore observed evidence.
@@ -188,6 +188,9 @@ extension TwitchClient {
     _ text: String, in target: ChatChannelTarget, replyTo messageID: String? = nil,
     clientNonce: String? = nil, waitingForChannelCooldown maximumWait: Duration? = nil
   ) async throws -> ChatSendOutcome {
+    try Task.checkCancellation()
+    guard !chat.isShutdown else { throw ChatError.shutdown }
+    guard credentials != nil else { throw TwitchAuthenticationError.userAccessTokenRequired }
     let channel = try await chat.resolveChatChannel(.init(target))
     return try await chat.sendMessage(
       text, to: channel, replyTo: messageID, clientNonce: clientNonce,

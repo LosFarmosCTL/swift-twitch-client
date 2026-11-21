@@ -9,6 +9,8 @@ extension ManagedChat {
   }
 
   func setChatPrivilege(_ privilege: ChatPrivilege?, in channelID: String) {
+    guard credentials != nil else { return }
+
     senderEvidence[.id(channelID), default: SenderEvidence()].privilegeOverride = privilege
     memberships[channelID]?.moderationBlocked = false
     reconcileChatModeration(channelID)
@@ -19,7 +21,7 @@ extension ManagedChat {
     let evidence = senderEvidence[.id(id)]
     var privilege = evidence?.privilegeOverride ?? evidence?.observedPrivilege ?? .unknown
 
-    if id == credentials.userID {
+    if id == credentials?.userID {
       privilege.isBroadcaster = true
       privilege.isKnown = true
     }
@@ -31,7 +33,9 @@ extension ManagedChat {
     userID: String?, isSourceChannel: Bool, hasBadges: Bool = true,
     in id: String, badgeIDs: @autoclosure () -> [String]
   ) -> Bool {
-    guard userID == credentials.userID, isSourceChannel, hasBadges else { return false }
+    guard let userID, userID == credentials?.userID, isSourceChannel, hasBadges else {
+      return false
+    }
     observeChatPrivilege(ChatPrivilege(badgeIDs: badgeIDs()), in: id)
     return true
   }
@@ -47,12 +51,11 @@ extension ManagedChat {
 
   internal func startModerationPrefillIfNeeded() {
     let revision = credentialRevision
-    guard configuration.prefillModeratedChannels,
+    guard configuration.prefillModeratedChannels, let credentials,
       credentials.scopes?.contains("user:read:moderated_channels") == true,
       credentials.user != nil, prefill == nil
     else { return }
 
-    let credentials = self.credentials
     let network = self.network
 
     prefill = Task { [weak client, diagnostics] in

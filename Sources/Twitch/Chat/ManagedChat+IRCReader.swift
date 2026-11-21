@@ -16,7 +16,7 @@ extension ManagedChat {
     guard reader == nil else { return }
 
     let credentials = authentication == .authenticated ? self.credentials : nil
-    if let credentials, credentials.user == nil {
+    if authentication == .authenticated, credentials?.user == nil {
       let status = ChatComponentStatus.unavailable(
         "A user access token is required for authenticated IRC.")
       readerStatus = status

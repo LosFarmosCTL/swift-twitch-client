@@ -7,6 +7,7 @@ extension EventSubClient {
     revision: UInt64
   ) async throws -> EventSubObservation {
     try checkRevision(revision)
+    guard let credentials else { throw TwitchAuthenticationError.userAccessTokenRequired }
 
     let key = ConflictKey(
       account: try credentials.requireUser().id,
@@ -17,7 +18,7 @@ extension EventSubClient {
     try await waitForSubscriptionCleanup(key, revision: revision)
     try checkRevision(revision)
 
-    let subscription = subscriptions[key] ?? startSubscription(key)
+    let subscription = subscriptions[key] ?? startSubscription(key, credentials: credentials)
     let (observer, handle) = attachObserver(handler, decoding: E.self, to: subscription)
 
     do {

@@ -5,7 +5,7 @@ extension ManagedChat {
     guard member.eventSub == nil else { return }
 
     let id = member.channel.id
-    guard let userID = credentials.userID else {
+    guard let userID = credentials?.userID else {
       member.updateStatus(.unavailable("A user access token is required."))
       return
     }

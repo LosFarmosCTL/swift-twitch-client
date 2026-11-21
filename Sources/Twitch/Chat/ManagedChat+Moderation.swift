@@ -10,7 +10,7 @@ extension ManagedChat {
       return
     }
 
-    guard let scopes = credentials.scopes, let user = credentials.user,
+    guard let credentials, let scopes = credentials.scopes, let user = credentials.user,
       chatModerationScopes.allSatisfy({ !$0.isDisjoint(with: scopes) })
     else {
       member.stopModeration(unavailable: "Required moderation scopes are not known to be granted.")
