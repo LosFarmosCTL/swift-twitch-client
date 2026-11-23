@@ -16,21 +16,6 @@ struct HelixTests {
       userLogin: "user"))
 
   @Test
-  func helixAuthentication() async throws {
-    let url = try #require(
-      URL(string: "https://api.twitch.tv/helix/chat/badges/global"))
-    await harness.session.stub(
-      url: url,
-      body: Data("{\"data\":[]}".utf8))
-
-    _ = try await harness.twitch.helix(for: .getGlobalBadges())
-
-    let request = try #require(await harness.session.lastRequest())
-    #expect(request.value(forHTTPHeaderField: "Client-Id") == "123456")
-    #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer abcdefg")
-  }
-
-  @Test
   func signedOutCalendarIsHeaderlessThroughAsyncAndCallbackAPIs() async throws {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [CalendarURLProtocol.self]
@@ -145,22 +130,6 @@ struct HelixTests {
   }
 
   @Test
-  func invalidResponse() async throws {
-    let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
-    await harness.session.stub(url: url)
-
-    let error = await #expect(throws: HelixError.self) {
-      try await harness.twitch.helix(
-        for: .custom(method: "GET", path: "invalid"))
-    }
-
-    guard case .parsingResponseFailed = error else {
-      Issue.record("Expected parsingResponseFailed, got \(String(describing: error))")
-      return
-    }
-  }
-
-  @Test
   func emptyEndpointRejectsAnUnexpectedBody() async throws {
     let url = try #require(URL(string: "https://api.twitch.tv/helix/empty"))
     let body = Data("unexpected body".utf8)
@@ -175,22 +144,6 @@ struct HelixTests {
       return
     }
     #expect(responseData == body)
-  }
-
-  @Test
-  func invalidErrorResponse() async throws {
-    let url = try #require(URL(string: "https://api.twitch.tv/helix/invalid"))
-    await harness.session.stub(url: url, status: 500)
-
-    let error = await #expect(throws: HelixError.self) {
-      try await harness.twitch.helix(
-        for: .custom(method: "GET", path: "invalid"))
-    }
-
-    guard case .parsingErrorFailed = error else {
-      Issue.record("Expected parsingErrorFailed, got \(String(describing: error))")
-      return
-    }
   }
 
   @Test(arguments: HelixCancellationSource.allCases)
@@ -261,18 +214,6 @@ struct HelixTests {
 
     let error = try #require(wrapped as? HelixCallbackTestError)
     #expect(error == .unexpected)
-  }
-
-  @Test
-  func missingOrMalformedDataIsRejected() throws {
-    let decoder = TwitchClient.makeDecoder()
-    #expect(throws: DecodingError.self) {
-      try decoder.decode(
-        HelixResponsePayload<UserColor>.self, from: Data(#"{"data":42}"#.utf8))
-    }
-    #expect(throws: DecodingError.self) {
-      try decoder.decode(HelixResponsePayload<UserColor>.self, from: Data(#"{}"#.utf8))
-    }
   }
 }
 

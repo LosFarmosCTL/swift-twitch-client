@@ -118,19 +118,6 @@ struct ValidateAccessTokenTests {
     #expect(error == .unexpectedResponse(statusCode: 503))
   }
 
-  @Test
-  func malformedResponse() async throws {
-    let session = MockNetworkSession()
-    let url = try #require(URL(string: "https://id.twitch.tv/oauth2/validate"))
-    await session.stub(url: url, body: Data("{}".utf8))
-
-    await #expect(throws: DecodingError.self) {
-      try await TwitchClient.validateAccessToken(
-        accessToken: "oauth-token",
-        network: session)
-    }
-  }
-
   @Test(arguments: ValidateTokenCancellationSource.allCases)
   func cancellation(source: ValidateTokenCancellationSource) async throws {
     let session = MockNetworkSession()

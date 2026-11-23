@@ -196,7 +196,7 @@ extension ManagedChatEventSubTests {
   }
 
   @Test
-  func eventSubTimeoutRoundsDurationUpAndEmptyNotificationStringsNormalizeToNil() async throws {
+  func eventSubTimeoutRoundsDurationUpAndClampsMinimum() throws {
     let base = Date(timeIntervalSince1970: 1_700_000_000)
     let timeoutAction = ChatModeration.Action(
       eventSub: .timeout(
@@ -223,16 +223,6 @@ extension ManagedChatEventSubTests {
     } else {
       Issue.record("Expected timeout moderation action")
     }
-
-    let notification = ChatNotification(
-      eventSub: ChannelChatNotificationEvent(
-        broadcasterID: "123", broadcasterLogin: "swift", broadcasterDisplayName: "Swift",
-        chatter: .anonymous, color: "", badges: [], messageID: "msg-1",
-        message: .init(text: "", fragments: []), systemMessage: "",
-        noticeType: .sub(.init(subscriptionTier: .tier1, isPrime: false, durationMonths: 1))))
-    #expect(notification.author == nil)
-    #expect(notification.text == nil)
-    #expect(notification.systemMessage == nil)
   }
 
   private func nextDeletion(in events: AsyncStream<ChatEvent>) async

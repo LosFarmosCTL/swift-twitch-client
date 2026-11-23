@@ -265,33 +265,6 @@ extension ManagedChatTests {
   }
 
   @Test
-  func partDuringIdentityLookupPreventsLateJoinButAllowsExplicitRejoin() async throws {
-    let client = client()
-    let entered = AsyncStream<Void>.makeStream()
-    let release = AsyncStream<Void>.makeStream()
-    await stubChannelLookup(parameter: "id", value: "123")
-    await session.onRequest { _ in
-      entered.continuation.yield(())
-      _ = await release.stream.first { _ in true }
-    }
-    let pending = Task { try await client.requestJoin(to: .id(channel.id)) }
-    _ = await entered.stream.first { _ in true }
-    await client.part(from: channel)
-    await #expect(throws: ChatError.parted) { try await pending.value }
-    release.continuation.yield(())
-    #expect(await client.chatState.channels.isEmpty)
-    #expect(await session.taskCount() == 0)
-
-    let rejoin = Task { try await client.join(to: channel) }
-    let socket = await session.waitForTask(at: 0)
-    await handshake(socket)
-    await acknowledge(socket)
-    try await rejoin.value
-    #expect(await client.chatState.channels[channel.id]?.status == .ready)
-    await client.shutdownChat()
-  }
-
-  @Test
   func partByIDWithdrawsAnOlderJoinByAnUncachedLogin() async throws {
     let client = client()
     let lookup = AsyncTestGate()

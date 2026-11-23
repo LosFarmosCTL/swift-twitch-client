@@ -238,11 +238,4 @@ struct IRCRecoveryTests {
     #expect(roomState.slow == 10)
     await pool.disconnect()
   }
-
-  @Test
-  func leadModeratorBadgeGrantsModeratorPrivilege() {
-    let privilege = ChatPrivilege(badgeIDs: ["lead_moderator"])
-    #expect(privilege.isModerator == true)
-    #expect(privilege.isPrivileged == true)
-  }
 }

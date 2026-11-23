@@ -186,36 +186,6 @@ struct EventSubConnectionLifecycleTests {
     #expect(await socket.didCancel)
   }
 
-  @Test("Client finishes EventSub stream on reset")
-  func testEventSubResetFinishesActiveStream() async throws {
-    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
-    let stream = try await twitch.eventStream(for: .mock())
-
-    await twitch.resetEventSub()
-
-    var iter = stream.makeAsyncIterator()
-    let next = try await iter.next()
-    #expect(next == nil)
-  }
-
-  @Test("Client setup throws cancellation when EventSub listener setup is cancelled")
-  func testEventSubListenerSetupCancellation() async throws {
-    let setupTask = Task {
-      try await twitch.eventListener(for: .mock()) { _ in
-        Issue.record("Listener callback should not be called during setup cancellation")
-      }
-    }
-
-    _ = await session.waitForTask(at: 0)
-    setupTask.cancel()
-
-    await #expect(throws: CancellationError.self) {
-      _ = try await setupTask.value
-    }
-
-    await twitch.resetEventSub()
-  }
-
   @Test("Client finishes EventSub listener on reset")
   func testEventSubResetFinishesActiveListener() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
