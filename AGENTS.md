@@ -8,3 +8,5 @@ currently used in the project, do not introduce new tests for every single endpo
 Do not create Markdown files unless the user explicitly requests them.
 
 Check formatting using `swift format` or `swift-format` and lint using `swiftlint --strict`
+
+Create CHANGELOG.md entries for bugfixes and new features

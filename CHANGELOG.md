@@ -5,7 +5,16 @@ Successful CI on main prepares a draft release; publishing remains manual. -->
 
 ## Unreleased
 
-- Managed chat exposes `ChatMessage.isAction` and ordered `ChatMessage.emotes` for IRC and EventSub. Emote ranges use Unicode scalar offsets into `ChatMessage.text`, which now omits CTCP framing for EventSub `/me` messages.
+### Features
+
+- Normalized `ChatMessage.isAction` and ordered `ChatMessage.emotes` across IRC and EventSub, with CTCP framing stripped from EventSub `/me` text.
+- Signed-out `TwitchClient(chat:urlSession:diagnostics:)` initializer and `clearCredentials(chatBehavior:)` for public Helix and anonymous IRC usage.
+
+### Fixes
+
+- Verify IRC `room-id` tags against active memberships, evict stale channel aliases on rename, and ignore late reader traffic after parting.
+- Fix races when retrying/rejoining failed IRC channels, withdrawing in-flight ID joins by login, and reusing failed IRC writers.
+- Report `ChatState.writer` as `.unavailable` and fail `sendMessage(in:)` before channel lookup when using non-user credentials.
 
 ## 1.0.0
 
