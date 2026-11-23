@@ -5,9 +5,11 @@ Successful CI on main prepares a draft release; publishing remains manual. -->
 
 ## Unreleased
 
+## 1.1.0
+
 ### Features
 
-- Normalized `ChatMessage.isAction` and ordered `ChatMessage.emotes` across IRC and EventSub, with CTCP framing stripped from EventSub `/me` text.
+- Normalized `ChatMessage.isAction` and ordered `ChatMessage.emotes` across IRC and EventSub. Emote ranges use Unicode scalar offsets into `ChatMessage.text`, which omits CTCP framing for EventSub `/me` messages.
 - Signed-out `TwitchClient(chat:urlSession:diagnostics:)` initializer and `clearCredentials(chatBehavior:)` for public Helix and anonymous IRC usage.
 
 ### Fixes
