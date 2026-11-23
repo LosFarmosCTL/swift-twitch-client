@@ -49,9 +49,9 @@ extension IRCConnectionPool {
         for channel in entry.channels {
           cancelJoin(channel)
 
-          if case .failed = state.statuses[channel] { continue }
+          if state.channels[channel]?.status.isFailed == true { continue }
 
-          state.statuses[channel] = .reconnecting
+          state.channels[channel]?.status = .reconnecting
         }
       }
     }
@@ -60,11 +60,12 @@ extension IRCConnectionPool {
   }
 
   private func rejoinChannels(_ id: UUID) {
-    for channel in state.entries[id]?.channels ?? [] {
-      if case .failed = state.statuses[channel] { continue }
+    batchStateUpdates {
+      for channel in state.entries[id]?.channels ?? [] {
+        if state.channels[channel]?.status.isFailed == true { continue }
 
-      scheduleJoin(channel, id: id)
+        scheduleJoin(channel, id: id)
+      }
     }
   }
-
 }

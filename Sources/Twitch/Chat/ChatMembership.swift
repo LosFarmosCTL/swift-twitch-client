@@ -13,6 +13,7 @@ extension ManagedChat {
 
     var settings = ChatRoomSettings()
     var roomSettingFields: Set<ChatIRCSetting> = []
+    var settingsTask: Task<Void, Never>?
     var eventSub: Task<Void, Never>?
     var moderation: ChatComponentStatus = .idle
     var moderationRevocation: EventSubRevocation.Status?
@@ -70,6 +71,8 @@ extension ManagedChat {
     func stop() {
       eventSub?.cancel()
       eventSub = nil
+      settingsTask?.cancel()
+      settingsTask = nil
       stopModeration()
     }
 
@@ -92,6 +95,68 @@ extension ManagedChat {
     let revision: UInt64
 
     var channelID: String { channel.id }
+  }
+
+  /// Orders concurrent unresolved join and part requests so an older lookup cannot
+  /// override a newer part (even when join and part use opposite ID/login aliases).
+  struct MembershipIntentTracker {
+    struct PendingJoin {
+      let reference: ChatChannelReference
+      let lookupWaiter = UUID()
+    }
+
+    private var latestIntent: UInt64 = 0
+    private var pendingJoins: [UInt64: PendingJoin] = [:]
+    private var latestPartIntents: [ChatChannelReference: UInt64] = [:]
+
+    mutating func nextIntent() -> UInt64 {
+      latestIntent &+= 1
+      return latestIntent
+    }
+
+    mutating func beginPendingJoin(reference: ChatChannelReference) -> (
+      intent: UInt64, waiterID: UUID
+    ) {
+      let intent = nextIntent()
+      let pending = PendingJoin(reference: reference)
+      pendingJoins[intent] = pending
+      return (intent, pending.lookupWaiter)
+    }
+
+    mutating func endPendingJoin(intent: UInt64) {
+      pendingJoins[intent] = nil
+      prunePartIntents()
+    }
+
+    func isJoinWithdrawn(
+      channel: ChatChannel, reference: ChatChannelReference, intent: UInt64
+    ) -> Bool {
+      let references: [ChatChannelReference] = [
+        .id(channel.id), .login(channel.login), reference,
+      ]
+      return references.contains { latestPartIntents[$0, default: 0] > intent }
+    }
+
+    mutating func recordPart(
+      for references: [ChatChannelReference], intent: UInt64
+    ) -> [(reference: ChatChannelReference, waiterID: UUID)] {
+      for reference in references {
+        latestPartIntents[reference] = max(latestPartIntents[reference, default: 0], intent)
+      }
+
+      let withdrawn = pendingJoins.compactMap { order, pending in
+        order < intent && references.contains(pending.reference)
+          ? (pending.reference, pending.lookupWaiter)
+          : nil
+      }
+      prunePartIntents()
+      return withdrawn
+    }
+
+    private mutating func prunePartIntents() {
+      let earliestJoin = pendingJoins.keys.min() ?? latestIntent
+      latestPartIntents = latestPartIntents.filter { $0.value > earliestJoin }
+    }
   }
 
   func attempt(for member: Membership) -> MembershipAttempt {

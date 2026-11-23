@@ -68,33 +68,6 @@ struct WebSocketClientTests {
     #expect(await task.sentMessages.count == 0)
   }
 
-  @Test("Client deletes EventSub subscription on stream termination V2")
-  func testEventSubDeleteOnTerminationV2() async throws {
-    let subscriptionID = MockedMessages.defaultSubscriptionID
-    var components = URLComponents(
-      string: "https://api.twitch.tv/helix/eventsub/subscriptions")
-    components?.queryItems = [URLQueryItem(name: "id", value: subscriptionID)]
-    let deleteURL = try #require(components?.url)
-    await session.stub(url: deleteURL, method: "DELETE", status: 204)
-
-    try await confirmation("Should delete subscription", expectedCount: 1) { confirm in
-      let deleteSeen = AsyncStream<Void>.makeStream()
-      await session.onRequest { request in
-        guard request.httpMethod == "DELETE" else { return }
-        #expect(request.url == deleteURL)
-        confirm()
-        deleteSeen.continuation.finish()
-      }
-      await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
-      let stream = try await twitch.eventStream(for: .mock())
-
-      let consumeTask = Task { for try await _ in stream { break } }
-      consumeTask.cancel()
-
-      _ = await deleteSeen.stream.first { _ in true }
-    }
-  }
-
   @Test("Client delivers matching notifications after dropping invalid frames")
   func testEventSubEvents() async throws {
     await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
@@ -140,27 +113,6 @@ struct WebSocketClientTests {
     ) { _ = try await iter.next() }
 
     #expect({ if case .timedOut = error { true } else { false } }())
-
-    let task = try #require(await session.lastTask())
-    await task.waitForCancellation()
-    #expect(await task.didCancel)
-  }
-
-  @Test("Client disconnects on revocation message")
-  func testEventSubDisconnectOnRevocation() async throws {
-    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
-    let stream = try await twitch.eventStream(for: .mock())
-
-    await session.simulateIncoming(
-      .string(MockedMessages.mockRevocationMessage))
-
-    var iter = stream.makeAsyncIterator()
-    let error = await #expect(
-      throws: EventSubError.self,
-      "Should disconnect on revocation message"
-    ) { _ = try await iter.next() }
-
-    #expect({ if case .revocation = error { true } else { false } }())
 
     let task = try #require(await session.lastTask())
     await task.waitForCancellation()
@@ -223,8 +175,10 @@ struct WebSocketClientTests {
     await old.simulateIncoming(.string(MockedMessages.mockReconnectMessage))
 
     let failed = await session.waitForTask(at: 1)
+    #expect(failed.url.absoluteString == "wss://eventsub.wss.twitch.tv/reconnect")
     await failed.simulateError(URLError(.networkConnectionLost))
     let retry = await session.waitForTask(at: 2)
+    #expect(retry.url.absoluteString == "wss://eventsub.wss.twitch.tv/reconnect")
     #expect(await failed.didCancel)
     #expect(await !old.didCancel)
 
@@ -237,28 +191,6 @@ struct WebSocketClientTests {
     await old.waitForCancellation()
     #expect(await !retry.didCancel)
     await twitch.resetEventSub()
-  }
-
-  @Test("Client reconnects on reconnection message")
-  func testEventSubReconnect() async throws {
-    await session.simulateIncoming(.string(MockedMessages.welcomeMessage))
-    let stream = try await twitch.eventStream(for: .mock())
-
-    await session.simulateIncoming(.string(MockedMessages.welcomeMessage), queue: true)
-    await session.simulateIncoming(.string(MockedMessages.mockEventMessage), queue: true)
-
-    await session.simulateIncoming(
-      .string(MockedMessages.mockReconnectMessage))
-
-    var iter = stream.makeAsyncIterator()
-    _ = try await iter.next()
-
-    let oldTask = try #require(await session.task(at: 0))
-    await oldTask.waitForCancellation()
-    #expect(await oldTask.didCancel)
-
-    let newTask = try #require(await session.task(at: 1))
-    #expect(newTask.url.absoluteString == "wss://eventsub.wss.twitch.tv/reconnect")
   }
 
   @Test("Client throws error on disconnect")

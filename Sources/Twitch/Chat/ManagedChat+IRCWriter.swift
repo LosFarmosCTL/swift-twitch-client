@@ -26,6 +26,8 @@ extension ManagedChat {
 
     if case .failed = writerStatus {
       retireChatWriter()
+    } else if let writer, !writer.supervisor.isActive {
+      retireChatWriter()
     }
 
     let revision = credentialRevision
@@ -48,7 +50,7 @@ extension ManagedChat {
     let task = Task { [weak client] in
       do {
         for try await update in try await supervisor.start() {
-          await client?.withChat { $0.receiveIRC(update, role: .write, from: id) }
+          await client?.withChat { $0.receiveIRCWriter(update, from: id) }
         }
       } catch {
         if !Task.isCancelled {
@@ -61,6 +63,19 @@ extension ManagedChat {
     writerStatus = .connecting
     publishChatState()
     return supervisor
+  }
+
+  func receiveIRCWriter(_ update: IRCConnectionUpdate, from id: UUID) {
+    guard id == writer?.id else { return }
+
+    switch update {
+    case .message(let message):
+      emitChatIRCMessage(message, role: .write)
+    case .state(let state):
+      ircWriterState = state
+      writerStatus = state.status.chatStatus
+      publishChatState()
+    }
   }
 
   @discardableResult

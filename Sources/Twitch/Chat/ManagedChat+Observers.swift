@@ -11,11 +11,15 @@ extension ManagedChat {
         moderationRevocation: member.moderationRevocation,
         sending: eligibility[member.channel.id] ?? .eligible)
     }
+    let effectiveWriterStatus: ChatComponentStatus =
+      credentials?.user == nil
+      ? .unavailable("A user access token is required.")
+      : writerStatus
     return ChatState(
       credentialRevision: credentialRevision, userID: credentials?.userID,
       credentialChange: credentialChange,
       reader: configuration.reader == .eventSub ? eventSubReaderStatus : readerStatus,
-      writer: credentials == nil ? .unavailable("A user access token is required.") : writerStatus,
+      writer: effectiveWriterStatus,
       ircReader: ircReaderState, ircWriter: ircWriterState,
       channels: channels, lastDeparture: lastDeparture, sendEligibility: eligibility,
       isShutdown: isShutdown)
@@ -41,9 +45,10 @@ extension ManagedChat {
 
   func chatStateUpdates() -> AsyncStream<ChatState> {
     observeSendHistory()
+    let initial = makeStateUpdate(scheduleRefresh: !isShutdown)
 
     return stateObservers.stream(
-      bufferingPolicy: .bufferingNewest(1), initial: makeStateUpdate(), finished: isShutdown
+      bufferingPolicy: .bufferingNewest(1), initial: initial, finished: isShutdown
     ) { [weak client] id in
       Task {
         await client?.withChat { chat in
@@ -51,6 +56,7 @@ extension ManagedChat {
           if !chat.stateObservers.hasObservers {
             chat.sendHistoryObserver?.cancel()
             chat.sendHistoryObserver = nil
+            chat.cancelEligibilityRefresh()
           }
         }
       }
@@ -59,14 +65,14 @@ extension ManagedChat {
 
   @discardableResult
   func publishChatState() -> ChatState {
-    let state = makeStateUpdate()
+    let state = makeStateUpdate(scheduleRefresh: !isShutdown && stateObservers.hasObservers)
     stateObservers.yield(state)
     return state
   }
 
-  private func makeStateUpdate() -> ChatState {
+  private func makeStateUpdate(scheduleRefresh: Bool) -> ChatState {
     let (eligibility, nextChange) = chatEligibilitySnapshot()
-    if !isShutdown { scheduleChatEligibilityRefresh(at: nextChange) }
+    if scheduleRefresh { scheduleChatEligibilityRefresh(at: nextChange) }
     return snapshot(with: eligibility)
   }
 

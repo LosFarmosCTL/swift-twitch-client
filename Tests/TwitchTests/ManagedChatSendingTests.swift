@@ -4,19 +4,27 @@ import Testing
 @testable import Twitch
 
 extension ManagedChatTests {
-  @Test(arguments: [ChatConfiguration.Writer.helix, .irc])
-  func signedOutChatOperationsRequireCredentialsBeforeDispatch(writer: ChatConfiguration.Writer)
-    async
-  {
-    let client = TwitchClient(credentials: nil, chat: .init(writer: writer), network: session)
+  @Test(
+    arguments: [
+      (nil as TwitchCredentials?, ChatConfiguration.Writer.helix),
+      (nil, .irc),
+      (.app(accessToken: "app-token", clientID: "app"), .helix),
+      (.app(accessToken: "app-token", clientID: "app"), .irc),
+    ]
+  )
+  func nonUserChatOperationsRequireUserCredentialsBeforeDispatch(
+    credentials: TwitchCredentials?, writer: ChatConfiguration.Writer
+  ) async {
+    let client = TwitchClient(
+      credentials: credentials, chat: .init(writer: writer), network: session)
     let initial = await client.chatState
     #expect(initial.userID == nil)
     guard case .unavailable = initial.writer else {
-      Issue.record("Expected the signed-out writer to be unavailable")
+      Issue.record("Expected the writer to be unavailable without user credentials")
       return
     }
     guard case .unavailable = await client.sendEligibility(in: channel.id) else {
-      Issue.record("Expected sending to be unavailable while signed out")
+      Issue.record("Expected sending to be unavailable without user credentials")
       return
     }
     await #expect(throws: TwitchAuthenticationError.userAccessTokenRequired) {
@@ -30,12 +38,14 @@ extension ManagedChatTests {
         try await client.sendIRC(.privateMessage(to: channel.login, message: "hello"))
       }
     }
-    let lookup = await #expect(throws: HelixError.self) {
-      try await client.join(to: .login("unknown"))
-    }
-    guard case .authenticationError(.oauthAccessTokenRequired) = lookup else {
-      Issue.record("Expected an OAuth requirement for an uncached channel")
-      return
+    if credentials == nil {
+      let lookup = await #expect(throws: HelixError.self) {
+        try await client.join(to: .login("unknown"))
+      }
+      guard case .authenticationError(.oauthAccessTokenRequired) = lookup else {
+        Issue.record("Expected an OAuth requirement for an uncached channel")
+        return
+      }
     }
     #expect(await session.requestCount() == 0)
     #expect(await session.taskCount() == 0)

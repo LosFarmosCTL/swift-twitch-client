@@ -16,18 +16,21 @@ extension ManagedChat {
 
   internal func acceptChatModeration(
     _ moderation: ChatModeration, channel: ChatChannel, timestamp: Date?,
-    receivedAt: Date = Date()
+    receivedAt: Date = Date(),
+    stateChanged: Bool = false
   ) {
+    var didChangeState = stateChanged
+
     // Shared-chat actions affect their source, not automatically the receiving channel.
     if moderation.sourceChannelID == nil || moderation.sourceChannelID == channel.id {
       switch moderation.action {
       case .ban(let user, _) where isChatSender(user):
-        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .banned
+        if senderEvidence.recordBan(for: channel.id) { didChangeState = true }
       case .timeout(let user, let until, _, _) where isChatSender(user):
-        recordTimeout(until: until, in: channel.id)
+        if senderEvidence.recordTimeout(until: until, for: channel.id) { didChangeState = true }
       case .unban(let user) where isChatSender(user),
         .untimeout(let user) where isChatSender(user):
-        senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .none
+        if senderEvidence.clearRestriction(for: channel.id) { didChangeState = true }
       default: break
       }
     }
@@ -36,19 +39,7 @@ extension ManagedChat {
       ChatEvent(
         channel: channel, timestamp: timestamp, receivedAt: receivedAt,
         payload: .moderation(moderation)))
-    publishChatState()
-  }
-
-  private func recordTimeout(until: Date?, in channelID: String) {
-    let key = ChatChannelReference.id(channelID)
-    if until == nil,
-      case .timedOut(_, let deadline?) = senderEvidence[key]?.restriction,
-      deadline > .now
-    {
-      // An IRC report without a timestamp must not erase a known expiry.
-      return
-    }
-    senderEvidence[key, default: SenderEvidence()].restriction = .timeout(until: until)
+    if didChangeState { publishChatState() }
   }
 
   func receiveChatModerationEvent(
@@ -60,9 +51,10 @@ extension ManagedChat {
       id: event.moderatorID, login: event.moderatorLogin,
       displayName: event.moderatorDisplayName)
 
+    var stateChanged = false
     switch event.action {
     case .mod(let user), .unmod(let user), .vip(let user), .unvip(let user):
-      observeChatModerationRole(event, user: user, in: id)
+      stateChanged = observeChatModerationRole(event, user: user, in: id)
     default: break
     }
 
@@ -71,28 +63,29 @@ extension ManagedChat {
         moderator: moderator, sourceChannelID: event.sourceBroadcasterID,
         action: ChatModeration.Action(
           eventSub: event.action, referenceDate: timestamp ?? receivedAt)),
-      channel: channel, timestamp: timestamp, receivedAt: receivedAt)
+      channel: channel, timestamp: timestamp, receivedAt: receivedAt,
+      stateChanged: stateChanged)
   }
 
   private func observeChatModerationRole(
     _ event: ChannelModerateEvent, user: ChannelModerateEvent.Action.User, in id: String
-  ) {
-    if let userID = credentials?.userID, user.userID == userID,
+  ) -> Bool {
+    guard let userID = credentials?.userID, user.userID == userID,
       event.sourceBroadcasterID == nil || event.sourceBroadcasterID == id
-    {
-      var privilege = senderEvidence[.id(id)]?.observedPrivilege ?? .unknown
+    else { return false }
 
-      switch event.action {
-      case .mod: privilege.isModerator = true
-      case .unmod: privilege.isModerator = false
-      case .vip: privilege.isVIP = true
-      case .unvip: privilege.isVIP = false
-      default: break
-      }
+    var privilege = senderEvidence.observedPrivilege(for: id) ?? .unknown
 
-      privilege.isKnown = true
-      observeChatPrivilege(privilege, in: id)
+    switch event.action {
+    case .mod: privilege.isModerator = true
+    case .unmod: privilege.isModerator = false
+    case .vip: privilege.isVIP = true
+    case .unvip: privilege.isVIP = false
+    default: break
     }
+
+    privilege.isKnown = true
+    return observeChatPrivilege(privilege, in: id)
   }
 
   private func isChatSender(_ user: ChatUser) -> Bool {

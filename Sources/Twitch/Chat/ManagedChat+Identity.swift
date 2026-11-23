@@ -25,6 +25,34 @@ internal enum ChatChannelReference: Hashable, Sendable {
   }
 }
 
+/// Maintains a 1-to-1 cache between Twitch channel IDs and normalized logins,
+/// evicting stale aliases whenever a channel is renamed or reassigned.
+internal struct ChatChannelDirectory: Sendable {
+  private var byID: [String: ChatChannel] = [:]
+  private var byLogin: [String: ChatChannel] = [:]
+
+  subscript(_ reference: ChatChannelReference) -> ChatChannel? {
+    switch reference {
+    case .id(let id): byID[id]
+    case .login(let login): byLogin[IRCWireMessage.channelLogin(login)]
+    }
+  }
+
+  func channel(id: String) -> ChatChannel? { byID[id] }
+  func channel(login: String) -> ChatChannel? { byLogin[IRCWireMessage.channelLogin(login)] }
+
+  mutating func insert(_ channel: ChatChannel) {
+    if let previous = byID[channel.id], previous.login != channel.login {
+      byLogin[previous.login] = nil
+    }
+    if let previous = byLogin[channel.login], previous.id != channel.id {
+      byID[previous.id] = nil
+    }
+    byID[channel.id] = channel
+    byLogin[channel.login] = channel
+  }
+}
+
 extension ManagedChat {
   final class ChannelLookup {
     let id: UUID
@@ -38,25 +66,8 @@ extension ManagedChat {
   }
 
   func cacheChatChannel(_ channel: ChatChannel) {
-    let id = ChatChannelReference.id(channel.id)
-    let login = ChatChannelReference.login(channel.login)
-    if let previous = knownChannels[id], previous.login != channel.login {
-      knownChannels[.login(previous.login)] = nil
-    }
-    if let previous = knownChannels[login], previous.id != channel.id {
-      knownChannels[.id(previous.id)] = nil
-    }
-    knownChannels[id] = channel
-    knownChannels[login] = channel
-
-    if let pending = senderEvidence.removeValue(forKey: login) {
-      if let privilege = pending.observedPrivilege {
-        observeChatPrivilege(privilege, in: channel.id)
-      }
-      if case .banned = pending.restriction {
-        senderEvidence[id, default: SenderEvidence()].restriction = .banned
-      }
-    }
+    knownChannels.insert(channel)
+    promotePendingSenderEvidence(for: channel)
   }
 
   nonisolated(nonsending) func resolveChatChannel(
@@ -64,7 +75,9 @@ extension ManagedChat {
   ) async throws -> ChatChannel {
     try Task.checkCancellation()
     guard !isShutdown else { throw ChatError.shutdown }
-    if let channel = knownChannels[reference] { return channel }
+    if let channel = activeMembership(for: reference)?.channel ?? knownChannels[reference] {
+      return channel
+    }
 
     let endpoint = try reference.endpoint()
     let revision = credentialRevision

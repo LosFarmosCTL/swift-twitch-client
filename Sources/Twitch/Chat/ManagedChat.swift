@@ -20,16 +20,13 @@ internal final class ManagedChat {
   var memberships: [String: Membership] = [:]
   var lastDeparture: ChatDeparture?
 
-  var knownChannels: [ChatChannelReference: ChatChannel] = [:]
+  var knownChannels = ChatChannelDirectory()
   var lookups: [ChatChannelReference: ChannelLookup] = [:]
-  var membershipIntent: UInt64 = 0
-  var pendingJoins: [UInt64: PendingJoin] = [:]
-  var latestPartIntents: [ChatChannelReference: UInt64] = [:]
+  var intentTracker = MembershipIntentTracker()
 
   // MARK: - IRC transports
 
   var reader: IRCReader?
-  var readerRetryLogins: Set<String> = []
   var writer: IRCWriter?
   var ircReaderState: IRCState?
   var ircWriterState: IRCState?
@@ -39,7 +36,7 @@ internal final class ManagedChat {
   // MARK: - Sender evidence and eligibility
 
   var prefill: Task<Void, Never>?
-  var senderEvidence: [ChatChannelReference: SenderEvidence] = [:]
+  var senderEvidence = ChatSenderEvidenceStore()
   var sendDestinations: Set<String> = []
   var sendHistoryObserver: Task<Void, Never>?
   var eligibilityRefresh: (deadline: ContinuousClock.Instant, task: Task<Void, Never>)?
@@ -83,7 +80,7 @@ internal final class ManagedChat {
   func shutdownChat() -> Task<Void, Never> {
     if let shutdownTask { return shutdownTask }
 
-    for id in Array(memberships.keys) { endMembership(id, reason: .shutdown) }
+    for id in Array(memberships.keys) { _ = endMembership(id, reason: .shutdown) }
     let closing = stopBackgroundWork()
     let shutdown = Task {
       for task in closing { await task.value }
@@ -117,7 +114,7 @@ internal final class ManagedChat {
     cancelLookups(throwing: .credentialsChanged)
     stopCredentialTasks()
 
-    if credentials == nil || change.previousUserID != change.userID {
+    if credentials?.user == nil || change.previousUserID != change.userID {
       senderEvidence.removeAll()
       sendDestinations.removeAll()
     }
@@ -144,7 +141,7 @@ internal final class ManagedChat {
     switch behavior {
     case .partChannels:
       sendDestinations.removeAll()
-      for id in Array(memberships.keys) { endMembership(id, reason: .credentialsChanged) }
+      for id in Array(memberships.keys) { _ = endMembership(id, reason: .credentialsChanged) }
     case .preserveChannels:
       for member in memberships.values {
         member.prepareForCredentialChange(preserveReader: preserveReader)
@@ -159,8 +156,7 @@ internal final class ManagedChat {
     let closing = [retireChatReader(), retireChatWriter()].compactMap { $0 }
     cancelLookups(throwing: .shutdown)
     stopCredentialTasks()
-    eligibilityRefresh?.task.cancel()
-    eligibilityRefresh = nil
+    cancelEligibilityRefresh()
     return closing
   }
 
@@ -169,5 +165,10 @@ internal final class ManagedChat {
     prefill = nil
     sendHistoryObserver?.cancel()
     sendHistoryObserver = nil
+  }
+
+  func cancelEligibilityRefresh() {
+    eligibilityRefresh?.task.cancel()
+    eligibilityRefresh = nil
   }
 }

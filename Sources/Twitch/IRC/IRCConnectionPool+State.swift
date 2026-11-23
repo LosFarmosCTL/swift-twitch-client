@@ -2,6 +2,34 @@ import Foundation
 import TwitchIRC
 
 extension IRCConnectionPool {
+  struct ChannelTarget: Hashable, Sendable {
+    let login: String
+    let expectedRoomID: String?
+    let token: UUID?
+
+    init(login: String, expectedRoomID: String? = nil, token: UUID? = nil) {
+      self.login = IRCWireMessage.channelLogin(login)
+      self.expectedRoomID = expectedRoomID
+      self.token = token
+    }
+  }
+
+  struct ChannelState: Sendable, Equatable {
+    var status: IRCChannelStatus
+    var expectedRoomID: String?
+    var token: UUID?
+  }
+
+  struct PoolState: Sendable {
+    let ircState: IRCState
+    let channels: [String: ChannelState]
+  }
+
+  enum Update: Sendable {
+    case state(PoolState)
+    case message(IncomingMessage)
+  }
+
   struct Entry: Sendable {
     let supervisor: IRCConnectionSupervisor
 
@@ -19,11 +47,10 @@ extension IRCConnectionPool {
     var terminalError: Error?
     var globalUserState: GlobalUserState?
     var userStateConnectionID: UUID?
-    var statuses: [String: IRCChannelStatus] = [:]
+    var channels: [String: ChannelState] = [:]
   }
 
   var snapshot: IRCState { state.snapshot }
-
 }
 
 extension IRCConnectionPool.State {
@@ -39,6 +66,10 @@ extension IRCConnectionPool.State {
     }
 
     return entry
+  }
+
+  var poolState: IRCConnectionPool.PoolState {
+    IRCConnectionPool.PoolState(ircState: snapshot, channels: channels)
   }
 
   var snapshot: IRCState {
@@ -67,7 +98,7 @@ extension IRCConnectionPool.State {
 
     return IRCState(
       status: status,
-      channels: statuses,
+      channels: channels.mapValues(\.status),
       recoveries: recoveries,
       globalUserState: globalUserState)
   }

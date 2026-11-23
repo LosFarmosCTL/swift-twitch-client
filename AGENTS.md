@@ -6,3 +6,7 @@ tests that are going to break with any code change anyways. For testing endpoint
 currently used in the project, do not introduce new tests for every single endpoint parameter or return value.
 
 Do not create Markdown files unless the user explicitly requests them.
+
+Check formatting using `swift format` or `swift-format` and lint using `swiftlint --strict`
+
+Create CHANGELOG.md entries for bugfixes and new features

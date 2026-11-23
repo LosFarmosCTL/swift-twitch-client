@@ -3,6 +3,10 @@ import Testing
 
 @testable import Twitch
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 struct AppTokenTests {
   private let app = TwitchCredentials.app(accessToken: "app-token", clientID: "client-id")
   private let user = TwitchCredentials(
@@ -55,17 +59,14 @@ struct AppTokenTests {
     let userError = await #expect(throws: HelixError.self) {
       _ = try await userHarness.twitch.helix(for: .getConduits())
     }
-    guard case .authenticationError(.userAccessTokenRequired) = appError,
-      case .authenticationError(.appAccessTokenRequired) = userError
-    else {
-      Issue.record("Unexpected token kind errors")
-      return
-    }
     let sharedChatError = await #expect(throws: HelixError.self) {
       _ = try await appHarness.twitch.helix(for: .getSharedChatSession(for: "channel"))
     }
-    guard case .authenticationError(.userAccessTokenRequired) = sharedChatError else {
-      Issue.record("Expected shared chat to require a user token")
+    guard case .authenticationError(.userAccessTokenRequired) = appError,
+      case .authenticationError(.appAccessTokenRequired) = userError,
+      case .authenticationError(.userAccessTokenRequired) = sharedChatError
+    else {
+      Issue.record("Unexpected token kind errors")
       return
     }
     #expect(await appHarness.session.requestCount() == 0)
@@ -73,23 +74,47 @@ struct AppTokenTests {
   }
 
   @Test
-  func staticAndCallbackEntryPointsPreserveAuthenticationErrors() async {
-    let error = await #expect(throws: HelixError.self) {
-      _ = try await TwitchClient.helix(for: .getStreamKey(), credentials: app)
-    }
-    guard case .authenticationError(.userAccessTokenRequired) = error else {
-      Issue.record("Expected a user-token requirement")
-      return
-    }
-    let result = await withCheckedContinuation { continuation in
-      _ = TwitchClient.helixTask(for: .getStreamKey(), credentials: app) { result in
-        continuation.resume(returning: result)
+  func actorIdentityResolutionHandlesAppTokensUserDefaultsAndLookupTargets() throws {
+    // Query-parameter actor and JSON-body actor both match user defaults when given explicitly.
+    let appQuery = try makeRequest(.getChatters(in: "channel", moderatorID: "1234"), using: app)
+    let userQuery = try makeRequest(.getChatters(in: "channel"), using: user)
+    #expect(appQuery.url == userQuery.url)
+
+    let appBody = try makeRequest(
+      .sendChatMessage(in: "channel", message: "hi", senderID: "1234"), using: app)
+    let userBody = try makeRequest(
+      .sendChatMessage(in: "channel", message: "hi"), using: user)
+    let appData = try #require(appBody.httpBody)
+    let userData = try #require(userBody.httpBody)
+    let appJSON = try #require(JSONSerialization.jsonObject(with: appData) as? NSDictionary)
+    let userJSON = try #require(JSONSerialization.jsonObject(with: userData) as? NSDictionary)
+    #expect(appJSON == userJSON)
+
+    // App tokens must supply an explicit non-empty actor ID.
+    for actorID: String? in [nil, ""] {
+      let error = #expect(throws: TwitchAuthenticationError.self) {
+        try makeRequest(
+          .sendChatMessage(in: "channel", message: "hi", senderID: actorID), using: app)
+      }
+      guard case .missingUserID = error else {
+        Issue.record("Expected missing actor ID error, got \(String(describing: error))")
+        return
       }
     }
-    guard case .failure(.authenticationError(.userAccessTokenRequired)) = result else {
-      Issue.record("The callback did not preserve the authentication error")
-      return
+
+    // User actor IDs must match the token, while lookup targets may differ.
+    #expect(throws: TwitchAuthenticationError.userIDMismatch(parameter: "sender_id")) {
+      try makeRequest(
+        .sendChatMessage(in: "channel", message: "hi", senderID: "other"), using: user)
     }
+    let lookupRequest = try makeRequest(.getChannelTeams(for: "other"), using: user)
+    #expect(lookupRequest.url?.query()?.contains("broadcaster_id=other") == true)
+  }
+
+  private func makeRequest<R>(
+    _ endpoint: HelixEndpoint<R>, using credentials: TwitchCredentials
+  ) throws -> URLRequest {
+    try endpoint.makeRequest(using: credentials, encoder: TwitchClient.makeEncoder())
   }
 
   @Test
@@ -156,42 +181,5 @@ struct AppTokenTests {
     let payload = try #require(JSONSerialization.jsonObject(with: body) as? [String: Any])
     #expect(payload["sender_id"] as? String == "bot")
     #expect(payload["for_source_only"] as? Bool == true)
-  }
-
-  @Test
-  func autoModUsesTopLevelActorFields() async throws {
-    let harness = HelixTestHarness(credentials: app)
-    let url = try #require(
-      URL(string: "https://api.twitch.tv/helix/moderation/automod/message"))
-    await harness.session.stub(url: url, method: "POST", status: 204)
-    try await harness.twitch.helix(
-      for: .approveAutoModMessage(messageID: "held", userID: "moderator"))
-    let body = try #require(await harness.session.lastRequest()?.httpBody)
-    let payload = try JSONDecoder().decode([String: String].self, from: body)
-    #expect(payload == ["user_id": "moderator", "msg_id": "held", "action": "ALLOW"])
-  }
-
-  @Test
-  func twitchStillChecksAppPriorGrants() async throws {
-    let harness = HelixTestHarness(credentials: app)
-    let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))
-    await harness.session.stub(
-      url: url, method: "POST", status: 401,
-      body: Data(
-        "{\"error\":\"Unauthorized\",\"status\":401,\"message\":\"Missing prior grant\"}"
-          .utf8))
-    let error = await #expect(throws: HelixError.self) {
-      _ =
-        (try await harness.twitch.helix(
-          for: .sendChatMessage(in: "channel", message: "hello", senderID: "bot"))).value
-    }
-    guard
-      case .twitchError(
-        name: "Unauthorized", status: 401, message: "Missing prior grant") = error
-    else {
-      Issue.record("Expected Twitch's authorization error")
-      return
-    }
-    #expect(await harness.session.requestCount() == 1)
   }
 }

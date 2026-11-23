@@ -8,7 +8,9 @@ struct IRCMembershipTests {
   private let session = MockNetworkSession()
 
   private func connect(joinTimeout: Duration = .seconds(15)) async throws
-    -> (IRCConnectionPool, MockWebSocketTask, AsyncThrowingStream<IRCConnectionUpdate, any Error>)
+    -> (
+      IRCConnectionPool, MockWebSocketTask, AsyncThrowingStream<IRCConnectionPool.Update, any Error>
+    )
   {
     let pool = IRCConnectionPool(network: session, joinTimeout: joinTimeout)
     let updates = try await pool.start()

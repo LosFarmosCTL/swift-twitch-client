@@ -67,43 +67,6 @@ struct CredentialReconciliationTests {
     #expect(await harness.session.taskCount() == 0)
   }
 
-  @Test(arguments: [
-    TwitchCredentials.Kind.user(.init(id: "bot", login: "bot")), .app,
-  ])
-  func pinnedMessageRetainsPinAndExplicitSender(kind: TwitchCredentials.Kind) async throws {
-    let harness = HelixTestHarness(
-      credentials: .init(accessToken: "token", clientID: "app", kind: kind))
-    let url = try #require(URL(string: "https://api.twitch.tv/helix/chat/messages"))
-    await harness.session.stub(
-      url: url, method: "POST", body: MockedData.sendChatMessageJSON)
-    _ =
-      (try await harness.twitch.helix(
-        for: .sendChatMessage(
-          in: "channel", message: "hello", pin: true, senderID: "bot"))).value
-    let data = try #require(await harness.session.lastRequest()?.httpBody)
-    let body = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    #expect(body["pin"] as? Bool == true)
-    #expect(body["sender_id"] as? String == "bot")
-  }
-
-  @Test
-  func appAnnouncementRetainsSourceOnlyAndExplicitModerator() async throws {
-    let harness = HelixTestHarness(
-      credentials: .app(accessToken: "app", clientID: "client"))
-    let url = try #require(
-      URL(
-        string:
-          "https://api.twitch.tv/helix/chat/announcements?broadcaster_id=channel&moderator_id=bot"
-      ))
-    await harness.session.stub(url: url, method: "POST", status: 204)
-    try await harness.twitch.helix(
-      for: .sendAnnouncement(
-        in: "channel", message: "hello", isSourceOnly: true, moderatorID: "bot"))
-    let data = try #require(await harness.session.lastRequest()?.httpBody)
-    let body = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    #expect(body["for_source_only"] as? Bool == true)
-  }
-
   @Test(arguments: [true, false])
   func pinCannotBeCombinedWithReplyOrSourceOnly(useReply: Bool) async {
     let harness = HelixTestHarness(

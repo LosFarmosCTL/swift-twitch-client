@@ -11,14 +11,18 @@ internal actor IRCConnectionPool {
   var state: State { currentState }
   private var currentState = State() {
     didSet {
-      if !updatingChannels { publishState() }
+      if batchingStateUpdates {
+        stateDirtyDuringBatch = true
+      } else {
+        publishState()
+      }
     }
   }
 
   var pendingJoins: [String: PendingJoin] = [:]
-  var expectedRoomIDs: [String: String] = [:]
-  var updates: AsyncThrowingStream<IRCConnectionUpdate, any Error>.Continuation?
-  private var updatingChannels = false
+  var updates: AsyncThrowingStream<Update, any Error>.Continuation?
+  private var batchingStateUpdates = false
+  private var stateDirtyDuringBatch = false
   private var disconnectTask: Task<Void, Never>?
 
   init(
@@ -37,12 +41,12 @@ internal actor IRCConnectionPool {
     for pending in pendingJoins.values { pending.task.cancel() }
   }
 
-  func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {
+  func start() throws -> AsyncThrowingStream<Update, any Error> {
     try Task.checkCancellation()
     guard !state.ended else { throw state.terminalError ?? IRCError.disconnected }
     guard !state.active else { throw IRCInternalError.alreadyConnected }
 
-    let (stream, continuation) = AsyncThrowingStream<IRCConnectionUpdate, any Error>.makeStream()
+    let (stream, continuation) = AsyncThrowingStream<Update, any Error>.makeStream()
     updates = continuation
     updateState { $0.active = true }
 
@@ -50,35 +54,73 @@ internal actor IRCConnectionPool {
     return stream
   }
 
-  func setChannels(
-    _ channels: [String], retrying: Set<String> = [], expectedRoomIDs: [String: String] = [:]
-  ) throws {
-    guard !state.ended else { throw IRCError.disconnected }
-    updatingChannels = true
-    defer {
-      updatingChannels = false
-      // Even an unchanged channel set may have a new managed readiness waiter.
-      publishState()
-    }
+  func setChannels(_ logins: [String], retrying: Set<String> = []) throws {
+    try setTargets(logins.map { ChannelTarget(login: $0) }, retrying: retrying)
+  }
 
-    let desired = Set(channels.map(IRCWireMessage.channelLogin))
-    for channel in state.statuses.keys
-    where !desired.contains(channel) || self.expectedRoomIDs[channel] != expectedRoomIDs[channel] {
-      try part(from: channel)
-    }
-    self.expectedRoomIDs = expectedRoomIDs
-    for channel in desired.subtracting(state.statuses.keys) {
-      try join(to: channel)
-    }
-    for channel in retrying {
-      try retryChannel(channel)
+  func setTargets(_ targets: [ChannelTarget], retrying: Set<String> = []) throws {
+    guard !state.ended else { throw IRCError.disconnected }
+
+    // Publish even when unchanged so newly attached readiness waiters observe current status.
+    try batchStateUpdates(publishAlways: true) {
+      let desired = Dictionary(
+        targets.map { ($0.login, $0) },
+        uniquingKeysWith: { _, latest in latest })
+      let explicitRetries = Set(retrying.map(IRCWireMessage.channelLogin))
+
+      for (login, existing) in state.channels {
+        guard let target = desired[login], target.expectedRoomID == existing.expectedRoomID else {
+          try part(from: login)
+          continue
+        }
+      }
+
+      for (login, target) in desired {
+        if let existing = state.channels[login] {
+          try reconcileExistingChannel(
+            login, existing: existing, target: target,
+            explicitRetry: explicitRetries.contains(login))
+        } else {
+          try join(target)
+        }
+      }
     }
   }
 
+  private func reconcileExistingChannel(
+    _ login: String,
+    existing: ChannelState,
+    target: ChannelTarget,
+    explicitRetry: Bool
+  ) throws {
+    let tokenChanged = target.token != nil && existing.token != target.token
+    if tokenChanged {
+      updateState { $0.channels[login]?.token = target.token }
+    }
+
+    if explicitRetry || (tokenChanged && existing.status.isFailed) {
+      try retryChannel(login)
+    }
+  }
+
+  func batchStateUpdates(
+    publishAlways: Bool = false,
+    _ body: () throws -> Void
+  ) rethrows {
+    let wasBatching = batchingStateUpdates
+    batchingStateUpdates = true
+    defer {
+      batchingStateUpdates = wasBatching
+      if !wasBatching, publishAlways || stateDirtyDuringBatch {
+        stateDirtyDuringBatch = false
+        publishState()
+      }
+    }
+    try body()
+  }
+
   private func publishState() {
-    var snapshot = snapshot
-    snapshot.expectedRoomIDs = expectedRoomIDs
-    updates?.yield(.state(snapshot))
+    updates?.yield(.state(state.poolState))
   }
 
   func disconnect(throwing error: Error? = nil) async {
@@ -101,11 +143,14 @@ internal actor IRCConnectionPool {
       state.userStateConnectionID = nil
 
       if let error {
-        state.statuses = state.statuses.mapValues { _ in
-          .failed(.init(terminalError: error))
+        let failure = IRCChannelFailure(terminalError: error)
+        state.channels = state.channels.mapValues { channel in
+          var updated = channel
+          updated.status = .failed(failure)
+          return updated
         }
       } else {
-        state.statuses.removeAll()
+        state.channels.removeAll()
       }
     }
 

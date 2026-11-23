@@ -12,6 +12,10 @@ public enum IRCChannelStatus: Sendable, Equatable {
   case reconnecting
   /// Joining or maintaining this channel failed; carries the ``IRCChannelFailure`` reason.
   case failed(IRCChannelFailure)
+
+  internal var isFailed: Bool {
+    if case .failed = self { true } else { false }
+  }
 }
 
 /// The reason an IRC channel join or transport session failed.

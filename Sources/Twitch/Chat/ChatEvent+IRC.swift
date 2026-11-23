@@ -75,6 +75,17 @@ extension IncomingMessage {
     }
   }
 
+  internal var chatRoomID: String? {
+    switch self {
+    case .privateMessage(let value): value.roomID.chatNonempty
+    case .userNotice(let value): value.roomID.chatNonempty
+    case .roomState(let value): value.roomID.chatNonempty
+    case .clearChat(let value): value.roomID?.chatNonempty
+    case .clearMessage(let value): value.roomID.chatNonempty
+    default: nil
+    }
+  }
+
   internal var chatTimestamp: Date? {
     switch self {
     case .privateMessage(let value): chatIRCTimestamp(value.timestampMilliseconds)

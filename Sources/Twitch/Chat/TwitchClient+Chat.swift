@@ -190,7 +190,7 @@ extension TwitchClient {
   ) async throws -> ChatSendOutcome {
     try Task.checkCancellation()
     guard !chat.isShutdown else { throw ChatError.shutdown }
-    guard credentials != nil else { throw TwitchAuthenticationError.userAccessTokenRequired }
+    guard credentials?.user != nil else { throw TwitchAuthenticationError.userAccessTokenRequired }
     let channel = try await chat.resolveChatChannel(.init(target))
     return try await chat.sendMessage(
       text, to: channel, replyTo: messageID, clientNonce: clientNonce,

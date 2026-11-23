@@ -13,17 +13,13 @@ extension ManagedChat {
 
   private func receiveChatIRC(_ event: IRCMessage) {
     let message = event.message
-    let writer = event.role == .write
-    let authenticatesSender = writer || configuration.reader == .irc(.authenticated)
+    let isWriter = event.role == .write
+    let authenticatesSender =
+      credentials?.user != nil
+      && (isWriter || configuration.reader == .irc(.authenticated))
 
     if let evidence = event.channelUserState, authenticatesSender {
-      if let channel = knownChannels[.login(evidence.login)] {
-        observeChatPrivilege(evidence.privilege, in: channel.id)
-        publishChatState()
-      } else if writer {
-        senderEvidence[.login(evidence.login), default: SenderEvidence()].observedPrivilege =
-          evidence.privilege
-      }
+      receiveChatIRCUserState(evidence, isWriter: isWriter)
       return
     }
 
@@ -32,14 +28,34 @@ extension ManagedChat {
       return
     }
 
-    guard !writer, let login = message.chatChannel,
-      let channel = knownChannels[.init(login: login)],
-      let member = memberships[channel.id],
+    guard !isWriter,
+      let login = message.chatChannel,
+      let member = activeMembership(forLogin: login),
       member.status == .ready,
-      member.channel.login == IRCWireMessage.channelLogin(login)
+      matchesExpectedRoomID(message.chatRoomID, for: member)
     else { return }
 
     receiveChatIRCReaderMessage(message, for: member)
+  }
+
+  private func receiveChatIRCUserState(
+    _ evidence: (login: String, privilege: ChatPrivilege),
+    isWriter: Bool
+  ) {
+    if let channel = activeMembership(forLogin: evidence.login)?.channel
+      ?? knownChannels.channel(login: evidence.login)
+    {
+      if observeChatPrivilege(evidence.privilege, in: channel.id) {
+        publishChatState()
+      }
+    } else if isWriter {
+      senderEvidence.recordPendingLoginPrivilege(evidence.privilege, login: evidence.login)
+    }
+  }
+
+  private func matchesExpectedRoomID(_ roomID: String?, for member: Membership) -> Bool {
+    guard let roomID else { return true }
+    return roomID == member.channel.id
   }
 
   private func receiveChatIRCReaderMessage(_ message: IncomingMessage, for member: Membership) {
@@ -120,22 +136,33 @@ extension ManagedChat {
     let directedAtSender =
       authenticatesSender
       && (notice.targetUserID == nil || notice.targetUserID == credentials?.userID)
-    guard let channel = knownChannels[.login(notice.login)] else {
+
+    let channel: ChatChannel? =
+      if role == .read {
+        activeMembership(forLogin: notice.login)?.channel
+      } else {
+        activeMembership(forLogin: notice.login)?.channel
+          ?? knownChannels.channel(login: notice.login)
+      }
+
+    guard let channel else {
       if role == .write, directedAtSender, notice.code == "msg_banned" {
-        senderEvidence[.login(notice.login), default: SenderEvidence()].restriction = .banned
+        senderEvidence.recordPendingLoginBan(login: notice.login)
       }
       return
     }
 
+    var stateChanged = false
     if directedAtSender, notice.code == "msg_banned" {
-      senderEvidence[.id(channel.id), default: SenderEvidence()].restriction = .banned
-      sendDestinations.insert(channel.id)
+      let banChanged = senderEvidence.recordBan(for: channel.id)
+      let destinationAdded = sendDestinations.insert(channel.id).inserted
+      stateChanged = banChanged || destinationAdded
     }
 
     emitChat(
       ChatEvent(
         channel: channel, timestamp: notice.timestamp,
         payload: .notice(code: notice.code, message: notice.text)))
-    publishChatState()
+    if stateChanged { publishChatState() }
   }
 }

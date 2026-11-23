@@ -38,6 +38,12 @@ internal struct IRCWireMessage: Sendable {
     text = prepared.serialize()
   }
 
+  static let anonymousLogin = "justinfan12345"
+
+  static func login(for credentials: TwitchCredentials?) -> String {
+    credentials?.userLogin?.lowercased() ?? anonymousLogin
+  }
+
   static func channelLogin(_ channel: String) -> String {
     String(channel.drop(while: { $0 == "#" })).lowercased()
   }

@@ -86,8 +86,7 @@ extension IRCConnectionSupervisor {
         channels: [],
         reason: reason,
         attempt: failures,
-        retryAt: Date().addingTimeInterval(
-          Double(delay.components.seconds) + Double(delay.components.attoseconds) / 1e18))
+        retryAt: Date().addingTimeInterval(delay.timeInterval))
     }
 
     return delay

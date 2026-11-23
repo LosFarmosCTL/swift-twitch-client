@@ -18,7 +18,7 @@ extension IRCConnectionPool {
     }
 
     pendingJoins[channel] = PendingJoin(token: token, task: task)
-    updateState { $0.statuses[channel] = .joining }
+    updateState { $0.channels[channel]?.status = .joining }
   }
 
   private func sendJoin(_ channel: String, id: UUID, token: UUID) async {
@@ -61,10 +61,10 @@ extension IRCConnectionPool {
     switch error {
     case IRCError.invalidInput, IRCError.loginFailed, IRCError.capabilitiesRejected,
       is TwitchAuthenticationError:
-      updateState { $0.statuses[channel] = .failed(.init(terminalError: error)) }
+      updateState { $0.channels[channel]?.status = .failed(.init(terminalError: error)) }
     default:
       // Transient send failures trigger supervisor recovery; keep the channel eligible for rejoin.
-      updateState { $0.statuses[channel] = .reconnecting }
+      updateState { $0.channels[channel]?.status = .reconnecting }
     }
   }
 
@@ -78,38 +78,29 @@ extension IRCConnectionPool {
     guard pendingJoins[channel]?.token == token else { return }
 
     cancelJoin(channel)
-    updateState { $0.statuses[channel] = .failed(.joinTimedOut) }
+    updateState { $0.channels[channel]?.status = .failed(.joinTimedOut) }
   }
 
-  private func joined(_ channel: String) {
+  private func markJoined(_ channel: String) {
     cancelJoin(channel)
-    guard state.statuses[channel] != .joined else { return }
-    updateState { $0.statuses[channel] = .joined }
+    guard state.channels[channel]?.status != .joined else { return }
+    updateState { $0.channels[channel]?.status = .joined }
   }
 
   func handle(_ message: IncomingMessage, id: UUID) async {
     guard let entry = state.entries[id] else { return }
 
-    let login = credentials?.userLogin?.lowercased() ?? "justinfan12345"
+    let login = IRCWireMessage.login(for: credentials)
 
     switch message {
     case .join(let join) where join.userLogin == login:
-      if entry.channels.contains(join.channel) {
-        if expectedRoomIDs[join.channel] == nil { joined(join.channel) }
-      } else {
-        try? await entry.supervisor.send(.part(from: join.channel))
-      }
+      await handleSelfJoin(join, entry: entry)
 
     case .roomState(let room) where entry.channels.contains(room.channel):
       await handleRoomState(room, on: entry.supervisor)
 
     case .part(let part) where part.userLogin == login:
-      if entry.channels.contains(part.channel),
-        expectedRoomIDs[part.channel] == nil || state.statuses[part.channel] == .joined
-      {
-        cancelJoin(part.channel)
-        scheduleJoin(part.channel, id: id)
-      }
+      handleSelfPart(part, entry: entry, id: id)
 
     case .notice(let notice):
       handleJoinNotice(notice, id: id)
@@ -121,22 +112,50 @@ extension IRCConnectionPool {
     updates?.yield(.message(message))
   }
 
-  private func handleRoomState(_ room: RoomState, on supervisor: IRCConnectionSupervisor) async {
-    guard let expected = expectedRoomIDs[room.channel] else {
-      joined(room.channel)
+  private func handleSelfJoin(_ join: Join, entry: Entry) async {
+    guard entry.channels.contains(join.channel) else {
+      try? await entry.supervisor.send(.part(from: join.channel))
       return
     }
-    guard !room.roomID.isEmpty,
-      pendingJoins[room.channel] != nil || state.statuses[room.channel] == .joined
+    guard let channelState = state.channels[join.channel],
+      channelState.expectedRoomID == nil,
+      !channelState.status.isFailed
     else { return }
+
+    markJoined(join.channel)
+  }
+
+  private func handleSelfPart(_ part: Part, entry: Entry, id: UUID) {
+    guard entry.channels.contains(part.channel),
+      let channelState = state.channels[part.channel],
+      !channelState.status.isFailed
+    else { return }
+
+    cancelJoin(part.channel)
+    scheduleJoin(part.channel, id: id)
+  }
+
+  private func handleRoomState(_ room: RoomState, on supervisor: IRCConnectionSupervisor) async {
+    guard let channelState = state.channels[room.channel] else { return }
+
+    guard let expected = channelState.expectedRoomID else {
+      guard !channelState.status.isFailed else { return }
+      markJoined(room.channel)
+      return
+    }
+
+    guard !room.roomID.isEmpty,
+      pendingJoins[room.channel] != nil || channelState.status == .joined
+    else { return }
+
     guard room.roomID != expected else {
-      joined(room.channel)
+      markJoined(room.channel)
       return
     }
 
     cancelJoin(room.channel)
     let message = "#\(room.channel) has room ID \(room.roomID), expected \(expected)."
-    updateState { $0.statuses[room.channel] = .failed(.connectionFailed(message)) }
+    updateState { $0.channels[room.channel]?.status = .failed(.connectionFailed(message)) }
     try? await supervisor.send(.part(from: room.channel))
   }
 
@@ -155,7 +174,7 @@ extension IRCConnectionPool {
       }
 
     updateState {
-      $0.statuses[channel] = .failed(.joinRejected(code: identifier, message: message))
+      $0.channels[channel]?.status = .failed(.joinRejected(code: identifier, message: message))
     }
   }
 }

@@ -4,10 +4,14 @@ import Foundation
 /// asynchronous teardown. The lock is never held across an I/O operation.
 internal final class IRCConnectionLifetime: @unchecked Sendable {
   private let lock = NSLock()
-  private var isActive = true
+  private var active = true
+
+  var isActive: Bool {
+    lock.withLock { active }
+  }
 
   func invalidate() {
-    lock.withLock { isActive = false }
+    lock.withLock { active = false }
   }
 
   func check() throws { try commit {} }
@@ -15,7 +19,7 @@ internal final class IRCConnectionLifetime: @unchecked Sendable {
   func commit<T>(_ action: () -> T) throws -> T {
     try lock.withLock {
       try Task.checkCancellation()
-      guard isActive else { throw IRCError.disconnected }
+      guard active else { throw IRCError.disconnected }
       return action()
     }
   }

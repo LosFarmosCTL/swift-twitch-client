@@ -32,7 +32,6 @@ public struct IRCState: Sendable {
   public internal(set) var recoveries: [IRCRecovery] = []
   /// The latest `GLOBALUSERSTATE` received from Twitch on this transport, if authenticated.
   public internal(set) var globalUserState: GlobalUserState?
-  internal var expectedRoomIDs: [String: String] = [:]
 
   /// Creates an `IRCState` value.
   public init(
