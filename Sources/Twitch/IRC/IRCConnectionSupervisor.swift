@@ -44,6 +44,7 @@ internal actor IRCConnectionSupervisor {
   }
 
   deinit {
+    lifetime.invalidate()
     runTask?.cancel()
     continuation?.finish()
 
@@ -53,6 +54,7 @@ internal actor IRCConnectionSupervisor {
     Task.detached { await connection.disconnect() }
   }
 
+  nonisolated var isActive: Bool { lifetime.isActive }
   nonisolated func invalidate() { lifetime.invalidate() }
 
   func start() throws -> AsyncThrowingStream<IRCConnectionUpdate, any Error> {

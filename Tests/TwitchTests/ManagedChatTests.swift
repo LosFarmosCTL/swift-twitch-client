@@ -338,10 +338,41 @@ extension ManagedChatTests {
     #expect(await session.taskCount() == 1)
     await client.shutdownChat()
   }
+
+  @Test
+  func partByUncachedLoginWithdrawsInFlightJoinByID() async throws {
+    let client = client()
+    let idLookup = AsyncTestGate()
+    let loginLookup = AsyncTestGate()
+    await stubChannelLookup(parameter: "id", value: channel.id)
+    await stubChannelLookup(parameter: "login", value: channel.login)
+    await session.onRequest { request in
+      if request.url?.query?.contains("id=") == true {
+        await idLookup.pause()
+      } else {
+        await loginLookup.pause()
+      }
+    }
+
+    let pendingJoin = Task { try await client.requestJoin(to: .id(channel.id)) }
+    await idLookup.waitUntilEntered()
+
+    let pendingPart = Task { try await client.part(from: .login(channel.login)) }
+    await loginLookup.waitUntilEntered()
+
+    await idLookup.release()
+    await #expect(throws: ChatError.parted) { try await pendingJoin.value }
+    #expect(await session.taskCount() == 0)
+
+    await loginLookup.release()
+    try await pendingPart.value
+    #expect(await client.chatState.channels.isEmpty)
+    await client.shutdownChat()
+  }
 }
 
 extension TwitchClient {
-  fileprivate func partAndRejoinForTesting(_ channel: ChatChannel) throws {
+  internal func partAndRejoinForTesting(_ channel: ChatChannel) throws {
     part(from: channel)
     try requestJoin(to: channel)
   }

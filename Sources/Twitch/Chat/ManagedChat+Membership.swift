@@ -2,7 +2,7 @@ import Foundation
 
 extension ManagedChat {
   func requestJoin(to channel: ChatChannel) throws {
-    _ = try requestMembership(channel, intent: nextMembershipIntent())
+    _ = try requestMembership(channel, intent: intentTracker.nextIntent())
   }
 
   nonisolated(nonsending) func requestJoin(_ reference: ChatChannelReference) async throws {
@@ -10,7 +10,7 @@ extension ManagedChat {
   }
 
   nonisolated(nonsending) func join(to channel: ChatChannel) async throws {
-    let member = try requestMembership(channel, intent: nextMembershipIntent())
+    let member = try requestMembership(channel, intent: intentTracker.nextIntent())
     try await member.waitUntilReady()
   }
 
@@ -20,17 +20,33 @@ extension ManagedChat {
   }
 
   func part(channelID: String, login: String? = nil) {
-    partChannel(
-      channelID, login: login ?? knownChannels[.id(channelID)]?.login,
-      intent: nextMembershipIntent())
+    let logins = Set(
+      [
+        login.map(IRCWireMessage.channelLogin),
+        memberships[channelID]?.channel.login,
+        knownChannels.channel(id: channelID)?.login,
+      ].compactMap { $0 })
+    partChannel(channelID, logins: Array(logins), intent: intentTracker.nextIntent())
   }
 
   nonisolated(nonsending) func part(_ reference: ChatChannelReference) async throws {
-    let intent = nextMembershipIntent()
+    let intent = intentTracker.nextIntent()
     withdrawPendingJoins(for: [reference], before: intent)
 
     let channel = try await resolveChatChannel(reference)
-    partChannel(channel.id, login: channel.login, intent: intent)
+    partChannel(channel.id, logins: [channel.login], intent: intent)
+  }
+
+  func activeMembership(forLogin rawLogin: String) -> Membership? {
+    let login = IRCWireMessage.channelLogin(rawLogin)
+    return memberships.values.first { $0.channel.login == login }
+  }
+
+  func activeMembership(for reference: ChatChannelReference) -> Membership? {
+    switch reference {
+    case .id(let id): memberships[id]
+    case .login(let login): activeMembership(forLogin: login)
+    }
   }
 
   private func requestMembership(_ channel: ChatChannel, intent: UInt64) throws -> Membership {
@@ -57,8 +73,9 @@ extension ManagedChat {
       throw ChatError.setupFailed("Part #\(channel.login) before changing its channel ID.")
     }
 
-    if let existing { prepareToRetry(existing) }
+    existing?.stop()
     cacheChatChannel(channel)
+
     let member = Membership(channel: channel, joinIntent: joinIntent)
     memberships[channel.id] = member
 
@@ -80,82 +97,49 @@ extension ManagedChat {
     reconcileChatModeration(member.channel.id)
   }
 
-  private func prepareToRetry(_ member: Membership) {
-    member.stop()
-    guard case .irc = configuration.reader else { return }
-
-    readerRetryLogins.insert(member.channel.login)
-  }
-
-  func endMembership(_ id: String, reason: ChatDeparture.Reason) {
-    guard let member = memberships.removeValue(forKey: id) else { return }
+  @discardableResult
+  func endMembership(_ id: String, reason: ChatDeparture.Reason) -> Bool {
+    guard let member = memberships.removeValue(forKey: id) else { return false }
 
     member.endReadiness(throwing: reason.readinessError)
     member.stop()
 
     lastDeparture = ChatDeparture(channel: member.channel, reason: reason)
     emitChat(ChatEvent(channel: member.channel, timestamp: nil, payload: .membershipEnded(reason)))
+    return true
   }
 
   // MARK: - Joining and parting through unresolved aliases
 
-  struct PendingJoin {
-    let reference: ChatChannelReference
-    let lookupWaiter = UUID()
-  }
-
   nonisolated(nonsending) private func requestMembership(_ reference: ChatChannelReference)
     async throws -> Membership
   {
-    let intent = nextMembershipIntent()
-    let pending = PendingJoin(reference: reference)
-    pendingJoins[intent] = pending
-    defer {
-      pendingJoins[intent] = nil
-      prunePartIntents()
-    }
+    let (intent, waiterID) = intentTracker.beginPendingJoin(reference: reference)
+    defer { intentTracker.endPendingJoin(intent: intent) }
 
-    let channel = try await resolveChatChannel(reference, waiterID: pending.lookupWaiter)
-    // A part by ID can arrive while the same channel is still being resolved by login.
-    guard latestPartIntents[.id(channel.id), default: 0] <= intent,
-      latestPartIntents[reference, default: 0] <= intent
+    let channel = try await resolveChatChannel(reference, waiterID: waiterID)
+    guard !intentTracker.isJoinWithdrawn(channel: channel, reference: reference, intent: intent)
     else { throw ChatError.parted }
 
     return try requestMembership(channel, intent: intent)
   }
 
-  private func partChannel(_ id: String, login: String?, intent: UInt64) {
-    var references: [ChatChannelReference] = [.id(id)]
-    if let login { references.append(.login(login)) }
+  private func partChannel(_ id: String, logins: [String], intent: UInt64) {
+    let references: [ChatChannelReference] = [.id(id)] + logins.map { .login($0) }
     withdrawPendingJoins(for: references, before: intent)
 
     // A part that needed a lookup cannot undo a newer join.
     guard (memberships[id]?.joinIntent ?? 0) <= intent else { return }
 
-    endMembership(id, reason: .requested)
+    guard endMembership(id, reason: .requested) else { return }
     updateIRCReaderMembership()
     publishChatState()
   }
 
-  private func nextMembershipIntent() -> UInt64 {
-    membershipIntent &+= 1
-    return membershipIntent
-  }
-
   private func withdrawPendingJoins(for references: [ChatChannelReference], before intent: UInt64) {
-    for reference in references {
-      latestPartIntents[reference] = max(latestPartIntents[reference, default: 0], intent)
+    for (reference, waiterID) in intentTracker.recordPart(for: references, intent: intent) {
+      cancelLookupWaiter(waiterID, for: reference, error: ChatError.parted)
     }
-    for (order, pending) in pendingJoins
-    where order < intent && references.contains(pending.reference) {
-      cancelLookupWaiter(pending.lookupWaiter, for: pending.reference, error: ChatError.parted)
-    }
-    prunePartIntents()
-  }
-
-  private func prunePartIntents() {
-    let earliestJoin = pendingJoins.keys.min() ?? membershipIntent
-    latestPartIntents = latestPartIntents.filter { $0.value > earliestJoin }
   }
 }
 

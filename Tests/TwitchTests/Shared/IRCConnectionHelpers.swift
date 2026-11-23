@@ -17,3 +17,21 @@ extension AsyncThrowingStream where Element == IRCConnectionUpdate, Failure == a
     return nil
   }
 }
+
+extension AsyncThrowingStream where Element == IRCConnectionPool.Update, Failure == any Error {
+  func nextState(where matches: (IRCState) -> Bool) async throws -> IRCState? {
+    for try await update in self {
+      if case .state(let poolState) = update, matches(poolState.ircState) {
+        return poolState.ircState
+      }
+    }
+    return nil
+  }
+
+  func nextMessage() async throws -> IncomingMessage? {
+    for try await update in self {
+      if case .message(let message) = update { return message }
+    }
+    return nil
+  }
+}

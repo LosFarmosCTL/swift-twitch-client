@@ -79,13 +79,16 @@ extension ManagedChat {
   }
 
   var eventSubReaderStatus: ChatComponentStatus {
-    let statuses = memberships.values.map(\.status)
+    let ordered = memberships.keys.sorted().compactMap { memberships[$0]?.status }
 
     for status in [ChatComponentStatus.ready, .connecting, .reconnecting]
-    where statuses.contains(status) {
+    where ordered.contains(status) {
       return status
     }
-    return statuses.first ?? .idle
+    if let failed = ordered.first(where: { if case .failed = $0 { true } else { false } }) {
+      return failed
+    }
+    return ordered.first ?? .idle
   }
 }
 

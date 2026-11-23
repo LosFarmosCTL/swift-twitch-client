@@ -64,6 +64,58 @@ extension ManagedChatTests {
   }
 
   @Test
+  func activeIRCChannelIgnoresMismatchedRoomIDAndSurvivesAliasCacheOverwrite() async throws {
+    let client = client()
+    await stubSending()
+    let events = await client.messageStream()
+    let pending = Task { try await client.join(to: channel) }
+    let socket = await session.waitForTask(at: 0)
+    await handshake(socket)
+    await acknowledge(socket)
+    try await pending.value
+
+    // Sending to a renamed ChatChannel updates the alias cache without breaking active reads.
+    _ = try await client.sendMessage(
+      "hi", in: ChatChannel(id: channel.id, login: "swift_renamed"))
+
+    await socket.simulateIncoming(
+      .string(
+        "@display-name=Chatter;room-id=999;user-id=42 :chat!chat@chat.tmi.twitch.tv PRIVMSG #swift :WrongRoom\r\n"
+          + "@display-name=Chatter;room-id=123;user-id=42 :chat!chat@chat.tmi.twitch.tv PRIVMSG #swift :RightRoom"
+      ))
+
+    let message = try #require(await nextMessage(in: events))
+    #expect(message.text == "RightRoom")
+    await client.shutdownChat()
+  }
+
+  @Test
+  func partAndRejoinOfFailedIRCChannelRetriesAndReachesReady() async throws {
+    let client = client()
+    let other = ChatChannel(id: "456", login: "other")
+    let firstJoin = Task { try await client.join(to: other) }
+    let socket = await session.waitForTask(at: 0)
+    await handshake(socket)
+    await socket.waitForSent("JOIN #other")
+    await socket.simulateIncoming(.string("@room-id=456 :tmi.twitch.tv ROOMSTATE #other"))
+    try await firstJoin.value
+
+    let failedJoin = Task { try await client.join(to: channel) }
+    await socket.waitForSent("JOIN #swift")
+    await socket.simulateIncoming(
+      .string("@msg-id=msg_room_not_found :tmi.twitch.tv NOTICE #swift :Unavailable"))
+    await #expect(throws: ChatError.self) { try await failedJoin.value }
+
+    try await client.partAndRejoinForTesting(channel)
+    let retryJoin = Task { try await client.join(to: channel) }
+    await socket.waitForSent("JOIN #swift", count: 2)
+    await socket.simulateIncoming(.string("@room-id=123 :tmi.twitch.tv ROOMSTATE #swift"))
+    try await retryJoin.value
+    #expect(await client.chatState.channels[channel.id]?.status == .ready)
+    await client.shutdownChat()
+  }
+
+  @Test
   func ircMetadataPreservesMissingValuesAndSettingsUpdatesArePartial() async throws {
     let client = client()
     let events = await client.messageStream()

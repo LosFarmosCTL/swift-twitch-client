@@ -2,23 +2,6 @@ import Foundation
 import TwitchIRC
 
 extension ManagedChat {
-  func receiveIRC(_ update: IRCConnectionUpdate, role: IRCRecovery.Role, from id: UUID) {
-    guard id == (role == .read ? reader?.id : writer?.id) else { return }
-
-    switch update {
-    case .message(let message):
-      emitChatIRCMessage(message, role: role)
-    case .state(let state):
-      if role == .read {
-        updateIRCReaderState(state)
-      } else {
-        ircWriterState = state
-        writerStatus = state.status.chatStatus
-      }
-      publishChatState()
-    }
-  }
-
   func ircTransportFailed(_ error: any Error, role: IRCRecovery.Role, from id: UUID) {
     guard id == (role == .read ? reader?.id : writer?.id) else { return }
 
@@ -41,6 +24,17 @@ extension IRCState.Status {
     case .connected: .ready
     case .reconnecting: .reconnecting
     case .failed(let error): .failed(String(describing: error))
+    }
+  }
+}
+
+extension IRCChannelStatus {
+  var chatStatus: ChatComponentStatus {
+    switch self {
+    case .joining: .connecting
+    case .joined: .ready
+    case .reconnecting: .reconnecting
+    case .failed(let reason): .failed(String(describing: reason))
     }
   }
 }

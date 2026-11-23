@@ -56,7 +56,7 @@ extension IRCConnection {
       try await socket.send(.string(try IRCWireMessage(.pass(pass: credentials.accessToken)).text))
     }
 
-    let login = credentials?.userLogin?.lowercased() ?? "justinfan12345"
+    let login = IRCWireMessage.login(for: credentials)
     try await socket.send(.string(try IRCWireMessage(.nick(name: login)).text))
   }
 

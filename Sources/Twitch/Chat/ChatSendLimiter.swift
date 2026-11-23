@@ -28,7 +28,7 @@ internal final class ChatSendLimiter: @unchecked Sendable {
     }
 
     func eligibility(now: ContinuousClock.Instant, wallTime: Date) -> ChatSendEligibility {
-      let until = wallTime.addingTimeInterval(now.duration(to: deadline).chatTimeInterval)
+      let until = wallTime.addingTimeInterval(now.duration(to: deadline).timeInterval)
       switch self {
       case .channel: return .channelCooldown(until: until)
       case .account: return .accountWindow(until: until)
@@ -131,7 +131,7 @@ internal final class ChatSendLimiter: @unchecked Sendable {
 }
 
 extension Duration {
-  fileprivate var chatTimeInterval: TimeInterval {
+  internal var timeInterval: TimeInterval {
     let parts = components
     return Double(parts.seconds) + Double(parts.attoseconds) / 1e18
   }

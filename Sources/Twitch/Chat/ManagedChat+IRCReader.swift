@@ -51,16 +51,14 @@ extension ManagedChat {
         try await withThrowingTaskGroup(of: Void.self) { group in
           group.addTask { [weak client] in
             for await _ in changes {
-              guard let intent = await client?.takeIRCReaderIntent(for: id) else { return }
-              try await pool.setChannels(
-                intent.roomIDs.keys.sorted(), retrying: intent.retries,
-                expectedRoomIDs: intent.roomIDs)
+              guard let targets = await client?.takeIRCReaderTargets(for: id) else { return }
+              try await pool.setTargets(targets)
             }
           }
 
           defer { group.cancelAll() }
           for try await update in updates {
-            await client?.withChat { $0.receiveIRC(update, role: .read, from: id) }
+            await client?.withChat { $0.receiveIRCReader(update, from: id) }
           }
         }
       } catch {
@@ -71,18 +69,14 @@ extension ManagedChat {
     }
   }
 
-  fileprivate func takeIRCReaderIntent(for id: UUID) -> (
-    roomIDs: [String: String], retries: Set<String>
-  )? {
+  fileprivate func takeIRCReaderTargets(for id: UUID) -> [IRCConnectionPool.ChannelTarget]? {
     guard reader?.id == id else { return nil }
-
-    let roomIDs = Dictionary(
-      uniqueKeysWithValues: memberships.values.map {
-        ($0.channel.login, $0.channel.id)
-      })
-    let retries = readerRetryLogins.intersection(roomIDs.keys)
-    readerRetryLogins.subtract(retries)
-    return (roomIDs, retries)
+    return memberships.values.map {
+      IRCConnectionPool.ChannelTarget(
+        login: $0.channel.login,
+        expectedRoomID: $0.channel.id,
+        token: $0.generation)
+    }
   }
 
   @discardableResult
@@ -91,7 +85,6 @@ extension ManagedChat {
     reader = nil
     ircReaderState = nil
     readerStatus = .idle
-    readerRetryLogins.removeAll()
 
     guard let retiring else { return nil }
 
@@ -100,28 +93,35 @@ extension ManagedChat {
     return Task { await retiring.pool.disconnect() }
   }
 
-  func updateIRCReaderState(_ state: IRCState) {
-    ircReaderState = state
-    readerStatus = state.status.chatStatus
+  func receiveIRCReader(_ update: IRCConnectionPool.Update, from id: UUID) {
+    guard id == reader?.id else { return }
+
+    switch update {
+    case .message(let message):
+      emitChatIRCMessage(message, role: .read)
+    case .state(let poolState):
+      updateIRCReaderState(poolState)
+      publishChatState()
+    }
+  }
+
+  private func updateIRCReaderState(_ poolState: IRCConnectionPool.PoolState) {
+    ircReaderState = poolState.ircState
+    readerStatus = poolState.ircState.status.chatStatus
+
     for member in memberships.values {
-      let login = member.channel.login
-      guard state.expectedRoomIDs[login] == member.channel.id,
-        let status = state.channels[login]
+      guard let channelState = poolState.channels[member.channel.login],
+        channelState.token == member.generation,
+        channelState.expectedRoomID == member.channel.id
       else { continue }
-      switch status {
-      case .joining: member.updateStatus(.connecting)
-      case .joined: member.updateStatus(.ready)
-      case .reconnecting: member.updateStatus(.reconnecting)
-      case .failed(let reason): member.updateStatus(.failed(String(describing: reason)))
-      }
+
+      member.updateStatus(channelState.status.chatStatus)
     }
   }
 }
 
 extension TwitchClient {
-  fileprivate func takeIRCReaderIntent(for id: UUID) -> (
-    roomIDs: [String: String], retries: Set<String>
-  )? {
-    chat.takeIRCReaderIntent(for: id)
+  fileprivate func takeIRCReaderTargets(for id: UUID) -> [IRCConnectionPool.ChannelTarget]? {
+    chat.takeIRCReaderTargets(for: id)
   }
 }
