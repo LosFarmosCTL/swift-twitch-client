@@ -3,6 +3,10 @@ import Testing
 
 @testable import Twitch
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 struct AppTokenTests {
   private let app = TwitchCredentials.app(accessToken: "app-token", clientID: "client-id")
   private let user = TwitchCredentials(
