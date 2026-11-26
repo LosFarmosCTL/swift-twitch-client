@@ -26,7 +26,7 @@ Requires Swift 6.4 or later in Swift 6 language mode. Supported Apple deployment
 Add the dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", from: "1.1.0")
+.package(url: "https://github.com/LosFarmosCTL/swift-twitch-client.git", from: "1.1.1")
 ```
 
 Then add the product to your target:

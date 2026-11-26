@@ -5,6 +5,8 @@ Successful CI on main prepares a draft release; publishing remains manual. -->
 
 ## Unreleased
 
+## 1.1.1
+
 ### Fixes
 
 - Fix EventSub charity campaign broadcaster keys and chat charity amount precision keys.
