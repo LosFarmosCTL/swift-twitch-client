@@ -5,6 +5,11 @@ Successful CI on main prepares a draft release; publishing remains manual. -->
 
 ## Unreleased
 
+### Fixes
+
+- Fix EventSub charity campaign broadcaster keys and chat charity amount precision keys.
+- Correct the suspicious-user update status, add the Mythic Hype Train type, and correct the documented AutoMod settings scope.
+
 ## 1.1.0
 
 ### Features

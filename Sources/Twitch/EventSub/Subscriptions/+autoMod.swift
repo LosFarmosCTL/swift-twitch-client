@@ -1,5 +1,6 @@
 extension EventSubSubscription {
   /// Creates a subscription description for AutoMod message hold notifications.
+  /// Messages matching the channel’s private blocked terms do not trigger this event.
   ///
   /// Requires `moderator:manage:automod`. With WebSockets, `moderatorID` must match the
   /// token’s user, who must be the broadcaster or a moderator of the channel.
@@ -49,7 +50,7 @@ extension EventSubSubscription {
 
   /// Creates a subscription description for AutoMod settings update notifications.
   ///
-  /// Requires `moderator:manage:automod_settings`. With WebSockets, `moderatorID` must
+  /// Requires `moderator:read:automod_settings`. With WebSockets, `moderatorID` must
   /// match the token’s user, who must be the broadcaster or a moderator of the channel.
   ///
   /// See the [Twitch reference](

@@ -1,7 +1,8 @@
 extension EventSubSubscription {
   /// Creates a subscription description for channel update notifications.
   ///
-  /// No event-specific scope is required.
+  /// Changes to the category, title, content classification labels, or broadcast language
+  /// trigger this event. Label changes can generate a separate notification.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/channel/#channel-update

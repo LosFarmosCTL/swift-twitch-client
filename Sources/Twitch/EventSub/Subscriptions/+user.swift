@@ -1,8 +1,9 @@
 extension EventSubSubscription {
   /// Creates a subscription description for user update notifications.
   ///
-  /// No event-specific scope is required. Email is included only when authorized with
-  /// `user:read:email`.
+  /// Display name, description, and authorized email changes trigger this event.
+  /// Email-only changes require `user:read:email` from that user. For WebSockets,
+  /// the access token must also belong to that user to receive email data.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/user/#user-update

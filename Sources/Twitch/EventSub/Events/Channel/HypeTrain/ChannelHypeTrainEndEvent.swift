@@ -17,7 +17,8 @@ public struct ChannelHypeTrainEndEvent: Event {
   /// The current level.
   public let level: Int
 
-  /// The largest Hype Train contributions.
+  /// The final top contributor per type, ranked by Bits used or number of subscriptions.
+  /// Excludes anonymous contributors and is calculated per channel in a shared train.
   public let topContributions: [ChannelHypeTrainBeginEvent.HypeTrainContribution]
 
   /// The time the activity started.

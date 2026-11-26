@@ -17,7 +17,8 @@ public struct ChannelChatNotificationEvent: Event {
 
   /// The identifier of the message.
   public let messageID: String
-  /// The structured notification message text and fragments.
+  /// The structured notification message text and fragments. Twitch does not document
+  /// Cheermote fragments for chat notifications.
   public let message: ChannelChatMessageEvent.Message
   /// The system-generated chat message.
   public let systemMessage: String
@@ -809,7 +810,8 @@ extension ChannelChatNotificationEvent {
 
   /// A channel announcement’s chat notification metadata.
   public struct AnnouncementNotice: Decodable, Sendable {
-    /// The color reported by Twitch.
+    /// The highlight color: `PRIMARY`, `BLUE`, `GREEN`, `ORANGE`, or `PURPLE`.
+    /// An empty string indicates an announcement without a color.
     public let color: String
 
     /// Creates an `AnnouncementNotice` value.

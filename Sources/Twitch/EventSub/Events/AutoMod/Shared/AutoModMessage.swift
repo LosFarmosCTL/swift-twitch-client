@@ -21,7 +21,7 @@ public struct AutoModMessage: Decodable, Sendable {
 
   /// A run of message text with its content type and any associated metadata.
   public struct Fragment: Decodable, Sendable {
-    /// The category of content represented by this fragment.
+    /// The content kind. AutoMod documents text, emote, and cheermote fragments.
     public let type: FragmentType
     /// The text content.
     public let text: String
@@ -140,7 +140,7 @@ public struct AutoModMessage: Decodable, Sendable {
       public let prefix: String
       /// The number of Bits.
       public let bits: Int
-      /// The Cheermote tier.
+      /// The minimum Bits required for the tier reached by this cheer.
       public let tier: Int
 
       /// Creates a `Cheermote` value.

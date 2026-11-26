@@ -203,7 +203,7 @@ struct EventSubChatTests {
     let donation = try decoder.decode(
       ChannelChatNotificationEvent.CharityDonationNotice.self,
       from: Data(
-        #"{"charity_name":"Charity","amount":{"value":100,"decimal_place":2,"currency":"USD"}}"#
+        #"{"charity_name":"Charity","amount":{"value":100,"decimal_places":2,"currency":"USD"}}"#
           .utf8))
     #expect(donation.amount.decimalPlaces == 2)
   }

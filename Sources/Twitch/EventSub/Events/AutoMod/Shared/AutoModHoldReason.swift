@@ -6,14 +6,14 @@ public enum AutoModHoldReason: Sendable {
   case blockedTerm(BlockedTerm)
   /// The message matched a blocked link; includes its matching text boundaries.
   case blockedLink(BlockedTerm)
-  /// An unfamiliar hold reason, preserved as sent by Twitch.
+  /// Twitch’s `"unknown"` reason or an unfamiliar reason, preserved as sent.
   case unknown(String)
 
   /// The filtering category, severity level, and text ranges responsible for a hold.
   public struct AutoMod: Decodable, Sendable {
     /// The name of the AutoMod filtering category that caught the message.
     public let category: String
-    /// The AutoMod filtering severity level that caught the message.
+    /// The AutoMod filtering severity level that caught the message. Level 1 is the most severe.
     public let level: Int
     /// The locations of held content within the message.
     public let boundaries: [Boundary]

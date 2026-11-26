@@ -98,22 +98,5 @@ public struct CharityDonationEvent: Event {
       self.decimalPlaces = decimalPlaces
       self.currency = currency
     }
-
-    private enum CodingKeys: CodingKey {
-      case value, decimalPlaces, decimalPlace, currency
-    }
-
-    /// Decodes a charity monetary amount, accepting either `decimal_places` or `decimal_place`.
-    public init(from decoder: any Decoder) throws {
-      let container = try decoder.container(keyedBy: CodingKeys.self)
-      value = try container.decode(Int.self, forKey: .value)
-      currency = try container.decode(String.self, forKey: .currency)
-      // Campaign donations use the plural key; chat notices document the singular.
-      if container.contains(.decimalPlaces) {
-        decimalPlaces = try container.decode(Int.self, forKey: .decimalPlaces)
-      } else {
-        decimalPlaces = try container.decode(Int.self, forKey: .decimalPlace)
-      }
-    }
   }
 }

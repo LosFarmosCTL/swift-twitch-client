@@ -5,7 +5,7 @@ extension EventSubSubscription {
   /// Requires `channel:read:guest_star` or `channel:manage:guest_star` or
   /// `moderator:read:guest_star` or `moderator:manage:guest_star`. With WebSockets,
   /// `moderatorID` must match the token’s user, who must be the broadcaster or a
-  /// moderator of the channel.
+  /// Guest Star moderator of the channel.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-session-begin
@@ -13,7 +13,7 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The Twitch user ID of the moderator.
+  ///   - moderatorID: The Twitch user ID of the broadcaster or one of their Guest Star moderators.
   ///
   /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
   ///   and its behavior without notice.
@@ -33,7 +33,7 @@ extension EventSubSubscription {
   /// Requires `channel:read:guest_star` or `channel:manage:guest_star` or
   /// `moderator:read:guest_star` or `moderator:manage:guest_star`. With WebSockets,
   /// `moderatorID` must match the token’s user, who must be the broadcaster or a
-  /// moderator of the channel.
+  /// Guest Star moderator of the channel.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-session-end
@@ -41,7 +41,7 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The Twitch user ID of the moderator.
+  ///   - moderatorID: The Twitch user ID of the broadcaster or one of their Guest Star moderators.
   ///
   /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
   ///   and its behavior without notice.
@@ -62,7 +62,7 @@ extension EventSubSubscription {
   /// Requires `channel:read:guest_star` or `channel:manage:guest_star` or
   /// `moderator:read:guest_star` or `moderator:manage:guest_star`. With WebSockets,
   /// `moderatorID` must match the token’s user, who must be the broadcaster or a
-  /// moderator of the channel.
+  /// Guest Star moderator of the channel.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-guest-update
@@ -70,7 +70,7 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The Twitch user ID of the moderator.
+  ///   - moderatorID: The Twitch user ID of the broadcaster or one of their Guest Star moderators.
   ///
   /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
   ///   and its behavior without notice.
@@ -91,7 +91,7 @@ extension EventSubSubscription {
   /// Requires `channel:read:guest_star` or `channel:manage:guest_star` or
   /// `moderator:read:guest_star` or `moderator:manage:guest_star`. With WebSockets,
   /// `moderatorID` must match the token’s user, who must be the broadcaster or a
-  /// moderator of the channel.
+  /// Guest Star moderator of the channel.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/guest-star/#channel-guest-star-settings-update
@@ -99,7 +99,7 @@ extension EventSubSubscription {
   ///
   /// - Parameters:
   ///   - broadcasterID: The Twitch user ID of the broadcaster.
-  ///   - moderatorID: The Twitch user ID of the moderator.
+  ///   - moderatorID: The Twitch user ID of the broadcaster or one of their Guest Star moderators.
   ///
   /// - Important: Uses Twitch’s beta Guest Star schema. Twitch may change the schema
   ///   and its behavior without notice.

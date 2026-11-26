@@ -9,7 +9,8 @@ public struct ChannelAdBreakBeginEvent: Event {
   /// The display name of the broadcaster.
   public let broadcasterDisplayName: String
 
-  /// The Twitch user ID of the requester.
+  /// The Twitch user ID of the requester. Automatic ads use the broadcaster’s ID.
+  /// Synchronized ads use the ID of the channel that ran the original ad break.
   public let requesterID: String
   /// The login name of the requester.
   public let requesterLogin: String

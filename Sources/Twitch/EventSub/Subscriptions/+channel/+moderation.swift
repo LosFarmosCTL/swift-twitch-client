@@ -51,6 +51,7 @@ extension EventSubSubscription {
   }
 
   /// Creates a subscription description for channel unban notifications.
+  /// Also fires when a timeout is removed early. Timeout expiry is silent.
   ///
   /// Requires `channel:moderate`. The broadcaster must grant the required scope; with
   /// WebSockets, use that broadcaster’s user token.

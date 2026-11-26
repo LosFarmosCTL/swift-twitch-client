@@ -64,15 +64,17 @@ public struct ChannelPredictionBeginEvent: Event {
     public let id: String
     /// The title shown to viewers.
     public let title: String
-    /// The color reported by Twitch.
+    /// The outcome color. Two-outcome predictions use blue and pink. Predictions
+    /// with more outcomes use blue for all of them.
     public let color: Color
 
-    /// The number of viewers who selected this outcome; absent in prediction-begin
-    /// payloads.
+    /// The number of viewers who selected this outcome, including viewers who
+    /// participated without spending points. Omitted when a prediction begins.
     public let users: Int?
-    /// The number of Channel Points, when provided.
+    /// The total Channel Points used on this outcome. Omitted when a prediction begins.
     public let channelPoints: Int?
-    /// The top predictors for this outcome, when provided.
+    /// The viewers who spent the most Channel Points on this outcome, highest first.
+    /// Entries can include viewers who spent zero points. Omitted when a prediction begins.
     public let topPredictors: [TopPredictor]?
 
     /// Creates an `Outcome` value.

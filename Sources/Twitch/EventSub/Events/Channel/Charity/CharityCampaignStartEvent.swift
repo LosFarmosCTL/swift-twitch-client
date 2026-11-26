@@ -57,9 +57,9 @@ public struct CharityCampaignStartEvent: Event {
 
   enum CodingKeys: String, CodingKey {
     case id
-    case broadcasterID = "broadcasterId"
-    case broadcasterLogin
-    case broadcasterDisplayName = "broadcasterName"
+    case broadcasterID = "broadcasterUserId"
+    case broadcasterLogin = "broadcasterUserLogin"
+    case broadcasterDisplayName = "broadcasterUserName"
     case charityName
     case charityDescription
     case charityLogo

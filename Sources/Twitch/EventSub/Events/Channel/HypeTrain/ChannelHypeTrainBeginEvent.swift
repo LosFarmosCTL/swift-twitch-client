@@ -26,7 +26,8 @@ public struct ChannelHypeTrainBeginEvent: Event {
   /// The highest contribution total achieved across all Hype Trains.
   public let allTimeHighTotal: Int
 
-  /// The largest Hype Train contributions.
+  /// The top contributor per type among the contributions that started the train.
+  /// For a shared train, only contributions in this broadcaster’s channel count.
   public let topContributions: [HypeTrainContribution]
 
   /// The time the activity started.
@@ -98,8 +99,7 @@ public struct ChannelHypeTrainBeginEvent: Event {
     case type
   }
 
-  /// The regular, Treasure, and Golden Kappa categories of Hype Train, preserving
-  /// unfamiliar values in `rawValue`.
+  /// The Hype Train category, preserving unfamiliar values in `rawValue`.
   public struct HypeTrainType: RawRepresentable, Codable, Sendable, Hashable {
     /// The exact Hype Train type string supplied by Twitch or the caller.
     public let rawValue: String
@@ -124,6 +124,8 @@ public struct ChannelHypeTrainBeginEvent: Event {
     public static let treasure = Self(rawValue: "treasure")
     /// A Golden Kappa Hype Train. Encoded as `"golden_kappa"`.
     public static let goldenKappa = Self(rawValue: "golden_kappa")
+    /// A Mythic Hype Train. Encoded as `"mythic"`.
+    public static let mythic = Self(rawValue: "mythic")
   }
 
   /// The account identity of a channel participating in a shared Hype Train.
@@ -164,7 +166,8 @@ public struct ChannelHypeTrainBeginEvent: Event {
 
     /// The contribution category, such as Bits or subscriptions.
     public let type: ContributionType
-    /// The contributor’s points from this contribution category during the Hype Train.
+    /// The contributor’s points for this type. Bits count one point each. Tier 1, 2,
+    /// and 3 subscriptions count for 500, 1000, and 2500 points per month, respectively.
     public let total: Int
 
     /// Creates a `HypeTrainContribution` value.

@@ -2,6 +2,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat clear notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-clear
@@ -25,6 +26,7 @@ extension EventSubSubscription {
   /// notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-clear-user-messages
@@ -47,6 +49,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat message notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-message
@@ -69,6 +72,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat message delete notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-message-delete
@@ -91,6 +95,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat notification notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-notification
@@ -113,6 +118,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat settings update notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-settings-update
@@ -135,6 +141,7 @@ extension EventSubSubscription {
   /// Creates a subscription description for channel chat user message hold notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-user-message-hold
@@ -158,6 +165,7 @@ extension EventSubSubscription {
   /// notifications.
   ///
   /// Requires `user:read:chat`. With WebSockets, `userID` must match the token’s user.
+  /// This subscription counts toward the user’s chat join limits if they have not joined the room.
   ///
   /// See the [Twitch reference](
   /// https://dev.twitch.tv/docs/eventsub/reference/chat/#channel-chat-user-message-update

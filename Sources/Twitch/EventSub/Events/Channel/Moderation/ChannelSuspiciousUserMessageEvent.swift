@@ -15,6 +15,7 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
   public let userLogin: String
 
   /// The moderation status assigned to the suspicious user.
+  /// The message is from a monitored or restricted user.
   public let lowTrustStatus: LowTrustStatus
   /// The channel IDs sharing a ban for this user.
   public let sharedBanChannelIDs: [String]
@@ -87,8 +88,8 @@ public struct ChannelSuspiciousUserMessageEvent: Event {
       try container.encode(rawValue)
     }
 
-    /// No classification or restriction applies.
-    public static let none = Self(rawValue: "none")
+    /// The user has no suspicious-user treatment. Reported on suspicious user updates.
+    public static let noTreatment = Self(rawValue: "no_treatment")
     /// The user is restricted from participating in chat.
     public static let restricted = Self(rawValue: "restricted")
     /// Messages from this user are monitored by moderators. Encoded as

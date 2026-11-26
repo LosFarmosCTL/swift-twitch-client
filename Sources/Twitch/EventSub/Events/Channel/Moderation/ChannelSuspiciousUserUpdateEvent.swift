@@ -22,6 +22,7 @@ public struct ChannelSuspiciousUserUpdateEvent: Event {
   public let userLogin: String
 
   /// The moderation status assigned to the suspicious user.
+  /// The new treatment: monitored, restricted, or no treatment.
   public let lowTrustStatus: ChannelSuspiciousUserMessageEvent.LowTrustStatus
 
   /// Creates a `ChannelSuspiciousUserUpdateEvent` value.
